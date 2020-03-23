@@ -6,9 +6,9 @@
 #include FT_MODULE_H
 
 #ifdef _DEBUG
-#pragma comment(lib,"../pixie/freetype-2.6/obj/x64/debug/freetype26d.lib")
+#pragma comment(lib,"../pixie/pixie/freetype-2.6/obj/x64/debug/freetype26d.lib")
 #else
-#pragma comment(lib,"../pixie/freetype-2.6/obj/x64/release/freetype26.lib")
+#pragma comment(lib,"../pixie/pixie/freetype-2.6/obj/x64/release/freetype26.lib")
 #endif
 
 #pragma warning(disable:4018) // '<': signed/unsigned mismatch
