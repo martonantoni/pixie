@@ -1,0 +1,375 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{7CC99E43-1245-4722-93D8-ADCD10711E4C}</ProjectGuid>
+    <RootNamespace>pixie</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>12.0.30501.0</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)\include</IncludePath>
+    <LibraryPath>$(VSInstallDir)SDK\v2.0\lib\amd64;$(LibraryPath);$(DXSDK_DIR)\lib\x64</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)\include</IncludePath>
+    <LibraryPath>$(VSInstallDir)SDK\v2.0\lib\amd64;$(LibraryPath);$(WindowsSDK_IncludePath);$(DXSDK_DIR)\lib\x64</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..;%(AdditionalIncludeDirectories);freetype-2.6/include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>freetype-2.6\obj\x64\debug\freetype26d.lib</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <AdditionalIncludeDirectories>..;%(AdditionalIncludeDirectories);freetype-2.6/include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="2dEngine\Font.h" />
+    <ClInclude Include="2dEngine\Font2.h" />
+    <ClInclude Include="2dEngine\FontManager.h" />
+    <ClInclude Include="2dEngine\FontManager2.h" />
+    <ClInclude Include="2dEngine\i_2DEngine.h" />
+    <ClInclude Include="2dEngine\LineSprite.h" />
+    <ClInclude Include="2dEngine\MouseCursor.h" />
+    <ClInclude Include="2dEngine\MultiSpriteBase.h" />
+    <ClInclude Include="2dEngine\Sprite.h" />
+    <ClInclude Include="2dEngine\SpriteBase.h" />
+    <ClInclude Include="2dEngine\SpriteColor.h" />
+    <ClInclude Include="2dEngine\SpriteRenderedTexture.h" />
+    <ClInclude Include="2dEngine\SpriteRenderInfo.h" />
+    <ClInclude Include="2dEngine\TextRenderer.h" />
+    <ClInclude Include="2dEngine\TextSprite.h" />
+    <ClInclude Include="2dEngine\TextureAnimator.h" />
+    <ClInclude Include="3dEngine\i_3DEngine.h" />
+    <ClInclude Include="3dEngine\Pix_Clearer.h" />
+    <ClInclude Include="3dEngine\Pix_Device.h" />
+    <ClInclude Include="3dEngine\Pix_Effect.h" />
+    <ClInclude Include="3dEngine\Pix_Error.h" />
+    <ClInclude Include="3dEngine\Pix_Renderer.h" />
+    <ClInclude Include="3dEngine\Pix_Vertex.h" />
+    <ClInclude Include="3dEngine\Renderers.h" />
+    <ClInclude Include="3dEngine\Texture.h" />
+    <ClInclude Include="3dEngine\TextureManager2.h" />
+    <ClInclude Include="CommonInclude_Pixie.h" />
+    <ClInclude Include="Editor\i_Editor.h" />
+    <ClInclude Include="Editor\ObjectPlacementEditor.h" />
+    <ClInclude Include="FreeTypeIntegration\BinPacker.h" />
+    <ClInclude Include="FreeTypeIntegration\FreeTypeIntegration.h" />
+    <ClInclude Include="Main\StdAfx.h" />
+    <ClInclude Include="PixieObject\i_PixieObject.h" />
+    <ClInclude Include="PixieObject\PixieObject.h" />
+    <ClInclude Include="PixieObject\PixieObjectAnimator.h" />
+    <ClInclude Include="PixieObject\PixieObjectBlender.h" />
+    <ClInclude Include="PixieObject\PixieObjectRotator.h" />
+    <ClInclude Include="PixieObject\PixiePropertyBinder.h" />
+    <ClInclude Include="PixieObject\PixiePropertyValues.h" />
+    <ClInclude Include="PixieObject\TimedBlenders.h" />
+    <ClInclude Include="System\ColorInfo.h" />
+    <ClInclude Include="System\KeyboardServer.h" />
+    <ClInclude Include="System\LogicServer.h" />
+    <ClInclude Include="System\MouseServer.h" />
+    <ClInclude Include="System\PixieCommon.h" />
+    <ClInclude Include="System\PixieEvents.h" />
+    <ClInclude Include="System\PixieInitializer.h" />
+    <ClInclude Include="System\PixieMainLoop.h" />
+    <ClInclude Include="System\Spline.h" />
+    <ClInclude Include="UI\Checkbox\CheckBox.h" />
+    <ClInclude Include="UI\Checkbox\CheckBox_Visualizer_Standard.h" />
+    <ClInclude Include="UI\Desktop2.h" />
+    <ClInclude Include="UI\DialogItem.h" />
+    <ClInclude Include="UI\EditField\EditField.h" />
+    <ClInclude Include="UI\EditField\EditField_Visualizer_Standard.h" />
+    <ClInclude Include="UI\FocusHandler.h" />
+    <ClInclude Include="UI\i_ui.h" />
+    <ClInclude Include="UI\ListBox\ListBox.h" />
+    <ClInclude Include="UI\ListBox\ListBoxVisualizer.h" />
+    <ClInclude Include="UI\ListBox\ListBox_Visualizer_Standard.h" />
+    <ClInclude Include="UI\ListBox\SimpleStringListBox.h" />
+    <ClInclude Include="UI\ListBox\VariableHeightStringListBox.h" />
+    <ClInclude Include="UI\MessageBox.h" />
+    <ClInclude Include="UI\MouseEventEmitterTarget.h" />
+    <ClInclude Include="UI\MouseTarget2.h" />
+    <ClInclude Include="UI\PixieInitData.h" />
+    <ClInclude Include="UI\PixieStandardWindow.h" />
+    <ClInclude Include="UI\PixieVisualizer.h" />
+    <ClInclude Include="UI\PushButton\PushButton.h" />
+    <ClInclude Include="UI\PushButton\PushButton_Visualizer_OnlyBorder.h" />
+    <ClInclude Include="UI\PushButton\PushButton_Visualizer_Standard.h" />
+    <ClInclude Include="UI\RadioButton\RadioButton.h" />
+    <ClInclude Include="UI\SpriteRenderer2.h" />
+    <ClInclude Include="UI\TextField\TextField.h" />
+    <ClInclude Include="UI\TextField\TextField_Visualizer_Standard.h" />
+    <ClInclude Include="UI\TextLinkHelper.h" />
+    <ClInclude Include="UI\TooltipDisplayer.h" />
+    <ClInclude Include="UI\visualizers\MultiSprite_1PixRect.h" />
+    <ClInclude Include="UI\visualizers\MultiSprite_Horiz3.h" />
+    <ClInclude Include="UI\visualizers\MultiSprite_Simple9Patch.h" />
+    <ClInclude Include="UI\visualizers\VisualizationHelpers.h" />
+    <ClInclude Include="UI\visualizers\vis_Standard.h" />
+    <ClInclude Include="UI\Window2.h" />
+    <ClInclude Include="UI\Window2_SpriteIterator.h" />
+    <ClInclude Include="Window\i_window.h" />
+    <ClInclude Include="Window\MouseCursorServer.h" />
+    <ClInclude Include="Window\PrimaryWindow.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="2dEngine\Font.cpp" />
+    <ClCompile Include="2dEngine\Font2.cpp" />
+    <ClCompile Include="2dEngine\FontManager.cpp" />
+    <ClCompile Include="2dEngine\FontManager2.cpp" />
+    <ClCompile Include="2dEngine\LineSprite.cpp" />
+    <ClCompile Include="2dEngine\MouseCursor.cpp" />
+    <ClCompile Include="2dEngine\MultiSpriteBase.cpp" />
+    <ClCompile Include="2dEngine\Sprite.cpp" />
+    <ClCompile Include="2dEngine\SpriteBase.cpp" />
+    <ClCompile Include="2dEngine\SpriteColor.cpp" />
+    <ClCompile Include="2dEngine\SpriteRenderedTexture.cpp" />
+    <ClCompile Include="2dEngine\TextRenderer.cpp" />
+    <ClCompile Include="2dEngine\TextSprite.cpp" />
+    <ClCompile Include="2dEngine\TextureAnimator.cpp" />
+    <ClCompile Include="3dEngine\Pix_Clearer.cpp" />
+    <ClCompile Include="3dEngine\Pix_Device.cpp" />
+    <ClCompile Include="3dEngine\Pix_Effect.cpp" />
+    <ClCompile Include="3dEngine\Pix_Error.cpp" />
+    <ClCompile Include="3dEngine\Renderers.cpp" />
+    <ClCompile Include="3dEngine\Texture.cpp" />
+    <ClCompile Include="3dEngine\TextureManager2.cpp" />
+    <ClCompile Include="Editor\ObjectPlacementEditor.cpp" />
+    <ClCompile Include="FreeTypeIntegration\BinPacker.cpp" />
+    <ClCompile Include="FreeTypeIntegration\FreeTypeIntegration.cpp" />
+    <ClCompile Include="Main\StdAfx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="PixieObject\PixieObject.cpp" />
+    <ClCompile Include="PixieObject\PixieObjectAnimator.cpp" />
+    <ClCompile Include="PixieObject\PixieObjectBlender.cpp" />
+    <ClCompile Include="PixieObject\PixieObjectRotator.cpp" />
+    <ClCompile Include="PixieObject\PixiePropertyBinder.cpp" />
+    <ClCompile Include="PixieObject\PixiePropertyValues.cpp" />
+    <ClCompile Include="PixieObject\TimedBlenders.cpp" />
+    <ClCompile Include="System\ColorInfo.cpp" />
+    <ClCompile Include="System\KeyboardServer.cpp" />
+    <ClCompile Include="System\LogicServer.cpp" />
+    <ClCompile Include="System\MouseServer.cpp" />
+    <ClCompile Include="System\PixieCommon.cpp" />
+    <ClCompile Include="System\PixieEvents.cpp" />
+    <ClCompile Include="System\PixieInitializer.cpp" />
+    <ClCompile Include="System\PixieMainLoop.cpp" />
+    <ClCompile Include="System\Spline.cpp" />
+    <ClCompile Include="UI\Checkbox\CheckBox.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="UI\Checkbox\CheckBox_Visualizer_Standard.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="UI\Desktop2.cpp" />
+    <ClCompile Include="UI\DialogItem.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="UI\EditField\EditField.cpp" />
+    <ClCompile Include="UI\EditField\EditField_Visualizer_Standard.cpp" />
+    <ClCompile Include="UI\FocusHandler.cpp" />
+    <ClCompile Include="UI\ListBox\ListBox.cpp" />
+    <ClCompile Include="UI\ListBox\ListBoxVisualizer.cpp" />
+    <ClCompile Include="UI\ListBox\ListBox_Visualizer_Standard.cpp" />
+    <ClCompile Include="UI\ListBox\SimpleStringListBox.cpp" />
+    <ClCompile Include="UI\ListBox\VariableHeightStringListBox.cpp" />
+    <ClCompile Include="UI\MessageBox.cpp" />
+    <ClCompile Include="UI\MouseEventEmitterTarget.cpp" />
+    <ClCompile Include="UI\MouseTarget2.cpp" />
+    <ClCompile Include="UI\PixieInitData.cpp" />
+    <ClCompile Include="UI\PixieStandardWindow.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="UI\PixieVisualizer.cpp" />
+    <ClCompile Include="UI\PushButton\PushButton.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="UI\PushButton\PushButton_Visualizer_OnlyBorder.cpp" />
+    <ClCompile Include="UI\PushButton\PushButton_Visualizer_Standard.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="UI\RadioButton\RadioButton.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="UI\SpriteRenderer2.cpp" />
+    <ClCompile Include="UI\TextField\TextField.cpp" />
+    <ClCompile Include="UI\TextField\TextField_Visualizer_Standard.cpp" />
+    <ClCompile Include="UI\TextLinkHelper.cpp" />
+    <ClCompile Include="UI\TooltipDisplayer.cpp" />
+    <ClCompile Include="UI\visualizers\MultiSprite_1PixRect.cpp" />
+    <ClCompile Include="UI\visualizers\MultiSprite_Horiz3.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="UI\visualizers\MultiSprite_Simple9Patch.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="UI\visualizers\VisualizationHelpers.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="UI\visualizers\vis_Standard.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="UI\Window2.cpp" />
+    <ClCompile Include="UI\Window2_SpriteIterator.cpp" />
+    <ClCompile Include="Window\MouseCursorServer.cpp" />
+    <ClCompile Include="Window\PrimaryWindow.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

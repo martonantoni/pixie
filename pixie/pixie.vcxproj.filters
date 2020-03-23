@@ -1,0 +1,547 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Main">
+      <UniqueIdentifier>{ce29e5a8-109b-4c98-a340-c1c67c1139df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3D Engine">
+      <UniqueIdentifier>{7866ae1e-787f-4eb9-b7dd-9e53246825d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2D Engine">
+      <UniqueIdentifier>{e58fb8f5-eaae-4363-945e-c923abbd591b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System">
+      <UniqueIdentifier>{cba9ae0e-3976-4a07-aba6-203ad9f1ca5f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{c0815f7a-dd08-45b0-b8c5-35284dbe7aa5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\visualizers">
+      <UniqueIdentifier>{5c4bcd30-2ffb-43d4-b8f0-505efdbaaec6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\PushButton">
+      <UniqueIdentifier>{c0981b13-7544-46f6-b51c-88f7dae26d4e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\CheckBox">
+      <UniqueIdentifier>{4b480b82-353d-4e9f-b616-93fbd8546561}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\RadioButton">
+      <UniqueIdentifier>{f576a873-daaa-4e93-888c-b0e6e909c75a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Windows">
+      <UniqueIdentifier>{074ff3f5-eb6f-48ca-8dad-33326114c0dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PixieObject">
+      <UniqueIdentifier>{8859744f-3adb-4356-a397-cbd292a226b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FreeType">
+      <UniqueIdentifier>{b73e0635-e825-46ae-9bf3-492e4e631fd8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\ListBox">
+      <UniqueIdentifier>{8801b7ba-c2dd-4871-bb20-0e5ae3a3be85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\TextField">
+      <UniqueIdentifier>{de20971a-112c-46b8-8aa7-c14a6a4e8080}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\EditField">
+      <UniqueIdentifier>{7635e369-c0f0-4a9c-9e33-45c488905e9f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor">
+      <UniqueIdentifier>{c55609b8-b5a3-43af-8138-d769c012b9da}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Window\i_window.h">
+      <Filter>Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Window\PrimaryWindow.h">
+      <Filter>Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Main\StdAfx.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="3dEngine\i_3DEngine.h">
+      <Filter>3D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="3dEngine\Pix_Clearer.h">
+      <Filter>3D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="3dEngine\Pix_Device.h">
+      <Filter>3D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="3dEngine\Pix_Effect.h">
+      <Filter>3D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="3dEngine\Pix_Error.h">
+      <Filter>3D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="3dEngine\Pix_Renderer.h">
+      <Filter>3D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="3dEngine\Pix_Vertex.h">
+      <Filter>3D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="3dEngine\Texture.h">
+      <Filter>3D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="3dEngine\TextureManager2.h">
+      <Filter>3D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="2dEngine\Font.h">
+      <Filter>2D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="2dEngine\FontManager.h">
+      <Filter>2D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="2dEngine\i_2DEngine.h">
+      <Filter>2D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="2dEngine\MouseCursor.h">
+      <Filter>2D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="2dEngine\MultiSpriteBase.h">
+      <Filter>2D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="2dEngine\Sprite.h">
+      <Filter>2D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="2dEngine\SpriteBase.h">
+      <Filter>2D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="2dEngine\SpriteColor.h">
+      <Filter>2D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="2dEngine\TextSprite.h">
+      <Filter>2D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="System\LogicServer.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\MouseServer.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\PixieCommon.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\PixieInitializer.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\PixieMainLoop.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\DialogItem.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\i_ui.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\PixieStandardWindow.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\visualizers\MultiSprite_Horiz3.h">
+      <Filter>UI\visualizers</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\visualizers\MultiSprite_Simple9Patch.h">
+      <Filter>UI\visualizers</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\visualizers\vis_Standard.h">
+      <Filter>UI\visualizers</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\visualizers\VisualizationHelpers.h">
+      <Filter>UI\visualizers</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\PushButton\PushButton.h">
+      <Filter>UI\PushButton</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\PushButton\PushButton_Visualizer_Standard.h">
+      <Filter>UI\PushButton</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Checkbox\CheckBox.h">
+      <Filter>UI\CheckBox</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Checkbox\CheckBox_Visualizer_Standard.h">
+      <Filter>UI\CheckBox</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\RadioButton\RadioButton.h">
+      <Filter>UI\RadioButton</Filter>
+    </ClInclude>
+    <ClInclude Include="CommonInclude_Pixie.h" />
+    <ClInclude Include="UI\MouseTarget2.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Window2.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Window2_SpriteIterator.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="2dEngine\SpriteRenderInfo.h">
+      <Filter>2D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\SpriteRenderer2.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\Desktop2.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\PixieVisualizer.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="3dEngine\Renderers.h">
+      <Filter>3D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\PixieInitData.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="System\PixieEvents.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="2dEngine\SpriteRenderedTexture.h">
+      <Filter>2D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="PixieObject\PixieObject.h">
+      <Filter>PixieObject</Filter>
+    </ClInclude>
+    <ClInclude Include="PixieObject\i_PixieObject.h">
+      <Filter>PixieObject</Filter>
+    </ClInclude>
+    <ClInclude Include="PixieObject\PixiePropertyBinder.h">
+      <Filter>PixieObject</Filter>
+    </ClInclude>
+    <ClInclude Include="PixieObject\PixiePropertyValues.h">
+      <Filter>PixieObject</Filter>
+    </ClInclude>
+    <ClInclude Include="PixieObject\PixieObjectAnimator.h">
+      <Filter>PixieObject</Filter>
+    </ClInclude>
+    <ClInclude Include="PixieObject\PixieObjectBlender.h">
+      <Filter>PixieObject</Filter>
+    </ClInclude>
+    <ClInclude Include="PixieObject\TimedBlenders.h">
+      <Filter>PixieObject</Filter>
+    </ClInclude>
+    <ClInclude Include="PixieObject\PixieObjectRotator.h">
+      <Filter>PixieObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Window\MouseCursorServer.h">
+      <Filter>Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="FreeTypeIntegration\FreeTypeIntegration.h">
+      <Filter>FreeType</Filter>
+    </ClInclude>
+    <ClInclude Include="FreeTypeIntegration\BinPacker.h">
+      <Filter>FreeType</Filter>
+    </ClInclude>
+    <ClInclude Include="2dEngine\Font2.h">
+      <Filter>2D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="2dEngine\FontManager2.h">
+      <Filter>2D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="System\ColorInfo.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="2dEngine\TextRenderer.h">
+      <Filter>2D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="2dEngine\TextureAnimator.h">
+      <Filter>2D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="System\KeyboardServer.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\ListBox\ListBox.h">
+      <Filter>UI\ListBox</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\ListBox\ListBox_Visualizer_Standard.h">
+      <Filter>UI\ListBox</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\ListBox\SimpleStringListBox.h">
+      <Filter>UI\ListBox</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\ListBox\ListBoxVisualizer.h">
+      <Filter>UI\ListBox</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\visualizers\MultiSprite_1PixRect.h">
+      <Filter>UI\visualizers</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\MessageBox.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\TextField\TextField.h">
+      <Filter>UI\TextField</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\TextField\TextField_Visualizer_Standard.h">
+      <Filter>UI\TextField</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\EditField\EditField.h">
+      <Filter>UI\EditField</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\EditField\EditField_Visualizer_Standard.h">
+      <Filter>UI\EditField</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\FocusHandler.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\ListBox\VariableHeightStringListBox.h">
+      <Filter>UI\ListBox</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\MouseEventEmitterTarget.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\TextLinkHelper.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\ObjectPlacementEditor.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\i_Editor.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\TooltipDisplayer.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\PushButton\PushButton_Visualizer_OnlyBorder.h">
+      <Filter>UI\PushButton</Filter>
+    </ClInclude>
+    <ClInclude Include="2dEngine\LineSprite.h">
+      <Filter>2D Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Spline.h">
+      <Filter>System</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Window\PrimaryWindow.cpp">
+      <Filter>Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Main\StdAfx.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="3dEngine\Pix_Clearer.cpp">
+      <Filter>3D Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="3dEngine\Pix_Device.cpp">
+      <Filter>3D Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="3dEngine\Pix_Effect.cpp">
+      <Filter>3D Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="3dEngine\Pix_Error.cpp">
+      <Filter>3D Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="3dEngine\Texture.cpp">
+      <Filter>3D Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="3dEngine\TextureManager2.cpp">
+      <Filter>3D Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="2dEngine\Font.cpp">
+      <Filter>2D Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="2dEngine\FontManager.cpp">
+      <Filter>2D Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="2dEngine\MouseCursor.cpp">
+      <Filter>2D Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="2dEngine\MultiSpriteBase.cpp">
+      <Filter>2D Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="2dEngine\Sprite.cpp">
+      <Filter>2D Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="2dEngine\SpriteBase.cpp">
+      <Filter>2D Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="2dEngine\SpriteColor.cpp">
+      <Filter>2D Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="2dEngine\TextSprite.cpp">
+      <Filter>2D Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="System\LogicServer.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\MouseServer.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\PixieCommon.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\PixieInitializer.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\PixieMainLoop.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\DialogItem.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\PixieStandardWindow.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\visualizers\MultiSprite_Horiz3.cpp">
+      <Filter>UI\visualizers</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\visualizers\MultiSprite_Simple9Patch.cpp">
+      <Filter>UI\visualizers</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\visualizers\vis_Standard.cpp">
+      <Filter>UI\visualizers</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\visualizers\VisualizationHelpers.cpp">
+      <Filter>UI\visualizers</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\PushButton\PushButton.cpp">
+      <Filter>UI\PushButton</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\PushButton\PushButton_Visualizer_Standard.cpp">
+      <Filter>UI\PushButton</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Checkbox\CheckBox.cpp">
+      <Filter>UI\CheckBox</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Checkbox\CheckBox_Visualizer_Standard.cpp">
+      <Filter>UI\CheckBox</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\RadioButton\RadioButton.cpp">
+      <Filter>UI\RadioButton</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\MouseTarget2.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Window2.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Window2_SpriteIterator.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\SpriteRenderer2.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Desktop2.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\PixieVisualizer.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="3dEngine\Renderers.cpp">
+      <Filter>3D Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\PixieInitData.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="System\PixieEvents.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="2dEngine\SpriteRenderedTexture.cpp">
+      <Filter>2D Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="PixieObject\PixieObject.cpp">
+      <Filter>PixieObject</Filter>
+    </ClCompile>
+    <ClCompile Include="PixieObject\PixiePropertyBinder.cpp">
+      <Filter>PixieObject</Filter>
+    </ClCompile>
+    <ClCompile Include="PixieObject\PixiePropertyValues.cpp">
+      <Filter>PixieObject</Filter>
+    </ClCompile>
+    <ClCompile Include="PixieObject\PixieObjectAnimator.cpp">
+      <Filter>PixieObject</Filter>
+    </ClCompile>
+    <ClCompile Include="PixieObject\PixieObjectBlender.cpp">
+      <Filter>PixieObject</Filter>
+    </ClCompile>
+    <ClCompile Include="PixieObject\TimedBlenders.cpp">
+      <Filter>PixieObject</Filter>
+    </ClCompile>
+    <ClCompile Include="PixieObject\PixieObjectRotator.cpp">
+      <Filter>PixieObject</Filter>
+    </ClCompile>
+    <ClCompile Include="Window\MouseCursorServer.cpp">
+      <Filter>Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="FreeTypeIntegration\FreeTypeIntegration.cpp">
+      <Filter>FreeType</Filter>
+    </ClCompile>
+    <ClCompile Include="FreeTypeIntegration\BinPacker.cpp">
+      <Filter>FreeType</Filter>
+    </ClCompile>
+    <ClCompile Include="2dEngine\Font2.cpp">
+      <Filter>2D Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="2dEngine\FontManager2.cpp">
+      <Filter>2D Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="System\ColorInfo.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="2dEngine\TextRenderer.cpp">
+      <Filter>2D Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="2dEngine\TextureAnimator.cpp">
+      <Filter>2D Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="System\KeyboardServer.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\ListBox\ListBox.cpp">
+      <Filter>UI\ListBox</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\ListBox\ListBox_Visualizer_Standard.cpp">
+      <Filter>UI\ListBox</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\ListBox\SimpleStringListBox.cpp">
+      <Filter>UI\ListBox</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\ListBox\ListBoxVisualizer.cpp">
+      <Filter>UI\ListBox</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\visualizers\MultiSprite_1PixRect.cpp">
+      <Filter>UI\visualizers</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\MessageBox.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\TextField\TextField.cpp">
+      <Filter>UI\TextField</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\TextField\TextField_Visualizer_Standard.cpp">
+      <Filter>UI\TextField</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\EditField\EditField.cpp">
+      <Filter>UI\EditField</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\EditField\EditField_Visualizer_Standard.cpp">
+      <Filter>UI\EditField</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\FocusHandler.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\ListBox\VariableHeightStringListBox.cpp">
+      <Filter>UI\ListBox</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\MouseEventEmitterTarget.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\TextLinkHelper.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\ObjectPlacementEditor.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\TooltipDisplayer.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\PushButton\PushButton_Visualizer_OnlyBorder.cpp">
+      <Filter>UI\PushButton</Filter>
+    </ClCompile>
+    <ClCompile Include="2dEngine\LineSprite.cpp">
+      <Filter>2D Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Spline.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

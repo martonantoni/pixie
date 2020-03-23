@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="System">
+      <UniqueIdentifier>{f80ec83e-62bc-42c8-83aa-2650638a7e2e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CommonInclude_Flow.h" />
+    <ClInclude Include="System\FlowStream.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\FlowConnection.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\i_System.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="System\FlowConnectionID.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\FlowMessageBase.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\FlowMessageHeader.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\LoginMessages.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\FlowRawMessage.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\FlowServerConnectionManager.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\FlowStreamAcceptor.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\FlowUserID.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="System\Flow.h">
+      <Filter>System</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="System\FlowStream.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\FlowConnection.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp" />
+    <ClCompile Include="System\FlowConnectionID.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\FlowMessageHeader.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\LoginMessages.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\FlowRawMessage.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\FlowServerConnectionManager.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\FlowStreamAcceptor.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\FlowUserID.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="System\Flow.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
