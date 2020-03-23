@@ -1,0 +1,9 @@
+Flow/Debug
+Flow/x64
+**.user
+LuaPlus/Debug
+LuaPlus/x64
+pixie/Debug
+pixie/x64
+system/Debug
+system/x64
