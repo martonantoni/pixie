@@ -52,3 +52,16 @@ uint64_t GenerateRandomInteger64()
 {
 	return *(uint64_t *)cRandomKeeper::Get().GetBytes(sizeof(uint64_t));
 }
+
+std::mt19937& GetCommonMersenneTwister()
+{
+    static std::mt19937 mersenneTwister;
+    static bool initDone = false;
+    if (!initDone)
+    {
+        std::random_device randomDevice;
+        mersenneTwister.seed(randomDevice());
+        initDone = true;
+    }
+    return mersenneTwister;
+}
