@@ -24,7 +24,7 @@ public:
 	int GetGreen() const { return (mColor>>8)&0xff; }
 	int GetBlue() const { return mColor&0xff; }
 
-	static cColor FromRGBColor(unsigned int Color) { cColor(Color|0xff000000); }
+	static cColor FromRGBColor(unsigned int Color) { return cColor(Color|0xff000000); }
 };
 
 class cColorServer
