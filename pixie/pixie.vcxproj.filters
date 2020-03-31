@@ -310,6 +310,9 @@
     <ClInclude Include="System\Spline.h">
       <Filter>System</Filter>
     </ClInclude>
+    <ClInclude Include="UI\UIStateManager.h">
+      <Filter>UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Window\PrimaryWindow.cpp">
@@ -542,6 +545,9 @@
     </ClCompile>
     <ClCompile Include="System\Spline.cpp">
       <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\UIStateManager.cpp">
+      <Filter>UI</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
