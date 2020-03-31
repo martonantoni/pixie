@@ -6,6 +6,7 @@ class cUIState
 {
 protected:
     cUIStateManager& mUIStateManager;
+    cPixieWindow* GetWindow() const;
 public:
     cUIState(cUIStateManager& UIStateManager) : mUIStateManager(UIStateManager) {}
     virtual ~cUIState() = default;
@@ -23,12 +24,14 @@ class cUIStateManager
 public:
     void Init();
     void PushState(std::unique_ptr<cUIState> State);
+    template<class T> void MakeAndPushState() { PushState(std::make_unique<T>(*this)); }
     void ReplaceTopState(std::unique_ptr<cUIState> State);
     void PopState();
+    void PopStateN(int StatesToPop);
     bool PopState_Safe();
 
     void Hide();
     void Show();
 
-    cPixieWindow* GetWindow();
+    cPixieWindow* GetWindow() const;
 };

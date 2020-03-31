@@ -1,5 +1,10 @@
 #include "StdAfx.h"
 
+cPixieWindow* cUIState::GetWindow() const
+{
+    return mUIStateManager.GetWindow();
+}
+
 void cUIStateManager::Init()
 {
     mWindow = std::make_unique<cPixieWindow>();
@@ -17,7 +22,7 @@ void cUIStateManager::Init()
     mBackgroundSprite->Show();
 }
 
-cPixieWindow* cUIStateManager::GetWindow()
+cPixieWindow* cUIStateManager::GetWindow() const
 {
     return mWindow.get();
 }
@@ -44,6 +49,21 @@ void cUIStateManager::PopState()
 {
     mStateStack.back()->Leave();
     mStateStack.pop_back();
+    if (ASSERTTRUE(!mStateStack.empty()))
+    {
+        EnterState(*mStateStack.back());
+    }
+}
+
+void cUIStateManager::PopStateN(int StatesToPop)
+{
+    if (StatesToPop == 0)
+        return;
+    mStateStack.back()->Leave();
+    for (int i = 0; i < StatesToPop; ++i)
+    {
+        mStateStack.pop_back();
+    }
     if (ASSERTTRUE(!mStateStack.empty()))
     {
         EnterState(*mStateStack.back());
