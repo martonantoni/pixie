@@ -42,6 +42,7 @@ void cTCPAcceptor::Listen_NetThread(unsigned short Port)
 	ASSERT(gNetworkThread->IsInThread());
 	mListeningSocket.reset(new cSocket);
 	mListeningSocket->CreateTCP();
+	mListeningSocket->SetLog(mTextLog);
 	mListeningSocket->SetHandler(this);
 	mListeningSocket->Listen(Port);
 	mListeningSocket->Resume();
@@ -54,6 +55,13 @@ void cTCPAcceptor::Listen(unsigned short Port)
 	::CallBack(gNetworkThread, eCallbackType::Normal, this, &cTCPAcceptor::Listen_NetThread, Port);
 }
 
-void Close()
+void cTCPAcceptor::SetLog(std::shared_ptr<cTextLog> log)
 {
+    ASSERT(gNetworkThread->IsInThread());
+	mTextLog = std::move(log);
+	if (mListeningSocket)
+	{
+		mListeningSocket->SetLog(mTextLog);
+	}
 }
+

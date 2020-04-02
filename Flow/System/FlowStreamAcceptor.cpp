@@ -5,6 +5,11 @@ cFlowStreamAcceptor::cFlowStreamAcceptor()
 {
 }
 
+void cFlowStreamAcceptor::SetLog(std::shared_ptr<cTextLog> log)
+{
+	mAcceptor->SetLog(std::move(log));
+}
+
 void cFlowStreamAcceptor::OnNewSocket(std::unique_ptr<cSocket> NewSocket)
 {
 	auto Stream=new cFlowServerStream;

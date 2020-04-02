@@ -10,6 +10,7 @@ public:
 class cTCPAcceptor: public cSocketHandler, public cIntrusiveThreadsafeRefCount
 {
 	cMutex mLock;
+	std::shared_ptr<cTextLog> mTextLog;
 	cSocketTaker *mSocketTaker;                 // guarded by mMutex
 	std::unique_ptr<cSocket> mListeningSocket;  // accessed only in network thread
 	virtual void OnConnected() override;
@@ -18,11 +19,10 @@ class cTCPAcceptor: public cSocketHandler, public cIntrusiveThreadsafeRefCount
 	virtual void OnCanWrite() override;
 	virtual void OnClosed() override;
 	void Listen_NetThread(unsigned short Port);
-	void Close_NetThread();
 protected:
 	virtual ~cTCPAcceptor();
 public:
 	cTCPAcceptor(cSocketTaker *SocketTaker);
 	void Listen(unsigned short Port);   // can be called any thread
-	void Close();
+	void SetLog(std::shared_ptr<cTextLog> log);
 };

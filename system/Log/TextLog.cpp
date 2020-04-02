@@ -17,3 +17,8 @@ cRegisteredID cTextLog::RegisterPlugin(tIntrusivePtr<cTextLogPlugin> Plugin)
 	std::lock_guard<std::mutex> Guard(mMutex);
 	return cRegisteredID { this, mPlugins.Register(std::move(Plugin)) };
 }
+
+void cStdOutTextLogPlugin::Log(const std::string& Text)
+{
+	printf("%s\n", Text.c_str());
+}
