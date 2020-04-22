@@ -8,6 +8,7 @@ public:
 		unsigned int mStartTime;
 		unsigned int mEndTime;
 		cTimeRange(unsigned int StartTime, unsigned int EndTime): mStartTime(StartTime), mEndTime(EndTime) {}
+		cTimeRange(int StartTime, int EndTime): mStartTime(StartTime), mEndTime(EndTime) {}
 		unsigned int Duration() const { return mEndTime-mStartTime; }
 	};
 	struct cStandardBlenderRequest

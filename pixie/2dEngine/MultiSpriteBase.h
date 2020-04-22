@@ -13,6 +13,7 @@ public:
 
 	size_t GetNumberOfSubSprites() const { return mSprites.size(); }
 	cSpriteBase *GetSubSprite(size_t Index) const { return mSprites[Index].get(); }
+	std::vector<std::unique_ptr<cSpriteBase>> ReleaseSubSprites() { return std::move(mSprites); }
 
 	enum class ePositioning { TopLeft, TopRight, BottomLeft, BottomRight }; // which point of the sprite is specified
 	static void PositionSprite(cSpriteBase &Sprite, cPoint Position, ePositioning Positioning);

@@ -124,6 +124,15 @@ bool cFontManager2::InitFont(cFont2 &Font, tIntrusivePtr<cConfig> Config)
 		break;
 	}
 	cTexture::cLockInfo LockInfo=Font.mAtlasTexture->LockSurface();
+	for (int y = 0; y < Font.mAtlasTexture->GetSurfaceHeight(); ++y)
+	{
+		memset(LockInfo.mBytes + y * LockInfo.mPitch, 0xff, Font.mAtlasTexture->GetSurfaceWidth() * 4);
+		for (int x = 0; x < Font.mAtlasTexture->GetSurfaceWidth(); ++x)
+		{
+			*(LockInfo.mBytes + y * LockInfo.mPitch + x*4 + 3) = 0;
+		}
+	}
+
 	Index=-1;
 
 	ForEachLetter([&](auto Letter, auto &FontLetterData)
@@ -143,7 +152,12 @@ bool cFontManager2::InitFont(cFont2 &Font, tIntrusivePtr<cConfig> Config)
 			unsigned char *source=bitmap->bitmap.buffer+row*bitmap->bitmap.pitch;
 			for(int x=0; x<bitmap->bitmap.width; ++x)
 			{
-				*(unsigned int *)dest=(((unsigned int)*source) << 24) | 0xffffff;
+// 				if (*source)
+// 				{
+//                     *(unsigned int*)dest =  0xffff'ffffu;
+//                 }
+				//*(unsigned int*)dest = *source ? 0xffff'ffffu : 0xff000000u;
+				*(unsigned int*)dest = (((unsigned int)*source) << 24) | 0xffffff;
 				dest+=4;
 				++source;
 			}

@@ -1,6 +1,7 @@
 #pragma warning(disable: 4800) // forcing value to BOOL 'true' or 'false' (performance warning)
 #pragma warning(disable: 4244)
 #pragma warning(disable: 4355) // 'this' : used in base member initializer list -- MakeFunctor there..
+#pragma warning(disable: 4267) // size_t -> int conversion warning
 
 #define _CRT_SECURE_NO_WARNINGS
 #define _WIN32_WINNT 0x0501  // Windows XP needed
