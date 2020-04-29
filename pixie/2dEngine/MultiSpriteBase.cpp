@@ -54,17 +54,15 @@ void cMultiSpriteBase::PropertiesChanged(unsigned int Properties)
 cSimpleMultiSprite::cSimpleMultiSprite(std::vector<std::unique_ptr<cSpriteBase>> &&Sprites)
 {
 	mSprites=std::move(Sprites);
-	cPoint Size { 0,0 };
-	for(auto &Sprite: mSprites)
-	{
-		cPoint SpriteSize=Sprite->GetRect().BottomRight();
-		if(SpriteSize.x>Size.x)
-			Size.x=SpriteSize.x;
-		if(SpriteSize.y>Size.y)
-			Size.y=SpriteSize.y;
-	}
-	mProperties.mRect.SetPosition({ 0,0 });
-	mProperties.mRect.SetSize(Size+cPoint { 1, 1 });
+    if (!mSprites.empty())
+    {
+        mProperties.mRect = mSprites.front()->GetRect();
+        for (int i = 1, iend = mSprites.size(); i != iend; ++i)
+        {
+            mProperties.mRect.GrowToBound(mSprites[i]->GetRect());
+        }
+        mBasePos = mProperties.mRect.GetPosition();
+    }
 }
 
 void cSimpleMultiSprite::ArrangeSprites()
@@ -76,9 +74,6 @@ void cSimpleMultiSprite::ArrangeSprites()
 	}
 	mBasePos=GetPosition();
 }
-
-
-#undef MULTISPRITE_FOR_EACH_SPRITE
 
 void cAutoMultiSpriteBase::Cleanup()
 {
