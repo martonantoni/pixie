@@ -56,3 +56,14 @@ void cMouseEventEmitterTarget::OnRightButtonUp(cPoint ScreenCoords, bool IsInsid
 {
 	mEventDispatchers.PostEvent(Event_RightButtonUp);
 }
+
+std::unique_ptr<cMouseEventEmitterTarget> cMouseEventEmitterTarget::CreateOverSprite(const cSpriteBase& sprite)
+{
+    cMouseEventEmitterTarget::cInitData TargetInitData;
+    TargetInitData.mZOrder = sprite.GetZOrder(); // doesn't make much sense, but why not
+    TargetInitData.mParentWindow = sprite.GetWindow();
+    TargetInitData.mPlacement = sprite.GetRect();
+    auto target = std::make_unique<cMouseEventEmitterTarget>();
+    target->Init(TargetInitData);
+    return target;
+}

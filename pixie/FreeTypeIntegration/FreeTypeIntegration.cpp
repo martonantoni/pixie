@@ -152,11 +152,6 @@ bool cFontManager2::InitFont(cFont2 &Font, tIntrusivePtr<cConfig> Config)
 			unsigned char *source=bitmap->bitmap.buffer+row*bitmap->bitmap.pitch;
 			for(int x=0; x<bitmap->bitmap.width; ++x)
 			{
-// 				if (*source)
-// 				{
-//                     *(unsigned int*)dest =  0xffff'ffffu;
-//                 }
-				//*(unsigned int*)dest = *source ? 0xffff'ffffu : 0xff000000u;
 				*(unsigned int*)dest = (((unsigned int)*source) << 24) | 0xffffff;
 				dest+=4;
 				++source;

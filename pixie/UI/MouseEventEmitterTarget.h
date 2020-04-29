@@ -22,5 +22,6 @@ protected:
 public:
 	using cInitData = cMouseTarget::cInitData;
 	void Init(const cInitData &InitData);
+    static std::unique_ptr<cMouseEventEmitterTarget> CreateOverSprite(const cSpriteBase& sprite);
 };
 
