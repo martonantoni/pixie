@@ -87,3 +87,17 @@ bool cSprite::GetProperty(unsigned int PropertyFlags, OUT cPropertyValues &Prope
 		return cSpriteBase::GetProperty(PropertyFlags, PropertyValues);
 	}
 }
+
+void cSprite::CopyProperties(const cSprite& source)
+{
+    cSpriteBase::CopyProperties(source);
+    mTexture = source.mTexture;
+    mBlendingMode = source.mBlendingMode;
+}
+
+std::unique_ptr<cSpriteBase> cSprite::Clone() const
+{
+    auto clone = std::make_unique<cSprite>();
+    clone->CopyProperties(*this);
+    return clone;
+}

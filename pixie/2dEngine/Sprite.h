@@ -7,6 +7,7 @@ protected:
 	mutable tIntrusivePtr<cTexture> mClippedTexture;
 	tIntrusivePtr<cTexture> mTexture;
 	cSpriteRenderInfo::eBlendingMode mBlendingMode=cSpriteRenderInfo::Blend_Normal;
+    void CopyProperties(const cSprite& source);
 	virtual ~cSprite()=default; // protected. use Drop
 public:
 	cSprite()=default; 
@@ -21,6 +22,7 @@ public:
 	virtual cPoint GetPrefferedSize() const override { return mTexture?mTexture->GetSize():cPoint {1, 1}; }
 	virtual bool SetStringProperty(unsigned int PropertyFlags, const std::string &Value) override;
 	virtual bool GetProperty(unsigned int PropertyFlags, OUT cPropertyValues &Value) const override;
+    virtual std::unique_ptr<cSpriteBase> Clone() const override;
 };
 
 USE_DROP_INSTEAD_DELETE_PARENT(cSprite, cSpriteBase)

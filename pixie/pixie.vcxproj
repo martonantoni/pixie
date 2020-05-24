@@ -153,6 +153,7 @@
     <ClInclude Include="2dEngine\Sprite.h" />
     <ClInclude Include="2dEngine\SpriteBase.h" />
     <ClInclude Include="2dEngine\SpriteColor.h" />
+    <ClInclude Include="2dEngine\SpriteOutliner.h" />
     <ClInclude Include="2dEngine\SpriteRenderedTexture.h" />
     <ClInclude Include="2dEngine\SpriteRenderInfo.h" />
     <ClInclude Include="2dEngine\TextRenderer.h" />
@@ -242,6 +243,7 @@
     <ClCompile Include="2dEngine\Sprite.cpp" />
     <ClCompile Include="2dEngine\SpriteBase.cpp" />
     <ClCompile Include="2dEngine\SpriteColor.cpp" />
+    <ClCompile Include="2dEngine\SpriteOutliner.cpp" />
     <ClCompile Include="2dEngine\SpriteRenderedTexture.cpp" />
     <ClCompile Include="2dEngine\TextRenderer.cpp" />
     <ClCompile Include="2dEngine\TextSprite.cpp" />

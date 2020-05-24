@@ -29,6 +29,7 @@ protected:
 	bool mUseClipping=false;
 	cRect mValidRect;
 	virtual ~cSpriteBase(); // use Drop() or Destroy()
+    void CopyProperties(const cSpriteBase& source); // used by Clone()
 public:
 	cSpriteBase();
 	void Drop();
@@ -92,6 +93,8 @@ public:
 	void SetVisible(bool IsVisible);
 	void SetWindow(cPixieWindow *Window);
 	cPixieWindow *GetWindow() const { return mWindow; }
+
+    virtual std::unique_ptr<cSpriteBase> Clone() const=0;
 //-----------------------------------
  	enum eDestroyZombieResult { StillAlive, Destroyed };	
 	eDestroyZombieResult DestroyZombie(); // only cPixieWindow is allowed to call this

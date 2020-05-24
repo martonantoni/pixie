@@ -193,3 +193,33 @@ void cMultiSpriteBase::StretchSpriteBetween(cSpriteBase &Sprite, const cRect &Re
 		break;
 	}
 }
+
+void cMultiSpriteBase::CopyProperties(const cMultiSpriteBase& source)
+{
+    cSpriteBase::CopyProperties(source);
+    for (auto& sprite : mSprites)
+    {
+        mSprites.emplace_back(sprite->Clone());
+    }
+}
+
+std::unique_ptr<cSpriteBase> cMultiSpriteBase::Clone() const
+{
+    auto clone = std::make_unique<cMultiSpriteBase>();
+    clone->CopyProperties(*this);
+    return clone;
+}
+
+
+void cSimpleMultiSprite::CopyProperties(const cSimpleMultiSprite& source)
+{
+    mBasePos = source.mBasePos;
+    cMultiSpriteBase::CopyProperties(source);
+}
+
+std::unique_ptr<cSpriteBase> cSimpleMultiSprite::Clone() const
+{
+    auto clone = std::make_unique<cSimpleMultiSprite>();
+    clone->CopyProperties(*this);
+    return clone;
+}

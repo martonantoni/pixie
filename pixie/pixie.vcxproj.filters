@@ -313,6 +313,9 @@
     <ClInclude Include="UI\UIStateManager.h">
       <Filter>UI</Filter>
     </ClInclude>
+    <ClInclude Include="2dEngine\SpriteOutliner.h">
+      <Filter>2D Engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Window\PrimaryWindow.cpp">
@@ -548,6 +551,9 @@
     </ClCompile>
     <ClCompile Include="UI\UIStateManager.cpp">
       <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="2dEngine\SpriteOutliner.cpp">
+      <Filter>2D Engine</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

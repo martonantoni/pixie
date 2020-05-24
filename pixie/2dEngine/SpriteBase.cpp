@@ -341,3 +341,11 @@ bool cSpriteBase::SetStringProperty(unsigned int PropertyFlags, const std::strin
 	return false;
 }
 
+void cSpriteBase::CopyProperties(const cSpriteBase& source)
+{
+    mProperties = source.mProperties;
+    mValidRect = source.mValidRect;
+    mIsColorSet = source.mIsColorSet;
+    mUseClipping = source.mUseClipping;
+    mWindow = source.mWindow;
+}
