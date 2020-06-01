@@ -123,7 +123,7 @@ bool cFontManager2::InitFont(cFont2 &Font, tIntrusivePtr<cConfig> Config)
 		});
 		break;
 	}
-	cTexture::cLockInfo LockInfo=Font.mAtlasTexture->LockSurface();
+	cTexture::cLockInfo LockInfo=Font.mAtlasTexture->LockSurface(cTexture::IsReadOnly::no);
 	for (int y = 0; y < Font.mAtlasTexture->GetSurfaceHeight(); ++y)
 	{
 		memset(LockInfo.mBytes + y * LockInfo.mPitch, 0xff, Font.mAtlasTexture->GetSurfaceWidth() * 4);

@@ -61,7 +61,8 @@ public:
 		int mPitch;
 		char *mBytes=nullptr;
 	};
-	cLockInfo LockSurface(); // works only if texture was created with CreateWritable
+    enum class IsReadOnly { yes, no };
+	cLockInfo LockSurface(IsReadOnly isReadOnly); // works only if texture was created with CreateWritable
 	void UnlockSurface(); 
 };
 

@@ -1,7 +1,5 @@
 #include "StdAfx.h"
 
-
-
 cSpriteOutliner::cSpriteOutliner(cSpriteBase& outlinedSprite)
     : mOutlinedSprite(outlinedSprite)
 {
@@ -9,6 +7,5 @@ cSpriteOutliner::cSpriteOutliner(cSpriteBase& outlinedSprite)
     auto texture = cSpriteRenderedTexture::Create(outlineSize);
     auto cloneOfOutlinedSprite = outlinedSprite.Clone();
     cloneOfOutlinedSprite->SetPosition({ 1,1 });
-    texture->AddSprite(std::move(cloneOfOutlinedSprite);
-    texture->Update();
+    texture->AddSprite(std::move(cloneOfOutlinedSprite));
 }

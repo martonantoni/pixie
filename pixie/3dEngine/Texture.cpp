@@ -84,10 +84,14 @@ void cTexture::InitForWritable(cPoint Size)
 	mTexture->GetSurfaceLevel(0, &mSurface);
 }
 
-cTexture::cLockInfo cTexture::LockSurface()
+cTexture::cLockInfo cTexture::LockSurface(IsReadOnly isReadOnly)
 {
+    if (!mSurface)
+    {
+        mTexture->GetSurfaceLevel(0, &mSurface);
+    }
 	D3DLOCKED_RECT LockedRect;
-	auto result=mSurface->LockRect(&LockedRect, NULL, 0);// D3DLOCK_DISCARD);
+	auto result=mSurface->LockRect(&LockedRect, NULL, isReadOnly == IsReadOnly::yes ? D3DLOCK_READONLY : 0);
 	if(result!=S_OK)
 	{
 		return cLockInfo();
