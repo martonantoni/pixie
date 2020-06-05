@@ -60,8 +60,6 @@ public:
 	const cColor &GetColor() const { return mProperties.mColor; }
 	const cSpriteColor &GetSpriteColor() const { return mProperties.mColor;	}
 
-//	D3DCOLOR GetARGBColor() const { return (0xffffff&mProperties.mRGBColor)|((255-mProperties.mAlpha)<<24); }
-//	DWORD GetRGBColor() const { return mProperties.mColor.GetRGBColor(); }
 	DWORD GetAlpha() const { return mProperties.mColor.GetAlpha(); }
 
 	void SetRect(const cRect &Rect);
