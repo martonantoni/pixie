@@ -10,7 +10,7 @@ cSpriteOutliner::cSpriteOutliner(cSpriteBase& outlinedSprite)
     for(int y=0;y<outlineSize.y;++y)
         memset(targetLockInfo.mBytes + y * targetLockInfo.mPitch, 0xff, targetTexture->GetSurfaceWidth() * 4);
 
-    for
+//    for
 
     targetTexture->UnlockSurface();
 
