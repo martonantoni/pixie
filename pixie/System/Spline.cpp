@@ -12,9 +12,9 @@ cPoint CubicSpline(const std::vector<cPoint> &SplineParameters, double t)
 	return Lerp(d, e, t);
 }
 
-
 std::vector<cPoint> GenerateSplinePoints(const std::vector<cPoint> &SplineParameters, double DesiredSpacing)
 {
+    RELEASE_ASSERT(SplineParameters.size() == 4);
 	constexpr int TableSize=100;
 	constexpr double TableResolution=1.0/TableSize;
 	std::vector<std::pair<cPoint, double>> SplinePoints;

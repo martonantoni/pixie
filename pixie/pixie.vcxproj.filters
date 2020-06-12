@@ -49,6 +49,9 @@
     <Filter Include="Editor">
       <UniqueIdentifier>{c55609b8-b5a3-43af-8138-d769c012b9da}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sound">
+      <UniqueIdentifier>{42b95d42-4a4f-46f3-b4de-5a898f4eee48}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Window\i_window.h">
@@ -316,6 +319,12 @@
     <ClInclude Include="2dEngine\SpriteOutliner.h">
       <Filter>2D Engine</Filter>
     </ClInclude>
+    <ClInclude Include="Sound\i_Sound.h">
+      <Filter>Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="Sound\SoundPlayer.h">
+      <Filter>Sound</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Window\PrimaryWindow.cpp">
@@ -554,6 +563,9 @@
     </ClCompile>
     <ClCompile Include="2dEngine\SpriteOutliner.cpp">
       <Filter>2D Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Sound\SoundPlayer.cpp">
+      <Filter>Sound</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

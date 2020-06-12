@@ -4,7 +4,8 @@
 #pragma warning(disable: 4267) // size_t -> int conversion warning
 
 #define _CRT_SECURE_NO_WARNINGS
-#define _WIN32_WINNT 0x0501  // Windows XP needed
+#define WINVER 0x0A00  // Windows 10
+#define _WIN32_WINNT 0x0A00
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define NOMINMAX
 

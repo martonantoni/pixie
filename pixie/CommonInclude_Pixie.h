@@ -18,6 +18,8 @@
 #include "PixieObject/i_PixieObject.h"
 
 #include "3dEngine/i_3DEngine.h"
-#include "2dEngine/i_2DEngine.h"
+#include "2dEngine/i_2DEngine.h" // uses 3d engine
 
-#include "UI/i_ui.h"
+#include "Sound/i_Sound.h"
+
+#include "UI/i_ui.h" // uses both sound & 2d engine

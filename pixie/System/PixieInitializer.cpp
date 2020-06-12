@@ -55,6 +55,7 @@ void InitPixieSystem()
 	cDevice::Get();
 	thePixieDesktop.Init(cPixieDesktop::cInitData());
 	theTextureManager.Initialize();
+    theSoundPlayer.Initialize();
 	InitFreeType();
 	cPixieObjectAnimatorManager::Get();
 	cMouseServer::Get();

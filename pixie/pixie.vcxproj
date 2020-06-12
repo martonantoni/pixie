@@ -183,6 +183,8 @@
     <ClInclude Include="PixieObject\PixiePropertyBinder.h" />
     <ClInclude Include="PixieObject\PixiePropertyValues.h" />
     <ClInclude Include="PixieObject\TimedBlenders.h" />
+    <ClInclude Include="Sound\i_Sound.h" />
+    <ClInclude Include="Sound\SoundPlayer.h" />
     <ClInclude Include="System\ColorInfo.h" />
     <ClInclude Include="System\KeyboardServer.h" />
     <ClInclude Include="System\LogicServer.h" />
@@ -271,6 +273,7 @@
     <ClCompile Include="PixieObject\PixiePropertyBinder.cpp" />
     <ClCompile Include="PixieObject\PixiePropertyValues.cpp" />
     <ClCompile Include="PixieObject\TimedBlenders.cpp" />
+    <ClCompile Include="Sound\SoundPlayer.cpp" />
     <ClCompile Include="System\ColorInfo.cpp" />
     <ClCompile Include="System\KeyboardServer.cpp" />
     <ClCompile Include="System\LogicServer.cpp" />
