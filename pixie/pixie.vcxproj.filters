@@ -325,6 +325,9 @@
     <ClInclude Include="Sound\SoundPlayer.h">
       <Filter>Sound</Filter>
     </ClInclude>
+    <ClInclude Include="Sound\RiffFile.hpp">
+      <Filter>Sound</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Window\PrimaryWindow.cpp">
@@ -565,6 +568,9 @@
       <Filter>2D Engine</Filter>
     </ClCompile>
     <ClCompile Include="Sound\SoundPlayer.cpp">
+      <Filter>Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="Sound\RiffFile.cpp">
       <Filter>Sound</Filter>
     </ClCompile>
   </ItemGroup>

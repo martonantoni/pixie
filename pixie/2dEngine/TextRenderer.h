@@ -76,7 +76,7 @@ class cTextRenderer
 		void SetAlignment(eAlignment Alignment);
 		void EndOfDocument();
 		size_t GetSpriteIndex() const;
-		void SetTabStops(std::vector<int> &&TabStops) { mTabStops=std::move(TabStops); }
+		void SetTabStops(std::vector<int> TabStops) { mTabStops=std::move(TabStops); }
 	};
 	static cWord CreateWordFromTexture(const std::string &TextureName);
 
@@ -94,9 +94,9 @@ public:
 	};
 	std::vector<std::unique_ptr<cSpriteBase>> RenderText(const std::string &Text, OUT cRenderInfo *RenderInfo=nullptr) const;
 
-	template<class T> void SetTabStops(T &&TabStops) // vector of ints pixel pos from start of line
+	void SetTabStops(std::vector<int> TabStops) // pixel pos from start of line
 	{
-		mTabStops=std::forward<T>(TabStops);
+		mTabStops=std::move(TabStops);
 	}
 	void SetDefaultColor(cColor Color)
 	{
