@@ -6,6 +6,20 @@ cSoundPlayer theSoundPlayer;
 
 void cSoundPlayer::Initialize()
 {
+    mEffectDestroyerThread = theThreadServer->GetThread("effect_destroyer"s);
+    mListeningIDs.emplace_back(mEffectDestroyerThread->AddEventHandler(
+        [this]() 
+        { 
+            {
+                cMutexGuard guard(mDoneEffectMutex);
+                std::swap(mDoneEffectsReading, mDoneEffectsReading);
+            }
+            for (auto doneEffect : mDoneEffectsReading)
+            {
+                delete doneEffect;
+            }
+            mDoneEffectsReading.clear();
+        }, &mGotEffectToDestroy));
     HRESULT hr;
     if (FAILED(hr = XAudio2Create(&mXAudio2, 0, XAUDIO2_DEFAULT_PROCESSOR)))
     {
@@ -46,3 +60,30 @@ void cSoundPlayer::Play(const char* filename)
         mEffects.back().mData = std::move(dataChunkData);
     }
 }
+
+void cSoundPlayer::effectPlayDone(cActiveEffect* effect)
+{
+    {
+        cMutexGuard guard(mDoneEffectMutex);
+        mDoneEffectsWriting.emplace_back(effect);
+    }
+    mGotEffectToDestroy.Set();
+}
+
+void cSoundPlayer::cActiveEffect::OnStreamEnd()
+{
+    mParent.effectPlayDone(this);
+}
+
+cSoundPlayer::cActiveEffect::cActiveEffect(cSoundPlayer& parent, IXAudio2SourceVoice* sourceVoice)
+    : mParent(parent)
+    , mSourceVoice(sourceVoice)
+{
+}
+
+cSoundPlayer::cActiveEffect::~cActiveEffect()
+{
+    mSourceVoice->DestroyVoice();
+}
+
+
