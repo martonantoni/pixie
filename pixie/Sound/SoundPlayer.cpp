@@ -46,8 +46,9 @@ void cSoundPlayer::Play(const char* filename)
         buffer.pAudioData = (const BYTE*)dataChunkData.data();  //size of the audio buffer in bytes
         buffer.Flags = XAUDIO2_END_OF_STREAM; // tell the source voice not to expect any data after this buffer
 
+        auto activeEffect = std::make_unique<cActiveEffect>(*this);
         IXAudio2SourceVoice* pSourceVoice;
-        if (FAILED(mXAudio2->CreateSourceVoice(&pSourceVoice, (WAVEFORMATEX*)wfxChunkData.data()))) 
+        if (FAILED(mXAudio2->CreateSourceVoice(&pSourceVoice, (WAVEFORMATEX*)wfxChunkData.data(), 0, XAUDIO2_DEFAULT_FREQ_RATIO, activeEffect.get())))
             return;
 
         if (FAILED(pSourceVoice->SubmitSourceBuffer(&buffer)))
@@ -56,8 +57,8 @@ void cSoundPlayer::Play(const char* filename)
         if (FAILED(pSourceVoice->Start(0)))
             return;
 
-        mEffects.emplace_back();
-        mEffects.back().mData = std::move(dataChunkData);
+        activeEffect->Init(pSourceVoice, std::move(dataChunkData));    
+        activeEffect.release();
     }
 }
 
@@ -75,9 +76,8 @@ void cSoundPlayer::cActiveEffect::OnStreamEnd()
     mParent.effectPlayDone(this);
 }
 
-cSoundPlayer::cActiveEffect::cActiveEffect(cSoundPlayer& parent, IXAudio2SourceVoice* sourceVoice)
+cSoundPlayer::cActiveEffect::cActiveEffect(cSoundPlayer& parent)
     : mParent(parent)
-    , mSourceVoice(sourceVoice)
 {
 }
 

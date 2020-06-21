@@ -16,7 +16,7 @@ class cSoundPlayer final
     {
         cSoundPlayer& mParent;
         std::vector<char> mAudioData;
-        IXAudio2SourceVoice* mSourceVoice;
+        IXAudio2SourceVoice* mSourceVoice = nullptr;
         virtual void OnStreamEnd() override;
         virtual void OnVoiceProcessingPassStart(UINT32 BytesRequired) override {}
         virtual void OnVoiceProcessingPassEnd() override {}
@@ -25,7 +25,8 @@ class cSoundPlayer final
         virtual void OnLoopEnd(void* pBufferContext) override {}
         virtual void OnVoiceError(void* pBufferContext, HRESULT Error) override {}
     public:
-        cActiveEffect(cSoundPlayer& parent, IXAudio2SourceVoice* sourceVoice);
+        cActiveEffect(cSoundPlayer& parent);
+        void Init(IXAudio2SourceVoice* sourceVoice, std::vector<char>&& audioData) { mSourceVoice = sourceVoice; mAudioData = std::move(audioData); }
         ~cActiveEffect();
     };
     void effectPlayDone(cActiveEffect* effect);
