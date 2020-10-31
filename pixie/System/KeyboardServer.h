@@ -30,12 +30,15 @@ public:
 		Keyboard_KeyDown_F1=Keyboard_KeyDown_First+0x70,
 		Keyboard_KeyDown_F2, Keyboard_KeyDown_F3, Keyboard_KeyDown_F4, Keyboard_KeyDown_F5, Keyboard_KeyDown_F6, Keyboard_KeyDown_F7,
 		Keyboard_KeyDown_F8, Keyboard_KeyDown_F9, Keyboard_KeyDown_F10, Keyboard_KeyDown_F11, Keyboard_KeyDown_F12,
-		Keyboard_KeyDown_Last=Keyboard_KeyDown_First+255
+		Keyboard_KeyDown_Last=Keyboard_KeyDown_First+255,
+
+
 	};
 private:
 	static const cEventDispatchers::cDispatcherRangeInfo mDispatcherRangeInfo;
 	cEventDispatchers mEventDispatchers;
 	tDataHolder<uint32_t> mKeyCodeHolder;
+    tDataHolder<uint32_t> mCharacterCodeHolder;
 	bool mIsShiftDown=false;
 	static const uint32_t ShiftMask=  0x8000'0000u;
 	static const uint32_t KeyCodeMask=0x0000'ffffu;
@@ -44,6 +47,7 @@ private:
 	cRegisteredIDList mListenerIDs;
 	cWindowsMessageResult OnKeyDown(WPARAM wParam,LPARAM lParam);
 	cWindowsMessageResult OnKeyUp(WPARAM wParam, LPARAM lParam);
+    cWindowsMessageResult OnCharacter(WPARAM wParam, LPARAM lParam);
 public:
 	cKeyboardServer();
 	tIntrusivePtr<cEventDispatcher> GetDispatcher(size_t EventIndex) const { return mEventDispatchers[EventIndex]; }

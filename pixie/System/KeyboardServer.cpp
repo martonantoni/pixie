@@ -35,7 +35,8 @@ const cEventDispatchers::cDispatcherRangeInfo cKeyboardServer::mDispatcherRangeI
 /* e0 - e8 */ "",           "",           "",           "",           "",           "",           "",           "", 
 /* e8 - f0 */ "",           "",           "",           "",           "",           "",           "",           "", 
 /* f0 - f8 */ "",           "",           "",           "",           "",           "",           "",           "", 
-/* f8 - ff */ "",           "",           "",           "",           "",           "",           "" }
+/* f8 - ff */ "",           "",           "",           "",           "",           "",           "",
+}
 };
 
 int cKeyboardServer::ConfigStringToEventID(const std::string &ConfigString)
@@ -49,6 +50,7 @@ cKeyboardServer::cKeyboardServer()
 	cPrimaryWindow &PrimaryWindow=cPrimaryWindow::Get();
 	mListenerIDs.push_back(PrimaryWindow.AddMessageHandler(WM_KEYDOWN, [this](auto wp, auto lp) { return OnKeyDown(wp, lp); }));
 	mListenerIDs.push_back(PrimaryWindow.AddMessageHandler(WM_KEYUP, [this](auto wp, auto lp) { return OnKeyUp(wp, lp); }));
+    mListenerIDs.push_back(PrimaryWindow.AddMessageHandler(WM_CHAR, [this](auto wp, auto lp) { return OnCharacter(wp, lp); }));
 
 	mEventDispatchers.Init(cEventDispatcher::GetGlobalDispatcher("pixie.keyboard",  cEventDispatcher::CanCreate));
 	mEventDispatchers.AddEvents(mDispatcherRangeInfo);
@@ -80,6 +82,10 @@ cWindowsMessageResult cKeyboardServer::OnKeyUp(WPARAM wParam, LPARAM lParam)
 	return cWindowsMessageResult();
 }
 
+cWindowsMessageResult cKeyboardServer::OnCharacter(WPARAM wParam, LPARAM lParam)
+{
+}
+
 bool cKeyboardServer::GetShiftState(uint32_t KeyCode)
 {
 	return 0!=(KeyCode&ShiftMask);
@@ -92,6 +98,7 @@ char cKeyboardServer::GetDisplayableCharacter(uint32_t KeyCode)
 	if(KeyCode>='A'&&KeyCode<='Z') return KeyCode+(IsShiftDown?0:'a'-'A');
 	if(KeyCode>='0'&&KeyCode<='9') return KeyCode;
 //	static const char *NonAlphaNum=" !$&*()-+?.,;:\"'/\|=_@";
-	if(KeyCode==' ') return ' ';
+	if(KeyCode==' ') 
+        return ' ';
 	return 0;
 }

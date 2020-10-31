@@ -328,6 +328,9 @@
     <ClInclude Include="Sound\RiffFile.hpp">
       <Filter>Sound</Filter>
     </ClInclude>
+    <ClInclude Include="PixieObject\PixieObjectAlongPathBlender.h">
+      <Filter>PixieObject</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Window\PrimaryWindow.cpp">
@@ -572,6 +575,9 @@
     </ClCompile>
     <ClCompile Include="Sound\RiffFile.cpp">
       <Filter>Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="PixieObject\PixieObjectAlongPathBlender.cpp">
+      <Filter>PixieObject</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
