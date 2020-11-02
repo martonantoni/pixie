@@ -22,7 +22,7 @@ void cStandardEditFieldVisualizer::Redraw()
 	cTextRenderer TextRenderer(mTextStyle);
 	TextRenderer.SetMaxWidth(Rect.Width());
 	TextRenderer.SetDefaultColor("editfield");
-	mTextSprite=std::make_unique<cSimpleMultiSprite>(TextRenderer.RenderText(GetVisualizable().GetText()));
+	mTextSprite=std::make_unique<cSimpleMultiSprite>(TextRenderer.RenderText(GetVisualizable().GetText()), cSimpleMultiSprite::eBasePosition::Zero);
 	mTextSprite->SetWindow(GetWindow());
 	mTextSprite->SetPosition(Rect.GetPosition());
 	mTextSprite->SetZOrder(mBaseZ);

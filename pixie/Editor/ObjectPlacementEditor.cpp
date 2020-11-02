@@ -399,7 +399,7 @@ void cObjectPlacementEditor::SwitchAspectRatioKeeping()
 void cObjectPlacementEditor::DisplayNotification(const std::string &Notification)
 {
 	cTextRenderer TextRenderer("main_menu_button");
-	auto TextSprite=std::make_unique<cSimpleMultiSprite>(TextRenderer.RenderText(Notification));
+	auto TextSprite=std::make_unique<cSimpleMultiSprite>(TextRenderer.RenderText(Notification), cSimpleMultiSprite::eBasePosition::Zero);
 	TextSprite->SetWindow(&thePixieDesktop.GetTopLayer());
 	TextSprite->SetZOrder(100000);
 	TextSprite->SetPosition(0, 0);

@@ -10,6 +10,7 @@ public:
 		//    the reg_id in the event is for tDataHolder<uint32_t>, which holds the keycode for the event.
 		//    Use the KeyBoardServer's function for dealing with the KeyCode, it is not usable in its own.
 		Keyboard_KeyDown_First,
+        Keyboard_Character_Any = Keyboard_KeyDown_First + 1,
 		Keyboard_KeyDown_Tab= Keyboard_KeyDown_First+9,
 		Keyboard_KeyDown_Enter= Keyboard_KeyDown_First+0xd,
 		Keyboard_KeyDown_Shift= Keyboard_KeyDown_First+0x10,

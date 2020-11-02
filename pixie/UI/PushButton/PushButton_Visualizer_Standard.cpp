@@ -66,7 +66,7 @@ void tStandardPushButtonVisualizer<T>::CreateTextSprite()
 		auto Placement=GetPlacement();
 		TextRenderer.SetMaxWidth(Placement.Width());
 		mLastText=GetVisualizable().GetText();
-		mTextSprite_TR=std::make_unique<cSimpleMultiSprite>(TextRenderer.RenderText(mLastText));
+		mTextSprite_TR=std::make_unique<cSimpleMultiSprite>(TextRenderer.RenderText(mLastText), cSimpleMultiSprite::eBasePosition::Zero);
 		mTextSprite_TR->SetWindow(mWindow);
 		auto VerticalAlignedPlacement=Placement.GetAlignedRect(mTextSprite_TR->GetRect(), eHorizontalAlign::Left, eVerticalAlign::Center);
 		mTextSprite_TR->SetPlacement(VerticalAlignedPlacement);

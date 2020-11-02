@@ -51,7 +51,7 @@ void cMultiSpriteBase::PropertiesChanged(unsigned int Properties)
 	}
 }
 
-cSimpleMultiSprite::cSimpleMultiSprite(std::vector<std::unique_ptr<cSpriteBase>> &&Sprites)
+cSimpleMultiSprite::cSimpleMultiSprite(std::vector<std::unique_ptr<cSpriteBase>> &&Sprites, eBasePosition basePosition)
 {
 	mSprites=std::move(Sprites);
     if (!mSprites.empty())
@@ -61,7 +61,7 @@ cSimpleMultiSprite::cSimpleMultiSprite(std::vector<std::unique_ptr<cSpriteBase>>
         {
             mProperties.mRect.GrowToBound(mSprites[i]->GetRect());
         }
-        mBasePos = mProperties.mRect.GetPosition();
+        mBasePos = basePosition == eBasePosition::AdjustedToBoundingBox ? mProperties.mRect.GetPosition() : cPoint { 0, 0 };
     }
 }
 

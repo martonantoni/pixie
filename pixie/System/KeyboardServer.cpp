@@ -4,7 +4,7 @@ const cEventDispatchers::cDispatcherRangeInfo cKeyboardServer::mDispatcherRangeI
 {
 	PixieEvents::Keyboard_First, { "keydown", 
 //            0 / 8         1 / 9         2 / a         3 / b         4 / c         5 / d         6 / e         7 / f
-/* 00 - 08 */ "",           "",           "",           "",           "",           "",           "",           "", 
+/* 00 - 08 */ "character",  "",           "",           "",           "",           "",           "",           "", 
 /* 08 - 10 */ "keydown_bs", "keydown_tab","",           "",           "",           "keydown_enter",           "",           "", 
 /* 10 - 18 */ "keydown_shift","",         "",           "",           "",           "",           "",           "", 
 /* 18 - 20 */ "",           "",           "",           "keydown_esc","",           "",           "",           "", 
@@ -70,11 +70,14 @@ cWindowsMessageResult cKeyboardServer::OnKeyDown(WPARAM wParam,LPARAM lParam)
 	if(wParam<=255&&!mDispatcherRangeInfo.mEventNames[wParam+1].empty())
 		mEventDispatchers.PostEvent(Keyboard_KeyDown_First+wParam, cEvent());
 
-	return cWindowsMessageResult();
-}
+	return cWindowsMessageResult();}
 
 cWindowsMessageResult cKeyboardServer::OnKeyUp(WPARAM wParam, LPARAM lParam)
 {
+    mEventDispatchers.PostEvent(Keyboard_KeyDown_Any, cEvent(mKeyCodeHolder.StoreData(
+        (wParam & KeyCodeMask) | (mIsShiftDown ? ShiftMask : 0)
+    )));
+
 	if(wParam==VK_SHIFT)
 	{
 		mIsShiftDown=false;
@@ -84,6 +87,8 @@ cWindowsMessageResult cKeyboardServer::OnKeyUp(WPARAM wParam, LPARAM lParam)
 
 cWindowsMessageResult cKeyboardServer::OnCharacter(WPARAM wParam, LPARAM lParam)
 {
+    mEventDispatchers.PostEvent(Keyboard_Character_Any, cEvent(mCharacterCodeHolder.StoreData(wParam)));
+    return cWindowsMessageResult();
 }
 
 bool cKeyboardServer::GetShiftState(uint32_t KeyCode)

@@ -10,7 +10,7 @@ void cVariableHeightStringListBoxItem::Render(int MaxWidth)
 {
 	mTextRenderer->SetMaxWidth(MaxWidth-6);
 	cTextRenderer::cRenderInfo RenderInfo;
-	mSprite=std::make_unique<cSimpleMultiSprite>(mTextRenderer->RenderText(mText, &RenderInfo));
+	mSprite=std::make_unique<cSimpleMultiSprite>(mTextRenderer->RenderText(mText, &RenderInfo), cSimpleMultiSprite::eBasePosition::Zero);
 	mHeight=RenderInfo.mNextLineY+6;
 }
 

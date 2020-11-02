@@ -11,7 +11,7 @@ void cMessageBox::Init(const cInitData &InitData)
 	cTextRenderer TextRenderer("messagebox_text");
 	TextRenderer.SetDefaultColor("messagebox_text");
 	TextRenderer.SetMaxWidth(WindowWidth-HorizontalBorder*2);
-	mTextSprite=std::make_unique<cSimpleMultiSprite>(TextRenderer.RenderText(InitData.mText));
+	mTextSprite=std::make_unique<cSimpleMultiSprite>(TextRenderer.RenderText(InitData.mText), cSimpleMultiSprite::eBasePosition::Zero);
 
 	int TextVerticalEnd=mTextSprite->GetHeight()+40;
 
