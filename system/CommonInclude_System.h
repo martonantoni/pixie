@@ -28,6 +28,7 @@
 #include <deque>
 #include <memory>
 #include <functional>
+#include <variant>
 #include <array>
 #include <random>
 #include <iterator>
