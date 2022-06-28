@@ -2,6 +2,7 @@ cEventDispatcher cEventDispatcher::mRootDispatcher;
 
 tIntrusivePtr<cEventDispatcher> cEventDispatcher::GetGlobalDispatcher(const cEvent::cDispatcherID &DispatcherID, eNodeCreation Creation)
 {
+    ASSERT(theMainThread->IsInThread());
 	return mRootDispatcher.GetSubResource(DispatcherID,Creation);
 }
 

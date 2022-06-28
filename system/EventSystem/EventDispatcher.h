@@ -51,7 +51,10 @@ class cAutoEventListener final
 {
 	cRegisteredID mID;
 public:
-	cAutoEventListener(const cEvent::cDispatcherID &DispatcherID, const cEventDispatcher::cEventListenerFunction &Listener, const cEventDispatcher::cEventListenerRequest &Request=cEventDispatcher::cEventListenerRequest())
+	cAutoEventListener(
+        const cEvent::cDispatcherID &DispatcherID, 
+        const cEventDispatcher::cEventListenerFunction &Listener, 
+        const cEventDispatcher::cEventListenerRequest &Request=cEventDispatcher::cEventListenerRequest())
 		: mID(cEventDispatcher::GetGlobalDispatcher(DispatcherID, cEventDispatcher::CanCreate)->RegisterListener(Listener, Request)) 
 	{
 	}
