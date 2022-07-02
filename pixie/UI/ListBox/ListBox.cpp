@@ -123,9 +123,27 @@ void cListBox::Init(const cInitData &InitData)
 	mMouseWheelListeningID=cEventDispatcher::GetGlobalDispatcher("pixie.mouse.wheel")->RegisterListener(
 		[this](auto &Event)
 	{
-		const int *Delta=tDataHolder<int>::Get().GetData(Event.mEventDataID);
-		mDampenedMoveController.AddToSpeed(*Delta*4.0);
+        if (thePixieDesktop.GetMouseTargetAt(cMouseServer::Get().GetMousePosition()).mResult == this)
+        {
+            const int* Delta = tDataHolder<int>::Get().GetData(Event.mEventDataID);
+            mDampenedMoveController.AddToSpeed(*Delta * 4.0);
+        }
 	});
+}
+
+void cListBox::clampGlobalPosition()
+{
+    if (mTopLeftPosition.x < 0 || mListDirection == eListDirection::Vertical)
+        mTopLeftPosition.x = 0;
+    if (mTopLeftPosition.y < 0 || mListDirection == eListDirection::Horizontal)
+        mTopLeftPosition.y = 0;
+    if (mListDirection == eListDirection::Vertical)
+    {
+        size_t numItems = mItemHandler->GetNumberOfItems();
+        int lastItemPos = numItems > 0 ? mItemHandler->GetItemPosition(numItems - 1) : 0;
+        if (mTopLeftPosition.y > lastItemPos)
+            mTopLeftPosition.y = lastItemPos;
+    }
 }
 
 void cListBox::OnMouseMove(cPoint ScreenCoords, bool IsInside)
@@ -136,10 +154,7 @@ void cListBox::OnMouseMove(cPoint ScreenCoords, bool IsInside)
 	if(IsMouseTrackingActive())
 	{
 		mTopLeftPosition=mTopLeftPositionWhenGrabbed+mGrabScreenPosition-ScreenCoords;
-		if(mTopLeftPosition.x<0||mListDirection==eListDirection::Vertical)
-			mTopLeftPosition.x=0;
-		if(mTopLeftPosition.y<0||mListDirection==eListDirection::Horizontal)
-			mTopLeftPosition.y=0;
+        clampGlobalPosition();
 		mDragSpeedCalculator.DraggedToPosition(mTopLeftPosition.y);
 		mVisualizer->StateChanged();
 	}
@@ -258,6 +273,7 @@ void cListBox::MakeItemVisible(size_t Index)
 void cListBox::SetGlobalPosition(int Position)
 {
 	(mListDirection==eListDirection::Vertical?mTopLeftPosition.y:mTopLeftPosition.x)=std::max(0, Position);
+    clampGlobalPosition();
 	mVisualizer->StateChanged();
 }
 

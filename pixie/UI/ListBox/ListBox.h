@@ -112,6 +112,7 @@ protected:
 	virtual void OnLeftButtonUp(cPoint ScreenCoords, bool IsInside) override;
 	virtual void OnLeftButtonDoubleClick(cPoint ScreenCoords, bool IsInside) override;
 	virtual void DialogItemStateChanged() override;
+    void clampGlobalPosition();
 public:
 	cListBox();
 	virtual ~cListBox();
