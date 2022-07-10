@@ -11,4 +11,5 @@ public:
 		static T *Instance=NULL;
 		return Instance?*Instance:*(Instance=new T);
 	}
+    static T& get() { return Get(); }
 };

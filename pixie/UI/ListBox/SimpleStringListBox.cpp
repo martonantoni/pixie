@@ -74,3 +74,10 @@ void cSimpleStringListBoxItemHandler::AddString(const std::string &Text)
 	mItems.emplace_back(Text);
 	mListChangeDispatcher->PostEvent();
 }
+
+void cSimpleStringListBoxItemHandler::clear()
+{
+    mItems.clear();
+    mListChangeDispatcher->PostEvent();
+}
+

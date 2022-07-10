@@ -16,7 +16,7 @@ protected:
 	tIntrusivePtr<cEventDispatcher> mListChangeDispatcher;
 	cListBox *mListBox=nullptr;
 public:
-	cListBoxItemHandler(): mListChangeDispatcher(make_intrusive_ptr<cEventDispatcher>()) {}
+	cListBoxItemHandler(): mListChangeDispatcher(make_intrusive_ptr<cEventDispatcher>(cEventDispatcher::eCoalescing::Coalescing)) {}
 	virtual size_t GetNumberOfItems() const=0;
 	virtual size_t GetItemIndexAt(int Position)=0;
 	virtual int GetItemSize(size_t ItemIndex) const=0;
