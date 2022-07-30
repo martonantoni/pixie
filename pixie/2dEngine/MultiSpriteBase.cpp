@@ -2,6 +2,10 @@
 
 void cMultiSpriteBase::PropertiesChanged(unsigned int Properties)
 {
+	if (mSprites.empty())
+	{
+		return;
+	}
 	auto ForEachSprite=[this](auto Func) 
 	{ 
 		for(auto &Sprite: mSprites)
