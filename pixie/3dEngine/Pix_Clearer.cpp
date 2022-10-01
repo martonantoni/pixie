@@ -9,7 +9,9 @@ void cBasicDeviceClearer::Init(const cConfig &Config)
 //	Color=0x40604000;
 //	Color=0x00808080;
 	Color=0;// 0xff0000;//0x00808080;//0x00202020;
-	Color=0x102a08;
+//	Color=0x102a08;  // darg greenish
+
+	Color = 0x282828;
 
 	cDevice::Get()->SetClearer(this);
 }
