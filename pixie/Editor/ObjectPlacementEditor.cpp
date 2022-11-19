@@ -133,7 +133,7 @@ void cObjectPlacementEditor::DisplayHelp()
 		"{c:messagebox_title}F1{c}: this help screen\n"
 		"{c:messagebox_title}F6{c}: enable editor\n"
 		"{c:messagebox_title}F7{c}: disable editor\n\n"
-		"{c:messagebox_title}F9{c}: keep aspect ration on/off\n"
+		"{c:messagebox_title}F9{c}: keep aspect ratio on/off\n"
 		"{f:messagebox_italic}If there is an item selected:{f}\n"
 		"{c:messagebox_title}cursor keys{c}: move item\n"
 		"{c:messagebox_title}A,S,D,W{c}: resize item\n"
