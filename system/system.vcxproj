@@ -183,6 +183,7 @@
     <ClInclude Include="EventSystem\EventDispatchers.h" />
     <ClInclude Include="EventSystem\EventSystem_Internal.h" />
     <ClInclude Include="EventSystem\i_EventSystem.h" />
+    <ClInclude Include="EventSystem\messaging.h" />
     <ClInclude Include="EventSystem\TextLogToEvent.h" />
     <ClInclude Include="Factory.h" />
     <ClInclude Include="FileHandling\FastFileReader.h" />
@@ -313,6 +314,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="EventSystem\EventSystem_all.cpp" />
+    <ClCompile Include="EventSystem\messaging.cpp" />
     <ClCompile Include="EventSystem\TextLogToEvent.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>

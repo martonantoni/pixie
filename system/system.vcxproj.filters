@@ -279,6 +279,9 @@
     <ClInclude Include="lua\LuaObjectSynch.h">
       <Filter>Lua</Filter>
     </ClInclude>
+    <ClInclude Include="EventSystem\messaging.h">
+      <Filter>EventSystem</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ConsoleCreator.cpp">
@@ -454,6 +457,9 @@
     </ClCompile>
     <ClCompile Include="lua\LuaObjectSynch.cpp">
       <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="EventSystem\messaging.cpp">
+      <Filter>EventSystem</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
