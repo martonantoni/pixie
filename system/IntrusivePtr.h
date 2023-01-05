@@ -7,7 +7,6 @@ protected:
 	virtual ~cIntrusiveRefCount() {}
 	virtual void ReferenceCounterReachedZero() const { delete this; }
 public:
-	template<class T> tIntrusivePtr<T> share(T* object);
 	void Ref() const 
 	{ 
 		++mReferenceCounter; 
@@ -134,8 +133,8 @@ tIntrusivePtr<T> make_intrusive_ptr(Ps &&...ps)
 	return tIntrusivePtr<T>(new T(std::forward<Ps>(ps)...));
 }
 
-template<class T> tIntrusivePtr<T> cIntrusiveRefCount::share(T* object)
-{
-	static_assert(std::is_base_of<cIntrusiveRefCount, T>::value, "shared object must be subclass of cIntrusiveRefCount");
-	return tIntrusivePtr<T>(object);
-}
+// template<class T> tIntrusivePtr<T> cIntrusiveRefCount::share(T* object)
+// {
+// 	static_assert(std::is_base_of<cIntrusiveRefCount, T>::value, "shared object must be subclass of cIntrusiveRefCount");
+// 	return tIntrusivePtr<T>(object);
+// }

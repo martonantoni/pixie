@@ -36,6 +36,7 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
+#include <type_traits>
 
 #include "cppformat/format.h"
 
