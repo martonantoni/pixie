@@ -31,7 +31,12 @@ bool cFontManager2::InitFont(cFont2 &Font, tIntrusivePtr<cConfig> Config)
 	FT_Library  library;
 	FT_CHECKED_CALL(FT_Init_FreeType(&library));
 	FT_Face     face;      /* handle to face object */
-	FT_CHECKED_CALL(FT_New_Face(library, Config->GetString("file").c_str(), 0, &face));
+    auto fileName = Config->GetString("file");
+	if(FT_New_Face(library, fileName.c_str(), 0, &face))
+    {
+        printf("unable to load font: \"%s\"\n", fileName.c_str());
+        return false;
+    }
 //	Font.mFontHeight=Config->GetInt("height");
 	FT_CHECKED_CALL(FT_Set_Pixel_Sizes(face, 0, Config->GetInt("height")));
 	Font.mFontHeight=face->size->metrics.height>>6;
@@ -87,17 +92,15 @@ bool cFontManager2::InitFont(cFont2 &Font, tIntrusivePtr<cConfig> Config)
 
 		int width  = glyph_bbox.xMax - glyph_bbox.xMin;
 		int height = glyph_bbox.yMax - glyph_bbox.yMin;
-		Sizes.push_back(width+1);//+2);
-		Sizes.push_back(height+1);//+2);
-								  //		LetterData[Index].mSize= { width,height };
+		Sizes.push_back(width+1);
+		Sizes.push_back(height+1);
+								
 		if(height>HeightMax)
 			HeightMax=height;
 		if(glyph_bbox.yMax>YMaxMax)
 			YMaxMax=glyph_bbox.yMax;
 	});
 
-
-//	Font.mFontHeight=HeightMax;  //<<----             should not be needed
 	Font.mAscender=YMaxMax;      // well, same deal
 	for(int s=256;; s*=2)
 	{
