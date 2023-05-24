@@ -38,7 +38,8 @@
 #include <atomic>
 #include <type_traits>
 
-#include "cppformat/format.h"
+#include "fmt/core.h"
+#include "fmt/printf.h"
 
 using namespace std::string_literals; // enables s-suffix for std::string literals
 
