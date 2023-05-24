@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 #include "RiffFile.hpp"
 
 cSoundPlayer theSoundPlayer;

@@ -1,8 +1,5 @@
 #include "StdAfx.h"
-
-#include "Pix_Device.h"
-#include "Pix_Renderer.h"
-#include "Pix_Clearer.h"
+#include "pixie/pixie/i_pixie.h"
 
 cDevice *theDevice=NULL;
 

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 #include "vis_Standard.h"
 
 void cVisualizer_Standard::Init(const cStandardWindow::cInitData &InitData)

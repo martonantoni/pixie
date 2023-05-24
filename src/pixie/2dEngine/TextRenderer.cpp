@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 void cTextRenderer::cDocument::SetAlignment(eAlignment Alignment)
 {
 	if(ASSERTFALSE(mParent.mMaxWidth==~0)) // alignment can be set only if MaxWidth was set

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 cPixieInitData::cPixieInitData(const tIntrusivePtr<cConfig> &Config)
 	: mConfig(Config)
 {

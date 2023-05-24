@@ -1,6 +1,5 @@
 #include "StdAfx.h"
-
-#include "ObjectPlacementEditor.h"
+#include "pixie/pixie/i_pixie.h"
 
 /*
 Keyboard commands:

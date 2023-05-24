@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 cPixieObjectRotator::cPixieObjectRotator(unsigned int TimeForFullCircle, eDirection Direction, float TargetSumRotation)
 	: cPixieObjectAnimator(DoneWhenSamePropertyAnimatorAdded|DoneWhenAffectedPropertySet, cPixieObject::Property_Rotation)
 	, mTimeForFullCircle(TimeForFullCircle)

@@ -1,7 +1,5 @@
 #include "StdAfx.h"
-
-#include "../3dEngine/Pix_Clearer.h"
-#include "PixieMainLoop.h"
+#include "pixie/pixie/i_pixie.h"
 
 int LUA_Bridge_CreateRGBValue(int red,int green,int blue)
 {

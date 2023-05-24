@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Log.h"
-
 /*
 Note:
 	When the data is modified (using LogArgs, and LogBinary), there should be no other threads using the same object.

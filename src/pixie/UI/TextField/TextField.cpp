@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 INIT_VISUALIZER_IMP(cTextField);
 
 cTextField::cInitData::cInitData(const tIntrusivePtr<cConfig> &Config): tPixieSimpleInitData<cMouseTarget>(Config)

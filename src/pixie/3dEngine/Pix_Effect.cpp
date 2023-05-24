@@ -1,6 +1,5 @@
 #include "StdAfx.h"
-
-#include "Pix_Effect.h"
+#include "pixie/pixie/i_pixie.h"
 
 cEffectHolder::cEffectHolder(const std::string &EffectName)
 {

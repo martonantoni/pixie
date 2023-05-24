@@ -1,4 +1,5 @@
 #include "StdAfx.h"
+#include "pixie/flow/i_flow.h"
 
 cFlowStreamAcceptor::cFlowStreamAcceptor()
 	: mAcceptor(make_intrusive_ptr<cTCPAcceptor>(this))

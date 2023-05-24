@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 cSpriteRenderedTexture::cSpriteRenderedTexture(cPoint Size)
 	: cTexture(Size)
 	, mSpriteContainerWindow(std::make_unique<cPixieWindow>())

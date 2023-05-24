@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 INIT_VISUALIZER_IMP(cEditField);
 
 const cEventDispatchers::cDispatcherRangeInfo cEditField::mDispatcherRangeInfo=

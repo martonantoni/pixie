@@ -1,5 +1,7 @@
 #include "StdAfx.h"
 
+#include "LogChunk.h"
+
 #include <time.h>
 
 cLog::cChunk::cChunk(): SharedData(NULL), Offset(0)

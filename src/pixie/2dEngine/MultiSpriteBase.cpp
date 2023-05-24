@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 void cMultiSpriteBase::PropertiesChanged(unsigned int Properties)
 {
 	if (mSprites.empty())

@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 
-#include "FileMapper.h"
 
 cFileMapper::cFileMapper(const std::string &pFileName): FileName(pFileName)
 {

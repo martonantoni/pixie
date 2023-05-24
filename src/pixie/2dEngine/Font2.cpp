@@ -1,4 +1,5 @@
 #include "StdAfx.h"
+#include "pixie/pixie/i_pixie.h"
 
 cFont2::cTextMetrics cFont2::MeasureText(const UTF8::cDecodedString &Text) const
 {

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 cPixieWindow* cUIState::GetWindow() const
 {
     return mUIStateManager.GetWindow();

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 const cEventDispatchers::cDispatcherRangeInfo cMouseServer::mDispatcherRangeInfo=
 {
 	PixieEvents::MouseServer_First, { "move", "left_button_down", "left_button_up", "left_button_double_click", "right_button_down", "right_button_up", "wheel" }

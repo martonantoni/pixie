@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 const cEventDispatchers::cDispatcherRangeInfo cMouseTarget::mDispatcherRangeInfo
 {
 	PixieEvents::MouseTarget_First, { "placement_changed", "parent_window_changed" }

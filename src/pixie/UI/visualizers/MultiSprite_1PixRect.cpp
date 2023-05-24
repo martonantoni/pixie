@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 cMultiSprite_1PixRect::cMultiSprite_1PixRect(const std::string &ColorNameBase, eOnlyBorder OnlyBorder)
 	: mOnlyBorders(OnlyBorder)
 {

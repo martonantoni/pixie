@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 #include "BinPacker.h"
 
 #pragma warning(disable:4267)  // conversion from 'size_t' to 'int', possible loss of data

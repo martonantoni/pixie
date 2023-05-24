@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 cMouseCursor::cMouseCursor()
 	: mMoveListener("pixie.mouse.move", [this](const auto &Event) {OnMouseMove(Event); })
 {

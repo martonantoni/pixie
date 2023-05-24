@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 int cSpriteBase::mDebugIDCounter=0;
 
 cSpriteBase::cSpriteBase()

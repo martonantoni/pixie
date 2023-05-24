@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 HINSTANCE gInstance;
 cPrimaryWindow *thePrimaryWindow=NULL;
 

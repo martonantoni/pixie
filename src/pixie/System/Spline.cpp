@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 cPoint CubicSpline(const std::vector<cPoint> &SplineParameters, double t)
 {
 	if(ASSERTFALSE(SplineParameters.size()!=4))

@@ -1,4 +1,5 @@
 #include "StdAfx.h"
+#include "pixie/pixie/i_pixie.h"
 
 cFont::cFont(const cConfig &Config)
 {

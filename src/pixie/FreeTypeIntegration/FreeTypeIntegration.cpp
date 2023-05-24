@@ -1,6 +1,7 @@
 #include "StdAfx.h"
+#include "pixie/pixie/i_pixie.h"
 
-#include <ft2build.h>
+#include <freetype2/ft2build.h>
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 #include FT_MODULE_H

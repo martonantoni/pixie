@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 cTextureInfo::cTextureInfo(const cRect &Rect, cPoint SurfaceSize)
 	: mTop(Rect.Top()/(float)SurfaceSize.y)
 	, mLeft(Rect.Left()/(float)SurfaceSize.x)

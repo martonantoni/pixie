@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 size_t cListBox::cVisualizer::GetItemIndexAt(cPoint Position) const
 {
 	return GetVisualizable().Vis_GetListDirection()==eListDirection::Vertical?

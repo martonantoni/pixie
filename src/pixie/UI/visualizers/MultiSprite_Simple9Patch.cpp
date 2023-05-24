@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 cMultiSprite_Simple9Patch::cMultiSprite_Simple9Patch()
 {
 }
@@ -61,21 +61,21 @@ const char **cMultiSprite_Simple9Patch::GetPositionNames() const
 	return mPositionNamesOverrides?mPositionNamesOverrides:PositionNames;
 }
 
-LuaObject cMultiSprite_Simple9Patch::Lua_Get9PatchNames()
-{
-	LuaObject Table=theLuaState->CreateTable();
-	static const char *PositionNames[]= {
-		"top_left", "top", "top_right",
-		"left", "middle", "right",   
-		"bottom_left", "bottom", "bottom_right",
-		nullptr };
-	for(int i=0; PositionNames[i]; ++i)
-	{
-		Table.Set(i+1, PositionNames[i]);
-	}
-	return Table;
-}
-REGISTER_LUA_FUNCTION(cMultiSprite_Simple9Patch::Lua_Get9PatchNames, Get9PatchNames);
+// LuaObject cMultiSprite_Simple9Patch::Lua_Get9PatchNames()
+// {
+// 	LuaObject Table=theLuaState->CreateTable();
+// 	static const char *PositionNames[]= {
+// 		"top_left", "top", "top_right",
+// 		"left", "middle", "right",   
+// 		"bottom_left", "bottom", "bottom_right",
+// 		nullptr };
+// 	for(int i=0; PositionNames[i]; ++i)
+// 	{
+// 		Table.Set(i+1, PositionNames[i]);
+// 	}
+// 	return Table;
+// }
+// REGISTER_LUA_FUNCTION(cMultiSprite_Simple9Patch::Lua_Get9PatchNames, Get9PatchNames);
 
 void cMultiSprite_Simple9Patch::SetPositionNameOverrides(const char **PositionNameOverrides)
 {

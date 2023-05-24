@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 INIT_VISUALIZER_IMP(cPushButton);
 
 const cEventDispatchers::cDispatcherRangeInfo cPushButton::mDispatcherRangeInfo=

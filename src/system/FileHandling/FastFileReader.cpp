@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 
-#include "FastFileReader.h"
 
 cFastFileReader::cFastFileReader(const cPath &Path): FileName(Path.ToString())
 {

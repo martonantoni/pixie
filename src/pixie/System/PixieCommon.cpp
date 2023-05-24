@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 RECT cRect::ToRECT() const
 {
 	RECT Rect={ mLeft, mTop, Right(), Bottom() };

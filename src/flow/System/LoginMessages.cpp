@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 
-#include "LoginMessages.h"
+#include "pixie/flow/i_flow.h"
+#include "pixie/flow/LoginMessages.h"
 
 std::shared_ptr<cMemoryStream> cFlowLoginMessage::ToStream() const
 {

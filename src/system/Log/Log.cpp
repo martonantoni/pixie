@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 
-#include "StandardLogPlugins.h"
 #include "LogChunk.h"
+#include "StandardLogPlugins.h"
 
 cLog::cLog(const cPath &pFileName,int pFlags): FileName(pFileName.ToString()), Flags(pFlags)
 {

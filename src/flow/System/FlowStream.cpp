@@ -1,5 +1,6 @@
 #include "StdAfx.h"
-#include "LoginMessages.h"
+#include "pixie/flow/i_flow.h"
+#include "pixie/flow/LoginMessages.h"
 
 cFlowStream::cFlowStream(std::shared_ptr<cFlowConnection> Connection)
 	: mConnection(Connection)

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 #include "TextField_Visualizer_Standard.h"
 
 void cStandardTextFieldVisualizer::Init(const cTextField::cInitData &InitData)

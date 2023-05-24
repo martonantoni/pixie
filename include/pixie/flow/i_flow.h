@@ -1,5 +1,7 @@
 #pragma once
 
+#include "pixie/system/network/i_network.h"
+
 #include "FlowConnectionID.h"
 #include "FlowUserID.h"
 #include "FlowMessageHeader.h"

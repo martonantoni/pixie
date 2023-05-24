@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 
-#include "messaging.h"
 
 cRegisteredID cMessageTopic::registerListener(const cListenerFunction& listeningFunction)
 {

@@ -181,8 +181,9 @@ public:
 #include "SharedValue/i_SharedValue.h"
 
 #include "ProgramDirector.h"
+#include "ProgramArguments.h"
 
-#include "lua/i_lua.h"
+//#include "lua/i_lua.h"
 
 #include "TodayString.h"
 #include "ProgramTitle.h"
@@ -215,3 +216,5 @@ public:
 		MainLog->Log("Elapsed %u ns in %s\n", Elapsed.count(), mName);
 	}
 };
+
+#include "network/i_Network.h"

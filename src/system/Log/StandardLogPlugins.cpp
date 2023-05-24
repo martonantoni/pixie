@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 
-#include "StandardLogPlugins.h"
 #include "LogChunk.h"
+#include "StandardLogPlugins.h"
 
 #include <iostream>
 

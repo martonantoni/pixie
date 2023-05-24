@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 #include "Window2_SpriteIterator.h"
 
 const cEventDispatchers::cDispatcherRangeInfo cPixieWindow::mDispatcherRangeInfo

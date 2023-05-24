@@ -13,6 +13,7 @@
 #include "system/PixieInitializer.h"
 #include "system/Spline.h"
 
+
 #include "FreeTypeIntegration/FreeTypeIntegration.h"
 
 #include "PixieObject/i_PixieObject.h"
@@ -23,3 +24,5 @@
 #include "Sound/i_Sound.h"
 
 #include "UI/i_ui.h" // uses both sound & 2d engine
+
+#include "Editor/i_Editor.h"

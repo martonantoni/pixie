@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 const cEventDispatchers::cDispatcherRangeInfo cMouseEventEmitterTarget::mDispatcherRangeInfo=
 {
 	PixieEvents::EventEmitterTarget_First,

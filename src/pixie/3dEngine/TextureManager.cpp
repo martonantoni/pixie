@@ -1,5 +1,6 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
+/*
 cTextureManager::cTextureManager()
 {
 	mDevice=cDevice::Get();
@@ -69,3 +70,4 @@ IDirect3DTexture9 *cTextureManager::LoadTexture(const std::string &FileName,D3DX
 //Return the newly made texture
 	return d3dTexture;
 }
+*/

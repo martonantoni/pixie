@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 void cDialogItem::Init(const cPixieInitData &InitData)
 {
 	mIsEnabled.BindTo(InitData.mBindTo, "is_enabled");

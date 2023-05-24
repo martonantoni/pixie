@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 #include "PushButton_Visualizer_Standard.h"
 
 template<class T>

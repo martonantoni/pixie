@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 unsigned int gFrameTime=GetTickCount();
 cLogicServer theLogicServer;
 unsigned int cLogicServer::cLogicUserData::mIDCounter=0;

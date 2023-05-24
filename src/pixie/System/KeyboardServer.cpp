@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 const cEventDispatchers::cDispatcherRangeInfo cKeyboardServer::mDispatcherRangeInfo=
 {
 	PixieEvents::Keyboard_First, { "keydown", 

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 #include "pixie/Editor/i_Editor.h"
 
 void cMessageBox::Init(const cInitData &InitData)

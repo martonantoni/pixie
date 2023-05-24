@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-/*
+#include "pixie/pixie/i_pixie.h"/*
 cAlongPathPixieObjectBlender::cAlongPathPixieObjectBlender(const cRequest &Request)
 	: cPixieObjectAnimator
 		(DoneWhenSamePropertyAnimatorAdded|DoneWhenAffectedPropertySet|(Request.mKeepObjectAlive?KeepsObjectAlive:0), Request.mAffectedProperties)

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 #include "VisualizationHelpers.h"
 
 std::vector<std::unique_ptr<cSpriteBase>> CreateTileFillSprites(const tIntrusivePtr<cTexture> &Texture, cPoint Size)

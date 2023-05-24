@@ -1,8 +1,5 @@
 #include "StdAfx.h"
 
-#include "MainLog.h"
-#include "../ProgramArguments.h"
-
 cMainLog *MainLog=NULL;
 
 cMainLog::cMainLog(): 

@@ -1,7 +1,5 @@
 #include "StdAfx.h"
-
-#include "Pix_Clearer.h"
-#include "Pix_Device.h"
+#include "pixie/pixie/i_pixie.h"
 
 void cBasicDeviceClearer::Init(const cConfig &Config)
 {

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 #include "Window2_SpriteIterator.h"
 
 cPixieWindow::cSpriteIterator::cSpriteIterator(const cPixieWindow &BaseWindow)

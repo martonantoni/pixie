@@ -1,6 +1,5 @@
 #include "StdAfx.h"
-
-#include "Pix_Error.h"
+#include "pixie/pixie/i_pixie.h"
 
 std::string Pixie_GetErrorCodeText(HRESULT Result)
 {

@@ -25,7 +25,7 @@ public:
 	void SetCenterSpriteMode(eCenterSpriteMode CenterSpriteMode); // must be called before Init
 	void SetPositionNameOverrides(const char **PositionNameOverrides); // must be called before Init
 
-	static LuaObject Lua_Get9PatchNames();
+//	static LuaObject Lua_Get9PatchNames();
 };
 
 USE_DROP_INSTEAD_DELETE_PARENT(cMultiSprite_Simple9Patch, cAutoMultiSpriteBase)

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 cPixieObjectAnimator::cPixieObjectAnimator(unsigned int Flags, unsigned int AffectedProperties)
 : mFlags(Flags)
 , mAffectedProperties(AffectedProperties)

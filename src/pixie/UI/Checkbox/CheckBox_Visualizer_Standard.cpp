@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 #include "CheckBox_Visualizer_Standard.h"
 
 cStandardCheckBoxVisualizer::~cStandardCheckBoxVisualizer()

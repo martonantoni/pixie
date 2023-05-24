@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 bool cSpriteColor::CheckPerCornerUsage(unsigned int PositionFlags)
 {
 // going from PerCornerMode to non-PerCornerMode is tricky, because of setting Alpha / RGB separately

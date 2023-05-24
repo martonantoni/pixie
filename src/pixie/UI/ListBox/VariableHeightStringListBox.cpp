@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 cVariableHeightStringListBoxItem::cVariableHeightStringListBoxItem(std::shared_ptr<cTextRenderer> TextRenderer, const std::string &Text)
 	: mText(Text)
 	, mTextRenderer(std::move(TextRenderer))

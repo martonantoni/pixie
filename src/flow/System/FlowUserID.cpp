@@ -1,5 +1,7 @@
 #include "StdAfx.h"
 
+#include "pixie/flow/i_flow.h"
+
 cFlowUniqueID::cFlowUniqueID(const std::string &id)
 	: mID(strtoull(id.c_str(), nullptr, 16))
 {

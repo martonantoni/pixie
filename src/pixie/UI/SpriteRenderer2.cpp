@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "SpriteRenderer2.h"
+#include "pixie/pixie/i_pixie.h"#include "SpriteRenderer2.h"
 #include "Window2_SpriteIterator.h"
 
 void cSpriteRenderer::Init()

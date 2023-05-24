@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 #include "PushButton_Visualizer_OnlyBorder.h"
 
 void cPushButtonVisualizer_OnlyBorder::Init(const cPushButton::cInitData &InitData)

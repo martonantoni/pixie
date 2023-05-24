@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 cMultiSprite_Horiz3::cMultiSprite_Horiz3()
 {
 }

@@ -1,7 +1,5 @@
 #include "StdAfx.h"
 
-#include "CommonUtilityFunctions.h"
-
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif

@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 
-#include "i_Network.h"
 #include "SocketErrorCodes.h"
 
 cTCPAcceptor::cTCPAcceptor(cSocketTaker *SocketTaker)

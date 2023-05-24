@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-
+#include "pixie/pixie/i_pixie.h"
 cPixieObject::cPropertyValues::cPropertyValues(std::initializer_list<int> Initializer)
 {
 	if(ASSERTFALSE(Initializer.size()>4))

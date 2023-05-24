@@ -1,8 +1,6 @@
 #include "StdAfx.h"
 
 
-#include "TimerServer.h"
-
 cTimerServer::cTimerServer()
 : mCurrentTimer(NULL)
 {
