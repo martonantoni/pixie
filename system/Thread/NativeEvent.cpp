@@ -1,3 +1,5 @@
+#include "StdAfx.h"
+
 cNativeEvent::cNativeEvent(eType Type)
 {
 	mHandle=::CreateEvent(NULL,Type==ManualReset,false,NULL);

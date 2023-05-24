@@ -1,3 +1,4 @@
+#include "StdAfx.h"
 
 #include "StandardLogPlugins.h"
 #include "LogChunk.h"

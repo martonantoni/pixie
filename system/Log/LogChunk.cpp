@@ -1,5 +1,4 @@
-
-#include "LogChunk.h"
+#include "StdAfx.h"
 
 #include <time.h>
 

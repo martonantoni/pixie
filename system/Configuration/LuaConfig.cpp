@@ -1,3 +1,6 @@
+#include "StdAfx.h"
+
+#ifdef sDFDSFSDF
 
 cLuaBasedConfig::cLuaBasedConfig(const LuaObject &Object)
 	: mObject(Object)
@@ -243,3 +246,5 @@ tIntrusivePtr<cConfig> cLuaBasedConfig::CreateConfig(LuaObject Object)
 {
 	return make_intrusive_ptr<cLuaBasedConfig>(Object);
 }
+
+#endif

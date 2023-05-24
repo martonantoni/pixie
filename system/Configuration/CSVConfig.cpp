@@ -1,3 +1,4 @@
+#include "StdAfx.h"
 
 cCSVConfig::cCSVConfig(const cPath &Path, const std::string &Separator)
 {

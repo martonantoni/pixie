@@ -1,3 +1,5 @@
+#include "StdAfx.h"
+
 
 cThreadLocalStorage::cThreadLocalStorage()
 {

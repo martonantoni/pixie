@@ -1,3 +1,5 @@
+#include "StdAfx.h"
+
 void cTextLogToEvent::PostMessage(const std::string &Text)
 {
 	mDispatcher->PostEvent(cEvent(mTextHolder.StoreData(Text)));

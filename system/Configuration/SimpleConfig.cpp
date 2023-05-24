@@ -1,3 +1,4 @@
+#include "StdAfx.h"
 
 size_t cSimpleConfig::GetValueCount() const
 {

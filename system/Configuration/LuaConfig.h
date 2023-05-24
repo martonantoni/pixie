@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef DFSDFDSF
+
 class cLuaBasedConfig: public cConfig
 {
 	class cLuaStateHolder
@@ -47,3 +49,6 @@ public:
 	static tIntrusivePtr<cConfig> CreateConfig(const cPath &Path);
 	static tIntrusivePtr<cConfig> CreateConfig(LuaObject Object);
 };
+
+
+#endif

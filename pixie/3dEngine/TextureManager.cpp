@@ -11,21 +11,21 @@ cTextureManager::~cTextureManager()
 {
 }
 
-cTexture *cTextureManager::GetTextureByName(const CString &TextureName)
+cTexture *cTextureManager::GetTextureByName(const std::string &TextureName)
 {
 	cTexture *&Texture=mTextureMap[TextureName];
 	if(!Texture)
 	{
 		Expression::cObject *TextureInfo=mTextureInfoRoot->GetSubObject(TextureName,false);
 		RELEASE_ASSERT_EXT(TextureInfo,Format("Texture info missing for: \"%s\"",TextureName));
-		CString TextureFileName=TextureInfo->GetString("FileName");
+		std::string TextureFileName=TextureInfo->GetString("FileName");
 		cTexture *BaseTexture=GetTextureByFileName(TextureFileName);
 		Texture=new cTexture(BaseTexture,TextureInfo);
 	}
 	return Texture;
 }
 
-cTexture *cTextureManager::GetTextureByFileName(const CString &TextureFileName)
+cTexture *cTextureManager::GetTextureByFileName(const std::string &TextureFileName)
 {
 	cTexture *&Texture=mTextureFileMap[TextureFileName];
 	if(!Texture)
@@ -45,7 +45,7 @@ void cTextureManager::NoLongerReferenced(cTexture *Texture)
 
 //Load texture from file with D3DX
 //Supported formats: BMP, PPM, DDS, JPG, PNG, TGA, DIB
-IDirect3DTexture9 *cTextureManager::LoadTexture(const CString &FileName,D3DXIMAGE_INFO *SrcInfo)
+IDirect3DTexture9 *cTextureManager::LoadTexture(const std::string &FileName,D3DXIMAGE_INFO *SrcInfo)
 {
 	IDirect3DTexture9 *d3dTexture;
 

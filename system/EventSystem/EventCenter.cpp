@@ -1,3 +1,4 @@
+#include "StdAfx.h"
 
 cEventCenter *theEventCenter=NULL;
 

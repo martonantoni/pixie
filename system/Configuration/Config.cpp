@@ -1,3 +1,5 @@
+#include "../StdAfx.h"
+
 tIntrusivePtr<cConfig> theMainConfig;
 
 tIntrusivePtr<cConfig> cConfig::GetSubConfig(const std::string &Key) const
@@ -45,8 +47,9 @@ std::vector<std::string> cConfig::GetSubConfigNames() const
 
 tIntrusivePtr<cConfig> cConfig::FromFile(const cPath &Path)
 {
-	if(Path.GetExtension()=="lua")
-		return cLuaBasedConfig::CreateConfig(Path);
+// #todolua
+//	if(Path.GetExtension()=="lua")
+//		return cLuaBasedConfig::CreateConfig(Path);
 	if(Path.GetExtension()=="cfg")
 	{
 		auto NewConfig=make_intrusive_ptr<cSimpleConfig>();

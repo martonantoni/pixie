@@ -15,10 +15,10 @@ cStringTable::cThreadData::cThreadData()
 	HashTable.resize(0x100);
 }
 
-const char *cStringTable::GetUniqueTextInstance(const CString &String)
+const char *cStringTable::GetUniqueTextInstance(const std::string &String)
 {
 	int HashValue=0;
-	for(const char *Pos=String;*Pos;++Pos)
+	for(const char *Pos=String.c_str();*Pos;++Pos)
 		HashValue+=*Pos;
 	HashValue&=0xff;
 	cThreadData *ThreadData=(cThreadData *)::TlsGetValue(ThreadDataIndex);

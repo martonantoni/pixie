@@ -1,3 +1,4 @@
+#include "StdAfx.h"
 
 void cTextLog::StringLog(const std::string &Text)
 {

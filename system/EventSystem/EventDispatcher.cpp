@@ -1,3 +1,5 @@
+#include "StdAfx.h"
+
 cEventDispatcher cEventDispatcher::mRootDispatcher;
 
 tIntrusivePtr<cEventDispatcher> cEventDispatcher::GetGlobalDispatcher(const cEvent::cDispatcherID &DispatcherID, eNodeCreation Creation)

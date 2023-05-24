@@ -1,3 +1,4 @@
+#include "StdAfx.h"
 
 void cEventDispatchers::Init(const tIntrusivePtr<cEventDispatcher> &RootDispatcher)
 {

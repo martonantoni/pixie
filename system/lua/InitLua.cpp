@@ -1,3 +1,4 @@
+
 LuaState *theLuaState=nullptr;
 
 void cLuaFunctionRegistrator::RegisterFunction(void(*Function)())

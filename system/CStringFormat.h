@@ -1,4 +1,4 @@
 #pragma once
 
-CString Format(const char* lpszFormat,...);
+std::string Format(const char* lpszFormat,...);
 

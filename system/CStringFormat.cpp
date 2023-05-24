@@ -1,8 +1,8 @@
 #include "StdAfx.h"
 
-CString Format(const char* lpszFormat,...)
+std::string Format(const char* lpszFormat,...)
 {
-	CString s;
+	std::string s;
 	va_list argList;
 	va_start(argList, lpszFormat);
 	s.FormatV(lpszFormat, argList);

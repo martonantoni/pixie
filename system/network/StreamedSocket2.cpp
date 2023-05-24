@@ -1,3 +1,7 @@
+#include "StdAfx.h"
+
+#include "i_Network.h"
+#include "SocketErrorCodes.h"
 
 
 cStreamedSocket2::cStreamedSocket2(cStreamedSocketCommunicator *Communicator)

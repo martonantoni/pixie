@@ -4,7 +4,7 @@ class cStringTable: public tSingleton<cStringTable>
 {
 	struct cThreadData
 	{
-		typedef std::map<CString,const char *> cStringMap;
+		typedef std::map<std::string,const char *> cStringMap;
 		typedef std::vector<cStringMap> cStringHashTable;
 		cStringHashTable HashTable;
 		cThreadData();
@@ -15,5 +15,5 @@ class cStringTable: public tSingleton<cStringTable>
 public:
 	cStringTable();
 	~cStringTable() {}
-	const char *GetUniqueTextInstance(const CString &String);
+	const char *GetUniqueTextInstance(const std::string &String);
 };

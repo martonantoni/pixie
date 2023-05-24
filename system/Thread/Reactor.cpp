@@ -1,3 +1,4 @@
+#include "StdAfx.h"
 
 cReactor::cReactor()
 {
