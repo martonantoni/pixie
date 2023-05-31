@@ -15,6 +15,6 @@ foreach(subdir ${subdirectories})
 		add_executable(${subdir_name}_tests ${test_sources})
 
 		# Link your project's source files
-		target_link_libraries(${subdir_name}_tests PRIVATE Pixie gtest)
+		target_link_libraries(${subdir_name}_tests PRIVATE Pixie CONAN_PKG::gtest)
 	endif()
 endforeach()
