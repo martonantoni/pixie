@@ -184,7 +184,8 @@ public:
 #include "ProgramDirector.h"
 #include "ProgramArguments.h"
 
-//#include "lua/i_lua.h"
+#include "FileHandling/i_FileHandling.h"
+#include "lua/i_lua.h"
 
 #include "TodayString.h"
 #include "ProgramTitle.h"
@@ -192,7 +193,6 @@ public:
 #include "Thread/i_thread.h"
 
 #include "DropGuarded.h"
-#include "FileHandling/i_FileHandling.h"
 #include "Configuration/i_configuration.h"
 
 #include "CommonUtilityFunctions.h"

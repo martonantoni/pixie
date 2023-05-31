@@ -4,6 +4,41 @@
 const char* ProgramName = "Ready";
 const char* VersionString = "0.2";
 
+
+// class cLuaBasedConfig : public cConfig
+// {
+// public:
+//     cLuaBasedConfig(std::shared_ptr<cLuaScript> script, int reference = LUA_NOREF);
+//     virtual ~cLuaBasedConfig();
+//     virtual void Set(const std::string& Key, int Value) override;
+//     virtual void Set(const std::string& Key, bool Value) override;
+//     virtual void Set(const std::string& Key, double Value) override;
+//     virtual void Set(const std::string& Key, const std::string& Value) override;
+//     virtual void Set(const std::string& Key, const char* Value) override;
+//     virtual int GetInt(const std::string& Key, const tDefaultValue<int>& Default = tDefaultValue<int>()) const override;
+//     virtual int GetInt(int Index, const tDefaultValue<int>& Default = tDefaultValue<int>()) const override;
+//     virtual double GetDouble(const std::string& Key, const tDefaultValue<double>& Default = tDefaultValue<double>()) const override;
+//     virtual double GetDouble(int Index, const tDefaultValue<double>& Default = tDefaultValue<double>()) const override;
+//     virtual std::string GetString(const std::string& Key, const tDefaultValue<std::string>& Default = tDefaultValue<std::string>()) const override;
+//     virtual std::string GetString(int Index, const tDefaultValue<std::string>& Default = tDefaultValue<std::string>()) const override;
+//     virtual bool GetBool(const std::string& Key, const tDefaultValue<bool>& Default = tDefaultValue<bool>()) const override;
+//     virtual bool GetBool(int Index, const tDefaultValue<bool>& Default = tDefaultValue<bool>()) const override;
+//     virtual std::vector<std::string> GetKeys() const override;
+//     virtual size_t GetValueCount() const override;
+// 
+//     //	virtual std::unique_ptr<cSubConfigMap> GetSubConfigMap() override;
+// 
+//     virtual size_t GetSubConfigCount() const override;
+//     virtual tIntrusivePtr<cConfig> GetSubConfig(int Index) const override;
+// 
+//     static tIntrusivePtr<cConfig> CreateConfig(const char* MainTableKey, LuaState* State);
+//     static tIntrusivePtr<cConfig> CreateConfig(LuaState* State);
+//     static tIntrusivePtr<cConfig> CreateConfig(const cPath& Path);
+//     static tIntrusivePtr<cConfig> CreateConfig(LuaObject Object);
+// };
+// 
+
+
 class cStartupController
 {
     void ContinueStartup();
@@ -19,6 +54,7 @@ void cStartupController::Start_MainThread()
     // #endif
     MainLog = new cMainLog;
     MainLog->Log("----------- START -----------");
+
     theProgramDirector->Start();
     ::CallBack(theMainThread, eCallbackType::NoImmediate, this, &cStartupController::ContinueStartup);
 }
