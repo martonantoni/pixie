@@ -76,9 +76,9 @@ link_directories(${DIRECTX_LIB_PATH})
 # Sandbox
 
 add_executable(SandBox sandbox/sandbox.cpp)
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ENTRY:WinMainCRTStartup")
-target_link_libraries(SandBox PUBLIC 
-	Pixie)
+#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ENTRY:WinMainCRTStartup")
+target_link_libraries(SandBox PUBLIC Pixie)
+set_target_properties(SandBox PROPERTIES LINK_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ENTRY:WinMainCRTStartup")
 target_include_directories(SandBox PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 SET_TARGET_PROPERTIES(SandBox PROPERTIES LINK_FLAGS_DEBUG "/WHOLEARCHIVE:Pixie")
