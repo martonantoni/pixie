@@ -25,13 +25,33 @@ endif()
 include(${CMAKE_BINARY_DIR}/conan.cmake)
 
 
-conan_cmake_run(REQUIRES freetype/2.13.0
-                         fmt/10.0.0
-                         lua/5.4.4
-                BASIC_SETUP CMAKE_TARGETS)
+conan_cmake_configure(REQUIRES freetype/2.13.0
+                               fmt/10.0.0
+							   lua/5.4.4
+							   gtest/1.13.0
+                      GENERATORS cmake)
+					  					 					  
+conan_cmake_autodetect(settings BUILD_TYPE Release)
 
-#include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-#conan_basic_setup(TARGETS)
+conan_cmake_install(PATH_OR_REFERENCE .
+                    BUILD missing
+                    REMOTE conancenter
+                    SETTINGS ${settings})
+
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup(TARGETS)
+
+					
+#find_package(Freetype REQUIRED)
+#find_package(Lua REQUIRED)
+#find_package(fmt REQUIRED)
+
+#conan_cmake_run(REQUIRES freetype/2.13.0
+#                         fmt/10.0.0
+#                         lua/5.4.4
+#						 gtest/1.13.0
+#                BASIC_SETUP CMAKE_TARGETS)
+#
 	  
 file(GLOB_RECURSE PIXIE_SOURCES src/system/*.cpp)
 
@@ -39,11 +59,15 @@ add_library(Pixie STATIC ${PIXIE_SOURCES})
 target_include_directories(Pixie 
 	PUBLIC 
 		${CMAKE_CURRENT_SOURCE_DIR}/include
+		${CONAN_INCLUDE_DIRS}
+		${Lua_INCLUDE_DIRS}
 	PRIVATE
 		${CMAKE_CURRENT_SOURCE_DIR}/src
-		${CONAN_INCLUDE_DIRS}
 		${DIRECTX_INCLUDE_PATH})
 
+message("CONAN_INCLUDE_DIRS: " ${CONAN_INCLUDE_DIRS})
+message("Lua_INCLUDE_DIRS: " ${LUA_INCLUDE_DIRS})
+		
 target_link_libraries(Pixie PUBLIC CONAN_PKG::freetype CONAN_PKG::fmt CONAN_PKG::lua)
 	
 link_directories(${DIRECTX_LIB_PATH})
@@ -60,3 +84,7 @@ target_include_directories(SandBox PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 SET_TARGET_PROPERTIES(SandBox PROPERTIES LINK_FLAGS_DEBUG "/WHOLEARCHIVE:Pixie")
 SET_TARGET_PROPERTIES(SandBox PROPERTIES LINK_FLAGS_RELEASE "/WHOLEARCHIVE:Pixie")
 		
+################
+# Tests
+
+add_subdirectory(tests)

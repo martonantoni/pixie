@@ -4,4 +4,4 @@ fmt/10.0.0
 lua/5.4.4
 
 [generators]
-cmake
+cmake_find_package

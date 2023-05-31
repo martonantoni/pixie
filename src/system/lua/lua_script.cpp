@@ -14,10 +14,8 @@ void cLuaScript::executeFile(const cPath& path)
 {
 }
 
-cLuaTable cLuaScript::globalTable() const
+cLuaTable cLuaScript::globalTable()
 {
-    if (!*this)
-        return {};
     lua_pushglobaltable(mState);
     return cLuaTable{ shared_from_this(), luaL_ref(mState, LUA_REGISTRYINDEX) };
 }

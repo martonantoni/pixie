@@ -18,8 +18,8 @@ public:
     virtual ~cLuaScript();
     void executeFile(const cPath& path);
 
-    lua_State* state() const { return mState; }
-    cLuaTable globalTable() const;
+    lua_State* state() { return mState; }
+    cLuaTable globalTable();
 };
 
 class cLuaTable final
