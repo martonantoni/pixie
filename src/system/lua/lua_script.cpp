@@ -48,7 +48,11 @@ cLuaTable cLuaTable::subTable(const std::string& key) const
     int type = lua_gettable(L, -2); // Get the value from the table using the variable name
     if (type == LUA_TNIL)
     {        
+        lua_pop(L, 1); // pops the NIL
         lua_newtable(L); // create new table
+        lua_pushstring(L, key.c_str()); // name of the entry in the orig table
+        lua_pushvalue(L, -2); 
+        lua_settable(L, -4); // pops key and value 
     }
     int reference = luaL_ref(L, LUA_REGISTRYINDEX); // pops the sub-table
     lua_pop(L, 1);  // pops our table

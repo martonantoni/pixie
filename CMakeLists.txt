@@ -87,4 +87,8 @@ SET_TARGET_PROPERTIES(SandBox PROPERTIES LINK_FLAGS_RELEASE "/WHOLEARCHIVE:Pixie
 ################
 # Tests
 
+enable_testing()
+set(CMAKE_CTEST_COMMAND ctest)
+set(CMAKE_CTEST_COMMAND_OPTIONS "--force-new-ctest-process")
+
 add_subdirectory(tests)
