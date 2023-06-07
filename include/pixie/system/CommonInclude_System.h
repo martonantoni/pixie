@@ -159,6 +159,27 @@ public:
 	}
 };
 
+template<class T> class Finalizer final
+{
+public:
+    Finalizer(T&& toBeCalled)
+        : mToBeCalled(std::forward<T>(toBeCalled)) {}
+
+    ~Finalizer() {
+		mToBeCalled();
+    }
+private:
+    T mToBeCalled;
+};
+
+template<class T> Finalizer<T> finalizer(T&& toBeCalled)
+{
+	return Finalizer<T>(std::forward<T>(toBeCalled));
+}
+
+#define FINALLY(callable) auto finalizer##__LINE__ = finalizer(callable);
+
+
 #include "x64Common.h"
 #include "DebugAssert.h"
 #include "CommonInclude.h"

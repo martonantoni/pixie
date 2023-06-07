@@ -68,6 +68,32 @@ TEST(lua_table, create_sub_tables)
     verifyTestVariables(script->globalTable().subTable("mySubTable"));
 }
 
+TEST(lua_table, funcion_vv)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    cLuaTable globalTable = script->globalTable();
+    bool success = false;
+    globalTable.registerFunction<void>("test"s, [&success]() ->void { success = true; });
+    globalTable.callFunction("test"s);
+    ASSERT_TRUE(success);
+}
+
+TEST(lua_table, function_viii)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    cLuaTable globalTable = script->globalTable();
+    int result = 0;
+    globalTable.registerFunction<void, int, int, int>("test"s,
+        [&result](int a, int b, int c)
+        {
+            result = a + b + c;
+        });
+    globalTable.callFunction("test"s, 10, 11, 12);
+    ASSERT_EQ(result, 33);
+}
+
 // Main function to run the tests
 int main(int argc, char** argv)
 {
