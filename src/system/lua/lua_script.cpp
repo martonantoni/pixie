@@ -1,8 +1,17 @@
 #include "StdAfx.h"
 
+const char* cLuaScript::userDataMetaTableName = "destructed_user_data";
+
 cLuaScript::cLuaScript()
 {
     mState = luaL_newstate();
+    luaL_openlibs(mState);
+//    lua_atpanic(mState, panicHandler);
+
+    luaL_newmetatable(mState, userDataMetaTableName);
+    lua_pushcfunction(mState, gcUserData);
+    lua_setfield(mState, -2, "__gc");
+    lua_pop(mState, 1);
 }
 
 cLuaScript::~cLuaScript()
@@ -10,8 +19,20 @@ cLuaScript::~cLuaScript()
     lua_close(mState);
 }
 
-void cLuaScript::executeFile(const cPath& path)
+void cLuaScript::executeFile(const cPath& scriptPath)
 {
+
+}
+
+void cLuaScript::executeString(const std::string& script)
+{
+}
+
+int cLuaScript::gcUserData(lua_State* L)
+{
+    cUserDataBase* obj = static_cast<cUserDataBase*>(lua_touserdata(L, 1));
+    obj->~cUserDataBase();
+    return 0;
 }
 
 cLuaTable cLuaScript::globalTable()

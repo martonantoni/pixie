@@ -9,17 +9,38 @@ extern "C"
 
 class cLuaTable;
 
+struct cLuaException
+{
+    int mLine = 0;
+};
+
 class cLuaScript: public std::enable_shared_from_this<cLuaScript>
 {
     lua_State* mState;
     bool mLoaded = false;
+    static int gcUserData(lua_State* L);
+    static const char* userDataMetaTableName;
 public:
     cLuaScript();
     virtual ~cLuaScript();
-    void executeFile(const cPath& path);
+    void executeFile(const cPath& scriptPath);
+    void executeString(const std::string& script);
 
     lua_State* state() { return mState; }
     cLuaTable globalTable();
+
+    struct cUserDataBase
+    {
+        virtual ~cUserDataBase() = default;
+    };
+    template<class T, class... Args> T* pushNewUserData(Args&&... args)
+    {
+        static_assert(std::is_base_of<cUserDataBase, T>::value, "must use a cUserDataBase derived class");
+        void* allocationPlace = lua_newuserdata(mState, sizeof(T));
+        T* userData = new (allocationPlace) T(std::forward<Args>(args)...);
+        luaL_setmetatable(mState, userDataMetaTableName);
+        return userData;
+    }
 };
 
 class cLuaTable final
@@ -243,23 +264,29 @@ template<class T> void cLuaTable::pushFunction(lua_State* L, const T& callable)
 {
     lua_State* L = mScript->state();
     // Create a light userdata to hold the callable object
-    void* userdata = lua_newuserdata(L, sizeof(Callable));
-    new (userdata) Callable(std::forward<Callable>(callable));
+
+    struct cCallableHolder : public cLuaScript::cUserDataBase
+    {
+        T mCallable;
+        cCallableHolder(const T& callable) : mCallable(callable) {}
+        virtual ~cCallableHolder() = default;
+    };
+    cCallableHolder* holder = mScript->pushNewUserData<cCallableHolder>(callable);
 
     // Create a C function wrapper that calls the callable object
     lua_CFunction cFunction = [](lua_State* L) -> int
     {
-        Callable* callable = static_cast<Callable*>(lua_touserdata(L, lua_upvalueindex(1)));
+        cCallableHolder* holder = static_cast<cCallableHolder*>(lua_touserdata(L, lua_upvalueindex(1)));
 
         // Invoke the callable object
-        if constexpr (std::is_same_v<decltype((*callable)()), void>)
+        if constexpr (std::is_same_v<decltype((*holder->mcallable)()), void>)
         {
-            (*callable)();
+            (*holder->mcallable)();
             return 0;
         }
         else
         {
-            auto result = (*callable)();
+            auto result = (*holder->mcallable)();
             push(L, result);
             return 1;
         }
@@ -280,25 +307,30 @@ void cLuaTable::registerFunction(const std::string& key, const C&& func)
 
     using FuncType = std::function<R(Args...)>;
 
-    void* userdata = lua_newuserdata(L, sizeof(FuncType));
-    new (userdata) FuncType(func);
+    struct cCallableHolder : public cLuaScript::cUserDataBase
+    {
+        C mCallable;
+        cCallableHolder(const C& callable) : mCallable(callable) {}
+        virtual ~cCallableHolder() = default;
+    };
+    cCallableHolder* holder = mScript->pushNewUserData<cCallableHolder>(func);
 
     // Create a C function wrapper that calls the callable object
     lua_CFunction cFunction = [](lua_State* L) -> int
     {
-        FuncType* f = static_cast<FuncType*>(lua_touserdata(L, lua_upvalueindex(1)));
+        cCallableHolder* holder = static_cast<cCallableHolder*>(lua_touserdata(L, lua_upvalueindex(1)));
 
         if constexpr (sizeof...(Args) > 0)
         {
             auto arguments = std::make_tuple(pop<Args>(L)...);
             if constexpr (std::is_same_v<R, void>)
             {
-                std::apply(*f, arguments);
+                std::apply(holder->mCallable, arguments);
                 return 0;
             }
             else
             {
-                auto result = std::apply(*f, arguments);
+                auto result = std::apply(holder->mCallable, arguments);
                 push(L, result);
                 return 1;
             }
@@ -307,12 +339,12 @@ void cLuaTable::registerFunction(const std::string& key, const C&& func)
         {
             if constexpr (std::is_same_v<R, void>)
             {
-                (*f)();
+                (holder->mCallable)();
                 return 0;
             }
             else
             {
-                auto result = (*f)();
+                auto result = (holder->mCallable)();
                 push(L, result);
                 return 1;
             }
