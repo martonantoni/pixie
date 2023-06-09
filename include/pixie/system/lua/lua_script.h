@@ -47,7 +47,6 @@ class cLuaTable final
 {
     std::shared_ptr<cLuaScript> mScript;
     int mReference = LUA_NOREF;
-    template<class T> static void pushFunction(lua_State* L, const T& callable);
     template<class T> static void push(lua_State* L, const T& value);
     template<class T, class... Ts> static void push(lua_State* L, const T& value, const Ts&... values);
     template<class T> static T pop(lua_State* L);
@@ -56,7 +55,7 @@ public:
     cLuaTable(std::shared_ptr<cLuaScript> script, int reference);
     ~cLuaTable();
     cLuaTable& operator=(const cLuaTable& src) = default;
-    template<class T> std::pair<T, bool> get(const std::string& key) const;
+    template<class T> T get(const std::string& key) const;
     template<class T> void set(const std::string& key, const T& value);
     template<class R, class... Args, class C> void registerFunction(const std::string& key, const C&& func);
     template<class... Args> void callFunction(const std::string& key, Args... args);
@@ -136,66 +135,42 @@ T cLuaTable::pop(lua_State* L)
     return T{};
 }
 
-template <typename T>
-std::pair<T, bool> cLuaTable::get(const std::string& key) const
+template<typename T> T cLuaTable::get(const std::string& key) const
 {
     if (!mScript || mReference == LUA_NOREF)
     {
-        return { {}, false };
+        return {};
     }
     lua_State* L = mScript->state();
-    std::pair<T, bool> result;
 
     lua_rawgeti(L, LUA_REGISTRYINDEX, mReference); // Retrieve the table from the registry
     lua_pushstring(L, key.c_str()); // Push the variable name onto the Lua stack
     lua_gettable(L, -2); // Get the value from the table using the variable name
 
+    FINALLY([L]() { lua_pop(L, 2); });
+
     if constexpr (std::is_same_v<T, int>)
     {
         if (lua_isinteger(L, -1))
         {
-            result.first = static_cast<T>(lua_tointeger(L, -1));
-            result.second = true;
-        }
-        else
-        {
-            result.second = false;
+            return static_cast<T>(lua_tointeger(L, -1));
         }
     }
     else if constexpr (std::is_same_v<T, double>)
     {
         if (lua_isnumber(L, -1))
         {
-            result.first = static_cast<T>(lua_tonumber(L, -1));
-            result.second = true;
-        }
-        else
-        {
-            result.second = false;
+            return static_cast<T>(lua_tonumber(L, -1));
         }
     }
     else if constexpr (std::is_same_v<T, std::string>)
     {
         if (lua_isstring(L, -1))
         {
-            result.first = static_cast<T>(lua_tostring(L, -1));
-            result.second = true;
-        }
-        else
-        {
-            result.second = false;
+            return static_cast<T>(lua_tostring(L, -1));
         }
     }
-    else
-    {
-        // Handle unsupported types here
-        // You can throw an exception or provide an appropriate error message
-        // depending on your specific use case
-        result.second = false;
-    }
-
-    lua_pop(L, 2); // Pop the value and the table from the stack
-    return result;
+    return {};
 }
 
 
@@ -225,13 +200,6 @@ bool cLuaTable::isType(const std::string& variableName) const
     {
         result = lua_isstring(L, -1);
     }
-    else
-    {
-        // Handle unsupported types here
-        // You can throw an exception or provide an appropriate error message
-        // depending on your specific use case
-        result = false;
-    }
 
     lua_pop(L, 2); // Pop the value and the table from the stack
     return result;
@@ -257,41 +225,6 @@ template<class... Args> void cLuaTable::callFunction(const std::string& key, Arg
         push(L, args...);
     }
     int status = lua_pcall(L, sizeof...(args), 0, 0);
-}
-
-
-template<class T> void cLuaTable::pushFunction(lua_State* L, const T& callable)
-{
-    lua_State* L = mScript->state();
-    // Create a light userdata to hold the callable object
-
-    struct cCallableHolder : public cLuaScript::cUserDataBase
-    {
-        T mCallable;
-        cCallableHolder(const T& callable) : mCallable(callable) {}
-        virtual ~cCallableHolder() = default;
-    };
-    cCallableHolder* holder = mScript->pushNewUserData<cCallableHolder>(callable);
-
-    // Create a C function wrapper that calls the callable object
-    lua_CFunction cFunction = [](lua_State* L) -> int
-    {
-        cCallableHolder* holder = static_cast<cCallableHolder*>(lua_touserdata(L, lua_upvalueindex(1)));
-
-        // Invoke the callable object
-        if constexpr (std::is_same_v<decltype((*holder->mcallable)()), void>)
-        {
-            (*holder->mcallable)();
-            return 0;
-        }
-        else
-        {
-            auto result = (*holder->mcallable)();
-            push(L, result);
-            return 1;
-        }
-    };
-    lua_pushcclosure(L, cFunction, 1);
 }
 
 template<class R, class... Args, class C>

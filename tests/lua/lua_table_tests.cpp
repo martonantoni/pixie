@@ -15,33 +15,27 @@ void storeTestVariables(cLuaTable& table)
 void verifyTestVariables(const cLuaTable& table)
 {
     {
-        auto [value, success] = table.get<int>("twelve");
-        ASSERT_TRUE(success) << "twelve";;
+        auto value = table.get<int>("twelve");
         ASSERT_EQ(value, 12) << "twelve";
     }
     {
-        auto [value, success] = table.get<int>("ten");
-        ASSERT_TRUE(success) << "ten";
+        auto value = table.get<int>("ten");
         ASSERT_EQ(value, 10) << "ten";
     }
     {
-        auto [value, success] = table.get<double>("twelve_and_half");
-        ASSERT_TRUE(success) << "twelve_and_half";
+        auto value = table.get<double>("twelve_and_half");
         ASSERT_EQ(value, 12.5) << "twelve_and_half";
     }
     {
-        auto [value, success] = table.get<double>("ten_and_half");
-        ASSERT_TRUE(success);
+        auto value = table.get<double>("ten_and_half");
         ASSERT_EQ(value, 10.5) << "ten_and_half";
     }
     {
-        auto [value, success] = table.get<std::string>("twelve");
-        ASSERT_TRUE(success);
+        auto value = table.get<std::string>("twelve");
         ASSERT_STREQ(value.c_str(), "12") << "twelve";
     }
     {
-        auto [value, success] = table.get<std::string>("ten");
-        ASSERT_TRUE(success);
+        auto value = table.get<std::string>("ten");
         ASSERT_STREQ(value.c_str(), "10") << "ten";
     }
 }
