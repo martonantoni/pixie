@@ -206,7 +206,6 @@ template<class T> Finalizer<T> finalizer(T&& toBeCalled)
 #include "ProgramArguments.h"
 
 #include "FileHandling/i_FileHandling.h"
-#include "lua/i_lua.h"
 
 #include "TodayString.h"
 #include "ProgramTitle.h"
@@ -215,6 +214,7 @@ template<class T> Finalizer<T> finalizer(T&& toBeCalled)
 
 #include "DropGuarded.h"
 #include "Configuration/i_configuration.h"
+#include "lua/i_lua.h"
 
 #include "CommonUtilityFunctions.h"
 

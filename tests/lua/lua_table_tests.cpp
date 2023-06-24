@@ -88,9 +88,69 @@ TEST(lua_table, function_viii)
     ASSERT_EQ(result, 33);
 }
 
+void setupConfigTestVariables(cLuaScript& script)
+{
+    cLuaTable globalTable = script.globalTable();
+    storeTestVariables(globalTable);
+    cLuaTable subTable = globalTable.subTable("mySubTable");
+    storeTestVariables(subTable);
+}
+
+void verifyConfigSingleLevel(const cConfig& config)
+{
+    {
+        auto value = config.Get<int>("twelve", 0);
+        ASSERT_EQ(value, 12) << "twelve";
+    }
+    {
+        auto value = config.Get<int>("ten", 0);
+        ASSERT_EQ(value, 10) << "ten";
+    }
+    {
+        auto value = config.Get<double>("twelve_and_half", 0.0);
+        ASSERT_EQ(value, 12.5) << "twelve_and_half";
+    }
+    {
+        auto value = config.Get<double>("ten_and_half", 0.0);
+        ASSERT_EQ(value, 10.5) << "ten_and_half";
+    }
+    {
+        auto value = config.Get<std::string>("twelve", {});
+        ASSERT_STREQ(value.c_str(), "12") << "twelve";
+    }
+    {
+        auto value = config.Get<std::string>("ten", {});
+        ASSERT_STREQ(value.c_str(), "10") << "ten";
+    }
+
+}
+
+TEST(lua_table, toConfig_nonrecursive)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    setupConfigTestVariables(*script);
+    auto config = script->globalTable().toConfig(cLuaTable::IsRecursive::No);
+    verifyConfigSingleLevel(*config);
+}
+
+TEST(lua_table, toConfig_recursive)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    setupConfigTestVariables(*script);
+    auto config = script->globalTable().toConfig(cLuaTable::IsRecursive::Yes);
+    verifyConfigSingleLevel(*config);
+    auto subConfig = config->GetSubConfig("mySubTable");
+    ASSERT_TRUE(subConfig);
+    verifyConfigSingleLevel(*subConfig);
+}
+
+
 // Main function to run the tests
 int main(int argc, char** argv)
 {
+    cLuaScript::staticInit();
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

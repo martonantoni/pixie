@@ -16,17 +16,22 @@ struct cLuaException
 
 class cLuaScript: public std::enable_shared_from_this<cLuaScript>
 {
-    lua_State* mState;
+    lua_State* L;
     bool mLoaded = false;
     static int gcUserData(lua_State* L);
     static const char* userDataMetaTableName;
+    static std::vector<std::string> globalTableInternalElements;
 public:
     cLuaScript();
     virtual ~cLuaScript();
     void executeFile(const cPath& scriptPath);
     void executeString(const std::string& script);
+    static void dumpStack(lua_State* L);
+    static void staticInit();
+    static std::string valueToString(lua_State* L, int index);
+    static bool isGlobalInternalElement(const std::string& key);
 
-    lua_State* state() { return mState; }
+    lua_State* state() { return L; }
     cLuaTable globalTable();
 
     struct cUserDataBase
@@ -36,23 +41,30 @@ public:
     template<class T, class... Args> T* pushNewUserData(Args&&... args)
     {
         static_assert(std::is_base_of<cUserDataBase, T>::value, "must use a cUserDataBase derived class");
-        void* allocationPlace = lua_newuserdata(mState, sizeof(T));
+        void* allocationPlace = lua_newuserdata(L, sizeof(T));
         T* userData = new (allocationPlace) T(std::forward<Args>(args)...);
-        luaL_setmetatable(mState, userDataMetaTableName);
+        luaL_setmetatable(L, userDataMetaTableName);
         return userData;
     }
 };
 
+
+
 class cLuaTable final
 {
+public:
+    enum class IsRecursive { Yes, No };
+private:
     std::shared_ptr<cLuaScript> mScript;
     int mReference = LUA_NOREF;
+    bool mIsGlobalTable = false;
     template<class T> static void push(lua_State* L, const T& value);
     template<class T, class... Ts> static void push(lua_State* L, const T& value, const Ts&... values);
     template<class T> static T pop(lua_State* L);
+    tIntrusivePtr<cConfig> toConfig_topTable(lua_State* L, IsRecursive isRecursive) const;
 public:
     cLuaTable() = default;
-    cLuaTable(std::shared_ptr<cLuaScript> script, int reference);
+    cLuaTable(std::shared_ptr<cLuaScript> script, int reference, bool isGlobalTable);
     ~cLuaTable();
     cLuaTable& operator=(const cLuaTable& src) = default;
     template<class T> T get(const std::string& key) const;
@@ -61,6 +73,8 @@ public:
     template<class... Args> void callFunction(const std::string& key, Args... args);
     template<class T> bool isType(const std::string& key) const;
     cLuaTable subTable(const std::string& key) const;
+
+    tIntrusivePtr<cConfig> toConfig(IsRecursive isRecursive = IsRecursive::Yes) const;
 };
 
 template<class T> void cLuaTable::push(lua_State* L, const T& value)
