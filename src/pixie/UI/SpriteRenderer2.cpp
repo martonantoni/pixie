@@ -1,11 +1,11 @@
 #include "StdAfx.h"
-#include "pixie/pixie/i_pixie.h"#include "SpriteRenderer2.h"
-#include "Window2_SpriteIterator.h"
+#include "pixie/pixie/i_pixie.h"
+#include "pixie/pixie/ui/SpriteRenderer2.h"
+#include "pixie/pixie/ui/Window2_SpriteIterator.h"
 
 void cSpriteRenderer::Init()
 {
-	tIntrusivePtr<cConfig> Config=cLuaBasedConfig::CreateConfig("pixie_system.sprite_renderer", theLuaState);
-	mMaxSpritesPerFlush=Config->GetInt("max_sprites_per_flush");
+	mMaxSpritesPerFlush = theGlobalConfig->get<int>("pixie_system.sprite_renderer.max_sprites_per_flush");
 	ASSERT(mMaxSpritesPerFlush);
 
 	mPixieDevice=cDevice::Get();

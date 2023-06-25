@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
-#include "ListBox_Visualizer_Standard.h"
+#include "pixie/pixie/ui/ListBox/ListBox_Visualizer_Standard.h"
 
 cStandardListBoxVisualizer::cStandardListBoxVisualizer()
 {

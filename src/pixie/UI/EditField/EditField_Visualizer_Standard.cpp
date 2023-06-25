@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
-#include "EditField_Visualizer_Standard.h"
+#include "pixie/pixie/ui/EditField/EditField_Visualizer_Standard.h"
 
 void cStandardEditFieldVisualizer::Init(const cEditField::cInitData &InitData)
 {

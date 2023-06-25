@@ -53,8 +53,8 @@ cPrimaryWindow::cPrimaryWindow()
 #endif
 
 	::RegisterClassEx(&WindowClass);
-	tIntrusivePtr<cConfig> Config=cLuaBasedConfig::CreateConfig("primary_window", theLuaState);
-	mWindowHandle=::CreateWindow("EdgeWindow",cProgramTitle::Get()->c_str(),WS_VISIBLE|WS_SYSMENU|WS_MINIMIZEBOX,0,0,500,500,NULL,NULL,gInstance,0);
+	auto config = theGlobalConfig->GetSubConfig("primary_window");
+	mWindowHandle=::CreateWindow("PixieWindow",cProgramTitle::Get()->c_str(),WS_VISIBLE|WS_SYSMENU|WS_MINIMIZEBOX,0,0,500,500,NULL,NULL,gInstance,0);
 
 	RECT WindowRect,ClientRect;
 	::GetWindowRect(mWindowHandle,&WindowRect);
@@ -62,8 +62,8 @@ cPrimaryWindow::cPrimaryWindow()
 
 	int ScreenWidth=::GetSystemMetrics(SM_CXSCREEN);
 
-	int Width=Config->GetInt("width")+WindowRect.right-WindowRect.left-ClientRect.right;
-	int Height=Config->GetInt("height")+WindowRect.bottom-WindowRect.top-ClientRect.bottom;
+	int Width= config->get<int>("width")+WindowRect.right-WindowRect.left-ClientRect.right;
+	int Height= config->get<int>("height")+WindowRect.bottom-WindowRect.top-ClientRect.bottom;
 
 	::SetWindowPos(mWindowHandle,NULL,(ScreenWidth-Width)/2,0,Width,Height,SWP_NOZORDER);
     ::BringWindowToTop(mWindowHandle);

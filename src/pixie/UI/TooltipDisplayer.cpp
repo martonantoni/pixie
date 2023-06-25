@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
-#include "TooltipDisplayer.h"
+#include "pixie/pixie/ui/TooltipDisplayer.h"
 
 cRegisteredID cTooltipDisplayer::DisplayTooltip(const cTooltipRequest &Request)
 {

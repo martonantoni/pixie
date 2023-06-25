@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
+#include "pixie\pixie\System\PixieMainLoop.h"
 
+/*
 int LUA_Bridge_CreateRGBValue(int red,int green,int blue)
 {
 	ASSERT(red>=0&&red<=255);
@@ -44,7 +46,7 @@ LuaObject LUA_Bridge_Rect(int x, int y, int w, int h)
 	return Table;
 }
 REGISTER_LUA_FUNCTION(LUA_Bridge_Rect, Rect);
-
+*/
 void InitPixieSystem()
 {
 	theColorServer.Init();

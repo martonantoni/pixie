@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
-#include "PushButton_Visualizer_Standard.h"
+#include "pixie/pixie/ui/PushButton/PushButton_Visualizer_Standard.h"
 
 template<class T>
 void tStandardPushButtonVisualizer<T>::Init(const cPushButton::cInitData &InitData)

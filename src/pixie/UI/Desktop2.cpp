@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
-#include "SpriteRenderer2.h"
+#include "pixie/pixie/ui/SpriteRenderer2.h"
 
 cPixieDesktop thePixieDesktop;
 

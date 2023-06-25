@@ -53,7 +53,7 @@ conan_basic_setup(TARGETS)
 #                BASIC_SETUP CMAKE_TARGETS)
 #
 	  
-file(GLOB_RECURSE PIXIE_SOURCES src/system/*.cpp)
+file(GLOB_RECURSE PIXIE_SOURCES src/*.cpp)
 
 add_library(Pixie STATIC ${PIXIE_SOURCES})
 target_include_directories(Pixie 

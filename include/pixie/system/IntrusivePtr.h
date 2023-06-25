@@ -6,6 +6,7 @@ class cIntrusiveRefCount
 protected:
 	virtual ~cIntrusiveRefCount() {}
 	virtual void ReferenceCounterReachedZero() const { delete this; }
+	
 public:
 	void Ref() const 
 	{ 

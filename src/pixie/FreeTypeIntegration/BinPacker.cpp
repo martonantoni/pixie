@@ -4,6 +4,8 @@
 
 #pragma warning(disable:4267)  // conversion from 'size_t' to 'int', possible loss of data
 
+#define assert(x) ASSERT(x)
+
 // ---------------------------------------------------------------------------
 
 void BinPacker::Pack(

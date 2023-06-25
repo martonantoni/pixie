@@ -2,7 +2,7 @@
 
 class cConfig: public cIntrusiveRefCount
 {
-	typedef std::map<std::string, tIntrusivePtr<cConfig>> cSubConfigs;
+	typedef std::unordered_map<std::string, tIntrusivePtr<cConfig>> cSubConfigs;
 	cSubConfigs mSubConfigs;
 protected:
 	virtual tIntrusivePtr<cConfig> InternalCreateSubConfig(const std::string &Key)=0;
@@ -26,6 +26,8 @@ public:
 	virtual bool IsRealConfig() const { return true; } // usefull for a few optimalizations, currently only cEmptyConfig is not real config.
 	template<class T> T Get(const std::string &Key, const tDefaultValue<T> &Default) const;
 	template<class T> T Get(int Index, const tDefaultValue<T> &Default) const;
+
+	template<class T> T get(const std::string& keyPath, const tDefaultValue<T>& Default) const;
 
 	tIntrusivePtr<cConfig> GetSubConfig(const std::string &Key) const;
 	virtual tIntrusivePtr<cConfig> GetSubConfig(int Index) const { return GetSubConfig(std::to_string(Index)); }
@@ -73,6 +75,38 @@ template<> inline bool cConfig::Get<bool>(int Index, const tDefaultValue<bool> &
 	return GetBool(Index, Default);
 }
 
+template<class T> inline T cConfig::get(const std::string& keyPath, const tDefaultValue<T>& defaultValue) const
+{
+	cStringVector parts(keyPath, "."s, false);
+	if (parts.empty())
+		return defaultValue.GetValue();
+	auto config = tIntrusivePtr<cConfig>(const_cast<cConfig*>(this)); // https://github.com/martonantoni/pixie/issues/2
+	for (size_t i = 0; i < parts.size() - 1; ++i)
+	{
+		auto j = mSubConfigs.find(parts[i]);
+		if (j == mSubConfigs.end())
+		{
+			return defaultValue.GetValue();
+		}
+		config = j->second;
+	}
+	if constexpr (std::is_same_v<T, int>)
+	{
+		return GetInt(parts.back(), defaultValue);
+	}
+	else if constexpr (std::is_same_v<T, double>)
+	{
+        return GetDouble(parts.back(), defaultValue);
+	}
+    else if constexpr (std::is_same_v<T, bool>)
+    {
+        return GetBool(parts.back(), defaultValue);
+    }
+    else if constexpr (std::is_same_v<T, std::string>)
+    {
+        return GetString(parts.back(), defaultValue);
+    }
+}
 
 
 extern tIntrusivePtr<cConfig> theMainConfig;
