@@ -8,6 +8,23 @@ cLuaTable::cLuaTable(std::shared_ptr<cLuaScript> script, int reference, bool isG
 {
 }
 
+cLuaTable::cLuaTable(cLuaTable&& src)
+    : mScript(std::move(src.mScript))
+    , mReference(src.mReference)
+{
+    src.mReference = LUA_NOREF;
+}
+
+cLuaTable& cLuaTable::operator=(cLuaTable&& src)
+{
+    if (this == &src)
+        return *this;
+    mReference = src.mReference;
+    src.mReference = LUA_NOREF;
+    mScript = std::move(src.mScript);
+    return *this;
+}
+
 cLuaTable::~cLuaTable()
 {
     if (mScript && mReference != LUA_NOREF)

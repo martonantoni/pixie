@@ -12,7 +12,7 @@ void storeTestVariables(cLuaTable& table)
     table.set("ten_and_half", 10.5);
 }
 
-void verifyTestVariables(const cLuaTable& table)
+void verifyTestVariableValues(const cLuaTable& table)
 {
     {
         auto value = table.get<int>("twelve");
@@ -40,15 +40,31 @@ void verifyTestVariables(const cLuaTable& table)
     }
 }
 
+void verifyTestVariableTypes(const cLuaTable& table)
+{
+    ASSERT_TRUE(table.isType<int>("twelve"));
+    ASSERT_FALSE(table.isType<std::string>("twelve"));
+}
+
+
 TEST(lua_table, get_set_in_global_table)
 {
     auto script = std::make_shared<cLuaScript>();
 
     cLuaTable globalTable = script->globalTable();
     storeTestVariables(globalTable);
-    verifyTestVariables(globalTable);
+    verifyTestVariableValues(globalTable);
 // now if we retrieve it again, it should be still readable:
-    verifyTestVariables(script->globalTable());
+    verifyTestVariableValues(script->globalTable());
+}
+
+TEST(lua_table, is_type)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    cLuaTable globalTable = script->globalTable();
+    storeTestVariables(globalTable);
+    verifyTestVariableTypes(script->globalTable());
 }
 
 TEST(lua_table, create_sub_tables)
@@ -58,8 +74,23 @@ TEST(lua_table, create_sub_tables)
     cLuaTable globalTable = script->globalTable();
     cLuaTable subTable = globalTable.subTable("mySubTable");
     storeTestVariables(subTable);
-    verifyTestVariables(subTable);
-    verifyTestVariables(script->globalTable().subTable("mySubTable"));
+    verifyTestVariableValues(subTable);
+    verifyTestVariableValues(script->globalTable().subTable("mySubTable"));
+}
+
+TEST(lua_table, sub_table_access_with_get)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    cLuaTable globalTable = script->globalTable();
+    cLuaTable subTable = globalTable.subTable("mySubTable");
+    storeTestVariables(subTable);
+
+    ASSERT_TRUE(globalTable.isType<cLuaTable>("mySubTable"s));
+
+    cLuaTable subTable2 = globalTable.get<cLuaTable>("mySubTable"s);
+    verifyTestVariableValues(subTable2);
+
 }
 
 TEST(lua_table, funcion_vv)

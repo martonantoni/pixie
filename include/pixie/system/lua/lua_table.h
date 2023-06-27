@@ -15,8 +15,10 @@ private:
 public:
     cLuaTable() = default;
     cLuaTable(std::shared_ptr<cLuaScript> script, int reference, bool isGlobalTable);
+    cLuaTable(cLuaTable&& src);
     ~cLuaTable();
-    cLuaTable& operator=(const cLuaTable& src) = default;
+    cLuaTable& operator=(const cLuaTable& src) = delete;
+    cLuaTable& operator=(cLuaTable&& src);
     template<class T> T get(const std::string& key) const;
     template<class T> void set(const std::string& key, const T& value);
     template<class R, class... Args, class C> void registerFunction(const std::string& key, const C&& func);
@@ -73,6 +75,13 @@ void cLuaTable::set(const std::string& key, const T& value)
 template<class T>
 T cLuaTable::pop(lua_State* L)
 {
+    if constexpr (std::is_same_v<T, cLuaTable>)
+    {
+        if (lua_istable(L, -1))
+        {
+            return cLuaTable(mScript, luaL_ref(L, LUA_REGISTRYINDEX), false);
+        }
+    }
     FINALLY([&]() { lua_pop(L, 1); });
     if constexpr (std::is_same_v<T, int>)
     {
@@ -111,6 +120,17 @@ template<typename T> T cLuaTable::get(const std::string& key) const
     lua_pushstring(L, key.c_str()); // Push the variable name onto the Lua stack
     lua_gettable(L, -2); // Get the value from the table using the variable name
 
+ 
+    if constexpr (std::is_same_v<T, cLuaTable>)
+    {
+        if (lua_istable(L, -1))
+        {
+            auto table = cLuaTable(mScript, luaL_ref(L, LUA_REGISTRYINDEX), false);  // pops value
+            lua_pop(L, 1); // the table for >this<
+            return table;
+        }
+    }
+    
     FINALLY([L]() { lua_pop(L, 2); });
 
     if constexpr (std::is_same_v<T, int>)
@@ -150,19 +170,25 @@ bool cLuaTable::isType(const std::string& variableName) const
 
     lua_rawgeti(L, LUA_REGISTRYINDEX, mReference); // Retrieve the table from the registry
     lua_pushstring(L, variableName.c_str()); // Push the variable name onto the Lua stack
+    cLuaScript::dumpStack(L);
     lua_gettable(L, -2); // Get the value from the table using the variable name
+    int type = lua_type(L, -1);
 
     if constexpr (std::is_same_v<T, int>)
     {
-        result = lua_isinteger(L, -1);
+        result = type == LUA_TNUMBER && lua_isinteger(L, -1);
     }
     else if constexpr (std::is_same_v<T, double>)
     {
-        result = lua_isnumber(L, -1);
+        result = type == LUA_TNUMBER;
     }
     else if constexpr (std::is_same_v<T, std::string>)
     {
-        result = lua_isstring(L, -1);
+        result = type == LUA_TSTRING && lua_isstring(L, -1);
+    }
+    else if constexpr (std::is_same_v<T, cLuaTable>)
+    {
+        result = type == LUA_TTABLE;
     }
 
     lua_pop(L, 2); // Pop the value and the table from the stack
