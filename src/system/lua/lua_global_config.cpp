@@ -1,5 +1,7 @@
 #include "StdAfx.h"
 
+#include "lua_global_config.h"
+
 cLuaGlobalConfigLoader::cLuaGlobalConfigLoader()
 {
     auto script = std::make_shared<cLuaScript>();
