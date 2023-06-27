@@ -1,5 +1,7 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
+#include "pixie/pixie/ui/RadioButton/RadioButton.h"
+
 cRadioButton::cRadioButton()
 {
 }

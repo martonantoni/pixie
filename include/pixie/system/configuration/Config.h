@@ -27,7 +27,7 @@ public:
 	template<class T> T Get(const std::string &Key, const tDefaultValue<T> &Default) const;
 	template<class T> T Get(int Index, const tDefaultValue<T> &Default) const;
 
-	template<class T> T get(const std::string& keyPath, const tDefaultValue<T>& Default) const;
+	template<class T> T get(const std::string& keyPath, const tDefaultValue<T>& Default = tDefaultValue<T>()) const;
 
 	tIntrusivePtr<cConfig> GetSubConfig(const std::string &Key) const;
 	virtual tIntrusivePtr<cConfig> GetSubConfig(int Index) const { return GetSubConfig(std::to_string(Index)); }
