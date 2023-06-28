@@ -99,3 +99,8 @@ cLuaTable cLuaScript::globalTable()
     return cLuaTable{ shared_from_this(), luaL_ref(L, LUA_REGISTRYINDEX), true };
 }
 
+cLuaTable cLuaScript::createTable()
+{
+    lua_newtable(L);
+    return cLuaTable{ shared_from_this(), luaL_ref(L, LUA_REGISTRYINDEX), true };
+}

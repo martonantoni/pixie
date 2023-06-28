@@ -10,21 +10,26 @@ private:
     bool mIsGlobalTable = false;
     template<class T> static void push(lua_State* L, const T& value);
     template<class T, class... Ts> static void push(lua_State* L, const T& value, const Ts&... values);
-    template<class T> static T pop(lua_State* L);
+    template<class T> static T pop(std::shared_ptr<cLuaScript> script, lua_State* L);
     tIntrusivePtr<cConfig> toConfig_topTable(lua_State* L, IsRecursive isRecursive) const;
+    void copy_(const cLuaTable& src);
 public:
     cLuaTable() = default;
     cLuaTable(std::shared_ptr<cLuaScript> script, int reference, bool isGlobalTable);
     cLuaTable(cLuaTable&& src);
+    cLuaTable(const cLuaTable& src);
     ~cLuaTable();
-    cLuaTable& operator=(const cLuaTable& src) = delete;
     cLuaTable& operator=(cLuaTable&& src);
+    cLuaTable& operator=(const cLuaTable& src);
     template<class T> T get(const std::string& key) const;
     template<class T> void set(const std::string& key, const T& value);
     template<class R, class... Args, class C> void registerFunction(const std::string& key, const C&& func);
     template<class... Args> void callFunction(const std::string& key, Args... args);
     template<class T> bool isType(const std::string& key) const;
     cLuaTable subTable(const std::string& key) const;
+
+    cLuaScript& script() { return *mScript; }
+    const cLuaScript& script() const { return *mScript; }
 
     tIntrusivePtr<cConfig> toConfig(IsRecursive isRecursive = IsRecursive::Yes) const;
 };
@@ -47,6 +52,14 @@ template<class T> void cLuaTable::push(lua_State* L, const T& value)
     {
         lua_pushstring(L, value.c_str()); 
     }   
+    else if constexpr (std::is_same_v<T, cLuaTable>)
+    {
+        lua_rawgeti(L, LUA_REGISTRYINDEX, value.mReference);
+    }
+    else
+    {
+        // error
+    }
 }
 
 template<class T, class... Ts> void cLuaTable::push(lua_State* L, const T& value, const Ts&... values)
@@ -73,13 +86,13 @@ void cLuaTable::set(const std::string& key, const T& value)
 }
 
 template<class T>
-T cLuaTable::pop(lua_State* L)
+T cLuaTable::pop(std::shared_ptr<cLuaScript> script, lua_State* L)
 {
     if constexpr (std::is_same_v<T, cLuaTable>)
     {
         if (lua_istable(L, -1))
         {
-            return cLuaTable(mScript, luaL_ref(L, LUA_REGISTRYINDEX), false);
+            return cLuaTable(std::move(script), luaL_ref(L, LUA_REGISTRYINDEX), false);
         }
     }
     FINALLY([&]() { lua_pop(L, 1); });
@@ -104,6 +117,7 @@ T cLuaTable::pop(lua_State* L)
             return static_cast<T>(lua_tostring(L, -1));
         }
     }
+
     // handle error
     return T{};
 }
@@ -233,10 +247,13 @@ void cLuaTable::registerFunction(const std::string& key, const C&& func)
     struct cCallableHolder : public cLuaScript::cUserDataBase
     {
         C mCallable;
-        cCallableHolder(const C& callable) : mCallable(callable) {}
+        std::shared_ptr<cLuaScript> mScript;
+        cCallableHolder(std::shared_ptr<cLuaScript> script, const C& callable) 
+            : mCallable(callable)
+            , mScript(std::move(script)) {}
         virtual ~cCallableHolder() = default;
     };
-    cCallableHolder* holder = mScript->pushNewUserData<cCallableHolder>(func);
+    cCallableHolder* holder = mScript->pushNewUserData<cCallableHolder>(mScript, func);
 
     // Create a C function wrapper that calls the callable object
     lua_CFunction cFunction = [](lua_State* L) -> int
@@ -245,7 +262,7 @@ void cLuaTable::registerFunction(const std::string& key, const C&& func)
 
         if constexpr (sizeof...(Args) > 0)
         {
-            auto arguments = std::make_tuple(pop<Args>(L)...);
+            auto arguments = std::make_tuple(pop<Args>(holder->mScript, L)...);
             if constexpr (std::is_same_v<R, void>)
             {
                 std::apply(holder->mCallable, arguments);

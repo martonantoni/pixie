@@ -25,6 +25,38 @@ cLuaTable& cLuaTable::operator=(cLuaTable&& src)
     return *this;
 }
 
+cLuaTable::cLuaTable(const cLuaTable& src)
+{
+    if (!src.mScript || src.mReference == LUA_NOREF)
+    {
+        return;
+    }
+    copy_(src);
+}
+
+void cLuaTable::copy_(const cLuaTable& src)
+{
+    mScript = src.mScript;
+    lua_State* L = mScript->state();
+    lua_rawgeti(L, LUA_REGISTRYINDEX, src.mReference);
+    mReference = luaL_ref(L, LUA_REGISTRYINDEX);
+}
+
+cLuaTable& cLuaTable::operator=(const cLuaTable& src)
+{
+    if (&src == this)
+    {
+        return *this;
+    }
+    cLuaTable toDiscard(std::move(*this));
+    if (!src.mScript || src.mReference == LUA_NOREF)
+    {
+        return *this;
+    }
+    copy_(src);
+    return *this;
+}
+
 cLuaTable::~cLuaTable()
 {
     if (mScript && mReference != LUA_NOREF)

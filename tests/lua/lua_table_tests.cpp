@@ -58,6 +58,37 @@ TEST(lua_table, get_set_in_global_table)
     verifyTestVariableValues(script->globalTable());
 }
 
+TEST(lua_table, get_set_in_local_table)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    cLuaTable localTable = script->createTable();
+    storeTestVariables(localTable);
+    verifyTestVariableValues(localTable);
+}
+
+TEST(lua_table, copy_table_obj)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    cLuaTable localTable = script->createTable();
+    storeTestVariables(localTable);
+    verifyTestVariableValues(localTable);
+    cLuaTable copyOfTableObj = localTable;
+    verifyTestVariableValues(copyOfTableObj);
+}
+
+TEST(lua_table, move_table_obj)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    cLuaTable localTable = script->createTable();
+    storeTestVariables(localTable);
+    verifyTestVariableValues(localTable);
+    cLuaTable movedTableObj = std::move(localTable);
+    verifyTestVariableValues(movedTableObj);
+}
+
 TEST(lua_table, is_type)
 {
     auto script = std::make_shared<cLuaScript>();
@@ -93,7 +124,7 @@ TEST(lua_table, sub_table_access_with_get)
 
 }
 
-TEST(lua_table, funcion_vv)
+TEST(lua_table, funcion_v_v)  // void(void)
 {
     auto script = std::make_shared<cLuaScript>();
 
@@ -104,7 +135,7 @@ TEST(lua_table, funcion_vv)
     ASSERT_TRUE(success);
 }
 
-TEST(lua_table, function_viii)
+TEST(lua_table, function_v_iii)  // void(int,int,int)
 {
     auto script = std::make_shared<cLuaScript>();
 
@@ -117,6 +148,27 @@ TEST(lua_table, function_viii)
         });
     globalTable.callFunction("test"s, 10, 11, 12);
     ASSERT_EQ(result, 33);
+}
+
+TEST(lua_table, function_v_t)  // void(cLuaTable)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    cLuaTable globalTable = script->globalTable();
+    int result = 0;
+    globalTable.registerFunction<void, cLuaTable>("test"s,
+        [&result](cLuaTable t)
+        {
+            result = t.get<int>("a") + t.get<int>("b");
+        });
+
+    cLuaTable parameterTable = script->createTable();
+    parameterTable.set("a", 33);
+    parameterTable.set("b", 44);
+    globalTable.callFunction("test"s, std::move(parameterTable));
+
+    ASSERT_EQ(result, 77);
+
 }
 
 void setupConfigTestVariables(cLuaScript& script)
