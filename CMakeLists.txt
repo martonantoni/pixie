@@ -68,7 +68,7 @@ target_include_directories(Pixie
 message("CONAN_INCLUDE_DIRS: " ${CONAN_INCLUDE_DIRS})
 message("Lua_INCLUDE_DIRS: " ${LUA_INCLUDE_DIRS})
 		
-target_link_libraries(Pixie PUBLIC CONAN_PKG::freetype CONAN_PKG::fmt CONAN_PKG::lua)
+target_link_libraries(Pixie PUBLIC CONAN_PKG::freetype CONAN_PKG::fmt CONAN_PKG::lua d3d9.lib d3dx9.lib)
 	
 link_directories(${DIRECTX_LIB_PATH})
 

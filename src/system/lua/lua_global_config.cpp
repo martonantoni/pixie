@@ -2,6 +2,8 @@
 
 #include "lua_global_config.h"
 
+tIntrusivePtr<cConfig> theGlobalConfig;
+
 cLuaGlobalConfigLoader::cLuaGlobalConfigLoader()
 {
     auto script = std::make_shared<cLuaScript>();
