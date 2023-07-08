@@ -83,8 +83,8 @@ template<class T> inline T cConfig::get(const std::string& keyPath, const tDefau
 	auto config = tIntrusivePtr<cConfig>(const_cast<cConfig*>(this)); // https://github.com/martonantoni/pixie/issues/2
 	for (size_t i = 0; i < parts.size() - 1; ++i)
 	{
-		auto j = mSubConfigs.find(parts[i]);
-		if (j == mSubConfigs.end())
+		auto j = config->mSubConfigs.find(parts[i]);
+		if (j == config->mSubConfigs.end())
 		{
 			return defaultValue.GetValue();
 		}
@@ -92,21 +92,18 @@ template<class T> inline T cConfig::get(const std::string& keyPath, const tDefau
 	}
 	if constexpr (std::is_same_v<T, int>)
 	{
-		return GetInt(parts.back(), defaultValue);
+		return config->GetInt(parts.back(), defaultValue);
 	}
 	else if constexpr (std::is_same_v<T, double>)
 	{
-        return GetDouble(parts.back(), defaultValue);
+        return config->GetDouble(parts.back(), defaultValue);
 	}
     else if constexpr (std::is_same_v<T, bool>)
     {
-        return GetBool(parts.back(), defaultValue);
+        return config->GetBool(parts.back(), defaultValue);
     }
     else if constexpr (std::is_same_v<T, std::string>)
     {
-        return GetString(parts.back(), defaultValue);
+        return config->GetString(parts.back(), defaultValue);
     }
 }
-
-
-extern tIntrusivePtr<cConfig> theMainConfig;

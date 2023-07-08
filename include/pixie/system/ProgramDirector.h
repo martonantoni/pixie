@@ -61,6 +61,14 @@ template<class Label> struct tProgramDirectorLabel;
 	struct Label_##Label; \
 	template<> struct tProgramDirectorLabel<Label_##Label> { static const int mOrder=100; };
 
+#define DEPENDANT_INIT_LABEL(Label, SubLabel) \
+struct Label_##Label; \
+    template<> struct tProgramDirectorLabel<Label_##Label>  \
+	{  \
+		static const int mOrder = tProgramDirectorLabel<Label_##SubLabel>::mOrder + 1; \
+	};
+
+
 DEFAULT_INIT_LABEL(DefaultInitLabel);
 
 extern cProgramDirector *theProgramDirector;

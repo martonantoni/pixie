@@ -78,6 +78,14 @@ using std::unique_ptr;
 		}; \
 	}
 
+template<class T>
+constexpr T sum(T x) { return x; }
+template<class T, class... Tail>
+constexpr T sum(T x, Tail... tail)
+{
+    return x + sum(tail...);
+}
+
 template<class T> auto ExtractPtrsFromSmartPtrs(T &SmartPtrs)
 {
 	std::vector<decltype(SmartPtrs.front().get())> RawPointers;

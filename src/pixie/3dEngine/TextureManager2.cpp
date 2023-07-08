@@ -290,7 +290,7 @@ void cTextureManager2::Initialize()
 		}
 	}
 // init aliases:
-	auto AlisesConfig=theMainConfig->GetSubConfig("texture_aliases");
+	auto AlisesConfig= theGlobalConfig->GetSubConfig("texture_aliases");
 	for(auto &TextureName: AlisesConfig->GetKeys())
 	{
 		mTextureAliases[TextureName]=AlisesConfig->GetString(TextureName);

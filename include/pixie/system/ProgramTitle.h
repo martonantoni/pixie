@@ -9,5 +9,4 @@ public:
 };
 
 extern const char *ProgramName;
-extern const char *EdgeSystemVersion;
 extern const char *VersionString;

@@ -1,0 +1,19 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "SandBox.exe (bin\\SandBox.exe)",
+      "name": "SandBox.exe (bin\\SandBox.exe)",
+      "currentDir": "${workspaceRoot}/SandBox/_target_"
+    },
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "lua_tests.exe (bin\\lua_tests.exe)",
+      "name": "lua_tests.exe (bin\\lua_tests.exe)"
+    }
+  ]
+}

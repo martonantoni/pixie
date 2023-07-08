@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 
-#include "lua_global_config.h"
+#include "pixie/system/lua/lua_global_config.h"
 
 tIntrusivePtr<cConfig> theGlobalConfig;
 
@@ -11,4 +11,4 @@ cLuaGlobalConfigLoader::cLuaGlobalConfigLoader()
     theGlobalConfig = script->globalTable().toConfig();
 }
 
-REGISTER_AUTO_SINGLETON_INIT(cLuaGlobalConfigLoader, eProgramPhases::StaticInit, DefaultInitLabel);
+/*REGISTER_AUTO_SINGLETON_INIT(cLuaGlobalConfigLoader, eProgramPhases::StaticInit, DefaultInitLabel);*/

@@ -4,7 +4,7 @@ cColorServer theColorServer;
 
 void cColorServer::Init()
 {
-	auto FontsConfig=theMainConfig->GetSubConfig("colors");
+	auto FontsConfig= theGlobalConfig->GetSubConfig("colors");
 	auto Names=FontsConfig->GetKeys();
 	for(auto &Name: Names)
 	{

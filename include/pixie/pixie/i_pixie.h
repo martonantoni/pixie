@@ -12,6 +12,7 @@
 #include "system/KeyboardServer.h"
 #include "system/PixieInitializer.h"
 #include "system/Spline.h"
+#include "system/startup_controller.h"
 
 
 #include "FreeTypeIntegration/FreeTypeIntegration.h"

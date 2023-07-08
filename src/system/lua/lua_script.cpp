@@ -3,11 +3,11 @@
 const char* cLuaScript::userDataMetaTableName = "destructed_user_data";
 std::vector<std::string> cLuaScript::globalTableInternalElements;
 
-void callLuaStaticInit()
-{
-    cLuaScript::staticInit();
-}
-REGISTER_AUTO_INIT_FUNCTION_CALL(callLuaStaticInit, eProgramPhases::StaticInit, DefaultInitLabel);
+// void callLuaStaticInit()
+// {
+//     cLuaScript::staticInit();
+// }
+// REGISTER_AUTO_INIT_FUNCTION_CALL(callLuaStaticInit, eProgramPhases::StaticInit, DefaultInitLabel);
 
 void cLuaScript::staticInit()
 {
@@ -79,11 +79,22 @@ cLuaScript::~cLuaScript()
 
 void cLuaScript::executeFile(const cPath& scriptPath)
 {
-
+    if (luaL_dofile(L, scriptPath.c_str()))
+    {
+        const char* errorMessage = lua_tostring(L, -1);
+        DebugBreak();
+        // handle error
+    }
 }
 
 void cLuaScript::executeString(const std::string& script)
 {
+    if (luaL_dostring(L, script.c_str())) 
+    {
+        const char* errorMessage = lua_tostring(L, -1);
+        DebugBreak();
+        // Handle the error, if any
+    }
 }
 
 int cLuaScript::gcUserData(lua_State* L)

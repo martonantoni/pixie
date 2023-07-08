@@ -45,7 +45,7 @@ cPrimaryWindow::cPrimaryWindow()
 	WindowClass.style=CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
 	WindowClass.lpfnWndProc=&MainWindowProc;
 	WindowClass.hInstance=gInstance;
-	WindowClass.lpszClassName="EdgeWindow";
+	WindowClass.lpszClassName="PixieWindow";
 #ifdef NO_CUSTOM_CURSORS
 	WindowClass.hCursor=LoadCursor(NULL, IDC_ARROW);
 #else

@@ -1,7 +1,5 @@
 #include "StdAfx.h"
 
-tIntrusivePtr<cConfig> theMainConfig;
-
 tIntrusivePtr<cConfig> cConfig::GetSubConfig(const std::string &Key) const
 {	
 	auto i=mSubConfigs.find(Key);

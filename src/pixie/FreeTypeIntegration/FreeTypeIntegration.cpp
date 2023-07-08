@@ -193,7 +193,7 @@ cFont2 *cFontManager2::GetFont(const std::string &Name)
 
 void cFontManager2::Init()
 {
-	auto FontsConfig=theMainConfig->GetSubConfig("fonts");
+	auto FontsConfig= theGlobalConfig->GetSubConfig("fonts");
 	auto FontNames=FontsConfig->GetSubConfigNames();
 	mFonts.reserve(FontNames.size());
 	for(size_t i=0; i<FontNames.size(); ++i)
