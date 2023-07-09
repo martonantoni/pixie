@@ -230,6 +230,58 @@ TEST(lua_table, toConfig_recursive)
 }
 
 
+TEST(lua_execute, simple_execute)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    script->executeString(
+        "apple = 42\n"
+        "my_table = { apple = 22, pear = 33 }");
+
+    auto globalTable = script->globalTable();
+    ASSERT_EQ(globalTable.get<int>("apple"), 42);
+    auto subTable = globalTable.get<cLuaTable>("my_table");
+    ASSERT_EQ(subTable.get<int>("apple"), 22);
+    ASSERT_EQ(subTable.get<int>("pear"), 33);
+}
+
+TEST(lua_execute, c_function_i_ii)
+{
+    auto script = std::make_shared<cLuaScript>();
+    auto globalTable = script->globalTable();
+
+    globalTable.registerFunction<int, int, int>("test"s,
+        [](int r, int l)
+        {
+            return r + l;
+        });
+    script->executeString("result = test(1234, 4321)");
+
+    ASSERT_EQ(globalTable.get<int>("result"), 5555);
+}
+
+TEST(lua_execute, c_function_t_t)
+{
+    auto script = std::make_shared<cLuaScript>();
+    auto globalTable = script->globalTable();
+
+    globalTable.registerFunction<cLuaTable, cLuaTable>("test"s,
+        [](cLuaTable sourceTable)
+        {
+            auto resultTable = sourceTable.script().createTable();
+            resultTable.set<int>("a", sourceTable.get<int>("a") + 11);
+            resultTable.set<int>("b", sourceTable.get<int>("b") + 22);
+            return resultTable;
+        });
+
+    script->executeString("result = test({ a = 7, b = 8})");
+
+    auto result = globalTable.get<cLuaTable>("result");
+
+    ASSERT_EQ(result.get<int>("a"), 18);
+    ASSERT_EQ(result.get<int>("b"), 30);
+}
+
 // Main function to run the tests
 int main(int argc, char** argv)
 {
