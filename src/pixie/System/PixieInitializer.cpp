@@ -47,6 +47,49 @@ LuaObject LUA_Bridge_Rect(int x, int y, int w, int h)
 }
 REGISTER_LUA_FUNCTION(LUA_Bridge_Rect, Rect);
 */
+
+void registerGlobalPixieLuaFunctions(cLuaTable globalTable)
+{
+	globalTable.registerFunction<int, int, int, int>("RGB",
+		[](int red, int green, int blue) -> int
+		{
+            ASSERT(red >= 0 && red <= 255);
+            ASSERT(green >= 0 && green <= 255);
+            ASSERT(blue >= 0 && blue <= 255);
+            return D3DCOLOR_ARGB(0xff, red, green, blue);
+		});
+    globalTable.registerFunction<int, int, int, int, int>("ARGB",
+        [](int alpha, int red, int green, int blue) -> int
+        {
+            ASSERT(alpha >= 0 && alpha <= 255);
+            ASSERT(red >= 0 && red <= 255);
+            ASSERT(green >= 0 && green <= 255);
+            ASSERT(blue >= 0 && blue <= 255);
+            return D3DCOLOR_ARGB(alpha, red, green, blue);
+        });
+	globalTable.registerFunction<int, cLuaTable>("XEnd",
+		[](cLuaTable object) -> int
+		{
+			return object.get<int>("x") + object.get<int>("w");
+		});
+    globalTable.registerFunction<int, cLuaTable>("YEnd",
+        [](cLuaTable object) -> int
+        {
+            return object.get<int>("y") + object.get<int>("h");
+        });
+	globalTable.registerFunction<cLuaTable, cLuaScript&, int, int, int, int>("Rect",
+		[](cLuaScript& script, int x, int y, int w, int h) -> cLuaTable
+		{
+			cLuaTable rectTable = script.createTable();
+			rectTable.set("x", x);
+			rectTable.set("y", y);
+			rectTable.set("w", w);
+			rectTable.set("h", h);
+			return rectTable;
+		});
+}
+
+
 void InitPixieSystem()
 {
 	theColorServer.Init();

@@ -4,9 +4,14 @@
 
 tIntrusivePtr<cConfig> theGlobalConfig;
 
+void registerGlobalPixieLuaFunctions(cLuaTable globalTable);
+
 cLuaGlobalConfigLoader::cLuaGlobalConfigLoader()
 {
     auto script = std::make_shared<cLuaScript>();
+
+    registerGlobalPixieLuaFunctions(script->globalTable());
+
     script->executeFile("MainConfig.lua");
     theGlobalConfig = script->globalTable().toConfig();
 }

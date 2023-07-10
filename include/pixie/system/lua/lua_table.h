@@ -117,6 +117,10 @@ T cLuaTable::pop(std::shared_ptr<cLuaScript> script, lua_State* L)
             return static_cast<T>(lua_tostring(L, -1));
         }
     }
+    else if constexpr (std::is_same_v<T, cLuaScript>)
+    {
+        return cLuaScript(L);
+    }
 
     // handle error
     return T{};
@@ -262,7 +266,7 @@ void cLuaTable::registerFunction(const std::string& key, const C&& func)
 
         if constexpr (sizeof...(Args) > 0)
         {
-            auto arguments = std::make_tuple(pop<Args>(holder->mScript, L)...);
+            auto arguments = std::make_tuple(pop<std::remove_reference<Args>::type>(holder->mScript, L)...);
             if constexpr (std::is_same_v<R, void>)
             {
                 std::apply(holder->mCallable, arguments);

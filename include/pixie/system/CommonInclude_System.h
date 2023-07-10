@@ -188,6 +188,19 @@ template<class T> Finalizer<T> finalizer(T&& toBeCalled)
 #define FINALLY(callable) auto finalizer##__LINE__ = finalizer(callable);
 
 
+template<typename... Args>
+constexpr bool NoneOfType()
+{
+    if constexpr (sizeof...(Args) == 0) 
+	{
+        return true;
+    }
+    else
+	{
+        return (!std::is_same_v<Args, int> && ...);
+    }
+}
+
 #include "x64Common.h"
 #include "DebugAssert.h"
 #include "CommonInclude.h"

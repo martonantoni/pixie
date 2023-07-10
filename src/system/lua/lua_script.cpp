@@ -72,9 +72,35 @@ cLuaScript::cLuaScript()
     lua_pop(L, 1);
 }
 
+cLuaScript::cLuaScript(lua_State* l)
+    : L(l)
+    , mIsOwningState(false)
+{
+}
+
+cLuaScript::cLuaScript(cLuaScript&& src)
+    : L(src.L)
+    , mIsOwningState(src.mIsOwningState)
+{
+    src.L = nullptr;
+}
+
+cLuaScript& cLuaScript::operator=(cLuaScript&& src)
+{
+    if (&src == this)
+        return *this;
+    cLuaScript toDiscard(std::move(*this));
+    std::swap(src.L, L);
+    mIsOwningState = src.mIsOwningState;
+    return *this;
+}
+
 cLuaScript::~cLuaScript()
 {
-    lua_close(L);
+    if (mIsOwningState && L)
+    {
+        lua_close(L);
+    }
 }
 
 void cLuaScript::executeFile(const cPath& scriptPath)

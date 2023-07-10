@@ -17,12 +17,17 @@ struct cLuaException
 class cLuaScript: public std::enable_shared_from_this<cLuaScript>
 {
     lua_State* L;
-    bool mLoaded = false;
+    bool mIsOwningState = true;
     static int gcUserData(lua_State* L);
     static const char* userDataMetaTableName;
     static std::vector<std::string> globalTableInternalElements;
 public:
     cLuaScript();
+    cLuaScript(lua_State* l);
+    cLuaScript(cLuaScript&& src);
+    cLuaScript& operator=(cLuaScript&& src);
+    cLuaScript(const cLuaScript&) = delete;
+    cLuaScript& operator=(const cLuaScript&) = delete;
     virtual ~cLuaScript();
     void executeFile(const cPath& scriptPath);
     void executeString(const std::string& script);
