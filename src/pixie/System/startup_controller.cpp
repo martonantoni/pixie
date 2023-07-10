@@ -6,6 +6,11 @@
 // const char* ProgramName = "Pixie";
 // const char* VersionString = "0.2";
 
+
+tIntrusivePtr<cConfig> theGlobalConfig;
+
+void registerGlobalPixieLuaFunctions(cLuaTable globalTable);
+
 void cStartupController::Start_MainThread()
 {
     // #ifdef _DEBUG
@@ -24,9 +29,9 @@ void cStartupController::ContinueStartup()
 {
     cStartupController::cConfig config = pixieAppConfiguration();
     cLuaScript::staticInit();
-    cLuaGlobalConfigLoader::get();
 
     auto script = std::make_shared<cLuaScript>();
+    registerGlobalPixieLuaFunctions(script->globalTable());
     script->executeFile(config.mainLuaConfigPath.empty() ? "MainConfig.lua" : config.mainLuaConfigPath.c_str());
     theGlobalConfig = script->globalTable().toConfig();
 

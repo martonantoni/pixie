@@ -1,7 +1,7 @@
 #pragma once
 
-class cLuaGlobalConfigLoader : public tSingleton<cLuaGlobalConfigLoader>
-{
-public:
-    cLuaGlobalConfigLoader();
-};
+// class cLuaGlobalConfigLoader : public tSingleton<cLuaGlobalConfigLoader>
+// {
+// public:
+//     cLuaGlobalConfigLoader();
+// };

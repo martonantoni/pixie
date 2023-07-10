@@ -43,8 +43,8 @@ cStartupController::cConfig pixieAppConfiguration()
 // 
 // //     InitLua();
 // //     LoadLUAFile("MainConfig.lua");
-// //     theMainConfig = cLuaBasedConfig::CreateConfig(theLuaState);
-// //     auto InstanceName = theMainConfig->GetString("instance_name", std::string());
+// //     theGlobalConfig = cLuaBasedConfig::CreateConfig(theLuaState);
+// //     auto InstanceName = theGlobalConfig->GetString("instance_name", std::string());
 // //     if (!InstanceName.empty())
 // //         cProgramTitle::Get()->SetInstanceName(InstanceName);
 // //     cPrimaryWindow::Get();

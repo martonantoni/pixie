@@ -91,9 +91,9 @@ cLuaTable cLuaTable::subTable(const std::string& key) const
 
 std::string cLuaScript::valueToString(lua_State* L, int index)
 {
-    auto text = lua_tostring(L, index);
-    if (text)
+    if (lua_type(L, index) == LUA_TSTRING)
     {
+        auto text = lua_tostring(L, index);
         return text;
     }
     lua_pushvalue(L, index);
@@ -116,6 +116,7 @@ tIntrusivePtr<cConfig> cLuaTable::toConfig_topTable(lua_State* L, IsRecursive is
     {
         // key: -2, value: -1
         std::string key = cLuaScript::valueToString(L, -2);
+
         if (!mIsGlobalTable || !cLuaScript::isGlobalInternalElement(key))
         {
             switch (lua_type(L, -1))
