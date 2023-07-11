@@ -43,6 +43,9 @@ void cStartupController::ContinueStartup()
 
     InitPixieSystem();
 
+    if(config.startApplication)
+        config.startApplication();
+
 // 	cMouseCursor::Get();
 //     cMouseCursorServer::Get();
 }

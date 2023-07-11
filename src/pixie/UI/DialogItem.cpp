@@ -89,7 +89,7 @@ void cDialogItem::OnMouseMove(cPoint ScreenCoords, bool IsInside)
 
 /// ---------------------------------------------------------------------------------------------------------------------------------------
 
-void cDialogItems::AddPushButton(cPixieWindow &Window, tIntrusivePtr<cConfig> Config)
+void cDialogItems::AddPushButton(cPixieWindow &Window, const cConfig& Config)
 {
 	cPushButton::cInitData InitData(Config);
 	InitData.mParentWindow=&Window;
@@ -98,7 +98,7 @@ void cDialogItems::AddPushButton(cPixieWindow &Window, tIntrusivePtr<cConfig> Co
 	mItems.emplace_back(std::move(Button));
 }
 
-void cDialogItems::AddTextField(cPixieWindow &Window, tIntrusivePtr<cConfig> Config)
+void cDialogItems::AddTextField(cPixieWindow &Window, const cConfig& Config)
 {
 	cTextField::cInitData InitData(Config);
 	InitData.mParentWindow=&Window;
@@ -107,7 +107,7 @@ void cDialogItems::AddTextField(cPixieWindow &Window, tIntrusivePtr<cConfig> Con
 	mItems.emplace_back(std::move(TextField));
 }
 
-void cDialogItems::AddEditField(cPixieWindow &Window, tIntrusivePtr<cConfig> Config)
+void cDialogItems::AddEditField(cPixieWindow &Window, const cConfig& Config)
 {
 	cEditField::cInitData InitData(Config);
 	InitData.mParentWindow=&Window;
@@ -116,39 +116,38 @@ void cDialogItems::AddEditField(cPixieWindow &Window, tIntrusivePtr<cConfig> Con
 	mItems.emplace_back(std::move(EditField));
 }
 
-void cDialogItems::Init(cPixieWindow &Window, const cConfig &Config)
+void cDialogItems::Init(cPixieWindow &Window, const cConfig &config)
 {
-	auto NumberOfItems=Config.GetSubConfigCount();
-	mItems.reserve(NumberOfItems);
-	for(int i=0; i<NumberOfItems; ++i)
-	{
-		auto SubConfig=Config.GetSubConfig(i);
-		if(ASSERTFALSE(!SubConfig))
-			continue;
-		auto TypeName=SubConfig->GetString("control_type");
-		if(TypeName=="pushbutton")
+// 	auto NumberOfItems=Config.GetSubConfigCount();
+// 	mItems.reserve(NumberOfItems);
+
+	config.forEachSubConfig(
+		[this, &Window](auto& key, auto& subConfig)
 		{
-			AddPushButton(Window, SubConfig);
-		}
-		else if(TypeName=="textfield")
-		{
-			AddTextField(Window, SubConfig);
-		}
-		else if(TypeName=="edit"||TypeName=="editfield")
-		{
-			AddEditField(Window, SubConfig);
-		}
-		else
-		{
-			ASSERT(false); // unknown control_type
-			continue;
-		}
-		auto &NewItem=mItems.back();
-		if(SubConfig->GetBool("grab_focus", false))
-		{
-			NewItem->SetFocus();
-		}
-	}
+			auto TypeName = subConfig.GetString("control_type");
+			if (TypeName == "pushbutton")
+			{
+				AddPushButton(Window, subConfig);
+			}
+			else if (TypeName == "textfield")
+			{
+				AddTextField(Window, subConfig);
+			}
+			else if (TypeName == "edit" || TypeName == "editfield")
+			{
+				AddEditField(Window, subConfig);
+			}
+			else
+			{
+				ASSERT(false); // unknown control_type
+				return;
+			}
+			auto& NewItem = mItems.back();
+			if (subConfig.GetBool("grab_focus", false))
+			{
+				NewItem->SetFocus();
+			}
+		});
 }
 
 

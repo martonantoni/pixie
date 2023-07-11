@@ -47,9 +47,9 @@ public:
 class cDialogItems
 {
 	std::vector<std::unique_ptr<cDialogItem>> mItems;
-	void AddPushButton(cPixieWindow &Window, tIntrusivePtr<cConfig> Config);
-	void AddTextField(cPixieWindow &Window, tIntrusivePtr<cConfig> Config);
-	void AddEditField(cPixieWindow &Window, tIntrusivePtr<cConfig> Config);
+	void AddPushButton(cPixieWindow &Window, const cConfig& Config);
+	void AddTextField(cPixieWindow &Window, const cConfig& Config);
+	void AddEditField(cPixieWindow &Window, const cConfig& Config);
 public:
 	void Init(cPixieWindow &Window, const cConfig &Config);
 };

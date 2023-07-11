@@ -4,7 +4,7 @@
 
 void cVisualizer_Standard::Init(const cStandardWindow::cInitData &InitData)
 {
-	mBackgroundTextureName=InitData.mConfig->GetString("background_texture", std::string());
+	mBackgroundTextureName=InitData.mConfig.GetString("background_texture", std::string());
 }
 
 void cVisualizer_Standard::Redraw()

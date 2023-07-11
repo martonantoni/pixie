@@ -55,7 +55,7 @@ tIntrusivePtr<cConfig> cEmptyConfig::InternalCreateSubConfig(const std::string &
 	return tIntrusivePtr<cConfig>(new cEmptyConfig);
 }
 
-tIntrusivePtr<cConfig> cEmptyConfig::GetEmptyConfig()
+tIntrusivePtr<cConfig> cEmptyConfig::theEmptyConfig()
 {
 	static tIntrusivePtr<cConfig> GlobalEmptyConfig(new cEmptyConfig);
 	return GlobalEmptyConfig;

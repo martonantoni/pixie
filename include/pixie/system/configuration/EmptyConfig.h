@@ -19,5 +19,5 @@ public:
 //	virtual std::unique_ptr<cSubConfigMap> GetSubConfigMap() override;
 	virtual std::vector<std::string> GetKeys() const override { return std::vector<std::string>(); }
 	virtual bool IsRealConfig() const { return false; }
-	static tIntrusivePtr<cConfig> GetEmptyConfig();
+	static tIntrusivePtr<cConfig> theEmptyConfig();
 };

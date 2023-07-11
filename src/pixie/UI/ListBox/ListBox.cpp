@@ -279,10 +279,10 @@ void cListBox::SetGlobalPosition(int Position)
 
 /// -----------------------------------------------------------
 
-cListBox::cInitData::cInitData(const tIntrusivePtr<cConfig> &Config)
+cListBox::cInitData::cInitData(const cConfig &Config)
 	: tPixieSimpleInitData<cMouseTarget>(Config)
 {
-	mListDirection=Config->GetBool("is_vertical", true)?eListDirection::Vertical:eListDirection::Horizontal;
-	mItemHighlightEnabled=Config->GetBool("highlight_enabled", true);
-	mItemSelectEnabled=Config->GetBool("select_enabled", true);
+	mListDirection=Config.GetBool("is_vertical", true)?eListDirection::Vertical:eListDirection::Horizontal;
+	mItemHighlightEnabled=Config.GetBool("highlight_enabled", true);
+	mItemSelectEnabled=Config.GetBool("select_enabled", true);
 }

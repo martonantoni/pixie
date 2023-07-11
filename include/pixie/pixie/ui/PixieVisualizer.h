@@ -77,7 +77,7 @@ template<class cVisualizable>
 inline std::unique_ptr<typename cVisualizable::cVisualizer> cPixieVisualizerFactory<cVisualizable>::CreateVisualizer
 	(cVisualizable *Visualizable, cPixieWindow *Window, const typename cVisualizable::cInitData &InitData, std::string VisualizerName)
 {
-	auto &Config=*InitData.mConfig;
+	auto &Config=InitData.mConfig;
 	if(VisualizerName.empty())
 		VisualizerName=Config.GetString("visualizer", { "standard" });
 	if(VisualizerName=="*")

@@ -11,8 +11,10 @@ public:
     struct cConfig
     {
         cPath mainLuaConfigPath;
+        std::function<void()> startApplication;
     };
     void start();
 };
 
 cStartupController::cConfig pixieAppConfiguration();
+

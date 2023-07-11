@@ -18,7 +18,7 @@ public:
 		std::string mTextStyle { "push_button" };
 //todo		std::unique_ptr<cSpriteBase> mTextSprite;
 		cInitData()=default;
-		cInitData(const tIntrusivePtr<cConfig> &Config);
+		cInitData(const cConfig& Config);
 	};
 	class cVisualizer: public tVisualizerBase<cPushButton>
 	{
