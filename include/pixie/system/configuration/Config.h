@@ -37,7 +37,7 @@ public:
 	virtual std::vector<std::string> GetKeys() const=0;
 	virtual size_t GetValueCount() const=0;
 	void SetSubConfig(const std::string &Key, tIntrusivePtr<cConfig> SubConfig);
-	template<class C> void forEachSubConfig(const C& callable) const; // syntax: (const std::string& key, const cConfig& config)
+	template<class C> void forEachSubConfig(const C& callable) const; // callable: void (const std::string& key, const cConfig& config)
 
 	static tIntrusivePtr<cConfig> FromFile(const cPath &Path); // checks file extension for type of config
 };
