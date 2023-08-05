@@ -1,9 +1,10 @@
 #pragma once
 
-class cLuaTable final
+class cLuaValue final
 {
 public:
     enum class IsRecursive { Yes, No };
+    using cKey = std::variant<std::reference_wrapper<const std::string>, const char*, int>;
 private:
     std::shared_ptr<cLuaScript> mScript;
     int mReference = LUA_NOREF;
@@ -12,21 +13,30 @@ private:
     template<class T, class... Ts> static void push(lua_State* L, const T& value, const Ts&... values);
     template<class T> static T pop(std::shared_ptr<cLuaScript> script, lua_State* L);
     tIntrusivePtr<cConfig> toConfig_topTable(lua_State* L, IsRecursive isRecursive) const;
-    void copy_(const cLuaTable& src);
+    void copy_(const cLuaValue& src);
+    static void retriveWithKey(lua_State* L, cKey key);
 public:
-    cLuaTable() = default;
-    cLuaTable(std::shared_ptr<cLuaScript> script, int reference, bool isGlobalTable);
-    cLuaTable(cLuaTable&& src);
-    cLuaTable(const cLuaTable& src);
-    ~cLuaTable();
-    cLuaTable& operator=(cLuaTable&& src);
-    cLuaTable& operator=(const cLuaTable& src);
+
+    cLuaValue() = default;
+    cLuaValue(std::shared_ptr<cLuaScript> script, int reference, bool isGlobalTable);
+    cLuaValue(cLuaValue&& src);
+    cLuaValue(const cLuaValue& src);
+    ~cLuaValue();
+    cLuaValue& operator=(cLuaValue&& src);
+    cLuaValue& operator=(const cLuaValue& src);
+    cLuaValue subTable(const std::string& key) const;
+// when the value is a table, accessing an element:
     template<class T> T get(const std::string& key) const;
+    template<class T> T get(int index) const; // array access. index >= 1
+//    template<class T> T get(cKey key) const;
     template<class T> void set(const std::string& key, const T& value);
     template<class R, class... Args, class C> void registerFunction(const std::string& key, const C&& func);
     template<class... Args> void callFunction(const std::string& key, Args... args);
     template<class T> bool isType(const std::string& key) const;
-    cLuaTable subTable(const std::string& key) const;
+// operating on the value itself:
+    int toInt() const;
+    std::string toString() const;
+
 
     cLuaScript& script() { return *mScript; }
     const cLuaScript& script() const { return *mScript; }
@@ -34,7 +44,7 @@ public:
     tIntrusivePtr<cConfig> toConfig(IsRecursive isRecursive = IsRecursive::Yes) const;
 };
 
-template<class T> void cLuaTable::push(lua_State* L, const T& value)
+template<class T> void cLuaValue::push(lua_State* L, const T& value)
 {
     if constexpr (std::is_same_v<T, int>)
     {
@@ -52,7 +62,7 @@ template<class T> void cLuaTable::push(lua_State* L, const T& value)
     {
         lua_pushstring(L, value.c_str()); 
     }   
-    else if constexpr (std::is_same_v<T, cLuaTable>)
+    else if constexpr (std::is_same_v<T, cLuaValue>)
     {
         lua_rawgeti(L, LUA_REGISTRYINDEX, value.mReference);
     }
@@ -62,14 +72,14 @@ template<class T> void cLuaTable::push(lua_State* L, const T& value)
     }
 }
 
-template<class T, class... Ts> void cLuaTable::push(lua_State* L, const T& value, const Ts&... values)
+template<class T, class... Ts> void cLuaValue::push(lua_State* L, const T& value, const Ts&... values)
 {
     push(L, value);
     push(L, values...);
 }
 
 template <typename T>
-void cLuaTable::set(const std::string& key, const T& value)
+void cLuaValue::set(const std::string& key, const T& value)
 {
     if (!mScript || mReference == LUA_NOREF)
     {
@@ -86,14 +96,11 @@ void cLuaTable::set(const std::string& key, const T& value)
 }
 
 template<class T>
-T cLuaTable::pop(std::shared_ptr<cLuaScript> script, lua_State* L)
+T cLuaValue::pop(std::shared_ptr<cLuaScript> script, lua_State* L)
 {
-    if constexpr (std::is_same_v<T, cLuaTable>)
+    if constexpr (std::is_same_v<T, cLuaValue>)
     {
-        if (lua_istable(L, -1))
-        {
-            return cLuaTable(std::move(script), luaL_ref(L, LUA_REGISTRYINDEX), false);
-        }
+        return cLuaValue(std::move(script), luaL_ref(L, LUA_REGISTRYINDEX), false);
     }
     FINALLY([&]() { lua_pop(L, 1); });
     if constexpr (std::is_same_v<T, int>)
@@ -126,7 +133,15 @@ T cLuaTable::pop(std::shared_ptr<cLuaScript> script, lua_State* L)
     return T{};
 }
 
-template<typename T> T cLuaTable::get(const std::string& key) const
+// template<typename T> T cLuaValue::pop() const
+
+
+// template<class T> T cLuaValue::get(cKey key) const
+// {
+// }
+
+
+template<typename T> T cLuaValue::get(const std::string& key) const
 {
     if (!mScript || mReference == LUA_NOREF)
     {
@@ -138,46 +153,27 @@ template<typename T> T cLuaTable::get(const std::string& key) const
     lua_pushstring(L, key.c_str()); // Push the variable name onto the Lua stack
     lua_gettable(L, -2); // Get the value from the table using the variable name
 
- 
-    if constexpr (std::is_same_v<T, cLuaTable>)
-    {
-        if (lua_istable(L, -1))
-        {
-            auto table = cLuaTable(mScript, luaL_ref(L, LUA_REGISTRYINDEX), false);  // pops value
-            lua_pop(L, 1); // the table for >this<
-            return table;
-        }
-    }
-    
-    FINALLY([L]() { lua_pop(L, 2); });
+    FINALLY([L]() { lua_pop(L, 1); }); 
+    return pop<T>(mScript, L);
+}
 
-    if constexpr (std::is_same_v<T, int>)
+template<class T> T cLuaValue::get(int index) const
+{
+    if (!mScript || mReference == LUA_NOREF)
     {
-        if (lua_isinteger(L, -1))
-        {
-            return static_cast<T>(lua_tointeger(L, -1));
-        }
+        return {};
     }
-    else if constexpr (std::is_same_v<T, double>)
-    {
-        if (lua_isnumber(L, -1))
-        {
-            return static_cast<T>(lua_tonumber(L, -1));
-        }
-    }
-    else if constexpr (std::is_same_v<T, std::string>)
-    {
-        if (lua_isstring(L, -1))
-        {
-            return static_cast<T>(lua_tostring(L, -1));
-        }
-    }
-    return {};
+    lua_State* L = mScript->state();
+    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference); // Retrieve the table from the registry
+
+    lua_rawgeti(L, -1, index);
+    FINALLY([L]() { lua_pop(L, 1); });
+    return pop<T>(mScript, L);
 }
 
 
 template <typename T>
-bool cLuaTable::isType(const std::string& variableName) const
+bool cLuaValue::isType(const std::string& variableName) const
 {
     if (!mScript || mReference == LUA_NOREF)
     {
@@ -204,7 +200,7 @@ bool cLuaTable::isType(const std::string& variableName) const
     {
         result = type == LUA_TSTRING && lua_isstring(L, -1);
     }
-    else if constexpr (std::is_same_v<T, cLuaTable>)
+    else if constexpr (std::is_same_v<T, cLuaValue>)
     {
         result = type == LUA_TTABLE;
     }
@@ -213,7 +209,7 @@ bool cLuaTable::isType(const std::string& variableName) const
     return result;
 }
 
-template<class... Args> void cLuaTable::callFunction(const std::string& key, Args... args)
+template<class... Args> void cLuaValue::callFunction(const std::string& key, Args... args)
 {
     if (!mScript || mReference == LUA_NOREF)
     {
@@ -233,10 +229,12 @@ template<class... Args> void cLuaTable::callFunction(const std::string& key, Arg
         push(L, args...);
     }
     int status = lua_pcall(L, sizeof...(args), 0, 0);
+
+    lua_pop(L, lua_gettop(L));
 }
 
 template<class R, class... Args, class C>
-void cLuaTable::registerFunction(const std::string& key, const C&& func)
+void cLuaValue::registerFunction(const std::string& key, const C&& func)
 {
     if (!mScript || mReference == LUA_NOREF)
     {

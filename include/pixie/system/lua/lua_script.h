@@ -7,7 +7,7 @@ extern "C"
 #include <lualib.h>
 }
 
-class cLuaTable;
+class cLuaValue;
 
 struct cLuaException
 {
@@ -31,14 +31,13 @@ public:
     virtual ~cLuaScript();
     void executeFile(const cPath& scriptPath);
     void executeString(const std::string& script);
-    static void dumpStack(lua_State* L);
     static void staticInit();
     static std::string valueToString(lua_State* L, int index);
     static bool isGlobalInternalElement(const std::string& key);
 
     lua_State* state() { return L; }
-    cLuaTable globalTable();
-    cLuaTable createTable();
+    cLuaValue globalTable();
+    cLuaValue createTable();
 
     struct cUserDataBase
     {
@@ -52,5 +51,9 @@ public:
         luaL_setmetatable(L, userDataMetaTableName);
         return userData;
     }
+
+// debug functions:
+    int stackSize() const;
+    static void dumpStack(lua_State* L);
 };
 

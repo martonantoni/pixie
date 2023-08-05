@@ -187,6 +187,8 @@ template<class T> Finalizer<T> finalizer(T&& toBeCalled)
 
 #define FINALLY(callable) auto finalizer##__LINE__ = finalizer(callable);
 
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...)->overloaded<Ts...>;
 
 template<typename... Args>
 constexpr bool NoneOfType()
@@ -256,8 +258,23 @@ public:
 	{
 		auto EndTime=std::chrono::high_resolution_clock::now();
 		auto Elapsed=std::chrono::duration_cast<std::chrono::nanoseconds>(EndTime-mStartTime);
-		MainLog->Log("Elapsed %u ns in %s\n", Elapsed.count(), mName);
+		MainLog->Log("Elapsed %llu ns in %s\n", Elapsed.count(), mName);
 	}
 };
+
+class cPrintfPerformance_Guard
+{
+    std::chrono::time_point<std::chrono::high_resolution_clock> mStartTime = std::chrono::high_resolution_clock::now();
+    const char* mName;
+public:
+	cPrintfPerformance_Guard(const char* Name) : mName(Name) {}
+    ~cPrintfPerformance_Guard()
+    {
+        auto EndTime = std::chrono::high_resolution_clock::now();
+        auto Elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(EndTime - mStartTime);
+        printf("Elapsed %llu ms in %s\n", Elapsed.count() / 1'000'000, mName);
+    }
+};
+
 
 #include "network/i_Network.h"

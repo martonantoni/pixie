@@ -130,14 +130,19 @@ int cLuaScript::gcUserData(lua_State* L)
     return 0;
 }
 
-cLuaTable cLuaScript::globalTable()
+cLuaValue cLuaScript::globalTable()
 {
     lua_pushglobaltable(L);
-    return cLuaTable{ shared_from_this(), luaL_ref(L, LUA_REGISTRYINDEX), true };
+    return cLuaValue{ shared_from_this(), luaL_ref(L, LUA_REGISTRYINDEX), true };
 }
 
-cLuaTable cLuaScript::createTable()
+cLuaValue cLuaScript::createTable()
 {
     lua_newtable(L);
-    return cLuaTable{ shared_from_this(), luaL_ref(L, LUA_REGISTRYINDEX), true };
+    return cLuaValue{ shared_from_this(), luaL_ref(L, LUA_REGISTRYINDEX), true };
+}
+
+int cLuaScript::stackSize() const
+{
+    return lua_gettop(L);
 }

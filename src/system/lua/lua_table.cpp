@@ -1,21 +1,21 @@
 #include "StdAfx.h"
 
 
-cLuaTable::cLuaTable(std::shared_ptr<cLuaScript> script, int reference, bool isGlobalTable)
+cLuaValue::cLuaValue(std::shared_ptr<cLuaScript> script, int reference, bool isGlobalTable)
     : mScript(std::move(script))
     , mReference(reference)
     , mIsGlobalTable(isGlobalTable)
 {
 }
 
-cLuaTable::cLuaTable(cLuaTable&& src)
+cLuaValue::cLuaValue(cLuaValue&& src)
     : mScript(std::move(src.mScript))
     , mReference(src.mReference)
 {
     src.mReference = LUA_NOREF;
 }
 
-cLuaTable& cLuaTable::operator=(cLuaTable&& src)
+cLuaValue& cLuaValue::operator=(cLuaValue&& src)
 {
     if (this == &src)
         return *this;
@@ -25,7 +25,7 @@ cLuaTable& cLuaTable::operator=(cLuaTable&& src)
     return *this;
 }
 
-cLuaTable::cLuaTable(const cLuaTable& src)
+cLuaValue::cLuaValue(const cLuaValue& src)
 {
     if (!src.mScript || src.mReference == LUA_NOREF)
     {
@@ -34,7 +34,30 @@ cLuaTable::cLuaTable(const cLuaTable& src)
     copy_(src);
 }
 
-void cLuaTable::copy_(const cLuaTable& src)
+void cLuaValue::retriveWithKey(lua_State* L, cKey key) // assumes the table is on top of the stack
+{
+    std::visit(
+        overloaded
+        {
+            [L](std::reference_wrapper<const std::string> key) 
+            { 
+                lua_pushstring(L, key.get().c_str()); 
+                lua_gettable(L, -2);
+            },
+            [L](const char* key)
+            {
+                lua_pushstring(L, key); 
+                lua_gettable(L, -2);
+            },
+            [L](int index) 
+            {
+                lua_rawgeti(L, -1, index);
+            } 
+        }, 
+        key);
+}
+
+void cLuaValue::copy_(const cLuaValue& src)
 {
     mScript = src.mScript;
     lua_State* L = mScript->state();
@@ -42,13 +65,13 @@ void cLuaTable::copy_(const cLuaTable& src)
     mReference = luaL_ref(L, LUA_REGISTRYINDEX);
 }
 
-cLuaTable& cLuaTable::operator=(const cLuaTable& src)
+cLuaValue& cLuaValue::operator=(const cLuaValue& src)
 {
     if (&src == this)
     {
         return *this;
     }
-    cLuaTable toDiscard(std::move(*this));
+    cLuaValue toDiscard(std::move(*this));
     if (!src.mScript || src.mReference == LUA_NOREF)
     {
         return *this;
@@ -57,7 +80,7 @@ cLuaTable& cLuaTable::operator=(const cLuaTable& src)
     return *this;
 }
 
-cLuaTable::~cLuaTable()
+cLuaValue::~cLuaValue()
 {
     if (mScript && mReference != LUA_NOREF)
     {
@@ -65,7 +88,7 @@ cLuaTable::~cLuaTable()
     }
 }
 
-cLuaTable cLuaTable::subTable(const std::string& key) const
+cLuaValue cLuaValue::subTable(const std::string& key) const
 {
     if (!mScript || mReference == LUA_NOREF)
     {
@@ -86,7 +109,7 @@ cLuaTable cLuaTable::subTable(const std::string& key) const
     }
     int reference = luaL_ref(L, LUA_REGISTRYINDEX); // pops the sub-table
     lua_pop(L, 1);  // pops our table
-    return cLuaTable{ mScript, reference, false };
+    return cLuaValue{ mScript, reference, false };
 }
 
 std::string cLuaScript::valueToString(lua_State* L, int index)
@@ -103,7 +126,7 @@ std::string cLuaScript::valueToString(lua_State* L, int index)
     return convertedString;
 }
 
-tIntrusivePtr<cConfig> cLuaTable::toConfig_topTable(lua_State* L, IsRecursive isRecursive) const
+tIntrusivePtr<cConfig> cLuaValue::toConfig_topTable(lua_State* L, IsRecursive isRecursive) const
 {
     if (!lua_istable(L, -1))
     {
@@ -150,7 +173,7 @@ tIntrusivePtr<cConfig> cLuaTable::toConfig_topTable(lua_State* L, IsRecursive is
     return config;
 }
 
-tIntrusivePtr<cConfig> cLuaTable::toConfig(IsRecursive isRecursive) const
+tIntrusivePtr<cConfig> cLuaValue::toConfig(IsRecursive isRecursive) const
 {
     if (!mScript || mReference == LUA_NOREF)
     {
@@ -159,4 +182,24 @@ tIntrusivePtr<cConfig> cLuaTable::toConfig(IsRecursive isRecursive) const
     lua_State* L = mScript->state();
     lua_rawgeti(L, LUA_REGISTRYINDEX, mReference);
     return toConfig_topTable(L, isRecursive);
+}
+
+int cLuaValue::toInt() const
+{
+    lua_State* L = mScript->state();
+    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference);
+
+    auto result = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    return result;
+}
+
+std::string cLuaValue::toString() const
+{
+    lua_State* L = mScript->state();
+    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference);
+
+    auto result = cLuaScript::valueToString(L, -1);
+    lua_pop(L, 1);
+    return result;
 }

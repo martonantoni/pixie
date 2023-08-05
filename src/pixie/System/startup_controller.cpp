@@ -9,7 +9,7 @@
 
 tIntrusivePtr<cConfig> theGlobalConfig;
 
-void registerGlobalPixieLuaFunctions(cLuaTable globalTable);
+void registerGlobalPixieLuaFunctions(cLuaValue globalTable);
 
 void cStartupController::Start_MainThread()
 {
