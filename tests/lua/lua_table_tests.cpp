@@ -241,7 +241,7 @@ TEST(lua_table, sub_table_access_with_get)
     ASSERT_EQ(script->stackSize(), 0);
 }
 
-TEST(lua_table, funcion_v_v)  // void(void)
+TEST(lua_function_register, funcion_v_v)  // void(void)
 {
     auto script = std::make_shared<cLuaScript>();
 
@@ -249,13 +249,14 @@ TEST(lua_table, funcion_v_v)  // void(void)
     bool success = false;
     globalTable.registerFunction<void>("test"s, [&success]() ->void { success = true; });
     ASSERT_EQ(script->stackSize(), 0) << "after register";
-    globalTable.callFunction("test"s);
+    auto returned = globalTable.callFunction("test"s);
     ASSERT_TRUE(success);
+    ASSERT_TRUE(returned.empty());
 
     ASSERT_EQ(script->stackSize(), 0) << "after call";
 }
 
-TEST(lua_table, function_v_iii)  // void(int,int,int)
+TEST(lua_function_register, function_v_iii)  // void(int,int,int)
 {
     auto script = std::make_shared<cLuaScript>();
 
@@ -266,13 +267,15 @@ TEST(lua_table, function_v_iii)  // void(int,int,int)
         {
             result = a + b + c;
         });
-    globalTable.callFunction("test"s, 10, 11, 12);
+
+    auto returned = globalTable.callFunction("test"s, 10, 11, 12);
     ASSERT_EQ(result, 33);
+    ASSERT_TRUE(returned.empty());
 
     ASSERT_EQ(script->stackSize(), 0);
 }
 
-TEST(lua_table, function_v_t)  // void(cLuaTable)
+TEST(lua_function_register, function_v_t)  // void(cLuaTable)
 {
     auto script = std::make_shared<cLuaScript>();
 
@@ -287,9 +290,41 @@ TEST(lua_table, function_v_t)  // void(cLuaTable)
     cLuaValue parameterTable = script->createTable();
     parameterTable.set("a", 33);
     parameterTable.set("b", 44);
-    globalTable.callFunction("test"s, std::move(parameterTable));
-
+    auto returned = globalTable.callFunction("test"s, std::move(parameterTable));
+    ASSERT_TRUE(returned.empty());
     ASSERT_EQ(result, 77);
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_function_call, function_i_ii)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    script->executeString("function testedFunction(a, b) return a+b end");
+    
+    cLuaValue globalTable = script->globalTable();
+    auto returned = globalTable.callFunction("testedFunction"s, 10, 11);
+    ASSERT_EQ(returned.size(), 1u);
+    ASSERT_EQ(returned.front().toInt(), 21);
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_function_register, function_i_ii)
+{
+    auto script = std::make_shared<cLuaScript>();
+    cLuaValue globalTable = script->globalTable();
+
+    globalTable.registerFunction<int, int, int>("testedFunction"s,
+        [](int a, int b)
+        {
+            return a + b;
+        });
+
+    auto returned = globalTable.callFunction("testedFunction"s, 10, 11);
+    ASSERT_EQ(returned.size(), 1u);
+    ASSERT_EQ(returned.front().toInt(), 21);
 
     ASSERT_EQ(script->stackSize(), 0);
 }

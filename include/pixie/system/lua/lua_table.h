@@ -31,7 +31,7 @@ public:
 //    template<class T> T get(cKey key) const;
     template<class T> void set(const std::string& key, const T& value);
     template<class R, class... Args, class C> void registerFunction(const std::string& key, const C&& func);
-    template<class... Args> void callFunction(const std::string& key, Args... args);
+    template<class... Args> std::vector<cLuaValue> callFunction(const std::string& key, Args... args);
     template<class T> bool isType(const std::string& key) const;
 // operating on the value itself:
     int toInt() const;
@@ -209,11 +209,11 @@ bool cLuaValue::isType(const std::string& variableName) const
     return result;
 }
 
-template<class... Args> void cLuaValue::callFunction(const std::string& key, Args... args)
+template<class... Args> std::vector<cLuaValue> cLuaValue::callFunction(const std::string& key, Args... args)
 {
     if (!mScript || mReference == LUA_NOREF)
     {
-        return;
+        return {};
     }
     lua_State* L = mScript->state();
     lua_rawgeti(L, LUA_REGISTRYINDEX, mReference); // Retrieve the table from the registry
@@ -222,15 +222,21 @@ template<class... Args> void cLuaValue::callFunction(const std::string& key, Arg
     if (!lua_isfunction(L, -1))
     {
         // handle error
-        return;
+        return {};
     }
     if constexpr (sizeof...(args) > 0)
     {
         push(L, args...);
     }
-    int status = lua_pcall(L, sizeof...(args), 0, 0);
-
+    int status = lua_pcall(L, sizeof...(args), LUA_MULTRET, 0);
+    std::vector<cLuaValue> returnValues;
+    returnValues.reserve(lua_gettop(L) - 1);
+    for (int i = lua_gettop(L); i >= 2; --i) // at the bottom of the stack, our table is.
+    {
+        returnValues.emplace_back(mScript, luaL_ref(L, LUA_REGISTRYINDEX), false);
+    }
     lua_pop(L, lua_gettop(L));
+    return returnValues;
 }
 
 template<class R, class... Args, class C>
