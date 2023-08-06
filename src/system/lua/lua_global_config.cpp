@@ -4,7 +4,7 @@
 
 // tIntrusivePtr<cConfig> theGlobalConfig;
 // 
-// void registerGlobalPixieLuaFunctions(cLuaTable globalTable);
+// void registerGlobalPixieLuaFunctions(cLuaValue globalTable);
 
 // cLuaGlobalConfigLoader::cLuaGlobalConfigLoader()
 // {

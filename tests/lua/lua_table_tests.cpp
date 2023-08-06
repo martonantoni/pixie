@@ -275,7 +275,7 @@ TEST(lua_function_register, function_v_iii)  // void(int,int,int)
     ASSERT_EQ(script->stackSize(), 0);
 }
 
-TEST(lua_function_register, function_v_t)  // void(cLuaTable)
+TEST(lua_function_register, function_v_t)  // void(cLuaValue)
 {
     auto script = std::make_shared<cLuaScript>();
 
