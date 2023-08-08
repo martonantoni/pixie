@@ -21,7 +21,7 @@ void cStartupController::Start_MainThread()
     MainLog->Log("working dir: \"%s\"", std::filesystem::current_path().string().c_str());
 
     theProgramDirector->Start();
-    ::CallBack(theMainThread, eCallbackType::NoImmediate, this, &cStartupController::ContinueStartup);
+    theMainThread->callback([this]() {ContinueStartup(); }, eCallbackType::NoImmediate);
 }
 
 
@@ -54,7 +54,7 @@ void cStartupController::start()
 {
     new cThreadServer;
     theMainThread = theThreadServer->GetThread("main", true);
-    ::CallBack(theMainThread, eCallbackType::Normal, this, &cStartupController::Start_MainThread);
+    theMainThread->callback([this]() {Start_MainThread(); });
     Sleep(INFINITE);
 }
 

@@ -61,7 +61,7 @@ void cProgramDirector::Unlock(eProgramPhases Phase)
 	if(!--mPhases[size_t(Phase)].mLockCount&&mCurrentPhase==size_t(Phase)-1)
 	{
 		++mCurrentPhase;
-		::CallBack(theMainThread, eCallbackType::NoImmediate, this, &cProgramDirector::CurrentPhaseUnlocked);
+		theMainThread->callback([this]() {CurrentPhaseUnlocked(); }, eCallbackType::NoImmediate);
 	}
 }
 
@@ -79,7 +79,7 @@ void cProgramDirector::Unregister(cLockIDData &IDData)
 void cProgramDirector::Start()
 {
 	ASSERT(mCurrentPhase==0);
-	::CallBack(theMainThread, eCallbackType::NoImmediate, this, &cProgramDirector::CurrentPhaseUnlocked);
+	theMainThread->callback([this]() { CurrentPhaseUnlocked(); }, eCallbackType::NoImmediate);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

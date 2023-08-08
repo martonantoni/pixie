@@ -55,7 +55,7 @@ void cTCPAcceptor::Listen_NetThread(unsigned short Port)
 void cTCPAcceptor::Listen(unsigned short Port)
 {
 	Ref(); // Unref is in Listen_NetThread
-	::CallBack(gNetworkThread, eCallbackType::Normal, this, &cTCPAcceptor::Listen_NetThread, Port);
+	gNetworkThread->callback([this, Port]() {Listen_NetThread(Port); });
 }
 
 void cTCPAcceptor::SetLog(std::shared_ptr<cTextLog> log)

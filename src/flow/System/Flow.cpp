@@ -3,17 +3,16 @@
 
 cFlow theFlow;
 
-void cFlow::DispatchMessage_MT(const std::shared_ptr<cFlowConnection> &Connection, const std::function<void()> DispatcherFunction)
-{
-	DispatcherFunction();
-}
-
 bool cFlow::MessageReceived(std::shared_ptr<cFlowConnection> Connection, cFlowStream *Stream, const cFlowMessageHeader &Header, const cMemoryStream &Message)
 {
 	auto FunctionToCall=Connection->MessageReceived(Stream, Header, Message);
 	if(!FunctionToCall)
 		return false;
-	::CallBack(theMainThread, eCallbackType::Normal, this, &cFlow::DispatchMessage_MT, std::move(Connection), std::move(FunctionToCall));
+	theMainThread->callback(
+		[this, connection = std::move(Connection), FunctionToCall = std::move(FunctionToCall)]()
+		{
+			FunctionToCall();
+		});
 	return true;
 }
 
@@ -38,7 +37,11 @@ void cFlow::Connect_NT(const std::shared_ptr<cFlowClientConnection> &Connection)
 
 void cFlow::Connect(std::shared_ptr<cFlowClientConnection> Connection)
 {
-	::CallBack(gNetworkThread, eCallbackType::Normal, this, &cFlow::Connect_NT, std::move(Connection));
+	gNetworkThread->callback(
+		[this, connection = std::move(Connection)]()
+		{
+			Connect_NT(connection);
+		});
 }
 
 void cFlow::SendMessage_NT(const std::shared_ptr<cFlowConnection> &Connection, const std::shared_ptr<const cFlowMessageBase> &Message)
@@ -48,7 +51,11 @@ void cFlow::SendMessage_NT(const std::shared_ptr<cFlowConnection> &Connection, c
 
 void cFlow::SendMessage(std::shared_ptr<cFlowConnection> Connection, std::shared_ptr<const cFlowMessageBase> Message)
 {
-	::CallBack(gNetworkThread, eCallbackType::Normal, this, &cFlow::SendMessage_NT, std::move(Connection), std::move(Message));
+	gNetworkThread->callback(
+		[this, connection = std::move(Connection), message = std::move(Message)]()
+		{
+			SendMessage_NT(connection, message);
+		});
 }
 
 void cFlow::SetLog_NT(const std::shared_ptr<cFlowConnection> &Connection, std::shared_ptr<cTextLog> Log)
@@ -58,7 +65,10 @@ void cFlow::SetLog_NT(const std::shared_ptr<cFlowConnection> &Connection, std::s
 
 void cFlow::SetLog(std::shared_ptr<cFlowConnection> Connection, std::shared_ptr<cTextLog> Log)
 {
-	::CallBack(gNetworkThread, eCallbackType::Normal, this, &cFlow::SetLog_NT, std::move(Connection), std::move(Log));
+	gNetworkThread->callback([this, connection = std::move(Connection), log = std::move(Log)]()
+		{
+			SetLog_NT(connection, log);
+		});
 }
 
 void cFlow::FatalError_MT(const std::shared_ptr<cFlowConnection> &Connection)
@@ -68,5 +78,8 @@ void cFlow::FatalError_MT(const std::shared_ptr<cFlowConnection> &Connection)
 
 void cFlow::FatalError(std::shared_ptr<cFlowConnection> Connection)
 {
-	::CallBack(theMainThread, eCallbackType::Normal, this, &cFlow::FatalError_MT, std::move(Connection));
+	theMainThread->callback([this, connection = std::move(Connection)]()
+	{
+		FatalError_MT(connection);
+	});
 }

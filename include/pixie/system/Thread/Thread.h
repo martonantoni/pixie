@@ -28,9 +28,11 @@ class cThread: public cRegistrationHandler
 	void SetThreadNameForDebugger();
 	void cThread::AddEventHandler_Inner(tIntrusivePtr<cIDData> IDData, cNativeEvent *Event);
 	void cThread::AddTimer_Inner(tIntrusivePtr<cIDData> IDData, const cTimerRequest &TimerRequest);
+	using cInvokerFunctionPtr = void(*)(char*);
 public:
 	cThread(const std::string &Name,std::unique_ptr<cReactor> Reactor=std::make_unique<cReactor>());
 	~cThread();
+	template<class T> void callback(T callable, eCallbackType callbackType = eCallbackType::Normal);
 	void Start();
 	BOOL IsInThread() const;
 	char *LockCallbackBuffer(size_t RequiredSize);
@@ -41,5 +43,22 @@ public:
 	cRegisteredID AddEventHandler(const cReactor::cEventListener &EventListener,cNativeEvent *Event,cRegisteredID *ID=nullptr);
 	cRegisteredID AddTimer(const cTimerServer::cTimerListener &TimerListener,const cTimerRequest &TimerRequest,cRegisteredID *ID=nullptr);
 };
+
+template<class T> void cThread::callback(T callable, eCallbackType callbackType)
+{
+    if (IsInThread() && callbackType != eCallbackType::NoImmediate)
+    {
+		callable();
+        return;
+    }
+	auto buffer = LockCallbackBuffer(sizeof(T) + sizeof(cInvokerFunctionPtr));
+	new(buffer) cInvokerFunctionPtr(
+		[](char* callablePtr)
+		{
+			(*(T*)(callablePtr))();
+		});
+	new(buffer + sizeof(cInvokerFunctionPtr)) T(std::move(callable));
+	ReleaseCallbackBuffer(callbackType);
+}
 
 extern cThread *theMainThread;

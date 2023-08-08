@@ -15,7 +15,7 @@ public:
 	{
 		if(mDropThread&&!mDropThread->IsInThread())
 		{
-			::CallBack(mDropThread, eCallbackType::Normal, this, &cDropGuarded::Drop);
+			mDropThread->callback([this]() { Drop(); });
 			return;
 		}
 		mIsDropped=true;

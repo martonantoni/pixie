@@ -125,7 +125,7 @@ cDevice *cDevice::Get()
 	if(!Instance)
 	{
 		Instance=new cDevice;
-		::CallBack(theMainThread,eCallbackType::Wait,Instance,&cDevice::Init);
+		theMainThread->callback([]() {Instance->Init(); }, eCallbackType::Wait);
 	}
 	return Instance;
 }

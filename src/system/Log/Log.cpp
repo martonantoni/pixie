@@ -44,7 +44,7 @@ cLog::~cLog()
 	for(cPlugins::iterator i=Plugins.begin(),iend=Plugins.end();i!=iend;++i)
 	{
 		cPlugin *Plugin=*i;
-		::CallBack(Plugin->GetThread(),eCallbackType::Wait,Plugin,&cPlugin::Close);
+		Plugin->GetThread()->callback([Plugin]() {Plugin->Close(); }, eCallbackType::Wait);
 		delete Plugin;
 	}
 }
@@ -103,7 +103,7 @@ void cLog::Flush()
 	for(cPlugins::iterator i=Plugins.begin(),iend=Plugins.end();i!=iend;++i)
 	{
 		cPlugin *Plugin=*i;
-		::CallBack(Plugin->GetThread(),eCallbackType::Wait,Plugin,&cPlugin::Flush);
+		Plugin->GetThread()->callback([Plugin]() {Plugin->Flush(); }, eCallbackType::Wait);
 	}
 }
 
@@ -114,7 +114,10 @@ void cLog::LogChunk(cChunk *Chunk)
 	for(cPlugins::iterator i=ChunkLoggingPlugins.begin(),iend=ChunkLoggingPlugins.end();i!=iend;++i)
 	{
 		cPlugin *Plugin=*i;
-		::CallBack(Plugin->GetThread(),eCallbackType::Normal,Plugin,&cPlugin::LogChunk,new cChunk(*Chunk));
+		Plugin->GetThread()->callback([Plugin, chunk = new cChunk(*Chunk)]()
+		{
+			Plugin->LogChunk(chunk);
+		});
 	}
 }
 
@@ -142,7 +145,10 @@ void cLog::LogArgs(const char *FormatString,va_list Args)
 	for(cPlugins::iterator i=ChunkPartLoggingPlugins.begin(),iend=ChunkPartLoggingPlugins.end();i!=iend;++i)
 	{
 		cPlugin *Plugin=*i;
-		::CallBack(Plugin->GetThread(),eCallbackType::Normal,Plugin,&cPlugin::LogChunkPart,new cChunkPart(ActiveChunk,Offset,WrittenLength));
+		Plugin->GetThread()->callback([Plugin, chunkPart = new cChunkPart(ActiveChunk, Offset, WrittenLength)]()
+		{
+			Plugin->LogChunkPart(chunkPart);
+		});
 	}
 }
 
@@ -177,7 +183,7 @@ void cLog::Seek(__int64 Offset,int Method)
 	for(cPlugins::iterator i=ChunkLoggingPlugins.begin(),iend=ChunkLoggingPlugins.end();i!=iend;++i)
 	{
 		cPlugin *Plugin=*i;
-		::CallBack(Plugin->GetThread(),eCallbackType::Wait,Plugin,&cPlugin::Seek,&SeekParameters);
+		Plugin->GetThread()->callback([Plugin, &SeekParameters]() { Plugin->Seek(&SeekParameters); }, eCallbackType::Wait);
 	}
 }
 
@@ -190,7 +196,7 @@ __int64 cLog::Tell()
 	for(cPlugins::iterator i=ChunkLoggingPlugins.begin(),iend=ChunkLoggingPlugins.end();i!=iend;++i)
 	{
 		cPlugin *Plugin=*i;
-		::CallBack(Plugin->GetThread(),eCallbackType::Wait,Plugin,&cPlugin::Tell,&Position);
+		Plugin->GetThread()->callback([Plugin, &Position]() {Plugin->Tell(&Position); }, eCallbackType::Wait);
 		if(Position!=-1)
 			return Position;
 	}

@@ -43,12 +43,13 @@ void cThread::ProcessCallbacks()
 	}
 	if(mCallbackBuffer_Reading->empty())
 		return;
-	for(auto &Calls: *mCallbackBuffer_Reading)
+	for(auto &callbackData: *mCallbackBuffer_Reading)
 	{
-		auto Pos=Calls.data();
-		ThreadCallbackHelper::CallbackHelperFunction Function=*(ThreadCallbackHelper::CallbackHelperFunction *)Pos;
-		Pos+=sizeof(ThreadCallbackHelper::CallbackHelperFunction);
-		(*Function)(Pos);
+// 		auto Pos=Calls.data();
+// 		ThreadCallbackHelper::CallbackHelperFunction Function=*(ThreadCallbackHelper::CallbackHelperFunction *)Pos;
+// 		Pos+=sizeof(ThreadCallbackHelper::CallbackHelperFunction);
+// 		(*Function)(Pos);
+		(*(cInvokerFunctionPtr*)(callbackData.data()))(callbackData.data() + sizeof(cInvokerFunctionPtr));
 	}
 	mCallbackBuffer_Reading->resize(0);
 }
@@ -81,7 +82,7 @@ void cThread::ReleaseCallbackBuffer(eCallbackType CallbackType)
 	{
 		cThread *CurrentThread=GetCurrentThread();
 		cNativeEvent *CallbacksDoneEvent=CurrentThread?&CurrentThread->mCallbacksDoneEvent:new cNativeEvent(cNativeEvent::AutoReset);
-		::CallBack(this,eCallbackType::Normal,CallbacksDoneEvent,&cNativeEvent::Set);
+		callback([CallbacksDoneEvent]() { CallbacksDoneEvent->Set(); });
 		CallbacksDoneEvent->Wait(INFINITE);
 		if(!CurrentThread)
 			delete CallbacksDoneEvent;
@@ -114,7 +115,10 @@ cRegisteredID cThread::AddEventHandler(const cReactor::cEventListener &EventList
 	cRegisteredID RegisteredID(this,IDData);
 	if(ID)
 		*ID=std::move(RegisteredID);
-	::CallBack(this, eCallbackType::Normal, this, &cThread::AddEventHandler_Inner, tIntrusivePtr<cIDData>(IDData), Event);
+	callback([this, idData = tIntrusivePtr<cIDData>(IDData), Event]()
+		{
+			AddEventHandler_Inner(idData, Event);
+		});
 	return RegisteredID; // if ID was not null, this will return an empty cRegisteredID
 }
 
@@ -137,7 +141,10 @@ cRegisteredID cThread::AddTimer(const cTimerServer::cTimerListener &TimerListene
 	cRegisteredID RegisteredID(this,IDData);
 	if(ID)
 		*ID=std::move(RegisteredID);
-	::CallBack(this, eCallbackType::Normal, this, &cThread::AddTimer_Inner, tIntrusivePtr<cIDData>(IDData), TimerRequest);
+	callback([this, idData = tIntrusivePtr<cIDData>(IDData), TimerRequest]()
+		{
+			AddTimer_Inner(idData, TimerRequest);
+		});
 	return RegisteredID; // if ID was not null, this will return an empty cRegisteredID
 }
 
@@ -148,7 +155,7 @@ void cThread::Unregister(const cRegisteredID &RegisteredID,eCallbackType Callbac
 		return;
 	if(!IsInThread())
 	{
-		::CallBack(this,CallbackType,this,&cThread::Unregister_Inner,tIntrusivePtr<cIDData>::CreateWithoutAddingRef(IDData));
+		callback([this, idData = tIntrusivePtr<cIDData>::CreateWithoutAddingRef(IDData)]{ Unregister_Inner(idData); }, CallbackType);
 		return;
 	}
 	Unregister_Inner(tIntrusivePtr<cIDData>::CreateWithoutAddingRef(IDData));

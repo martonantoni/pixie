@@ -9,5 +9,5 @@ void cTextLogToEvent::PostMessage(const std::string &Text)
 void cTextLogToEvent::Log(const std::string &Text)
 {
 	Ref();
-	::CallBack(theMainThread, eCallbackType::Normal, this, &cTextLogToEvent::PostMessage, Text);
+	theMainThread->callback([this, Text]() {PostMessage(Text); });
 }

@@ -13,10 +13,8 @@ foreach(subdir ${subdirectories})
 		# Add the source files from the current subdirectory to the executable
 		file(GLOB_RECURSE test_sources ${subdir}/*.cpp)
 		add_executable(${subdir_name}_tests ${test_sources})
- #       set_property(TEST ${subdir_name}_tests PROPERTY WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 		# Link your project's source files
 		target_link_libraries(${subdir_name}_tests PRIVATE Pixie CONAN_PKG::gtest)
 		add_test(NAME ${subdir_name} COMMAND ${subdir_name}_tests)
-#		set_tests_properties(${subdir_name} PROPERTIES LABELS "MyTestLabel")
 	endif()
 endforeach()

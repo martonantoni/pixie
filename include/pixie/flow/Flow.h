@@ -8,7 +8,6 @@ struct cFlowLoginReplyMessage;
 
 class cFlow
 {
-	void DispatchMessage_MT(const std::shared_ptr<cFlowConnection> &Connection, const std::function<void()> DispatcherFunction);
 	void Connect_NT(const std::shared_ptr<cFlowClientConnection> &Connection);
 	void SendMessage_NT(const std::shared_ptr<cFlowConnection> &Connection, const std::shared_ptr<const cFlowMessageBase> &Message);
 	void SetLog_NT(const std::shared_ptr<cFlowConnection> &Connection, std::shared_ptr<cTextLog> Log);
