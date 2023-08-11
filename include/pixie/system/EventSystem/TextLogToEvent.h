@@ -1,5 +1,7 @@
 #pragma once
 
+#include "pixie/system/log/i_log.h"
+
 class cTextLogToEvent: public cTextLogPlugin
 {
 	tIntrusivePtr<cEventDispatcher> mDispatcher;

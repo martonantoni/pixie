@@ -18,7 +18,13 @@ void cThread::ThreadFunction()
 {
 	SetThreadNameForDebugger();
 	mThreadLocalStorage.SetValue(this);
-	mProcessCallbacksID=AddEventHandler([this]() { ProcessCallbacks(); }, &mCallbackRequestedEvent);
+	mProcessCallbacksID = AddEventHandler([this]() { ProcessCallbacks(); }, &mCallbackRequestedEvent);
+
+	threadLoop();
+}
+
+void cThread::threadLoop()
+{
 	DWORD CurrentTime=GetTickCount();
 	for(;;)
 	{
@@ -27,6 +33,11 @@ void cThread::ThreadFunction()
 		CurrentTime=GetTickCount();
 		mTimerServer.ProcessTimers(CurrentTime);
 	}
+}
+
+void cThread::processEventDispatch()
+{
+
 }
 
 DWORD WINAPI cThread::StaticThreadFunction(LPVOID lpParameter)
@@ -45,10 +56,6 @@ void cThread::ProcessCallbacks()
 		return;
 	for(auto &callbackData: *mCallbackBuffer_Reading)
 	{
-// 		auto Pos=Calls.data();
-// 		ThreadCallbackHelper::CallbackHelperFunction Function=*(ThreadCallbackHelper::CallbackHelperFunction *)Pos;
-// 		Pos+=sizeof(ThreadCallbackHelper::CallbackHelperFunction);
-// 		(*Function)(Pos);
 		(*(cInvokerFunctionPtr*)(callbackData.data()))(callbackData.data() + sizeof(cInvokerFunctionPtr));
 	}
 	mCallbackBuffer_Reading->resize(0);
@@ -207,4 +214,3 @@ void cThread::SetThreadNameForDebugger()
 
 #undef MS_VC_EXCEPTION
 
-cThread *theMainThread=NULL;

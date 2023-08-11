@@ -30,4 +30,13 @@ cThread *cThreadServer::GetThread(const std::string &Name,BOOL UseMessageQueueRe
 	return Thread.get();
 }
 
+void cThreadServer::createMainThread()
+{
+	ASSERT(!theMainThread);
+    auto thread = std::make_unique<cMainThread>("main"s, std::make_unique<cReactor_MessagePump>());
+	theMainThread = thread.get();
+	thread->Start();
+	mThreadMap["main"s] = std::move(thread);
+}
+
 cThreadServer *theThreadServer=NULL;

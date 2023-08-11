@@ -2,6 +2,7 @@
 
 class cThread: public cRegistrationHandler
 {
+protected:
 	struct cIDData: public cIntrusiveThreadsafeRefCount
 	{
 		enum eIDType { Type_EventHandler, Type_Timer, Type_Invalid } mType=Type_Invalid;
@@ -29,6 +30,8 @@ class cThread: public cRegistrationHandler
 	void cThread::AddEventHandler_Inner(tIntrusivePtr<cIDData> IDData, cNativeEvent *Event);
 	void cThread::AddTimer_Inner(tIntrusivePtr<cIDData> IDData, const cTimerRequest &TimerRequest);
 	using cInvokerFunctionPtr = void(*)(char*);
+	void processEventDispatch();
+	virtual void threadLoop();
 public:
 	cThread(const std::string &Name,std::unique_ptr<cReactor> Reactor=std::make_unique<cReactor>());
 	~cThread();
@@ -60,5 +63,3 @@ template<class T> void cThread::callback(T callable, eCallbackType callbackType)
 	new(buffer + sizeof(cInvokerFunctionPtr)) T(std::move(callable));
 	ReleaseCallbackBuffer(callbackType);
 }
-
-extern cThread *theMainThread;

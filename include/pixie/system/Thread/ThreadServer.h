@@ -8,7 +8,8 @@ class cThreadServer
 public:
 	cThreadServer();
 	~cThreadServer();
-	cThread *GetThread(const std::string &Name,BOOL UseMessageQueueReactor=false);
+	cThread* GetThread(const std::string &Name,BOOL UseMessageQueueReactor=false);
+	void createMainThread();
 };
 
 extern cThreadServer *theThreadServer;
