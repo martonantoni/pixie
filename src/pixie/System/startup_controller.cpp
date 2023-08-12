@@ -53,6 +53,7 @@ void cStartupController::ContinueStartup()
 void cStartupController::start()
 {
     new cThreadServer;
+    cEventCenter::Get();
     theThreadServer->createMainThread();
     theMainThread->callback([this]() {Start_MainThread(); });
     Sleep(INFINITE);

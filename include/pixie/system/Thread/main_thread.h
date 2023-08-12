@@ -1,6 +1,5 @@
 #pragma once
 
-#include "pixie/System/EventSystem/i_EventSystem.h"
 
 class cMainThread: public cThread
 {
@@ -9,6 +8,11 @@ public:
 		cThread(Name, std::move(Reactor)) {}
 protected:
 	virtual void threadLoop() override;
+private:
+    cNativeEvent mGotEventToDispatch = { cNativeEvent::AutoReset };
+	cRegisteredID mGotEventToDispatchID;
+	DWORD mTimeToNextTimer;
+	void processEventDispatch();
 };
 
 extern cMainThread *theMainThread;

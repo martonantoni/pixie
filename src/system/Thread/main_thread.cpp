@@ -1,18 +1,25 @@
 #include "StdAfx.h"
 
+#include "pixie/System/EventSystem/i_EventSystem.h"
 
 void cMainThread::threadLoop()
 {
-    //	mProcessEventDispatchID = AddEventHandler([this]() { processEventDispatch(); }, &mEventDispatchRequestedEvent);
+    mGotEventToDispatchID = AddEventHandler([this]() { processEventDispatch(); }, &mGotEventToDispatch);
+    theEventCenter->setNeedDispatchProcessor([this]() { mGotEventToDispatch.Set(); });
     DWORD CurrentTime = GetTickCount();
     for (;;)
     {
-        DWORD TimeToNextTimer = mTimerServer.GetTimeToNextTimer(CurrentTime);
-        mReactor->DispatchEvents(TimeToNextTimer);
+        mTimeToNextTimer = mTimerServer.GetTimeToNextTimer(CurrentTime);
+        mReactor->DispatchEvents(mTimeToNextTimer);
         CurrentTime = GetTickCount();
         mTimerServer.ProcessTimers(CurrentTime);
     }
-
 }
+
+void cMainThread::processEventDispatch()
+{
+    theEventCenter->DispatchEvents(mTimeToNextTimer);
+}
+
 
 cMainThread* theMainThread = NULL;

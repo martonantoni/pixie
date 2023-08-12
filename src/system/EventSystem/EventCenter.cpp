@@ -10,14 +10,33 @@ cEventCenter::cEventCenter()
 void cEventCenter::PostEvent(cEvent &&Event, tIntrusivePtr<cEventDispatcher> Dispatcher)
 {
 	mEvents_Writing.emplace_back(std::move(Event), std::move(Dispatcher));
+	if (!mDispatchingEvents && mEvents_Writing.size() == 1 && mNeedDispatchProcessor)
+	{
+		mNeedDispatchProcessor();
+	}
 }
 
-void cEventCenter::DispatchEvents()
+void cEventCenter::DispatchEvents(DWORD loopUntil)
 {
-	std::swap(mEvents_Reading, mEvents_Writing);
-	for(auto &Event: mEvents_Reading)
+    mDispatchingEvents = true;
+	for (;;)
 	{
-		std::get<1>(Event)->Internal_DispatchEvent(std::get<0>(Event));
+		std::swap(mEvents_Reading, mEvents_Writing);
+		for (auto& Event : mEvents_Reading)
+		{
+			std::get<1>(Event)->Internal_DispatchEvent(std::get<0>(Event));
+		}
+		mEvents_Reading.clear();
+		if (loopUntil == 0)
+			break;
+		if (mEvents_Writing.empty())
+			break;
+		if (loopUntil - ::GetTickCount() > 0xf000'0000u)
+			break;
 	}
-	mEvents_Reading.clear();
+	mDispatchingEvents = false;
+    if (!mEvents_Writing.empty() && mNeedDispatchProcessor)
+    {
+        mNeedDispatchProcessor();
+    }
 }
