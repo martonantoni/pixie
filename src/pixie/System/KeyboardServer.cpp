@@ -70,7 +70,8 @@ cWindowsMessageResult cKeyboardServer::OnKeyDown(WPARAM wParam,LPARAM lParam)
 	if(wParam<=255&&!mDispatcherRangeInfo.mEventNames[wParam+1].empty())
 		mEventDispatchers.PostEvent(Keyboard_KeyDown_First+wParam, cEvent());
 
-	return cWindowsMessageResult();}
+	return cWindowsMessageResult();
+}
 
 cWindowsMessageResult cKeyboardServer::OnKeyUp(WPARAM wParam, LPARAM lParam)
 {
