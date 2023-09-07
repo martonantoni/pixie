@@ -41,18 +41,6 @@ conan_cmake_install(PATH_OR_REFERENCE .
 include(${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup(TARGETS)
 
-					
-#find_package(Freetype REQUIRED)
-#find_package(Lua REQUIRED)
-#find_package(fmt REQUIRED)
-
-#conan_cmake_run(REQUIRES freetype/2.13.0
-#                         fmt/10.0.0
-#                         lua/5.4.4
-#						 gtest/1.13.0
-#                BASIC_SETUP CMAKE_TARGETS)
-#
-	  
 file(GLOB_RECURSE PIXIE_SOURCES src/*.cpp)
 
 add_library(Pixie STATIC ${PIXIE_SOURCES})

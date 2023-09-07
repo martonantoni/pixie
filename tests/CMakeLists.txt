@@ -4,7 +4,6 @@ file(GLOB subdirectories LIST_DIRECTORIES true "${CMAKE_CURRENT_SOURCE_DIR}/*")
 # Iterate over each subdirectory
 foreach(subdir ${subdirectories})
 	if(IS_DIRECTORY ${subdir})
-		message(note ${subdir})
 		# Get the name of the current subdirectory
 		get_filename_component(subdir_name ${subdir} NAME)
 
