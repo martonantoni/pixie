@@ -1,5 +1,9 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
+
+tDataHolder<uint32_t> cKeyboardServer::mEventDataHolder;
+
+
 const cEventDispatchers::cDispatcherRangeInfo cKeyboardServer::mDispatcherRangeInfo=
 {
 	PixieEvents::Keyboard_First, { "keydown", 
@@ -58,50 +62,61 @@ cKeyboardServer::cKeyboardServer()
 	ListenerRequest.mOrder=0;
 }
 
-cWindowsMessageResult cKeyboardServer::OnKeyDown(WPARAM wParam,LPARAM lParam)
+uint32_t cKeyboardServer::keyUpDownEventData(WPARAM wParam)
 {
-	if(wParam==VK_SHIFT)
-	{
-		mIsShiftDown=true;
-	}
-	mEventDispatchers.PostEvent(Keyboard_KeyDown_Any, cEvent(mKeyCodeHolder.StoreData(
-			(wParam&KeyCodeMask)|(mIsShiftDown?ShiftMask:0)
-		)));
-	if(wParam<=255&&!mDispatcherRangeInfo.mEventNames[wParam+1].empty())
-		mEventDispatchers.PostEvent(Keyboard_KeyDown_First+wParam, cEvent());
+    uint32_t eventData = wParam & KeyCodeMask;
+    if (GetKeyState(VK_SHIFT))
+        eventData |= ShiftFlag;
+    if (GetKeyState(VK_CONTROL))
+        eventData |= CtrlFlag;
+    if (GetKeyState(VK_MENU))
+        eventData |= AltFlag;
+	return eventData;
+}
 
+cWindowsMessageResult cKeyboardServer::OnKeyDown(WPARAM wParam, LPARAM lParam)
+{
+	auto eventData = keyUpDownEventData(wParam);
+	mEventDispatchers.PostEvent(Keyboard_KeyDown_Any, cEvent(mEventDataHolder.StoreData(eventData)));
+	if(wParam<=255&&!mDispatcherRangeInfo.mEventNames[wParam+1].empty())
+		mEventDispatchers.PostEvent(Keyboard_KeyDown_First+wParam, cEvent(mEventDataHolder.StoreData(eventData)));
 	return cWindowsMessageResult();
 }
 
 cWindowsMessageResult cKeyboardServer::OnKeyUp(WPARAM wParam, LPARAM lParam)
 {
-    mEventDispatchers.PostEvent(Keyboard_KeyDown_Any, cEvent(mKeyCodeHolder.StoreData(
-        (wParam & KeyCodeMask) | (mIsShiftDown ? ShiftMask : 0)
-    )));
-
-	if(wParam==VK_SHIFT)
-	{
-		mIsShiftDown=false;
-	}
+    auto eventData = keyUpDownEventData(wParam);
+    mEventDispatchers.PostEvent(Keyboard_KeyDown_Any, cEvent(mEventDataHolder.StoreData(eventData)));
 	return cWindowsMessageResult();
 }
 
 cWindowsMessageResult cKeyboardServer::OnCharacter(WPARAM wParam, LPARAM lParam)
 {
-    mEventDispatchers.PostEvent(Keyboard_Character_Any, cEvent(mCharacterCodeHolder.StoreData(wParam)));
+    mEventDispatchers.PostEvent(Keyboard_Character_Any, cEvent(mEventDataHolder.StoreData(wParam)));
     return cWindowsMessageResult();
 }
 
-bool cKeyboardServer::GetShiftState(uint32_t KeyCode)
+bool cKeyboardServer::shiftState(const cEvent& keyboardEvent)
 {
-	return 0!=(KeyCode&ShiftMask);
+	return ShiftFlag & *mEventDataHolder.GetData(keyboardEvent.mEventDataID);
 }
 
-char cKeyboardServer::GetDisplayableCharacter(uint32_t KeyCode)
+bool cKeyboardServer::altState(const cEvent& keyboardEvent)
 {
-	bool IsShiftDown=GetShiftState(KeyCode);
-	KeyCode&=KeyCodeMask;
-	if(KeyCode>='A'&&KeyCode<='Z') return KeyCode+(IsShiftDown?0:'a'-'A');
+    return AltFlag & *mEventDataHolder.GetData(keyboardEvent.mEventDataID);
+}
+
+bool cKeyboardServer::ctrlState(const cEvent& keyboardEvent)
+{
+    return CtrlFlag & *mEventDataHolder.GetData(keyboardEvent.mEventDataID);
+}
+
+char cKeyboardServer::displayableCharacter(const cEvent& keyboardEvent)
+{
+	uint32_t eventValue = *mEventDataHolder.GetData(keyboardEvent.mEventDataID);
+	bool isShiftDown = ShiftFlag & eventValue;
+	uint32_t KeyCode = eventValue & KeyCodeMask;
+	if(KeyCode>='A'&&KeyCode<='Z') return KeyCode+(isShiftDown?0:'a'-'A');
 	if(KeyCode>='0'&&KeyCode<='9') return KeyCode;
 //	static const char *NonAlphaNum=" !$&*()-+?.,;:\"'/\|=_@";
 	if(KeyCode==' ') 

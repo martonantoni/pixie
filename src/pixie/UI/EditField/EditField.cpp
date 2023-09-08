@@ -84,9 +84,9 @@ void cEditField::OnBackspace()
 	}
 }
 
-void cEditField::OnKey(uint32_t KeyCode)
+void cEditField::OnKey(const cEvent& event)
 {
-	auto DisplayableCharacter=cKeyboardServer::GetDisplayableCharacter(KeyCode);
+	auto DisplayableCharacter=cKeyboardServer::displayableCharacter(event);
 	if(!DisplayableCharacter)
 		return;
 	auto Text=GetText();
@@ -109,9 +109,9 @@ void cEditField::OnFocused()
 	mKeyListeningIDs.emplace_back(KeyboardServer.GetDispatcher(cKeyboardServer::Keyboard_KeyDown_End)->RegisterListener([this](auto &Event) { OnEnd(); }));
 	mKeyListeningIDs.emplace_back(KeyboardServer.GetDispatcher(cKeyboardServer::Keyboard_KeyDown_Delete)->RegisterListener([this](auto &Event) { OnDelete(); }));
 	mKeyListeningIDs.emplace_back(KeyboardServer.GetDispatcher(cKeyboardServer::Keyboard_KeyDown_Backspace)->RegisterListener([this](auto &Event) { OnBackspace(); }));
-	mKeyListeningIDs.emplace_back(KeyboardServer.GetDispatcher(cKeyboardServer::Keyboard_KeyDown_Any)->RegisterListener([this](const cEvent &Event)
+	mKeyListeningIDs.emplace_back(KeyboardServer.GetDispatcher(cKeyboardServer::Keyboard_KeyDown_Any)->RegisterListener([this](const cEvent &event)
 	{
-		OnKey(*mKeyCodeHolder.GetData(Event.mEventDataID));
+		OnKey(event);
 	}));
 }
 

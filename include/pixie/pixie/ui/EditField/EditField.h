@@ -36,7 +36,7 @@ protected:
 	void OnDelete();
 	void OnBackspace();
 	void OnEnter();
-	void OnKey(uint32_t KeyCode);
+	void OnKey(const cEvent& event);
 	virtual void DialogItemStateChanged() override;
 	virtual void OnLeftButtonDown(cPoint ScreenCoords, bool IsInside) override;
 	virtual void OnFocused() override;
