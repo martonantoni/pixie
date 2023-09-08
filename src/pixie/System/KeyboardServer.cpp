@@ -65,11 +65,11 @@ cKeyboardServer::cKeyboardServer()
 uint32_t cKeyboardServer::keyUpDownEventData(WPARAM wParam)
 {
     uint32_t eventData = wParam & KeyCodeMask;
-    if (GetKeyState(VK_SHIFT))
-        eventData |= ShiftFlag;
-    if (GetKeyState(VK_CONTROL))
+	if (GetKeyState(VK_SHIFT) & 128)
+		eventData |= ShiftFlag;
+    if (GetKeyState(VK_CONTROL) & 128)
         eventData |= CtrlFlag;
-    if (GetKeyState(VK_MENU))
+    if (GetKeyState(VK_MENU) & 128)
         eventData |= AltFlag;
 	return eventData;
 }
