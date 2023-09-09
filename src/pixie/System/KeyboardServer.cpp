@@ -67,7 +67,7 @@ uint32_t cKeyboardServer::keyUpDownEventData(WPARAM wParam)
     uint32_t eventData = wParam & KeyCodeMask;
 	if (GetKeyState(VK_SHIFT) & 128)
 		eventData |= ShiftFlag;
-    if (GetKeyState(VK_CONTROL) & 128)
+    if (GetKeyState(VK_CONTROL) & 0x80)
         eventData |= CtrlFlag;
     if (GetKeyState(VK_MENU) & 128)
         eventData |= AltFlag;
@@ -80,6 +80,7 @@ cWindowsMessageResult cKeyboardServer::OnKeyDown(WPARAM wParam, LPARAM lParam)
 	mEventDispatchers.PostEvent(Keyboard_KeyDown_Any, cEvent(mEventDataHolder.StoreData(eventData)));
 	if(wParam<=255&&!mDispatcherRangeInfo.mEventNames[wParam+1].empty())
 		mEventDispatchers.PostEvent(Keyboard_KeyDown_First+wParam, cEvent(mEventDataHolder.StoreData(eventData)));
+    mEventDispatchers.PostEvent(Keyboard_Character_Any, cEvent(mEventDataHolder.StoreData(eventData)));
 	return cWindowsMessageResult();
 }
 
@@ -92,7 +93,7 @@ cWindowsMessageResult cKeyboardServer::OnKeyUp(WPARAM wParam, LPARAM lParam)
 
 cWindowsMessageResult cKeyboardServer::OnCharacter(WPARAM wParam, LPARAM lParam)
 {
-    mEventDispatchers.PostEvent(Keyboard_Character_Any, cEvent(mEventDataHolder.StoreData(wParam)));
+//    mEventDispatchers.PostEvent(Keyboard_Character_Any, cEvent(mEventDataHolder.StoreData(wParam)));
     return cWindowsMessageResult();
 }
 
