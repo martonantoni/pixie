@@ -53,7 +53,6 @@ cKeyboardServer::cKeyboardServer()
 {
 	cPrimaryWindow &PrimaryWindow=cPrimaryWindow::Get();
 	mListenerIDs.push_back(PrimaryWindow.AddMessageHandler(WM_KEYDOWN, [this](auto wp, auto lp) { return OnKeyDown(wp, lp); }));
-	mListenerIDs.push_back(PrimaryWindow.AddMessageHandler(WM_KEYUP, [this](auto wp, auto lp) { return OnKeyUp(wp, lp); }));
     mListenerIDs.push_back(PrimaryWindow.AddMessageHandler(WM_CHAR, [this](auto wp, auto lp) { return OnCharacter(wp, lp); }));
 
 	mEventDispatchers.Init(cEventDispatcher::GetGlobalDispatcher("pixie.keyboard",  cEventDispatcher::CanCreate));
@@ -80,20 +79,21 @@ cWindowsMessageResult cKeyboardServer::OnKeyDown(WPARAM wParam, LPARAM lParam)
 	mEventDispatchers.PostEvent(Keyboard_KeyDown_Any, cEvent(mEventDataHolder.StoreData(eventData)));
 	if(wParam<=255&&!mDispatcherRangeInfo.mEventNames[wParam+1].empty())
 		mEventDispatchers.PostEvent(Keyboard_KeyDown_First+wParam, cEvent(mEventDataHolder.StoreData(eventData)));
-    mEventDispatchers.PostEvent(Keyboard_Character_Any, cEvent(mEventDataHolder.StoreData(eventData)));
-	return cWindowsMessageResult();
-}
-
-cWindowsMessageResult cKeyboardServer::OnKeyUp(WPARAM wParam, LPARAM lParam)
-{
-    auto eventData = keyUpDownEventData(wParam);
-    mEventDispatchers.PostEvent(Keyboard_KeyDown_Any, cEvent(mEventDataHolder.StoreData(eventData)));
+//    mEventDispatchers.PostEvent(Keyboard_Character_Any, cEvent(mEventDataHolder.StoreData(eventData)));
 	return cWindowsMessageResult();
 }
 
 cWindowsMessageResult cKeyboardServer::OnCharacter(WPARAM wParam, LPARAM lParam)
 {
-//    mEventDispatchers.PostEvent(Keyboard_Character_Any, cEvent(mEventDataHolder.StoreData(wParam)));
+    printf("WM_CHAR wParam: %d\n", wParam);
+	auto packedKeyData = wParam;
+    if (GetKeyState(VK_SHIFT) & 128)
+		packedKeyData |= ShiftFlag;
+    if (GetKeyState(VK_CONTROL) & 0x80)
+		packedKeyData |= CtrlFlag;
+    if (GetKeyState(VK_MENU) & 128)
+		packedKeyData |= AltFlag;
+    mEventDispatchers.PostEvent(Keyboard_Character_Any, cEvent(mEventDataHolder.StoreData(packedKeyData)));
     return cWindowsMessageResult();
 }
 
@@ -115,12 +115,14 @@ bool cKeyboardServer::ctrlState(const cEvent& keyboardEvent)
 char cKeyboardServer::displayableCharacter(const cEvent& keyboardEvent)
 {
 	uint32_t eventValue = *mEventDataHolder.GetData(keyboardEvent.mEventDataID);
-	bool isShiftDown = ShiftFlag & eventValue;
-	uint32_t KeyCode = eventValue & KeyCodeMask;
-	if(KeyCode>='A'&&KeyCode<='Z') return KeyCode+(isShiftDown?0:'a'-'A');
-	if(KeyCode>='0'&&KeyCode<='9') return KeyCode;
-//	static const char *NonAlphaNum=" !$&*()-+?.,;:\"'/\|=_@";
-	if(KeyCode==' ') 
-        return ' ';
-	return 0;
+	printf("displayableCharacter: %d\n", eventValue & KeyCodeMask);
+	return eventValue & KeyCodeMask;
+// 	bool isShiftDown = ShiftFlag & eventValue;
+// 	uint32_t KeyCode = eventValue & KeyCodeMask;
+// 	if(KeyCode>='A'&&KeyCode<='Z') return KeyCode+(isShiftDown?0:'a'-'A');
+// 	if(KeyCode>='0'&&KeyCode<='9') return KeyCode;
+// //	static const char *NonAlphaNum=" !$&*()-+?.,;:\"'/\|=_@";
+// 	if(KeyCode==' ') 
+//         return ' ';
+// 	return 0;
 }

@@ -44,7 +44,6 @@ private:
 	enum { DefaultOrder = 100 };
 	cRegisteredIDList mListenerIDs;
 	cWindowsMessageResult OnKeyDown(WPARAM wParam,LPARAM lParam);
-	cWindowsMessageResult OnKeyUp(WPARAM wParam, LPARAM lParam);
     cWindowsMessageResult OnCharacter(WPARAM wParam, LPARAM lParam);
 	static uint32_t keyUpDownEventData(WPARAM wParam);
 public:
