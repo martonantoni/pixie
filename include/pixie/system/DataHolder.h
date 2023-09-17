@@ -86,7 +86,8 @@ public:
 	}
 	void UpdateData(const cRegisteredID &RegisteredID, const cDataType &Data)
 	{
-		const_cast<cRegisteredID &>(RegisteredID).AccessID()=(unsigned int &)Data;
+		ASSERT(false);
+		const_cast<cRegisteredID &>(RegisteredID).AccessID()=(uint64_t &)Data;
 	}
 	virtual void Unregister(const cRegisteredID &RegisteredID, eCallbackType CallbackType=eCallbackType::Wait) override
 	{

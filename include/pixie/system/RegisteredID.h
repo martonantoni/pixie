@@ -14,31 +14,32 @@ class cRegisteredIDSink;
 class cRegisteredID final
 {
 public:
-	using cID=unsigned int;
+	using cID = std::variant<void*, uint64_t>;
 private:
 	friend cRegisteredIDSink;
-	union
-	{
-		void *mIDData;     // this will be scrapped in the future
-		cID mID;  // and only this will remain
-	};
+	cID mID;
 	cRegistrationHandler *mRegistrationHandler;
 public:
 
-	cRegisteredID(): mRegistrationHandler(nullptr), mIDData(nullptr) {}
+	cRegisteredID(): mRegistrationHandler(nullptr) {}
 	cRegisteredID(const cRegisteredID &) = delete;
-	cRegisteredID(cRegisteredID &&Source): mIDData(Source.mIDData), mRegistrationHandler(Source.mRegistrationHandler) 
-		{ Source.mIDData=nullptr; Source.mRegistrationHandler=nullptr; }
+	cRegisteredID(cRegisteredID &&Source): mID(Source.mID), mRegistrationHandler(Source.mRegistrationHandler)		
+	{ 
+		Source.mID = nullptr; 
+		Source.mRegistrationHandler = nullptr; 
+	}
 	cRegisteredID &operator=(cRegisteredID &&Source) 
 	{
 		Unregister();
-		mIDData=Source.mIDData; mRegistrationHandler=Source.mRegistrationHandler; 
-		Source.mIDData=nullptr; Source.mRegistrationHandler=nullptr;
+		mID = Source.mID;
+		mRegistrationHandler=Source.mRegistrationHandler; 
+		Source.mID =nullptr;
+		Source.mRegistrationHandler=nullptr;
 		return *this;
 	}
 	cRegisteredID &operator=(const cRegisteredID &Source) = delete;
-	cRegisteredID(cRegistrationHandler *Handler,void *IDData): mRegistrationHandler(Handler), mIDData(IDData) {}
-	cRegisteredID(cRegistrationHandler *Handler, cID ID): mRegistrationHandler(Handler), mID(ID) {}
+	cRegisteredID(cRegistrationHandler *Handler, void *idObject): mRegistrationHandler(Handler), mID(idObject) {}
+	cRegisteredID(cRegistrationHandler *Handler, uint64_t id): mRegistrationHandler(Handler), mID(id) {}
 	~cRegisteredID() { Unregister(); }
 	void Unregister() 
 	{ 
@@ -49,12 +50,12 @@ public:
 			RegistrationHandler->Unregister(*this);
 		}
 	}
-	void *GetIDData() const { return mIDData; }
-	auto GetID() const { return mID; }
+	void *GetIDData() const { return std::get<void*>(mID); }
+	uint64_t GetID() const { return std::get<uint64_t>(mID); }
 	bool IsValid() const { return mRegistrationHandler!=nullptr; }
 	cRegistrationHandler *GetRegistrationHandler() const { return mRegistrationHandler; }
 
-	unsigned int &AccessID() { return mID; } // very very dangerous construct, use it with extreme care!
+	cID& AccessID() { return mID; } // very very dangerous construct, use it with extreme care!
 };
 
 class cRegisteredIDSink final
@@ -64,11 +65,11 @@ public:
 	cRegisteredIDSink(const cRegisteredIDSink &) = delete;
 	cRegisteredIDSink(cRegisteredID &&Source) 
 	{
-		Source.mIDData=nullptr; Source.mRegistrationHandler=nullptr;
+		Source.mRegistrationHandler=nullptr;
 	}
 	void operator=(cRegisteredID &&Source)
 	{
-		Source.mIDData=nullptr; Source.mRegistrationHandler=nullptr;
+		Source.mRegistrationHandler=nullptr;
 	}
 };
 
@@ -91,5 +92,5 @@ inline cRegisteredID CreateWrappedRegisteredID(cRegisteredID ID, const std::func
 			mOriginalID(std::move(ID)), mFunctionToCallOnUnregister(FunctionToCallOnUnregister) {}
 	};
 	auto Wrapper=new cWrapper(std::move(ID), FunctionToCallOnUnregister);
-	return cRegisteredID(Wrapper, 0u);
+	return cRegisteredID(Wrapper, 0ull);
 }
