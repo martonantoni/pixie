@@ -269,27 +269,25 @@ void cObjectPlacementEditor::ResetHover()
 	mHoverObjectBorder.reset();
 }
 
-void cObjectPlacementEditor::OnMouseMove(const cEvent &Event)
+void cObjectPlacementEditor::OnMouseMove(const cEvent& event)
 {
-	const cPoint *ScreenCoordinates=mPointHolder.GetData(Event.mEventDataID);
-	if(ASSERTFALSE(!ScreenCoordinates))
-		return;
-	switch(mDragType)
-	{
-	case eDragType::None:
-		if(mEditorArea.IsPointInside(*ScreenCoordinates))
-			HandleHover(*ScreenCoordinates);
-		else
-			ResetHover();
-		break;
-	case eDragType::Position:
-		MoveObject(*ScreenCoordinates-mPrevDragPosition);
-		break;
-	case eDragType::Size:
-		ChangeObjectSize(*ScreenCoordinates-mPrevDragPosition);
-		break;
-	}
-	mPrevDragPosition=*ScreenCoordinates;
+    cPoint screenCoordinates = cMouseServer::point(event);
+    switch (mDragType)
+    {
+    case eDragType::None:
+        if (mEditorArea.IsPointInside(screenCoordinates))
+            HandleHover(screenCoordinates);
+        else
+            ResetHover();
+        break;
+    case eDragType::Position:
+        MoveObject(screenCoordinates - mPrevDragPosition);
+        break;
+    case eDragType::Size:
+        ChangeObjectSize(screenCoordinates - mPrevDragPosition);
+        break;
+    }
+    mPrevDragPosition = screenCoordinates;
 }
 
 cObjectPlacementEditor::cObjectData *cObjectPlacementEditor::FindObject(cPoint ScreenCoordinates)
@@ -304,23 +302,21 @@ cObjectPlacementEditor::cObjectData *cObjectPlacementEditor::FindObject(cPoint S
 	return FoundObjectData?FoundObjectData->get():nullptr;
 }
 
-void cObjectPlacementEditor::OnLeftButtonDown(const cEvent &Event)
+void cObjectPlacementEditor::OnLeftButtonDown(const cEvent& event)
 {
-	const cPoint *ScreenCoordinates=mPointHolder.GetData(Event.mEventDataID);
-	if(ASSERTFALSE(!ScreenCoordinates))
-		return;
-	if(!mEditorArea.IsPointInside(*ScreenCoordinates))
+    cPoint screenCoordinates = cMouseServer::point(event);
+	if(!mEditorArea.IsPointInside(screenCoordinates))
 		return;
 	mSelectedObjectBorder.reset();
 	SetSelectedObject(nullptr);
 	cPixieObject *FoundObject;
 	eDragType DragType;
-	std::tie(FoundObject, DragType)=HandleHover(*ScreenCoordinates);
+	std::tie(FoundObject, DragType)=HandleHover(screenCoordinates);
 	if(FoundObject)
 	{
 		SetSelectedObject(FoundObject);
 		mDragType=DragType;
-		mPrevDragPosition=*ScreenCoordinates;
+		mPrevDragPosition=screenCoordinates;
 		mHoverObjectBorder.reset();
 	}
 }
@@ -345,15 +341,13 @@ void cObjectPlacementEditor::SetSelectedObject(cPixieObject *Object)
 	mEventDispatchers[Event_SelectionChanged]->PostEvent();
 }
 
-void cObjectPlacementEditor::OnLeftButtonUp(const cEvent &Event)
+void cObjectPlacementEditor::OnLeftButtonUp(const cEvent& event)
 {
 	mDragType=eDragType::None;
-	const cPoint *ScreenCoordinates=mPointHolder.GetData(Event.mEventDataID);
-	if(ASSERTFALSE(!ScreenCoordinates))
+    cPoint screenCoordinates = cMouseServer::point(event);
+	if(!mEditorArea.IsPointInside(screenCoordinates))
 		return;
-	if(!mEditorArea.IsPointInside(*ScreenCoordinates))
-		return;
-	auto ObjectData=FindObject(*ScreenCoordinates);
+	auto ObjectData=FindObject(screenCoordinates);
 	SelectObject(ObjectData?ObjectData->mObject:nullptr);
 }
 

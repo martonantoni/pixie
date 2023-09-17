@@ -18,11 +18,9 @@ cMouseCursor::~cMouseCursor()
 {
 }
 
-void cMouseCursor::OnMouseMove(const cEvent &Event)
+void cMouseCursor::OnMouseMove(const cEvent& event)
 {
-	const cPoint *ScreenCoordinates=mPointHolder.GetData(Event.mEventDataID);
-	if(ASSERTTRUE(ScreenCoordinates))
-		mSprite->SetPosition(*ScreenCoordinates);
+	mSprite->SetPosition(cMouseServer::point(event));
 }
 
 cWindowsMessageResult cMouseCursor::OnSetCursor(WPARAM wParam,LPARAM lParam)

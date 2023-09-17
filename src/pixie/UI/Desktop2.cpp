@@ -40,12 +40,11 @@ void cPixieDesktop::Init(const cInitData &InitData)
 		RegisterListener([this](const auto &Event) { HandleMouseEvent(Event, &cMouseTarget::OnRightButtonUp); }));
 }
 
-void cPixieDesktop::HandleMouseEvent(const cEvent &Event, void (cMouseTarget::*MouseEventHandlerFunction)(cPoint Point, bool IsInside))
+void cPixieDesktop::HandleMouseEvent(const cEvent& event, void (cMouseTarget::*MouseEventHandlerFunction)(cPoint Point, bool IsInside))
 {
-	const cPoint *ScreenCoordinates=mPointHolder.GetData(Event.mEventDataID);
-	if(ASSERTFALSE(!ScreenCoordinates))
-		return;
-	auto TargetResult=GetMouseTargetAt(*ScreenCoordinates);
+	mMouseEventShiftState = cMouseServer::shiftState(event);
+	cPoint screenCoordinates = cMouseServer::point(event);
+	auto TargetResult=GetMouseTargetAt(screenCoordinates);
 	cMouseTarget *IgnoredTarget=nullptr;
 	if(MouseEventHandlerFunction==&cMouseTarget::OnMouseMove)
 	{
@@ -53,7 +52,7 @@ void cPixieDesktop::HandleMouseEvent(const cEvent &Event, void (cMouseTarget::*M
 		{
 			if(mLastMoveTarget)
 			{
-				mLastMoveTarget->OnMouseMove(*ScreenCoordinates, false);
+				mLastMoveTarget->OnMouseMove(screenCoordinates, false);
 				IgnoredTarget=mLastMoveTarget;
 			}
 			mLastMoveTarget=TargetResult.mResult;
@@ -62,10 +61,10 @@ void cPixieDesktop::HandleMouseEvent(const cEvent &Event, void (cMouseTarget::*M
 	mMouseTrackers.ForEach([&](auto MouseTarget)
 	{
 		if(TargetResult.mResult!=MouseTarget&&(!IgnoredTarget||TargetResult.mResult!=IgnoredTarget))
-			(MouseTarget->*MouseEventHandlerFunction)(*ScreenCoordinates,false);
+			(MouseTarget->*MouseEventHandlerFunction)(screenCoordinates,false);
 	});
 	if(TargetResult.mResult)
-		(TargetResult.mResult->*MouseEventHandlerFunction)(*ScreenCoordinates,true);
+		(TargetResult.mResult->*MouseEventHandlerFunction)(screenCoordinates,true);
 }
 
 void cPixieDesktop::MouseTargetRemoved(cMouseTarget *MouseTarget)

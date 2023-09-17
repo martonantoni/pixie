@@ -34,7 +34,6 @@ private:
 	enum class eDragType { None, Position, Size } mDragType = eDragType::None;
 	cPoint mPrevDragPosition;
 	bool mKeepAspectRatio;
-	tDataHolder<cPoint> &mPointHolder=tDataHolder<cPoint>::Get();
 	std::unique_ptr<cSpriteBase> mSelectedObjectBorder, mHoverObjectBorder;
 	static std::unique_ptr<cSpriteBase> CreateBorderSprite(const cPixieObject &Object);
 	static cRect GetObjectRect(const cPixieObject &Object);

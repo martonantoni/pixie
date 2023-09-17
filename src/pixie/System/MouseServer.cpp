@@ -26,7 +26,16 @@ cMouseServer::cMouseServer()
 
 void cMouseServer::PostEvent(eMouseEvent Event)
 {
-	mEventDispatchers.PostEvent(Event, cEvent(mMousePositionHolder.StoreData(mMousePosition)));
+	cEventData eventData;
+	eventData.parts.x = mMousePosition.x;
+	eventData.parts.y = mMousePosition.y;
+    if (GetKeyState(VK_SHIFT) & 128)
+		eventData.parts.shiftState = 1;
+    if (GetKeyState(VK_CONTROL) & 0x80)
+        eventData.parts.ctrlState = 1;
+	if (GetKeyState(VK_MENU) & 128)
+		eventData.parts.altState = 1;
+	mEventDispatchers.PostEvent(Event, cEvent(cRegisteredID(nullptr, eventData.packed)));
 }
 
 cWindowsMessageResult cMouseServer::OnMouseMove(WPARAM wParam, LPARAM lParam)
@@ -78,4 +87,33 @@ cWindowsMessageResult cMouseServer::OnWheel(WPARAM wParam, LPARAM lParam)
 	mEventDispatchers.PostEvent(Event_Wheel, cEvent(mWheelDeltaHolder.StoreData(GET_WHEEL_DELTA_WPARAM(wParam))));
 	return cWindowsMessageResult();
 }
+
+cPoint cMouseServer::point(const cEvent& event)
+{
+	cEventData eventData;
+	eventData.packed = event.mEventDataID.GetID();
+	return cPoint{ static_cast<int>(eventData.parts.x), static_cast<int>(eventData.parts.y) };
+}
+
+bool cMouseServer::shiftState(const cEvent& event)
+{
+    cEventData eventData;
+    eventData.packed = event.mEventDataID.GetID();
+	return eventData.parts.shiftState;
+}
+
+bool cMouseServer::ctrlState(const cEvent& event)
+{
+    cEventData eventData;
+    eventData.packed = event.mEventDataID.GetID();
+    return eventData.parts.ctrlState;
+}
+
+bool cMouseServer::altState(const cEvent& event)
+{
+    cEventData eventData;
+    eventData.packed = event.mEventDataID.GetID();
+    return eventData.parts.altState;
+}
+
 
