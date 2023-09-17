@@ -14,10 +14,11 @@ class cRegisteredIDSink;
 class cRegisteredID final
 {
 public:
-	using cID = std::variant<void*, uint64_t>;
+	using cID = uint64_t;
+	using cIDHolder = std::variant<void*, uint64_t>;
 private:
 	friend cRegisteredIDSink;
-	cID mID;
+	cIDHolder mID;
 	cRegistrationHandler *mRegistrationHandler;
 public:
 
@@ -39,7 +40,7 @@ public:
 	}
 	cRegisteredID &operator=(const cRegisteredID &Source) = delete;
 	cRegisteredID(cRegistrationHandler *Handler, void *idObject): mRegistrationHandler(Handler), mID(idObject) {}
-	cRegisteredID(cRegistrationHandler *Handler, uint64_t id): mRegistrationHandler(Handler), mID(id) {}
+	cRegisteredID(cRegistrationHandler *Handler, cID id): mRegistrationHandler(Handler), mID(id) {}
 	~cRegisteredID() { Unregister(); }
 	void Unregister() 
 	{ 
@@ -55,7 +56,7 @@ public:
 	bool IsValid() const { return mRegistrationHandler!=nullptr; }
 	cRegistrationHandler *GetRegistrationHandler() const { return mRegistrationHandler; }
 
-	cID& AccessID() { return mID; } // very very dangerous construct, use it with extreme care!
+	cIDHolder& AccessID() { return mID; } // very very dangerous construct, use it with extreme care!
 };
 
 class cRegisteredIDSink final

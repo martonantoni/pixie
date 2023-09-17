@@ -85,7 +85,6 @@ cWindowsMessageResult cKeyboardServer::OnKeyDown(WPARAM wParam, LPARAM lParam)
 
 cWindowsMessageResult cKeyboardServer::OnCharacter(WPARAM wParam, LPARAM lParam)
 {
-    printf("WM_CHAR wParam: %d\n", wParam);
 	auto packedKeyData = wParam;
     if (GetKeyState(VK_SHIFT) & 128)
 		packedKeyData |= ShiftFlag;

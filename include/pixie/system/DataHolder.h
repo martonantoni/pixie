@@ -74,11 +74,11 @@ class tDataHolder<cDataType, typename std::enable_if<std::is_pod<cDataType>::val
 public:
 	cRegisteredID StoreData(cDataType &&Data)
 	{
-		return cRegisteredID(this, (unsigned int)Data);
+		return cRegisteredID(this, (cRegisteredID::cID)Data);
 	}
 	cRegisteredID StoreData(const cDataType &Data)
 	{
-		return cRegisteredID(this, (unsigned int)Data);
+		return cRegisteredID(this, (cRegisteredID::cID)Data);
 	}
 	const cDataType *GetData(const cRegisteredID &RegisteredID) const
 	{
