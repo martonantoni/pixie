@@ -29,18 +29,18 @@ private:
 	enum { MaxViewSize = 0x20000 }; 
 	HANDLE FileHandle,FileMappingHandle;
 	int SystemGranuality; // Size of memory pages
-	__int64 FileSize;
-	__int64 ViewOffset;
-	char *ViewPosition;
-	char *Position;
-	char *EndPosition;
+	__int64 mFileSize;
+	__int64 mViewOffset;
+	char *mViewPosition;
+	char *mPosition;
+	char *mEndPosition;
 	int MoveView(); // returns true if there is more of the file to read
 public:
 	cFastFileReader(const cPath &Path);
 	~cFastFileReader();
 
 	cLine GetNextLine();
-	__int64 GetFileSize() const { return FileSize; }
+	__int64 GetFileSize() const { return mFileSize; }
 	const std::string &GetFileName() const { return FileName; }
     iterator begin() { return { *this, GetNextLine() }; }
     iterator end() { return { *this, {} }; }
