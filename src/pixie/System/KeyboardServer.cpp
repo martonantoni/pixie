@@ -79,7 +79,6 @@ cWindowsMessageResult cKeyboardServer::OnKeyDown(WPARAM wParam, LPARAM lParam)
 	mEventDispatchers.PostEvent(Keyboard_KeyDown_Any, cEvent(mEventDataHolder.StoreData(eventData)));
 	if(wParam<=255&&!mDispatcherRangeInfo.mEventNames[wParam+1].empty())
 		mEventDispatchers.PostEvent(Keyboard_KeyDown_First+wParam, cEvent(mEventDataHolder.StoreData(eventData)));
-//    mEventDispatchers.PostEvent(Keyboard_Character_Any, cEvent(mEventDataHolder.StoreData(eventData)));
 	return cWindowsMessageResult();
 }
 
@@ -114,14 +113,5 @@ bool cKeyboardServer::ctrlState(const cEvent& keyboardEvent)
 char cKeyboardServer::displayableCharacter(const cEvent& keyboardEvent)
 {
 	uint32_t eventValue = *mEventDataHolder.GetData(keyboardEvent.mEventDataID);
-	printf("displayableCharacter: %d\n", eventValue & KeyCodeMask);
 	return eventValue & KeyCodeMask;
-// 	bool isShiftDown = ShiftFlag & eventValue;
-// 	uint32_t KeyCode = eventValue & KeyCodeMask;
-// 	if(KeyCode>='A'&&KeyCode<='Z') return KeyCode+(isShiftDown?0:'a'-'A');
-// 	if(KeyCode>='0'&&KeyCode<='9') return KeyCode;
-// //	static const char *NonAlphaNum=" !$&*()-+?.,;:\"'/\|=_@";
-// 	if(KeyCode==' ') 
-//         return ' ';
-// 	return 0;
 }
