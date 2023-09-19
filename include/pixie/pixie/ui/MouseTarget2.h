@@ -66,4 +66,5 @@ public:
 	virtual void OnLeftButtonDoubleClick(cPoint ScreenCoords, bool IsInside) {}
 	virtual void OnRightButtonDown(cPoint ScreenCoords, bool IsInside) {}
 	virtual void OnRightButtonUp(cPoint ScreenCoords, bool IsInside) {}
+	virtual void OnMouseWheel(cPoint ScreenCoords, double delta, bool IsInside) {}
 };

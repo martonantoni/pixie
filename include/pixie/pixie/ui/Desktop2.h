@@ -10,7 +10,8 @@ class cPixieDesktop: public cPixieWindow
 	tRegisteredObjects<cMouseTarget *> mMouseTrackers;
 	cMouseTarget *mLastMoveTarget=nullptr;
 	bool mMouseEventShiftState = false;
-	void HandleMouseEvent(const cEvent &Event, void (cMouseTarget::*MouseEventHandlerFunction)(cPoint Point, bool IsInside));
+	void handleMouseEvent(const cEvent &Event, void (cMouseTarget::*MouseEventHandlerFunction)(cPoint Point, bool IsInside));
+	void handleMouseWheel(const cEvent& event);
 public:
 	typedef tPixieSimpleInitData<cPixieWindow> cInitData;
 	void Init(const cInitData &InitData);

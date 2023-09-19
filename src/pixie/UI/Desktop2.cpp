@@ -27,20 +27,22 @@ void cPixieDesktop::Init(const cInitData &InitData)
 
 	cMouseServer &MouseServer=cMouseServer::Get();
 	mMouseEventListeners.push_back(MouseServer.GetDispatcher(cMouseServer::Event_Move)->
-		RegisterListener([this](const auto &Event) { HandleMouseEvent(Event, &cMouseTarget::OnMouseMove); }));
+		RegisterListener([this](const auto &event) { handleMouseEvent(event, &cMouseTarget::OnMouseMove); }));
 	mMouseEventListeners.push_back(MouseServer.GetDispatcher(cMouseServer::Event_LeftButtonDown)->
-		RegisterListener([this](const auto &Event) { HandleMouseEvent(Event, &cMouseTarget::OnLeftButtonDown); }));
+		RegisterListener([this](const auto &event) { handleMouseEvent(event, &cMouseTarget::OnLeftButtonDown); }));
 	mMouseEventListeners.push_back(MouseServer.GetDispatcher(cMouseServer::Event_LeftButtonUp)->
-		RegisterListener([this](const auto &Event) { HandleMouseEvent(Event, &cMouseTarget::OnLeftButtonUp); }));
+		RegisterListener([this](const auto &event) { handleMouseEvent(event, &cMouseTarget::OnLeftButtonUp); }));
 	mMouseEventListeners.push_back(MouseServer.GetDispatcher(cMouseServer::Event_LeftButtonDoubleClick)->
-		RegisterListener([this](const auto &Event) { HandleMouseEvent(Event, &cMouseTarget::OnLeftButtonDoubleClick); }));
+		RegisterListener([this](const auto &event) { handleMouseEvent(event, &cMouseTarget::OnLeftButtonDoubleClick); }));
 	mMouseEventListeners.push_back(MouseServer.GetDispatcher(cMouseServer::Event_RightButtonDown)->
-		RegisterListener([this](const auto &Event) { HandleMouseEvent(Event, &cMouseTarget::OnRightButtonDown); }));
+		RegisterListener([this](const auto &event) { handleMouseEvent(event, &cMouseTarget::OnRightButtonDown); }));
 	mMouseEventListeners.push_back(MouseServer.GetDispatcher(cMouseServer::Event_RightButtonUp)->
-		RegisterListener([this](const auto &Event) { HandleMouseEvent(Event, &cMouseTarget::OnRightButtonUp); }));
+		RegisterListener([this](const auto &event) { handleMouseEvent(event, &cMouseTarget::OnRightButtonUp); }));
+    mMouseEventListeners.push_back(MouseServer.GetDispatcher(cMouseServer::Event_Wheel)->
+        RegisterListener([this](const auto& event) { handleMouseWheel(event); }));
 }
 
-void cPixieDesktop::HandleMouseEvent(const cEvent& event, void (cMouseTarget::*MouseEventHandlerFunction)(cPoint Point, bool IsInside))
+void cPixieDesktop::handleMouseEvent(const cEvent& event, void (cMouseTarget::*MouseEventHandlerFunction)(cPoint Point, bool IsInside))
 {
 	mMouseEventShiftState = cMouseServer::shiftState(event);
 	cPoint screenCoordinates = cMouseServer::point(event);
@@ -65,6 +67,15 @@ void cPixieDesktop::HandleMouseEvent(const cEvent& event, void (cMouseTarget::*M
 	});
 	if(TargetResult.mResult)
 		(TargetResult.mResult->*MouseEventHandlerFunction)(screenCoordinates,true);
+}
+
+void cPixieDesktop::handleMouseWheel(const cEvent& event)
+{
+    cPoint screenCoordinates = cMouseServer::point(event);
+	double wheelDelta = cMouseServer::wheelDelta(event);
+    auto TargetResult = GetMouseTargetAt(screenCoordinates);
+	if (TargetResult.mResult)
+		TargetResult.mResult->OnMouseWheel(screenCoordinates, wheelDelta, true);
 }
 
 void cPixieDesktop::MouseTargetRemoved(cMouseTarget *MouseTarget)

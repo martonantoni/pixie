@@ -120,15 +120,15 @@ void cListBox::Init(const cInitData &InitData)
 	mItemHandler->SetListBox(this);
 	mListChangeListenerID=mItemHandler->GetListChangeDispatcher()->RegisterListener([this](auto &) { ListChanged(); });
 
-	mMouseWheelListeningID=cEventDispatcher::GetGlobalDispatcher("pixie.mouse.wheel")->RegisterListener(
-		[this](auto &Event)
-	{
-        if (thePixieDesktop.GetMouseTargetAt(cMouseServer::Get().GetMousePosition()).mResult == this)
-        {
-            const int* Delta = tDataHolder<int>::Get().GetData(Event.mEventDataID);
-            mDampenedMoveController.AddToSpeed(*Delta * 4.0);
-        }
-	});
+// 	mMouseWheelListeningID=cEventDispatcher::GetGlobalDispatcher("pixie.mouse.wheel")->RegisterListener(
+// 		[this](auto &Event)
+// 	{
+//         if (thePixieDesktop.GetMouseTargetAt(cMouseServer::Get().GetMousePosition()).mResult == this)
+//         {
+//             const int* Delta = tDataHolder<int>::Get().GetData(Event.mEventDataID);
+//             mDampenedMoveController.AddToSpeed(*Delta * 4.0);
+//         }
+// 	});
 }
 
 void cListBox::clampGlobalPosition()

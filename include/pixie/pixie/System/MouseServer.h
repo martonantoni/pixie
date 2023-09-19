@@ -17,11 +17,12 @@ private:
 		{
 			struct
 			{
-				uint64_t x : 24;
-				uint64_t y : 24;
-				uint64_t altState : 1;
-				uint64_t shiftState : 1;
-				uint64_t ctrlState : 1;
+				int64_t x : 20;
+				int64_t y : 20;
+				int64_t wheelDelta : 20;
+				int64_t altState : 1;
+				int64_t shiftState : 1;
+				int64_t ctrlState : 1;
 			} parts;
 			uint64_t packed;
 		};
@@ -31,7 +32,6 @@ private:
 	cRegisteredIDList mListenerIDs;
 private:
 	cPoint mMousePosition;
-	tDataHolder<int> &mWheelDeltaHolder=tDataHolder<int>::Get();
 	void PostEvent(eMouseEvent Event);
 	cWindowsMessageResult OnMouseMove(WPARAM wParam, LPARAM lParam);
 	cWindowsMessageResult OnLButtonDown(WPARAM wParam, LPARAM lParam);
@@ -46,6 +46,7 @@ public:
 	tIntrusivePtr<cEventDispatcher> GetDispatcher(size_t EventIndex) const { return mEventDispatchers[EventIndex]; }
 
 	static cPoint point(const cEvent& event);
+	static double wheelDelta(const cEvent& event);
 	static bool shiftState(const cEvent& event);
 	static bool ctrlState(const cEvent& event);
 	static bool altState(const cEvent& event);

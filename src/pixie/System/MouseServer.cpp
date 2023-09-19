@@ -27,6 +27,7 @@ cMouseServer::cMouseServer()
 void cMouseServer::PostEvent(eMouseEvent Event)
 {
 	cEventData eventData;
+	eventData.packed = 0;
 	eventData.parts.x = mMousePosition.x;
 	eventData.parts.y = mMousePosition.y;
     if (GetKeyState(VK_SHIFT) & 128)
@@ -84,7 +85,18 @@ cWindowsMessageResult cMouseServer::OnRButtonUp(WPARAM wParam, LPARAM lParam)
 
 cWindowsMessageResult cMouseServer::OnWheel(WPARAM wParam, LPARAM lParam)
 {
-	mEventDispatchers.PostEvent(Event_Wheel, cEvent(mWheelDeltaHolder.StoreData(GET_WHEEL_DELTA_WPARAM(wParam))));
+    cEventData eventData;
+    eventData.packed = 0;
+    eventData.parts.x = LOWORD(lParam);
+    eventData.parts.y = HIWORD(lParam);
+	eventData.parts.wheelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+    if (GetKeyState(VK_SHIFT) & 128)
+        eventData.parts.shiftState = 1;
+    if (GetKeyState(VK_CONTROL) & 0x80)
+        eventData.parts.ctrlState = 1;
+    if (GetKeyState(VK_MENU) & 128)
+        eventData.parts.altState = 1;
+	mEventDispatchers.PostEvent(Event_Wheel, cEvent(cRegisteredID(nullptr, eventData.packed)));
 	return cWindowsMessageResult();
 }
 
@@ -116,4 +128,9 @@ bool cMouseServer::altState(const cEvent& event)
     return eventData.parts.altState;
 }
 
-
+double cMouseServer::wheelDelta(const cEvent& event)
+{
+    cEventData eventData;
+    eventData.packed = event.mEventDataID.GetID();
+    return eventData.parts.wheelDelta / 120.0;
+}
