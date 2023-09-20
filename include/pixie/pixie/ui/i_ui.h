@@ -21,8 +21,8 @@ void InitializePixieUI();
 // controls:
 
 #include "MouseEventEmitterTarget.h"
-#include "DialogItem.h"
 #include "FocusHandler.h"
+#include "DialogItem.h"
 
 #include "TextField/TextField.h"
 #include "EditField/EditField.h"

@@ -97,10 +97,10 @@ void cEditField::OnKey(const cEvent& event)
 	SetText(Text);
 }
 
-void cEditField::OnFocused()
+void cEditField::onAcquiredFocus()
 {
 	if(ASSERTFALSE(!mKeyListeningIDs.empty()))
-		OnLostFocus();
+		onLostFocus();
 	auto &KeyboardServer=cKeyboardServer::Get();
 	mKeyListeningIDs.emplace_back(KeyboardServer.GetDispatcher(cKeyboardServer::Keyboard_KeyDown_Enter)->RegisterListener([this](auto &Event) { OnEnter(); }));
 	mKeyListeningIDs.emplace_back(KeyboardServer.GetDispatcher(cKeyboardServer::Keyboard_KeyDown_Left)->RegisterListener([this](auto &Event) { OnLeft(); }));
@@ -115,7 +115,7 @@ void cEditField::OnFocused()
 	}));
 }
 
-void cEditField::OnLostFocus()
+void cEditField::onLostFocus()
 {
 	mKeyListeningIDs.clear();
 }

@@ -52,16 +52,13 @@ bool cDialogItem::SetStringProperty(unsigned int PropertyFlags, const std::strin
 
 void cDialogItem::LostFocus()
 {
-	mFocusID.Unregister();
-	OnLostFocus();
-	DialogItemStateChanged();
+ 	DialogItemStateChanged();
 }
 
 void cDialogItem::SetFocus()
 {
-	mFocusID=theFocusHandler.AcquireFocus(this);
-	OnFocused();
-	DialogItemStateChanged();
+	theFocusHandler.acquireFocus(this);
+ 	DialogItemStateChanged();
 }
 
 void cDialogItem::TooltipTextChanged()

@@ -1,12 +1,20 @@
 #pragma once
 
-class cFocusHandler: public cRegistrationHandler
+class cFocusable
 {
-	unsigned int mIDCounter=0;
-	cDialogItem *mFocusedItem=nullptr;
 public:
-	cRegisteredID AcquireFocus(cDialogItem *Item);
-	virtual void Unregister(const cRegisteredID &RegisteredID, eCallbackType CallbackType=eCallbackType::Wait) override;
+	virtual ~cFocusable();
+	virtual void onAcquiredFocus() {}
+	virtual void onLostFocus() {}
+};
+
+class cFocusHandler
+{
+	cFocusable* mFocusedItem=nullptr;
+public:
+	void addFocusable(cFocusable* focusable);
+	void removeFocusable(cFocusable* focusable);
+	void acquireFocus(cFocusable* focusable);
 };
 
 extern cFocusHandler theFocusHandler;

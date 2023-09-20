@@ -2,7 +2,7 @@
 
 struct cDialogItemConfig;
 
-class cDialogItem: public cMouseTarget
+class cDialogItem: public cMouseTarget, public cFocusable
 {
 	cSharedBool mIsEnabled=true;
 	cSharedBool mIsVisible=true;
@@ -16,7 +16,7 @@ protected:
 	void Init(const cPixieInitData &InitData);
 	virtual void DialogItemStateChanged() {}
 	virtual void OnFocused() {}
-	virtual void OnLostFocus() {}
+	virtual void onLostFocus() {}
 	virtual void OnMouseMove(cPoint ScreenCoords, bool IsInside) override;
 public:
 	virtual bool SetStringProperty(unsigned int PropertyFlags, const std::string &Value) override;

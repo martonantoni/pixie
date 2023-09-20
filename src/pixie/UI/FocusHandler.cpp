@@ -2,22 +2,27 @@
 #include "pixie/pixie/i_pixie.h"
 cFocusHandler theFocusHandler;
 
-cRegisteredID cFocusHandler::AcquireFocus(cDialogItem *Item)
+cFocusable::~cFocusable()
 {
-	if(Item==mFocusedItem)
-		return cRegisteredID(this, mIDCounter);
-	auto *OldFocusedItem=mFocusedItem;
-	++mIDCounter;
-	mFocusedItem=Item;
-	if(OldFocusedItem)
-		OldFocusedItem->LostFocus();
-	return cRegisteredID(this, mIDCounter);
+	theFocusHandler.removeFocusable(this);
 }
 
-void cFocusHandler::Unregister(const cRegisteredID &RegisteredID, eCallbackType CallbackType)
+void cFocusHandler::addFocusable(cFocusable* focusable)
 {
-	ASSERT(CallbackType==eCallbackType::Wait);
-	if(mIDCounter!=RegisteredID.GetID())
+}
+
+void cFocusHandler::removeFocusable(cFocusable* focusable)
+{
+	if (mFocusedItem == focusable)
+		mFocusedItem = nullptr;
+}
+
+void cFocusHandler::acquireFocus(cFocusable* focusable)
+{
+	if (mFocusedItem == focusable)
 		return;
-	mFocusedItem=nullptr;
+	if (mFocusedItem)
+		mFocusedItem->onLostFocus();
+	mFocusedItem = focusable;
+	focusable->onAcquiredFocus();
 }

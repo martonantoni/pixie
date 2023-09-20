@@ -39,8 +39,8 @@ protected:
 	void OnKey(const cEvent& event);
 	virtual void DialogItemStateChanged() override;
 	virtual void OnLeftButtonDown(cPoint ScreenCoords, bool IsInside) override;
-	virtual void OnFocused() override;
-	virtual void OnLostFocus() override;
+	virtual void onAcquiredFocus() override;
+	virtual void onLostFocus() override;
 	virtual void PropertiesChanged(unsigned int Properties) override;
 public:
 	virtual ~cEditField()=default;
