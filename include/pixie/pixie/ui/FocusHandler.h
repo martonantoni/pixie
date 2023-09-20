@@ -7,7 +7,6 @@ public:
 	virtual void onAcquiredFocus() {}
 	virtual void onLostFocus() {}
     bool isInFocus() const;
-protected:
 	void acquireFocus();
 };
 
