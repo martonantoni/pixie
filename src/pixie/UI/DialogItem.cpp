@@ -57,7 +57,7 @@ void cDialogItem::LostFocus()
 
 void cDialogItem::SetFocus()
 {
-	theFocusHandler.acquireFocus(this);
+	theFocusHandler.setFocusedItem(this);
  	DialogItemStateChanged();
 }
 

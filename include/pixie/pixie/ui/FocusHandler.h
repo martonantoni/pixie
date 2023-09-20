@@ -8,6 +8,7 @@ public:
 	virtual void onLostFocus() {}
     bool isInFocus() const;
 	void acquireFocus();
+	void dropFocus();
 };
 
 class cFocusHandler
@@ -16,7 +17,7 @@ class cFocusHandler
 public:
 	void addFocusable(cFocusable* focusable);
 	void removeFocusable(cFocusable* focusable);
-	void acquireFocus(cFocusable* focusable);
+	void setFocusedItem(cFocusable* focusable);
 	cFocusable* focusedItem() const { return mFocusedItem; }
 };
 
