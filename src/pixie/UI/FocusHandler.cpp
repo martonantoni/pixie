@@ -7,6 +7,16 @@ cFocusable::~cFocusable()
 	theFocusHandler.removeFocusable(this);
 }
 
+bool cFocusable::isInFocus() const
+{
+	return theFocusHandler.focusedItem() == this;
+}
+
+void cFocusable::acquireFocus()
+{
+	theFocusHandler.acquireFocus(this);
+}
+
 void cFocusHandler::addFocusable(cFocusable* focusable)
 {
 }
@@ -26,3 +36,4 @@ void cFocusHandler::acquireFocus(cFocusable* focusable)
 	mFocusedItem = focusable;
 	focusable->onAcquiredFocus();
 }
+

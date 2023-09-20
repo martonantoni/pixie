@@ -6,6 +6,9 @@ public:
 	virtual ~cFocusable();
 	virtual void onAcquiredFocus() {}
 	virtual void onLostFocus() {}
+    bool isInFocus() const;
+protected:
+	void acquireFocus();
 };
 
 class cFocusHandler
@@ -15,6 +18,7 @@ public:
 	void addFocusable(cFocusable* focusable);
 	void removeFocusable(cFocusable* focusable);
 	void acquireFocus(cFocusable* focusable);
+	cFocusable* focusedItem() const { return mFocusedItem; }
 };
 
 extern cFocusHandler theFocusHandler;
