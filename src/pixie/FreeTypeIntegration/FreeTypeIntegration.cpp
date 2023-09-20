@@ -103,14 +103,15 @@ bool cFontManager2::InitFont(cFont2 &Font, tIntrusivePtr<cConfig> Config)
 	});
 
 	Font.mAscender=YMaxMax;      // well, same deal
-	for(int s=256;; s*=2)
+	int textureSize = 256;
+	for(;; textureSize *= 2)
 	{
 		BinPacker Packer;
 		std::vector<std::vector<int>> Packed;
-		Packer.Pack(Sizes, Packed, s, false);
+		Packer.Pack(Sizes, Packed, textureSize, false);
 		if(Packed.size()>=2)
 			continue;
-		Font.mAtlasTexture=cTexture::CreateWriteable({ s,s });
+		Font.mAtlasTexture=cTexture::CreateWriteable({ textureSize, textureSize });
 		std::vector<int> &FirstPacked=Packed.front();
 		int Index=-1;
 		ForEachLetter([&](auto Letter, auto &FontLetterData)
@@ -172,6 +173,8 @@ bool cFontManager2::InitFont(cFont2 &Font, tIntrusivePtr<cConfig> Config)
 	Font.mAtlasTexture->UnlockSurface();
 	FT_Done_Face(face);
 	FT_Done_Library(library);
+	MainLog->Log("Font %s initialized. Texture size: %d x %d",
+		Font.name().c_str(), textureSize, textureSize);
 	return true;
 }
 

@@ -24,7 +24,7 @@ public:
 	{
 		mNormalLetters.resize(128);
 	}
-	const std::string &GetName() const { return mName; }
+	const std::string &name() const { return mName; }
 
 	std::vector<std::unique_ptr<cSpriteBase>> CreateTextSprites(const UTF8::cDecodedString &Text, const cRect &Rect, eHorizontalAlign HorizontalAlign, eVerticalAlign VerticalAlign) const;
 	std::vector<std::unique_ptr<cSpriteBase>> CreateTextSprites(const UTF8::cDecodedString &Text);

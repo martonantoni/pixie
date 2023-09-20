@@ -45,6 +45,7 @@ void cPixieDesktop::Init(const cInitData &InitData)
 void cPixieDesktop::handleMouseEvent(const cEvent& event, void (cMouseTarget::*MouseEventHandlerFunction)(cPoint Point, bool IsInside))
 {
 	mMouseEventShiftState = cMouseServer::shiftState(event);
+	mMouseEventCtrlState = cMouseServer::ctrlState(event);
 	cPoint screenCoordinates = cMouseServer::point(event);
 	auto TargetResult=GetMouseTargetAt(screenCoordinates);
 	cMouseTarget *IgnoredTarget=nullptr;
@@ -71,6 +72,8 @@ void cPixieDesktop::handleMouseEvent(const cEvent& event, void (cMouseTarget::*M
 
 void cPixieDesktop::handleMouseWheel(const cEvent& event)
 {
+    mMouseEventShiftState = cMouseServer::shiftState(event);
+    mMouseEventCtrlState = cMouseServer::ctrlState(event);
     cPoint screenCoordinates = cMouseServer::point(event);
 	double wheelDelta = cMouseServer::wheelDelta(event);
     auto TargetResult = GetMouseTargetAt(screenCoordinates);

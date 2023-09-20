@@ -138,8 +138,17 @@ tIntrusivePtr<cConfig> cLuaValue::toConfig_topTable(lua_State* L, IsRecursive is
     while (lua_next(L, -2) != 0)
     {
         // key: -2, value: -1
-        std::string key = cLuaScript::valueToString(L, -2);
-
+        std::string key;
+        if (lua_type(L, -2) == LUA_TNUMBER)
+        {
+            lua_pushvalue(L, -2);
+            key = std::to_string(lua_tointeger(L, -1) - 1);
+            lua_pop(L, 1);
+        }
+        else
+        {
+            key = cLuaScript::valueToString(L, -2);
+        }
         if (!mIsGlobalTable || !cLuaScript::isGlobalInternalElement(key))
         {
             switch (lua_type(L, -1))
