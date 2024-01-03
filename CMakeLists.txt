@@ -9,7 +9,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 project(Pixie VERSION 0.2)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /FC")  # full path in error messages
 set(DIRECTX_INCLUDE_PATH "c:/Program Files (x86)/Microsoft DirectX SDK (June 2010)/Include")
@@ -26,7 +26,7 @@ include(${CMAKE_BINARY_DIR}/conan.cmake)
 
 
 conan_cmake_configure(REQUIRES freetype/2.13.0
-                               fmt/10.0.0
+                               fmt/10.2.0
 							   lua/5.4.4
 							   gtest/1.13.0
                       GENERATORS cmake)

@@ -79,13 +79,13 @@ protected:
 		return [Message=Message.release(), this]() 
 		{
 			ASSERT(!mMessageProcessors.empty());
-			mMessageProcessors.ForEach([&Message=*Message, this](auto *Processor) { Message.Dispatch(GetUserID(), *Processor); });
+			mMessageProcessors.ForEach([&Message=*Message, this](auto *Processor) { Message.Dispatch(this->GetUserID(), *Processor); });
 			delete Message; // can't capture unique_ptr and then move the lambda into std::function.
 		};
 	}
 	virtual void ProcessFatalError() override
 	{
-		mMessageProcessors.ForEach([UserID=GetUserID()](auto *Processor) { Processor->ProcessFatalError(UserID); });
+		mMessageProcessors.ForEach([UserID=this->GetUserID()](auto *Processor) { Processor->ProcessFatalError(UserID); });
 	}
 public:
 // functions for the outside world (Main Thread only):

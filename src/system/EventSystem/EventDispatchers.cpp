@@ -28,7 +28,7 @@ void cEventDispatchers::AddEvents(const cDispatcherRangeInfo &RangeInfo)
 
 void cEventDispatchers::PostEvent(size_t DispatcherIndex, cEvent &&Event)
 {
-	auto &Dispatcher=(*this)[DispatcherIndex];
+	const auto &Dispatcher=(*this)[DispatcherIndex];
 	if(!Dispatcher)
 		return;
 	Dispatcher->PostEvent(std::move(Event));

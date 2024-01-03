@@ -97,7 +97,7 @@ template<class T> auto ExtractPtrsFromSmartPtrs(T &SmartPtrs)
 
 template<class T, class P> auto ExtractPtrsFromSmartPtrs_const_if(T &SmartPtrs, P Condition)
 {
-	std::vector<std::add_const<std::remove_reference<decltype(*SmartPtrs.front().get())>::type>::type *> RawPointers;
+	std::vector<typename std::add_const<typename std::remove_reference<decltype(*SmartPtrs.front().get())>::type>::type *> RawPointers;
 	RawPointers.reserve(SmartPtrs.size());
 	for(auto &SmartPtr: SmartPtrs)
 		if(Condition(*SmartPtr))

@@ -17,7 +17,7 @@ bool cSpriteColor::CheckPerCornerUsage(unsigned int PositionFlags)
 
 const cColor &cSpriteColor::GetColor_ByCorner(eCornerPosition Corner) const
 {
-	return mPerCornerMode?mCornerColors[Corner]:mColor;
+	return mPerCornerMode?mCornerColors[Corner]:*this;
 }
 
 #define SPRITE_COLOR_SET_FUNCTION_BODY(ColorFunctionToCall) \

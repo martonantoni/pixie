@@ -5,7 +5,7 @@ template<typename ...Ts> class tFunctions: protected tRegisteredObjects<std::fun
 public:
 	void Call(Ts ...Args)
 	{
-		ForEach([&](auto &Function) { Function(Args...); });
+		this->ForEach([&](auto &Function) { Function(Args...); });
 	}
 	void operator()(Ts ...Args) { Call(Args...); }
 	using tRegisteredObjects<std::function<void(Ts...)>>::Register;

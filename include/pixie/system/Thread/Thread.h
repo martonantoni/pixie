@@ -27,8 +27,8 @@ protected:
 	void Unregister_Inner(tIntrusivePtr<cIDData> IDData);
 	static DWORD WINAPI StaticThreadFunction(LPVOID lpParameter);
 	void SetThreadNameForDebugger();
-	void cThread::AddEventHandler_Inner(tIntrusivePtr<cIDData> IDData, cNativeEvent *Event);
-	void cThread::AddTimer_Inner(tIntrusivePtr<cIDData> IDData, const cTimerRequest &TimerRequest);
+	void AddEventHandler_Inner(tIntrusivePtr<cIDData> IDData, cNativeEvent *Event);
+	void AddTimer_Inner(tIntrusivePtr<cIDData> IDData, const cTimerRequest &TimerRequest);
 	using cInvokerFunctionPtr = void(*)(char*);
 	void processEventDispatch();
 	virtual void threadLoop();

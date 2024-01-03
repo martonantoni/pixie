@@ -50,8 +50,9 @@ template<class cVisualizable> struct cPixieVisualizerCreator
 
 template<class cVisualizable,class T> struct tPixieVisualizerCreator: public cPixieVisualizerCreator<cVisualizable>
 {
-	virtual std::unique_ptr<cVisualizerBase> CreateVisualizer() override { return std::make_unique<T>(); }
-	tPixieVisualizerCreator(const char *VisualizerName) { cPixieVisualizerFactory<cVisualizable>::Get().RegisterCreator(VisualizerName,this); }
+	using cVisualizerBase = typename cPixieVisualizerCreator<cVisualizable>::cVisualizerBase;
+	virtual std::unique_ptr<cVisualizerBase> CreateVisualizer() override;
+	tPixieVisualizerCreator(const char* VisualizerName);
 };
 
 #define REGISTER_VISUALIZER(VisualizableClass,VisualizerName,VisualizerClassName) \
@@ -66,6 +67,18 @@ public:
 	void RegisterCreator(const char *VisualizerName,cPixieVisualizerCreator<cVisualizable> *Creator);
 	std::unique_ptr<cVisualizer> CreateVisualizer(cVisualizable *Visualizable, cPixieWindow *Window, const typename cVisualizable::cInitData &InitData, std::string VisualizerName);
 };
+
+template<class cVisualizable, class T>
+auto tPixieVisualizerCreator<cVisualizable, T>::CreateVisualizer() -> std::unique_ptr<cVisualizerBase>
+{
+	return std::make_unique<T>(); 
+}
+
+template<class cVisualizable, class T>
+tPixieVisualizerCreator<cVisualizable, T>::tPixieVisualizerCreator(const char* VisualizerName) 
+{
+	cPixieVisualizerFactory<cVisualizable>::Get().RegisterCreator(VisualizerName, this); 
+}
 
 template<class cVisualizable>
 inline void cPixieVisualizerFactory<cVisualizable>::RegisterCreator(const char *VisualizerName,cPixieVisualizerCreator<cVisualizable> *Creator)
@@ -82,7 +95,7 @@ inline std::unique_ptr<typename cVisualizable::cVisualizer> cPixieVisualizerFact
 		VisualizerName=Config.GetString("visualizer", { "standard" });
 	if(VisualizerName=="*")
 		return nullptr;
-	cCreators::const_iterator i=mCreators.find(VisualizerName);
+	auto i=mCreators.find(VisualizerName);
 	if(i==mCreators.end())
 	{
 		ASSERT(false);

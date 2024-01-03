@@ -41,7 +41,7 @@ private:
 		int mLockCount=1;
 		cPhaseWaiters mWaiters;
 	};
-	cPhaseData mPhases[eProgramPhases::NumberOfPhases];
+	cPhaseData mPhases[std::to_underlying(eProgramPhases::NumberOfPhases)];
 	size_t mCurrentPhase=0;
 	void CurrentPhaseUnlocked(); // when this is called mCurrentPhase is already set
 	void Unlock(eProgramPhases Phase);

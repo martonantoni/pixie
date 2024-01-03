@@ -13,7 +13,7 @@ protected:
 	cIDs mIDs;
 	size_t mIDCounter=0;
 	bool mAddOrRemoveTrap=false;
-	void cReactor::SwapListeners(size_t First, size_t Second);
+	void SwapListeners(size_t First, size_t Second);
 	virtual DWORD Wait(DWORD NumberOfHandles, DWORD Timeout);
 public:
 	cReactor();

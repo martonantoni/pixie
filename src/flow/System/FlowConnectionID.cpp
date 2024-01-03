@@ -5,7 +5,8 @@
 cFlowConnectionID cFlowConnectionID::GenerateRandom()
 {
 	std::uniform_int_distribution<uint64_t> dist(1);   // generating in [1,~0u]: cannot include 0, because that is the invalid id.
-	return cFlowConnectionID(dist(std::random_device()));
+	std::random_device rd;
+	return cFlowConnectionID(dist(rd));
 }
 
 void cFlowConnectionID::ToStream(cMemoryStream &Stream) const

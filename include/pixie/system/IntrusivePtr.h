@@ -45,7 +45,7 @@ public:
 		if(!--mReferenceCounter) 
 			ReferenceCounterReachedZero(); 
 	}
-	template<class T> void GetRefCount() const { Not_Supported_For_Threadsafe_Version; }
+//	template<class T> void GetRefCount() const { Not_Supported_For_Threadsafe_Version; }
 };
 
 template<class T> class tIntrusivePtr
@@ -89,9 +89,9 @@ public:
 	T *get() { return mObject; }
 	T *operator->() { return mObject; }
 	T &operator*() { return *mObject; }
-	const T *get() const { return mObject; }
-	const T *operator->() const { return mObject; }
-	const T &operator*() const { return *mObject; }
+	T *get() const { return mObject; }
+	T *operator->() const { return mObject; }
+	T &operator*() const { return *mObject; }
 	template<class U>
 	tIntrusivePtr<T> &operator=(const tIntrusivePtr<U> &Src)
 	{

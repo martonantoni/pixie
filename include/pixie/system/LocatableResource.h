@@ -8,7 +8,7 @@ private:
 	struct cNode
 	{
 		T *mResource;
-		typedef std::map<std::string,cNode *> cNodeMap;
+		using cNodeMap = std::unordered_map<std::string,cNode *>;
 		cNodeMap mChildren;
 		cNode *mParentNode;
 		cNode(cNode *ParentNode): mParentNode(ParentNode), mResource(NULL) {}
@@ -34,7 +34,7 @@ tIntrusivePtr<T> tLocatableResourceBase<T>::cNode::GetResource(const cResourceLo
 	{
 		for(auto &i: Location)
 		{
-			cNode::cNodeMap::iterator j=Node->mChildren.find(i);
+			auto j=Node->mChildren.find(i);
 			if(j==Node->mChildren.end())
 			{
 				return tIntrusivePtr<T>();
@@ -66,7 +66,7 @@ void tLocatableResourceBase<T>::cNode::ResourceDestroyed()
 	while(Node->mParentNode&&Node->mResource==NULL&&Node->mChildren.empty())
 	{
 		cNode *ParentNode=Node->mParentNode;
-		for(cNode::cNodeMap::iterator i=ParentNode->mChildren.begin(),iend=ParentNode->mChildren.end();i!=iend;++i)
+		for(auto i=ParentNode->mChildren.begin(),iend=ParentNode->mChildren.end();i!=iend;++i)
 		{
 			if(i->second==Node)
 			{

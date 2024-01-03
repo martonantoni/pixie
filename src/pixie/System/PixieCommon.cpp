@@ -46,13 +46,13 @@ cRect cRect::GetAlignedRect(const cRect &RectToAlign, eHorizontalAlign Horizonta
 	}
 	switch(VerticalAlign)
 	{
-	case eHorizontalAlign::Left:
+	case eVerticalAlign::Top:
 		Result.mTop=mLeft;
 		break;
-	case eHorizontalAlign::Right:
+	case eVerticalAlign::Bottom:
 		Result.mTop=Bottom()-RectToAlign.mHeight;
 		break;
-	case eHorizontalAlign::Center:
+	case eVerticalAlign::Center:
 		Result.mTop=mTop+(mHeight-RectToAlign.mHeight)/2;
 		break;
 	}

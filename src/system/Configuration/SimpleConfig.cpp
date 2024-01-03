@@ -194,7 +194,8 @@ bool cSimpleConfig::FromFile(const cPath &FileName)
 
 void cSimpleConfig::ConfigToFile(const cConfig &Config, const cPath &FileName)
 {
-	ConfigToFile(Config, cLog(FileName, cLog::SINGLE_THREAD|cLog::TRUNCATE));
+	cLog file(FileName, cLog::SINGLE_THREAD | cLog::TRUNCATE);
+	ConfigToFile(Config, file);
 }
 
 void cSimpleConfig::ConfigToFile(const cConfig &Config, cLog &Log)
