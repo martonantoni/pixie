@@ -11,5 +11,5 @@ public:
 	int FindIndex(const std::string &Token, int From=0) const; // returns -1 if not found
 	void FromIntVector(const cIntVector &IntVector);
 	cIntVector ToIntVector() const;
-	cStringVector &&operator+(const std::string &ExtraField) const;
+	cStringVector operator+(const std::string &ExtraField) const;
 };

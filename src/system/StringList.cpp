@@ -93,10 +93,10 @@ void cStringVector::TrimAll()
 		Trim((*this)[i]);
 }
 
-cStringVector &&cStringVector::operator+(const std::string &ExtraField) const
+cStringVector cStringVector::operator+(const std::string &ExtraField) const
 {
 	cStringVector ExtendedVector=*this;
 	ExtendedVector.push_back(ExtraField);
-	return std::move(ExtendedVector);
+	return ExtendedVector;
 }
 
