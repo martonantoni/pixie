@@ -83,6 +83,7 @@ class cTextRenderer
 public:
 	cTextRenderer(cFont2 *DefaultFont=theFontManager.GetFont("default")): mDefaultFont(DefaultFont) {}
 	cTextRenderer(const std::string &DefaultFont): mDefaultFont(theFontManager.GetFont(DefaultFont)) {}
+	void setFont(cFont2 *defaultFont) { mDefaultFont=defaultFont; }
 	struct cRenderInfo
 	{
 		int mNextLineY;
