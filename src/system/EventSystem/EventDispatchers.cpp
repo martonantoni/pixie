@@ -29,7 +29,7 @@ void cEventDispatchers::AddEvents(const cDispatcherRangeInfo &RangeInfo)
 void cEventDispatchers::addEvents(const cEventNames& eventNames)
 {
     ASSERT(mRootDispatcher);
-    mRanges.emplace_back(cDispatcherRangeInfo(0, eventNames));
+	AddEvents(cDispatcherRangeInfo(0, eventNames));
 }
 
 void cEventDispatchers::PostEvent(size_t DispatcherIndex, cEvent &&Event)

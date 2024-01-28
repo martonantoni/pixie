@@ -12,17 +12,17 @@ public:
 		cDispatcherRangeInfo(size_t FirstIndex, cEventNames &&EventNames): mFirstIndex(FirstIndex), mEventNames(std::move(EventNames)) {}
 		cDispatcherRangeInfo(cDispatcherRangeInfo &&)=default;
 		cDispatcherRangeInfo &operator=(cDispatcherRangeInfo &&)=default;
-		cDispatcherRangeInfo(const cDispatcherRangeInfo &)=delete;
-		cDispatcherRangeInfo &operator=(const cDispatcherRangeInfo &)=delete;
+		cDispatcherRangeInfo(const cDispatcherRangeInfo &)=default;
+		cDispatcherRangeInfo &operator=(const cDispatcherRangeInfo &)=default;
 	};
 private:
 	tIntrusivePtr<cEventDispatcher> mRootDispatcher;
 	typedef std::vector<tIntrusivePtr<cEventDispatcher>> cDispatchers;
 	struct cDispatcherRange
 	{
-		const cDispatcherRangeInfo &mInfo;
+		const cDispatcherRangeInfo mInfo;
 		cDispatchers mDispatchers;
-		cDispatcherRange(const cDispatcherRangeInfo &Info): mInfo(Info) { mDispatchers.resize(mInfo.mEventNames.size());  }
+		cDispatcherRange(cDispatcherRangeInfo info): mInfo(std::move(info)) { mDispatchers.resize(mInfo.mEventNames.size());  }
 	};
 	typedef std::vector<cDispatcherRange> cRanges;
 	cRanges mRanges;
