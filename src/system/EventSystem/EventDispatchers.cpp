@@ -26,6 +26,12 @@ void cEventDispatchers::AddEvents(const cDispatcherRangeInfo &RangeInfo)
 	mRanges.emplace_back(RangeInfo);	
 }
 
+void cEventDispatchers::addEvents(const cEventNames& eventNames)
+{
+    ASSERT(mRootDispatcher);
+    mRanges.emplace_back(cDispatcherRangeInfo(0, eventNames));
+}
+
 void cEventDispatchers::PostEvent(size_t DispatcherIndex, cEvent &&Event)
 {
 	const auto &Dispatcher=(*this)[DispatcherIndex];

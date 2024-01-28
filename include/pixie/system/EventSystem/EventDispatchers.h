@@ -36,6 +36,7 @@ public:
 	void Init(const tIntrusivePtr<cEventDispatcher> &RootDispatcher);
 	void Init(const cResourceLocation &Location);
 	void AddEvents(const cDispatcherRangeInfo &RangeInfo);
+	void addEvents(const cEventNames& eventNames);
 
 	void PostEvent(size_t DispatcherIndex, cEvent &&Event=cEvent());
 	tIntrusivePtr<cEventDispatcher> operator[](size_t Index) const;
