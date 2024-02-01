@@ -25,6 +25,7 @@
 #include <unordered_map>
 #include <set>
 #include <algorithm>
+#include <numeric>
 #include <deque>
 #include <memory>
 #include <functional>
