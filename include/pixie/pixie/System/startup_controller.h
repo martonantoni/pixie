@@ -13,7 +13,7 @@ public:
         cPath mainLuaConfigPath;
         std::function<void()> startApplication;
     };
-    void start();
+    [[noreturn]] void start();
 };
 
 cStartupController::cConfig pixieAppConfiguration();

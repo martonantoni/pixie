@@ -1,15 +1,22 @@
 #pragma once
 
-class cThreadServer
+class cThreadServer final
 {
-	typedef std::map<std::string,std::unique_ptr<cThread>> cThreadMap;
+public:
+	enum class eReactorType
+	{
+		Normal, MessagePump
+	};
+private:
+	using cThreadMap = std::unordered_map<std::string, std::unique_ptr<cThread>>;
 	cThreadMap mThreadMap;
-	cMutex mMutex;
+	std::mutex mThreadMapMutex;
+	static std::unique_ptr<cReactor> createReactor(eReactorType reactorType);
 public:
 	cThreadServer();
 	~cThreadServer();
-	cThread* GetThread(const std::string &Name,BOOL UseMessageQueueReactor=false);
-	void createMainThread();
+	cThread* GetThread(const std::string &name, eReactorType reactorType = eReactorType::Normal);
+	void createMainThread(eReactorType reactorType = eReactorType::MessagePump);
 };
 
 extern cThreadServer *theThreadServer;

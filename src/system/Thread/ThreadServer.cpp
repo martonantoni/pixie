@@ -13,27 +13,39 @@ cThreadServer::~cThreadServer()
 	theThreadServer=NULL;
 }
 
-cThread *cThreadServer::GetThread(const std::string &Name,BOOL UseMessageQueueReactor)
+std::unique_ptr<cReactor> cThreadServer::createReactor(eReactorType reactorType)
 {
-	mMutex.Lock();
-	auto &Thread=mThreadMap[Name];
-	if(!Thread)
+    if (reactorType == eReactorType::MessagePump)
+    {
+        return std::make_unique<cReactor_MessagePump>();
+    }
+    else
+    {
+        return std::make_unique<cReactor>();
+    }
+}
+
+cThread *cThreadServer::GetThread(const std::string &name, eReactorType reactorType)
+{
+	mThreadMapMutex.lock();
+	auto &thread=mThreadMap[name];
+	if(!thread)
 	{
-		Thread=std::make_unique<cThread>(Name,UseMessageQueueReactor?std::make_unique<cReactor_MessagePump>():std::make_unique<cReactor>());
-		mMutex.Release();
-		Thread->Start();
+		thread=std::make_unique<cThread>(name, createReactor(reactorType));
+		mThreadMapMutex.unlock();
+		thread->Start();
 	}
 	else
 	{
-		mMutex.Release();
+		mThreadMapMutex.unlock();
 	}
-	return Thread.get();
+	return thread.get();
 }
 
-void cThreadServer::createMainThread()
+void cThreadServer::createMainThread(eReactorType reactorType)
 {
 	ASSERT(!theMainThread);
-    auto thread = std::make_unique<cMainThread>("main"s, std::make_unique<cReactor_MessagePump>());
+    auto thread = std::make_unique<cMainThread>("main"s, createReactor(reactorType));
 	theMainThread = thread.get();
 	thread->Start();
 	mThreadMap["main"s] = std::move(thread);
