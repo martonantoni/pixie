@@ -31,7 +31,7 @@ conan_cmake_configure(REQUIRES freetype/2.13.0
 							   gtest/1.13.0
                       GENERATORS cmake)
 					  					 					  
-conan_cmake_autodetect(settings BUILD_TYPE Debug)
+conan_cmake_autodetect(settings)
 
 conan_cmake_install(PATH_OR_REFERENCE .
                     BUILD missing
