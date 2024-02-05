@@ -120,8 +120,8 @@ void registerGlobalPixieLuaFunctions(cLuaValue globalTable)
 
 void InitPixieSystem()
 {
+	cPrimaryWindow::Get();
 	theColorServer.Init();
-	cEventCenter::Get();
 	(new cBasicDeviceClearer)->Init(cEmptyConfig());
 	cDevice::Get();
 	thePixieDesktop.Init(cPixieDesktop::cInitData());

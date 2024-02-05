@@ -13,38 +13,42 @@ void registerGlobalPixieLuaFunctions(cLuaValue globalTable);
 
 void cStartupController::Start_MainThread()
 {
-    // #ifdef _DEBUG
-    CreateConsole();
-    // #endif
+    mConfig = pixieAppConfiguration();
+    if(mConfig.createConsole)
+        CreateConsole();
     MainLog = new cMainLog;
     MainLog->Log("----------- START -----------");
     MainLog->Log("working dir: \"%s\"", std::filesystem::current_path().string().c_str());
 
     theProgramDirector->Start();
-    theMainThread->callback([this]() {ContinueStartup(); }, eCallbackType::NoImmediate);
+    theMainThread->callback(
+        [this]() 
+        {
+            continueStartup(); 
+        }, eCallbackType::NoImmediate);
 }
 
 
-void cStartupController::ContinueStartup()
+void cStartupController::continueStartup()
 {
-    cStartupController::cConfig config = pixieAppConfiguration();
     cLuaScript::staticInit();
 
     auto script = std::make_shared<cLuaScript>();
     registerGlobalPixieLuaFunctions(script->globalTable());
-    script->executeFile(config.mainLuaConfigPath.empty() ? "MainConfig.lua" : config.mainLuaConfigPath.c_str());
+    script->executeFile(mConfig.mainLuaConfigPath.empty() ? "MainConfig.lua" : mConfig.mainLuaConfigPath.c_str());
     theGlobalConfig = script->globalTable().toConfig();
 
 
     auto InstanceName = theGlobalConfig->GetString("instance_name", std::string());
     if (!InstanceName.empty())
         cProgramTitle::Get()->SetInstanceName(InstanceName);
-    cPrimaryWindow::Get();
+    cEventCenter::Get();
 
-    InitPixieSystem();
+    if(mConfig.initPixie)
+        InitPixieSystem();
 
-    if(config.startApplication)
-        config.startApplication();
+    if(mConfig.startApplication)
+        mConfig.startApplication();
 
 // 	cMouseCursor::Get();
 //     cMouseCursorServer::Get();
