@@ -12,7 +12,11 @@ void cStartupController::Start_MainThread()
     mConfig = pixieAppConfiguration();
     if(mConfig.createConsole)
         CreateConsole();
-    MainLog = new cMainLog;
+    MainLog = new cMainLog(
+        cLog::USE_MUTEX | cLog::FLUSH_OVER_TIME |
+        (mConfig.mainLog.writeToConsole ? cLog::ECHO : 0) |
+        (mConfig.mainLog.writeToFile ? 0 : cLog::NO_FILE) |
+        (mConfig.mainLog.useTimeStamp ? cLog::TIME_STAMP : 0));
     MainLog->Log("----------- START -----------");
     MainLog->Log("working dir: \"%s\"", std::filesystem::current_path().string().c_str());
 

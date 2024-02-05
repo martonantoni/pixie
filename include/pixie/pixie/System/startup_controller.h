@@ -16,6 +16,12 @@ public:
 #else
         bool createConsole = false;
 #endif
+        struct
+        {
+            bool useTimeStamp = true;
+            bool writeToConsole = true;
+            bool writeToFile = true;
+        } mainLog;
     };
 private:
     void continueStartup();
