@@ -3,10 +3,6 @@
 #include "pixie/system/lua/lua_global_config.h"
 #include <filesystem>
 
-// const char* ProgramName = "Pixie";
-// const char* VersionString = "0.2";
-
-
 tIntrusivePtr<cConfig> theGlobalConfig;
 
 void registerGlobalPixieLuaFunctions(cLuaValue globalTable);
