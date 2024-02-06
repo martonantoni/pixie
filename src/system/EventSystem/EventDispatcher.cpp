@@ -25,6 +25,7 @@ void cEventDispatcher::PostEvent(cEvent &&Event)
 
 /*static*/ void cEventDispatcher::PostEvent(const cEvent::cDispatcherID &DispatcherID, cEvent &&Event)
 {
+	ASSERT(theMainThread->IsInThread());
 	GetGlobalDispatcher(DispatcherID, eNodeCreation::CanCreate)->PostEvent(std::move(Event));
 }
 
@@ -48,6 +49,7 @@ cRegisteredID cEventDispatcher::RegisterListener(const cEventListenerFunction &L
 
 void cEventDispatcher::Unregister(const cRegisteredID &RegisteredID, eCallbackType CallbackType)
 {
+	ASSERT(theMainThread->IsInThread());
 	Ref();
 	mListeners.Unregister(RegisteredID.GetID());
 	Unref();
