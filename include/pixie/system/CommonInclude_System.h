@@ -38,6 +38,7 @@
 #include <mutex>
 #include <atomic>
 #include <type_traits>
+#include <typeindex>
 
 #include "fmt/core.h"
 #include "fmt/printf.h"
@@ -121,10 +122,6 @@ typedef uint64_t QWORD;
 
 typedef std::vector<int> cIntVector;
 typedef std::vector<size_t> cIndexVector;
-
-#ifndef _M_X64
-#include "32BitPort.h"
-#endif
 
 class cLog;
 

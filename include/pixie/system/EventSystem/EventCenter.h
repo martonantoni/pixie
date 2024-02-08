@@ -20,3 +20,4 @@ public:
 };
 
 extern cEventCenter *theEventCenter;
+
