@@ -16,6 +16,7 @@ public:
 		std::string mTextureBaseName;
 		std::string mTitle;
 		std::string mTextStyle { "push_button" };
+		std::string mTooltipText;
 //todo		std::unique_ptr<cSpriteBase> mTextSprite;
 		cInitData()=default;
 		cInitData(const cConfig& Config);

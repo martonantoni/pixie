@@ -11,6 +11,7 @@ cPushButton::cInitData::cInitData(const cConfig &config): tPixieSimpleInitData<c
 {
     mTextureBaseName = config.GetString("texture", std::string());
     mTitle = config.GetString("title", std::string());
+	mTooltipText = config.GetString("tooltip", std::string());
     mTextStyle = config.GetString("text_style", mTextStyle);
     auto ActivationKeyString = config.GetString("key", std::string());
     if (!ActivationKeyString.empty())
@@ -33,6 +34,8 @@ void cPushButton::Init(const cInitData &InitData)
 	InitVisualizer(InitData, InitData.mVisualizer);
 	if(!InitData.mTitle.empty())
 		SetText(InitData.mTitle);
+	if(!InitData.mTooltipText.empty())
+		SetTooltip(InitData.mTooltipText);
 }
 
 void cPushButton::OnMouseMove(cPoint ScreenCoords, bool IsInside)
