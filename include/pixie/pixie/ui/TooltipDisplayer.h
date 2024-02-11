@@ -15,7 +15,7 @@ public:
 		cTextRenderer mTextRenderer { theFontManager.GetFont("tooltip") };
 		std::string mText;
 		bool operator==(const cTooltipRequest &Other) { return Other.mText==mText&&Other.mBaseRegion==mBaseRegion; }
-		cTooltipRequest() { mTextRenderer.SetDefaultColor("tooltip"); }
+		cTooltipRequest() { mTextRenderer.setDefaultColor("tooltip"); }
 	};
 private:
 	tRegisteredObjects<std::unique_ptr<cSimpleMultiSprite>> mTooltips;

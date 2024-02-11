@@ -19,7 +19,7 @@ cRegisteredID cTooltipDisplayer::DisplayTooltip(const cTooltipRequest &Request)
 
 std::unique_ptr<cSimpleMultiSprite> cTooltipDisplayer::CreateTooltipSprites(const cTooltipRequest &Request)
 {
-    return CreateTooltipSprites(Request, std::make_unique<cSimpleMultiSprite>(Request.mTextRenderer.RenderText(Request.mText), cSimpleMultiSprite::eBasePosition::Zero));
+    return CreateTooltipSprites(Request, std::make_unique<cSimpleMultiSprite>(Request.mTextRenderer.render(Request.mText), cSimpleMultiSprite::eBasePosition::Zero));
 }
 
 std::unique_ptr<cSimpleMultiSprite> cTooltipDisplayer::CreateTooltipSprites(const cBaseRequest &Request, std::unique_ptr<cSimpleMultiSprite> TextSprites)

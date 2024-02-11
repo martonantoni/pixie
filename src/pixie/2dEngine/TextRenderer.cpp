@@ -151,7 +151,7 @@ cTextRenderer::cWord cTextRenderer::CreateWordFromTexture(const std::string &Tex
 	return Word;
 }
 
-std::vector<std::unique_ptr<cSpriteBase>> cTextRenderer::RenderText(const std::string &Text, OUT cRenderInfo *RenderInfo) const
+std::vector<std::unique_ptr<cSpriteBase>> cTextRenderer::render(const std::string &Text, OUT cRenderInfo *RenderInfo) const
 {
 	if(Text.empty())
 		return {};
@@ -268,7 +268,7 @@ std::vector<std::unique_ptr<cSpriteBase>> cTextRenderer::RenderText(const std::s
 					Document.AddWord(CreateWordFromTexture(value));
 					break;
 				case 't':
-					Document.SetTabStops(cStringVector(value, ",", false).ToIntVector());
+					Document.setTabStops(cStringVector(value, ",", false).ToIntVector());
 					break;
 				case 'g':
 					if(!RenderInfo)

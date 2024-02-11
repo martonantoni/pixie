@@ -39,6 +39,6 @@ public:
 
 	void InsertString(size_t Position, const std::string &Text);
 	void AddString(const std::string &Text);
-	void SetTabStops(std::vector<int> &&TabStops);
+	void setTabStops(std::vector<int> &&TabStops);
 };
 

@@ -5,7 +5,7 @@
 // {c:color_name}text text text{c}  : set color
 // {f:font_name}text text text{f}   : set font
 // {y:value}                        : modify the vertical position of text cursor by value (might be negative)
-// {t:t0,t1,t2...}                  : set the tab positions. for example: {t:120,250} is the same as calling SetTabStops(std::vector<int>{120,250});
+// {t:t0,t1,t2...}                  : set the tab positions. for example: {t:120,250} is the same as calling setTabStops(std::vector<int>{120,250});
 // {>} {|} {=} : until the next new line: alignment right, center, justified
 // {i:texture_name}  : insert texture into text
 // {g:group_index}text text text{g} : for retrieving sprite indeces and bounding box in cRenderInfo
@@ -76,7 +76,7 @@ class cTextRenderer
 		void SetAlignment(eAlignment Alignment);
 		void EndOfDocument();
 		size_t GetSpriteIndex() const;
-		void SetTabStops(std::vector<int> TabStops) { mTabStops=std::move(TabStops); }
+		void setTabStops(std::vector<int> TabStops) { mTabStops=std::move(TabStops); }
 	};
 	static cWord CreateWordFromTexture(const std::string &TextureName);
 
@@ -93,17 +93,17 @@ public:
 		};
 		std::vector<cGroupInfo> mGroups;
 	};
-	std::vector<std::unique_ptr<cSpriteBase>> RenderText(const std::string &Text, OUT cRenderInfo *RenderInfo=nullptr) const;
+	std::vector<std::unique_ptr<cSpriteBase>> render(const std::string &Text, OUT cRenderInfo *RenderInfo=nullptr) const;
 
-	void SetTabStops(std::vector<int> TabStops) // pixel pos from start of line
+	void setTabStops(std::vector<int> TabStops) // pixel pos from start of line
 	{
 		mTabStops=std::move(TabStops);
 	}
-	void SetDefaultColor(cColor Color)
+	void setDefaultColor(cColor Color)
 	{
 		mDefaultColor=Color;
 	}
-	void SetMaxWidth(unsigned int MaxWidth)
+	void setMaxWidth(unsigned int MaxWidth)
 	{
 		mMaxWidth=MaxWidth;
 	}

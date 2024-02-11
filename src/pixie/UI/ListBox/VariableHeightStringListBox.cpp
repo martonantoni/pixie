@@ -8,9 +8,9 @@ cVariableHeightStringListBoxItem::cVariableHeightStringListBoxItem(std::shared_p
 
 void cVariableHeightStringListBoxItem::Render(int MaxWidth)
 {
-	mTextRenderer->SetMaxWidth(MaxWidth-6);
+	mTextRenderer->setMaxWidth(MaxWidth-6);
 	cTextRenderer::cRenderInfo RenderInfo;
-	mSprite=std::make_unique<cSimpleMultiSprite>(mTextRenderer->RenderText(mText, &RenderInfo), cSimpleMultiSprite::eBasePosition::Zero);
+	mSprite=std::make_unique<cSimpleMultiSprite>(mTextRenderer->render(mText, &RenderInfo), cSimpleMultiSprite::eBasePosition::Zero);
 	mHeight=RenderInfo.mNextLineY+6;
 }
 
@@ -54,9 +54,9 @@ void cVariableHeightStringListBoxItemHandler::Init()
 	mTextRenderer=std::make_shared<cTextRenderer>(theFontManager.GetFont("listbox_item"));
 }
 
-void cVariableHeightStringListBoxItemHandler::SetTabStops(std::vector<int> &&TabStops)
+void cVariableHeightStringListBoxItemHandler::setTabStops(std::vector<int> &&TabStops)
 {
-	mTextRenderer->SetTabStops(std::move(TabStops));
+	mTextRenderer->setTabStops(std::move(TabStops));
 }
 
 size_t cVariableHeightStringListBoxItemHandler::GetNumberOfItems() const

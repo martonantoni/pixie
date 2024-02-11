@@ -19,9 +19,9 @@ void cStandardTextFieldVisualizer::Redraw()
 	bool UseClipping=GetVisualizable().GetUseClipping();
 	cRect Rect=GetPlacement();
 	cTextRenderer TextRenderer(mTextStyle);
-	TextRenderer.SetMaxWidth(Rect.Width());
-	TextRenderer.SetDefaultColor("textfield");
-	mTextSprite=std::make_unique<cSimpleMultiSprite>(TextRenderer.RenderText(GetVisualizable().GetText()), cSimpleMultiSprite::eBasePosition::Zero);
+	TextRenderer.setMaxWidth(Rect.Width());
+	TextRenderer.setDefaultColor("textfield");
+	mTextSprite=std::make_unique<cSimpleMultiSprite>(TextRenderer.render(GetVisualizable().GetText()), cSimpleMultiSprite::eBasePosition::Zero);
 	mTextSprite->SetWindow(GetWindow());
 	mTextSprite->SetPosition(Rect.GetPosition());
 	mTextSprite->SetZOrder(mBaseZ);
