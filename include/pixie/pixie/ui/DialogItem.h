@@ -52,4 +52,5 @@ class cDialogItems
 	void AddEditField(cPixieWindow &Window, const cConfig& Config);
 public:
 	void Init(cPixieWindow &Window, const cConfig &Config);
+	cDialogItem& item(int index) { return *mItems[index]; }
 };

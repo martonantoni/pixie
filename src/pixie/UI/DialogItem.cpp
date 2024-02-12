@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
+
 void cDialogItem::Init(const cPixieInitData &InitData)
 {
 	mIsEnabled.BindTo(InitData.mBindTo, "is_enabled");
@@ -115,9 +116,6 @@ void cDialogItems::AddEditField(cPixieWindow &Window, const cConfig& Config)
 
 void cDialogItems::Init(cPixieWindow &Window, const cConfig &config)
 {
-// 	auto NumberOfItems=Config.GetSubConfigCount();
-// 	mItems.reserve(NumberOfItems);
-
 	config.forEachSubConfig(
 		[this, &Window](auto& key, auto& subConfig)
 		{
