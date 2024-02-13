@@ -40,6 +40,11 @@ public:
 	template<class C> void forEachSubConfig(const C& callable) const; // callable: void (const std::string& key, const cConfig& config)
 
 	static tIntrusivePtr<cConfig> FromFile(const cPath &Path); // checks file extension for type of config
+
+// modern naming aliases:
+	tIntrusivePtr<cConfig> subConfig(const std::string& Key) const { return GetSubConfig(Key); }
+    tIntrusivePtr<cConfig> subConfig(int Index) const { return GetSubConfig(Index); }
+	tIntrusivePtr<cConfig> createSubConfig(const std::string& Key) { return CreateSubConfig(Key); }
 };
 
 template<class C> 
