@@ -13,10 +13,11 @@ class cDialogItem: public cMouseTarget, public cFocusable
 	cRegisteredID mTooltipID;
 	void TooltipTextChanged();
 protected:
+	std::vector<cAutoEventListener> mKeyboardListeningIDs;
 	void Init(const cPixieInitData &InitData);
 	virtual void DialogItemStateChanged() {}
-	virtual void OnFocused() {}
-	virtual void onLostFocus() {}
+	virtual void onAcquiredFocus() override;
+	virtual void onLostFocus() override;
 	virtual void OnMouseMove(cPoint ScreenCoords, bool IsInside) override;
 public:
 	virtual bool SetStringProperty(unsigned int PropertyFlags, const std::string &Value) override;

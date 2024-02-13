@@ -62,6 +62,15 @@ void cDialogItem::SetFocus()
  	DialogItemStateChanged();
 }
 
+void cDialogItem::onAcquiredFocus()
+{
+}
+
+void cDialogItem::onLostFocus()
+{
+	mKeyboardListeningIDs.clear();
+}
+
 void cDialogItem::TooltipTextChanged()
 {
 }
