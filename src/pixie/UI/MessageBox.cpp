@@ -36,7 +36,7 @@ void cMessageBox::Init(const cInitData &InitData)
 		cPushButton::cInitData ButtonInitData;
 		ButtonInitData.mParentWindow=&mWindow;
 		ButtonInitData.mTitle=ButtonRequest.mText;
-		ButtonInitData.mPlacement= { 0,TextVerticalEnd+35,150,50 };
+		ButtonInitData.mPlacement= { 0, TextVerticalEnd+35, 150, 40 };
 		auto Button=std::make_unique<cPushButton>();
 		Button->Init(ButtonInitData);
 		mListeningIDs.emplace_back(Button->GetDispatcher(cPushButton::Event_Activated)->RegisterListener(

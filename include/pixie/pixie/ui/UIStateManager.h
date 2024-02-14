@@ -29,6 +29,7 @@ public:
     void PopState();
     void PopStateN(int StatesToPop);
     bool PopState_Safe();
+    int getStateStackSize() const { return static_cast<int>(mStateStack.size()); }
 
     void Hide();
     void Show();
