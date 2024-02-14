@@ -118,10 +118,10 @@ public:
 	tIgnoreCopy &operator=(tIgnoreCopy &&)=default;
 };
 
-typedef uint64_t QWORD;
-
-typedef std::vector<int> cIntVector;
-typedef std::vector<size_t> cIndexVector;
+using QWORD = uint64_t;
+using ll = long long;
+using cIntVector = std::vector<int>;
+using cIndexVector = std::vector<size_t>;
 
 class cLog;
 
