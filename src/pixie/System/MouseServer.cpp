@@ -1,5 +1,8 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
+
+#include <windowsx.h>
+
 const cEventDispatchers::cDispatcherRangeInfo cMouseServer::mDispatcherRangeInfo=
 {
 	PixieEvents::MouseServer_First, { "move", "left_button_down", "left_button_up", "left_button_double_click", "right_button_down", "right_button_up", "wheel" }
@@ -87,8 +90,17 @@ cWindowsMessageResult cMouseServer::OnWheel(WPARAM wParam, LPARAM lParam)
 {
     cEventData eventData;
     eventData.packed = 0;
-    eventData.parts.x = LOWORD(lParam);
-    eventData.parts.y = HIWORD(lParam);
+    eventData.parts.x = GET_X_LPARAM(lParam);
+    eventData.parts.y = GET_Y_LPARAM(lParam);
+
+	// adjust coordinates to be relative to the window
+	POINT pt;
+    pt.x = eventData.parts.x;
+    pt.y = eventData.parts.y;
+    ScreenToClient(cPrimaryWindow::Get().mWindowHandle, &pt);
+    eventData.parts.x = pt.x;
+    eventData.parts.y = pt.y;
+
 	eventData.parts.wheelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
     if (GetKeyState(VK_SHIFT) & 128)
         eventData.parts.shiftState = 1;
