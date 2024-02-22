@@ -17,7 +17,6 @@ void cDampenedSpeedCalculator::SetSpeed(double Speed)
 {
 	mLastTime=gFrameTime;
 	mSpeed=Speed;
-	MainLog->Log("SetSpeed: %.3f", mSpeed);
 	if(std::abs(mSpeed)<EPSILON)
 	{
 		mSpeed=0.0;

@@ -219,6 +219,13 @@ template<class... Args> std::vector<cLuaValue> cLuaValue::call(Args... args)
         push(L, args...);
     }
     int status = lua_pcall(L, sizeof...(args), LUA_MULTRET, 0);
+    if (status != 0) 
+    {
+        const char* errorMessage = lua_tostring(L, -1);
+        printf("Lua error: %s\n", errorMessage);
+        // Handle the error, such as logging or displaying the error message
+        // ...
+    }
     std::vector<cLuaValue> returnValues;
     returnValues.reserve(lua_gettop(L));
     for (int i = lua_gettop(L); i >= 1; --i) // at the bottom of the stack, our table is.
