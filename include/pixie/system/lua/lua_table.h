@@ -24,7 +24,7 @@ public:
     ~cLuaValue();
     cLuaValue& operator=(cLuaValue&& src);
     cLuaValue& operator=(const cLuaValue& src);
-    cLuaValue subTable(const std::string& key) const;
+    cLuaValue subTable(const std::string& key) const; // creates a new table if it doesn't exist
 // when the value is a table, accessing an element:
     template<class T> T get(const std::string& key) const;
     template<class T> T get(int index) const; // array access. index >= 1
