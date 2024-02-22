@@ -311,6 +311,38 @@ TEST(lua_function_call, function_i_ii)
     ASSERT_EQ(script->stackSize(), 0);
 }
 
+TEST(lua_value, call)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    script->executeString("function testedFunction(a, b) return a+b end");
+
+    cLuaValue globalTable = script->globalTable();
+    cLuaValue testedFunction = globalTable.get<cLuaValue>("testedFunction");
+    auto returned = testedFunction.call(10, 11);
+    ASSERT_EQ(returned.size(), 1u);
+    ASSERT_EQ(returned.front().toInt(), 21);
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_value, isFunction)
+{
+auto script = std::make_shared<cLuaScript>();
+
+    script->executeString("function testedFunction(a, b) return a+b end");
+    script->executeString("apple = 42");
+
+    cLuaValue globalTable = script->globalTable();
+    cLuaValue testedFunction = globalTable.get<cLuaValue>("testedFunction");
+    ASSERT_TRUE(testedFunction.isFunction());
+    cLuaValue apple = globalTable.get<cLuaValue>("apple");
+    ASSERT_FALSE(apple.isFunction());
+
+    ASSERT_EQ(script->stackSize(), 0);
+
+}
+
 TEST(lua_function_register, function_i_ii)
 {
     auto script = std::make_shared<cLuaScript>();

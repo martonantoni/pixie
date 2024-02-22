@@ -35,6 +35,8 @@ public:
 // operating on the value itself:
     int toInt() const;
     std::string toString() const;
+    bool isFunction() const;
+    template<class... Args> std::vector<cLuaValue> call(Args... args);
 
     cLuaScript& script() { return *mScript; }
     const cLuaScript& script() const { return *mScript; }
@@ -199,7 +201,7 @@ bool cLuaValue::isType(const std::string& variableName) const
     return result;
 }
 
-template<class... Args> std::vector<cLuaValue> cLuaValue::callFunction(const std::string& key, Args... args)
+template<class... Args> std::vector<cLuaValue> cLuaValue::call(Args... args)
 {
     if (!mScript || mReference == LUA_NOREF)
     {
@@ -207,8 +209,6 @@ template<class... Args> std::vector<cLuaValue> cLuaValue::callFunction(const std
     }
     lua_State* L = mScript->state();
     lua_rawgeti(L, LUA_REGISTRYINDEX, mReference); // Retrieve the table from the registry
-    lua_pushstring(L, key.c_str()); // Push the variable name onto the Lua stack
-    lua_gettable(L, -2); // Get the value from the table using the variable name
     if (!lua_isfunction(L, -1))
     {
         // handle error
@@ -220,13 +220,23 @@ template<class... Args> std::vector<cLuaValue> cLuaValue::callFunction(const std
     }
     int status = lua_pcall(L, sizeof...(args), LUA_MULTRET, 0);
     std::vector<cLuaValue> returnValues;
-    returnValues.reserve(lua_gettop(L) - 1);
-    for (int i = lua_gettop(L); i >= 2; --i) // at the bottom of the stack, our table is.
+    returnValues.reserve(lua_gettop(L));
+    for (int i = lua_gettop(L); i >= 1; --i) // at the bottom of the stack, our table is.
     {
         returnValues.emplace_back(mScript, luaL_ref(L, LUA_REGISTRYINDEX), false);
     }
     lua_pop(L, lua_gettop(L));
     return returnValues;
+}
+
+template<class... Args> std::vector<cLuaValue> cLuaValue::callFunction(const std::string& key, Args... args)
+{
+    if (!mScript || mReference == LUA_NOREF)
+    {
+        return {};
+    }
+    cLuaValue function = get<cLuaValue>(key);
+    return function.call(args...);
 }
 
 template<class R, class... Args, class C>

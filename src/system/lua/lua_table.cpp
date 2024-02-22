@@ -80,6 +80,19 @@ cLuaValue& cLuaValue::operator=(const cLuaValue& src)
     return *this;
 }
 
+bool cLuaValue::isFunction() const
+{
+    if (!mScript || mReference == LUA_NOREF)
+    {
+        return false;
+    }
+    lua_State* L = mScript->state();
+    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference); // Retrieve the table from the registry
+    bool result = lua_isfunction(L, -1);
+    lua_pop(L, 1); // Pop the table from the stack
+    return result;
+}
+
 cLuaValue::~cLuaValue()
 {
     if (mScript && mReference != LUA_NOREF)
