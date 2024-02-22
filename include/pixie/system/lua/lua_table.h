@@ -223,6 +223,8 @@ template<class... Args> std::vector<cLuaValue> cLuaValue::call(Args... args)
     {
         const char* errorMessage = lua_tostring(L, -1);
         printf("Lua error: %s\n", errorMessage);
+        lua_pop(L, lua_gettop(L));
+        return {};
         // Handle the error, such as logging or displaying the error message
         // ...
     }
