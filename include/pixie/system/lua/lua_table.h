@@ -28,7 +28,6 @@ public:
 // when the value is a table, accessing an element:
     template<class T> T get(const std::string& key) const;
     template<class T> T get(int index) const; // array access. index >= 1
-//    template<class T> T get(cKey key) const;
     template<class T> void set(const std::string& key, const T& value);
     template<class R, class... Args, class C> void registerFunction(const std::string& key, const C&& func);
     template<class... Args> std::vector<cLuaValue> callFunction(const std::string& key, Args... args);
@@ -37,10 +36,9 @@ public:
     int toInt() const;
     std::string toString() const;
 
-
     cLuaScript& script() { return *mScript; }
     const cLuaScript& script() const { return *mScript; }
-
+// if the value is a table, we can create a config from it:
     tIntrusivePtr<cConfig> toConfig(IsRecursive isRecursive = IsRecursive::Yes) const;
 };
 
@@ -132,14 +130,6 @@ T cLuaValue::pop(std::shared_ptr<cLuaScript> script, lua_State* L)
     // handle error
     return T{};
 }
-
-// template<typename T> T cLuaValue::pop() const
-
-
-// template<class T> T cLuaValue::get(cKey key) const
-// {
-// }
-
 
 template<typename T> T cLuaValue::get(const std::string& key) const
 {
