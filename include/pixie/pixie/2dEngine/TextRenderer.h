@@ -83,6 +83,7 @@ class cTextRenderer
 public:
 	cTextRenderer(cFont2 *DefaultFont=theFontManager.GetFont("default")): mDefaultFont(DefaultFont) {}
 	cTextRenderer(const std::string &DefaultFont): mDefaultFont(theFontManager.GetFont(DefaultFont)) {}
+	cTextRenderer(const std::string& defaultFont, const std::string& defaultColor): mDefaultFont(theFontManager.GetFont(defaultFont)), mDefaultColor(theColorServer.GetColor(defaultColor)) {}
 	void setFont(cFont2 *defaultFont) { mDefaultFont=defaultFont; }
 	struct cRenderInfo
 	{
@@ -107,4 +108,5 @@ public:
 	{
 		mMaxWidth=MaxWidth;
 	}
+	cFont2& defaultFont() const { return *mDefaultFont; }
 };

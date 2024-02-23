@@ -36,7 +36,6 @@ public:
 	};
 	cTextMetrics MeasureText(const UTF8::cDecodedString &Text) const;
 	int GetHeight() const { return mFontHeight; } // temp
-	int GetDisctanceBetweenRows() const { return 5; } // temp, haaaaaack
 	int GetAdvance(int Char) const;
 	int GetAscender() const { return mAscender; }
 	int GetDescender() const { return mDescender; }
