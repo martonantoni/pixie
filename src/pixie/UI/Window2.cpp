@@ -138,6 +138,11 @@ void cPixieWindow::SetPlacement(const cRect &Rect)
 	mEventDispatchers.PostEvent(Event_PlacementChanged);
 }
 
+void cPixieWindow::setPosition(const cPoint& Position)
+{
+	SetPlacement({ Position, mPlacement.GetSize() });
+}
+
 bool cPixieWindow::IsInside(cPoint WindowRelativeCoords) const
 {
 	return mPlacement.IsPointInside(WindowRelativeCoords); //todo: check visualizer! (this will be a virtual call)
