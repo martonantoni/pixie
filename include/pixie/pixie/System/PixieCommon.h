@@ -30,7 +30,9 @@ struct cRect
 	void SetPosition(cPoint Position) { mLeft=Position.x; mTop=Position.y; }
 	void SetSize(cPoint Size) { mWidth=Size.x; mHeight=Size.y; }
 	cPoint GetPosition() const { return cPoint(mLeft,mTop); }
+	cPoint position() const { return cPoint(mLeft,mTop); }
 	cPoint GetSize() const { return cPoint(mWidth,mHeight); }
+	cPoint size() const { return cPoint(mWidth,mHeight); }
 	void Move(cPoint Offset) { mLeft+=Offset.x; mTop+=Offset.y; }
     void Grow(cPoint Offset) { mWidth += Offset.x; mHeight += Offset.y; }
 	bool IsPointInside(cPoint Point) const { return Point.x>=mLeft&&Point.x<mLeft+mWidth&&Point.y>=mTop&&Point.y<mTop+mHeight; }
