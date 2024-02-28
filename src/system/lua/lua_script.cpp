@@ -150,3 +150,17 @@ int cLuaScript::stackSize() const
 {
     return lua_gettop(L);
 }
+
+tIntrusivePtr<cConfig> cLuaScript::stringToConfig(const std::string& scriptText)
+{
+    auto script = std::make_shared<cLuaScript>();
+    script->executeString(scriptText);
+    return script->globalTable().toConfig();
+}
+
+tIntrusivePtr<cConfig> cLuaScript::fileToConfig(const cPath& scriptPath)
+{
+    auto script = std::make_shared<cLuaScript>();
+    script->executeFile(scriptPath);
+    return script->globalTable().toConfig();
+}
