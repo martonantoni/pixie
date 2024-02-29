@@ -11,7 +11,10 @@ public:
         cLine() = default;
 		int IsValid() { return Data!=NULL; }
 		inline operator std::string() const { return std::string(Data,Length); }
-		const char *end() const { return Data+Length; }
+		inline bool empty() const { return Length == 0; }
+		const char* end() const { return Data + Length; }
+		const char* begin() const { return Data; }
+		char operator[](int i) const { return Data[i]; }
 	};
     class iterator
     {
