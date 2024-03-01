@@ -3,12 +3,6 @@
 const char* cLuaScript::userDataMetaTableName = "destructed_user_data";
 std::vector<std::string> cLuaScript::globalTableInternalElements;
 
-// void callLuaStaticInit()
-// {
-//     cLuaScript::staticInit();
-// }
-// REGISTER_AUTO_INIT_FUNCTION_CALL(callLuaStaticInit, eProgramPhases::StaticInit, DefaultInitLabel);
-
 void cLuaScript::staticInit()
 {
     auto script = std::make_shared<cLuaScript>();
