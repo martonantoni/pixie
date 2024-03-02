@@ -164,6 +164,28 @@ TEST(lua_value, array_get)
     ASSERT_EQ(script->stackSize(), 0);
 }
 
+TEST(lua_value, arraySize)
+{
+    auto script = std::make_shared<cLuaScript>();
+    script->executeString(
+        "my_array = { 2, 9, 13, \"hello\" }\n"
+        "my_table = { a = 1, b = 2, c = 3 }\n"
+        "my_empty_table = {}\n"
+        "my_value = 42\n");
+    cLuaValue globalTable = script->globalTable();
+    cLuaValue testedArray = globalTable.get<cLuaValue>("my_array");
+    cLuaValue testedTable = globalTable.get<cLuaValue>("my_table");
+    cLuaValue testedEmptyTable = globalTable.get<cLuaValue>("my_empty_table");
+    cLuaValue testedValue = globalTable.get<cLuaValue>("my_value");
+
+    ASSERT_EQ(testedArray.arraySize(), 4u);
+    ASSERT_EQ(testedTable.arraySize(), 0u);
+    ASSERT_EQ(testedEmptyTable.arraySize(), 0u);
+    ASSERT_EQ(testedValue.arraySize(), 0u);
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
 TEST(lua_table, get_set_in_local_table)
 {
     auto script = std::make_shared<cLuaScript>();

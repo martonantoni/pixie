@@ -225,3 +225,12 @@ std::string cLuaValue::toString() const
     lua_pop(L, 1);
     return result;
 }
+
+int cLuaValue::arraySize() const
+{
+    lua_State* L = mScript->state();
+    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference);
+    auto result = lua_rawlen(L, -1);
+    lua_pop(L, 1);
+    return result;
+}
