@@ -60,6 +60,12 @@ cLuaScript::cLuaScript()
     luaL_openlibs(L);
 //    lua_atpanic(mState, panicHandler);
 
+    lua_getglobal(L, "package");
+    lua_pushstring(L, "./?.lua");
+    lua_setfield(L, -2, "path");
+    lua_pop(L, 1); // Pop the package table off the stack
+
+
     luaL_newmetatable(L, userDataMetaTableName);
     lua_pushcfunction(L, gcUserData);
     lua_setfield(L, -2, "__gc");
