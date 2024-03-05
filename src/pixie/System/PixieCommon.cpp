@@ -13,11 +13,20 @@ cRect::cRect(const cConfig &Config)
 
 void cRect::FromConfig(const cConfig &Config, eIsOptional IsOptional)
 {
-	auto Default=IsOptional==eIsOptional::Yes?tDefaultValue<int>(0):tDefaultValue<int>();
-	mLeft=Config.GetInt("x", Default);
-	mTop=Config.GetInt("y", Default);
-	mWidth=Config.GetInt("w", Default);
-	mHeight=Config.GetInt("h", Default);
+	if (IsOptional == eIsOptional::Yes)
+	{
+		mLeft = Config.GetInt("x", mLeft);
+		mTop = Config.GetInt("y", mTop);
+		mWidth = Config.GetInt("w", mWidth);
+		mHeight = Config.GetInt("h", mHeight);
+	}
+	else
+	{
+		mLeft = Config.GetInt("x");
+        mTop = Config.GetInt("y");
+        mWidth = Config.GetInt("w");
+        mHeight = Config.GetInt("h");
+    }
 }
 
 void cRect::ToConfig(cConfig &Config) const
