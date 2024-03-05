@@ -89,8 +89,8 @@ public:
 		eListDirection mListDirection=eListDirection::Vertical;
 		bool mItemHighlightEnabled=true;
 		bool mItemSelectEnabled=true;
+		void setConfig(tIntrusivePtr<cConfig> config);
 		cInitData()=default;
-		cInitData(const cConfig& Config);
 	};
 protected:
 	eListDirection mListDirection=eListDirection::Vertical;

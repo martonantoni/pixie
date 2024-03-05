@@ -52,7 +52,15 @@ void cConfig::forEachSubConfig(const C& callable) const
 {
 	for (auto& [key, config] : mSubConfigs)
 	{
-		callable(key, *config);
+		if constexpr (std::is_invocable_v<C, const std::string&, cConfig&> ||
+			std::is_invocable_v<C, const std::string&, const cConfig&>)
+		{
+			callable(key, *config);
+		}
+		else
+		{
+			callable(key, config);
+		}
 	}
 }
 

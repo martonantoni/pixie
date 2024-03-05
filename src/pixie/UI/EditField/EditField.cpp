@@ -8,11 +8,12 @@ const cEventDispatchers::cDispatcherRangeInfo cEditField::mDispatcherRangeInfo=
 };
 
 
-cEditField::cInitData::cInitData(const cConfig& Config): tPixieSimpleInitData<cMouseTarget>(Config)
+void cEditField::cInitData::setConfig(tIntrusivePtr<cConfig> config)
 {
-	mTitle=Config.GetString("title", std::string());
-	mTextStyle=Config.GetString("text_style", mTextStyle);
-	mMaxTextLength=Config.GetInt("max_length", mMaxTextLength);
+	tPixieSimpleInitData<cMouseTarget>::setConfig(config);
+	mTitle = config->GetString("title", std::string());
+	mTextStyle = config->GetString("text_style", mTextStyle);
+	mMaxTextLength = config->GetInt("max_length", mMaxTextLength);
 }
 
 void cEditField::Init(const cInitData &InitData)

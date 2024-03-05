@@ -91,8 +91,8 @@ inline std::unique_ptr<typename cVisualizable::cVisualizer> cPixieVisualizerFact
 	(cVisualizable *Visualizable, cPixieWindow *Window, const typename cVisualizable::cInitData &InitData, std::string VisualizerName)
 {
 	auto &Config=InitData.mConfig;
-	if(VisualizerName.empty())
-		VisualizerName=Config.GetString("visualizer", { "standard" });
+	if(VisualizerName.empty() && Config)
+		VisualizerName=Config->GetString("visualizer", { "standard" });
 	if(VisualizerName=="*")
 		return nullptr;
 	auto i=mCreators.find(VisualizerName);

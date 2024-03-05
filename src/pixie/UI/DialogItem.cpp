@@ -96,39 +96,42 @@ void cDialogItem::OnMouseMove(cPoint ScreenCoords, bool IsInside)
 
 /// ---------------------------------------------------------------------------------------------------------------------------------------
 
-void cDialogItems::AddPushButton(cPixieWindow &Window, const cConfig& Config)
+void cDialogItems::AddPushButton(cPixieWindow &Window, tIntrusivePtr<cConfig> config)
 {
-	cPushButton::cInitData InitData(Config);
+	cPushButton::cInitData InitData;
+	InitData.setConfig(config);
 	InitData.mParentWindow=&Window;
 	auto Button=std::make_unique<cPushButton>();
 	Button->Init(InitData);
 	mItems.emplace_back(std::move(Button));
 }
 
-void cDialogItems::AddTextField(cPixieWindow &Window, const cConfig& Config)
+void cDialogItems::AddTextField(cPixieWindow &Window, tIntrusivePtr<cConfig> config)
 {
-	cTextField::cInitData InitData(Config);
+	cTextField::cInitData InitData;
+	InitData.setConfig(config);
 	InitData.mParentWindow=&Window;
 	auto TextField=std::make_unique<cTextField>();
 	TextField->Init(InitData);
 	mItems.emplace_back(std::move(TextField));
 }
 
-void cDialogItems::AddEditField(cPixieWindow &Window, const cConfig& Config)
+void cDialogItems::AddEditField(cPixieWindow &Window, tIntrusivePtr<cConfig> config)
 {
-	cEditField::cInitData InitData(Config);
+	cEditField::cInitData InitData;
+	InitData.setConfig(config);
 	InitData.mParentWindow=&Window;
 	auto EditField=std::make_unique<cEditField>();
 	EditField->Init(InitData);
 	mItems.emplace_back(std::move(EditField));
 }
 
-void cDialogItems::Init(cPixieWindow &Window, const cConfig &config)
+void cDialogItems::Init(cPixieWindow &Window, tIntrusivePtr<cConfig> config)
 {
-	config.forEachSubConfig(
-		[this, &Window](auto& key, auto& subConfig)
+	config->forEachSubConfig(
+		[this, &Window](auto& key, tIntrusivePtr<cConfig> subConfig)
 		{
-			auto TypeName = subConfig.GetString("control_type");
+			auto TypeName = subConfig->GetString("control_type");
 			if (TypeName == "pushbutton")
 			{
 				AddPushButton(Window, subConfig);
@@ -147,7 +150,7 @@ void cDialogItems::Init(cPixieWindow &Window, const cConfig &config)
 				return;
 			}
 			auto& NewItem = mItems.back();
-			if (subConfig.GetBool("grab_focus", false))
+			if (subConfig->GetBool("grab_focus", false))
 			{
 				NewItem->SetFocus();
 			}
