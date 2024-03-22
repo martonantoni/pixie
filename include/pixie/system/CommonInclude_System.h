@@ -40,6 +40,9 @@
 #include <atomic>
 #include <type_traits>
 #include <typeindex>
+#include <concepts>
+#include <optional>
+
 
 #include "fmt/core.h"
 #include "fmt/printf.h"
