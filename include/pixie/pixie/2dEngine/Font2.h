@@ -8,6 +8,7 @@ public:
 		tIntrusivePtr<cTexture> mTexture;
 		int mAdvance;
 		int mXOffset, mYOffset;
+		cPoint offset() const { return cPoint(mXOffset, mYOffset); }
 	};
 private:
 	friend class cFontManager2;
@@ -40,6 +41,7 @@ public:
 	int GetAscender() const { return mAscender; }
 	int GetDescender() const { return mDescender; }
 	const cLetterData &GetLetterData(int Char) const;
+	const cLetterData& letterData(char c) const { return GetLetterData(c); }
 	const cLetterData &GetLetterData(wchar_t Char) const;
 
 	tIntrusivePtr<cTexture> Debug_GetAtlasTexture() const { return mAtlasTexture; }

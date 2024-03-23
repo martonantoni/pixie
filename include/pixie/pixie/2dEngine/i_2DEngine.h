@@ -9,8 +9,6 @@ struct cBlendData;
 #include "TextSprite.h"
 #include "MultiSpriteBase.h"
 #include "MouseCursor.h"
-#include "Font.h"
-#include "FontManager.h"
 #include "Font2.h"
 #include "FontManager2.h"
 #include "TextRenderer.h"
