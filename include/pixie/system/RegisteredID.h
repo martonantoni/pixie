@@ -42,6 +42,7 @@ public:
 	cRegisteredID(cRegistrationHandler *Handler, void *idObject): mRegistrationHandler(Handler), mID(idObject) {}
 	cRegisteredID(cRegistrationHandler *Handler, cID id): mRegistrationHandler(Handler), mID(id) {}
 	~cRegisteredID() { Unregister(); }
+	void reset() { Unregister(); }
 	void Unregister() 
 	{ 
 		if(mRegistrationHandler) 
