@@ -31,13 +31,16 @@ public:
     template<class T> T get(int index) const; // array access. index >= 1
     template<class T> void set(const std::string& key, const T& value);
     template<class R, class... Args, class C> void registerFunction(const std::string& key, const C&& func);
-    template<class... Args> std::vector<cLuaValue> callFunction(const std::string& key, Args... args);
+    template<class... Args> std::vector<cLuaValue> callFunction(const std::string& key, const Args&... args);
+    template<class... Args> std::vector<cLuaValue> callMemberFunction(const std::string& key, const Args&... args);
     template<class T> bool isType(const std::string& key) const;
+    bool has(const std::string& key) const;
 // operating on the value itself:
     int toInt() const;
     std::string toString() const;
     bool isFunction() const;
-    template<class... Args> std::vector<cLuaValue> call(Args... args);
+    bool isTable() const;
+    template<class... Args> std::vector<cLuaValue> call(const Args&... args);
 
     cLuaScript& script() { return *mScript; }
     const cLuaScript& script() const { return *mScript; }
@@ -67,8 +70,13 @@ template<class T> void cLuaValue::push(lua_State* L, const T& value)
     {
         lua_rawgeti(L, LUA_REGISTRYINDEX, value.mReference);
     }
+    else if constexpr (std::is_same_v<T, cLuaValue*>)
+    {
+        lua_rawgeti(L, LUA_REGISTRYINDEX, value->mReference);
+    }
     else
     {
+        ASSERT(false);
         // error
     }
 }
@@ -129,7 +137,7 @@ T cLuaValue::pop(std::shared_ptr<cLuaScript> script, lua_State* L)
     {
         return cLuaScript(L);
     }
-
+    ASSERT(false);
     // handle error
     return T{};
 }
@@ -202,7 +210,7 @@ bool cLuaValue::isType(const std::string& variableName) const
     return result;
 }
 
-template<class... Args> std::vector<cLuaValue> cLuaValue::call(Args... args)
+template<class... Args> std::vector<cLuaValue> cLuaValue::call(const Args&... args)
 {
     if (!mScript || mReference == LUA_NOREF)
     {
@@ -239,7 +247,7 @@ template<class... Args> std::vector<cLuaValue> cLuaValue::call(Args... args)
     return returnValues;
 }
 
-template<class... Args> std::vector<cLuaValue> cLuaValue::callFunction(const std::string& key, Args... args)
+template<class... Args> std::vector<cLuaValue> cLuaValue::callFunction(const std::string& key, const Args&... args)
 {
     if (!mScript || mReference == LUA_NOREF)
     {
@@ -247,6 +255,16 @@ template<class... Args> std::vector<cLuaValue> cLuaValue::callFunction(const std
     }
     cLuaValue function = get<cLuaValue>(key);
     return function.call(args...);
+}
+
+template<class... Args> std::vector<cLuaValue> cLuaValue::callMemberFunction(const std::string& key, const Args&... args)
+{
+    if (!mScript || mReference == LUA_NOREF)
+    {
+        return {};
+    }
+    cLuaValue function = get<cLuaValue>(key);
+    return function.call(this, args...);
 }
 
 template<class R, class... Args, class C>

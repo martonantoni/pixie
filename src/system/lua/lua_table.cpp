@@ -93,6 +93,19 @@ bool cLuaValue::isFunction() const
     return result;
 }
 
+bool cLuaValue::isTable() const
+{
+    if (!mScript || mReference == LUA_NOREF)
+    {
+        return false;
+    }
+    lua_State* L = mScript->state();
+    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference); // Retrieve the table from the registry
+    bool result = lua_istable(L, -1);
+    lua_pop(L, 1); // Pop the table from the stack
+    return result;
+}
+
 cLuaValue::~cLuaValue()
 {
     if (mScript && mReference != LUA_NOREF)
@@ -232,5 +245,16 @@ int cLuaValue::arraySize() const
     lua_rawgeti(L, LUA_REGISTRYINDEX, mReference);
     auto result = lua_rawlen(L, -1);
     lua_pop(L, 1);
+    return result;
+}
+
+bool cLuaValue::has(const std::string& key) const
+{
+    lua_State* L = mScript->state();
+    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference);
+    lua_pushstring(L, key.c_str());
+    lua_gettable(L, -2);
+    bool result = !lua_isnil(L, -1);
+    lua_pop(L, 2);
     return result;
 }

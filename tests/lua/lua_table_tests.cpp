@@ -494,6 +494,25 @@ TEST(lua_execute, c_function_t_t)
     ASSERT_EQ(result.get<int>("b"), 30);
 }
 
+TEST(lua_oop, callMemberFunction)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    script->executeString(
+        "my_table = "
+        "{"
+        "    a = 1,"
+        "    increase = function(self, b) self.a = self.a + b end"
+        "}");
+
+    auto globalTable = script->globalTable();
+    auto myTable = globalTable.get<cLuaValue>("my_table");
+    myTable.callFunction("increase", myTable, 2);
+    ASSERT_EQ(myTable.get<int>("a"), 3u);
+    myTable.callMemberFunction("increase", 123);
+    ASSERT_EQ(myTable.get<int>("a"), 126u);
+}
+
 // Main function to run the tests
 int main(int argc, char** argv)
 {
