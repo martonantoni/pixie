@@ -37,6 +37,7 @@ public:
     bool has(const std::string& key) const;
 // operating on the value itself:
     int toInt() const;
+    double toDouble() const;
     std::string toString() const;
     bool isFunction() const;
     bool isTable() const;

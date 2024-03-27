@@ -229,6 +229,16 @@ int cLuaValue::toInt() const
     return result;
 }
 
+double cLuaValue::toDouble() const
+{
+    lua_State* L = mScript->state();
+    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference);
+
+    auto result = lua_tonumber(L, -1);
+    lua_pop(L, 1);
+    return result;
+}
+
 std::string cLuaValue::toString() const
 {
     lua_State* L = mScript->state();
