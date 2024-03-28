@@ -145,6 +145,20 @@ TEST(lua_value, toString)
     ASSERT_EQ(script->stackSize(), 0);
 }
 
+TEST(lua_value, toDouble)
+{
+    auto script = std::make_shared<cLuaScript>();
+    cLuaValue globalTable = script->globalTable();
+
+    storeTestVariables(globalTable);
+    cLuaValue intValue = globalTable.get<cLuaValue>("twelve");
+    ASSERT_EQ(intValue.toDouble(), 12.0);
+    cLuaValue stringValue = globalTable.get<cLuaValue>("ten_string");
+    ASSERT_EQ(stringValue.toDouble(), 10.0);
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
 TEST(lua_value, array_get)
 {
     auto script = std::make_shared<cLuaScript>();
