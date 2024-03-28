@@ -506,6 +506,7 @@ TEST(lua_execute, c_function_t_t)
 
     ASSERT_EQ(result.get<int>("a"), 18);
     ASSERT_EQ(result.get<int>("b"), 30);
+    ASSERT_EQ(script->stackSize(), 0);
 }
 
 TEST(lua_oop, callMemberFunction)
@@ -525,6 +526,58 @@ TEST(lua_oop, callMemberFunction)
     ASSERT_EQ(myTable.get<int>("a"), 3u);
     myTable.callMemberFunction("increase", 123);
     ASSERT_EQ(myTable.get<int>("a"), 126u);
+}
+
+TEST(lua_oop, exception_from_cpp_function)
+{
+    auto script = std::make_shared<cLuaScript>();
+    auto globalTable = script->globalTable();
+
+    globalTable.registerFunction<int, int, int>("test"s,
+        [](int r, int l) -> int
+        {
+            if(r==l)
+                throw std::string("exception from C++");
+            return r + l;
+        });
+
+    try
+    {
+        script->executeString("result = test(1234, 1234)");
+        FAIL() << "exception not thrown";
+    }
+    catch (const std::string& e)
+    {
+        ASSERT_STREQ(e.c_str(), "exception from C++");
+    }
+    ASSERT_EQ(script->stackSize(), 0);
+
+    script->executeString("result = test(1,2)");
+    ASSERT_EQ(globalTable.get<int>("result"), 3);
+    ASSERT_EQ(script->stackSize(), 0);
+
+    globalTable.registerFunction<int, cLuaValue, cLuaValue>("test2"s,
+        [](cLuaValue r, cLuaValue l) -> int
+        {
+            if(r.toInt() == l.toInt())
+                throw std::string("exception from C++");
+            return r.toInt() + l.toInt();
+        });
+    try
+    {
+        script->executeString("result = test2(1234, 1234)");
+        FAIL() << "exception not thrown";
+    }
+    catch (const std::string& e)
+    {
+        ASSERT_STREQ(e.c_str(), "exception from C++");
+    }
+
+    ASSERT_EQ(script->stackSize(), 0);
+
+    script->executeString("result = test2(5,6)");
+    ASSERT_EQ(globalTable.get<int>("result"), 11);
+    ASSERT_EQ(script->stackSize(), 0);
 }
 
 // Main function to run the tests
