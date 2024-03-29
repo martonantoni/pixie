@@ -70,12 +70,12 @@ void registerGlobalPixieLuaFunctions(cLuaValue globalTable)
 	globalTable.registerFunction<int, cLuaValue>("XEnd",
 		[](cLuaValue object) -> int
 		{
-			return object.get<int>("x") + object.get<int>("w");
+			return *object.get<int>("x") + *object.get<int>("w");
 		});
     globalTable.registerFunction<int, cLuaValue>("YEnd",
         [](cLuaValue object) -> int
         {
-            return object.get<int>("y") + object.get<int>("h");
+            return *object.get<int>("y") + *object.get<int>("h");
         });
 	globalTable.registerFunction<cLuaValue, cLuaScript&, int, int, int, int>("Rect",
 		[](cLuaScript& script, int x, int y, int w, int h) -> cLuaValue

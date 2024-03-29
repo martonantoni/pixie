@@ -27,7 +27,7 @@ public:
     cLuaValue subTable(const std::string& key) const; // creates a new table if it doesn't exist
     int arraySize() const; // returns the length of the array, returns 0 if the value is not an array
 // when the value is a table, accessing an element:
-    template<class T> T get(const std::string& key) const;
+    template<class T> std::optional<T> get(const std::string& key) const;
     template<class T> T get(int index) const; // array access. index >= 1
     template<class T> void set(const std::string& key, const T& value);
     template<class R, class... Args, class C> void registerFunction(const std::string& key, const C&& func);
@@ -143,7 +143,7 @@ T cLuaValue::pop(std::shared_ptr<cLuaScript> script, lua_State* L)
     return T{};
 }
 
-template<typename T> T cLuaValue::get(const std::string& key) const
+template<typename T> std::optional<T> cLuaValue::get(const std::string& key) const
 {
     if (!mScript || mReference == LUA_NOREF)
     {
@@ -154,7 +154,11 @@ template<typename T> T cLuaValue::get(const std::string& key) const
     lua_rawgeti(L, LUA_REGISTRYINDEX, mReference); // Retrieve the table from the registry
     lua_pushstring(L, key.c_str()); // Push the variable name onto the Lua stack
     lua_gettable(L, -2); // Get the value from the table using the variable name
-
+    if(lua_isnil(L, -1))
+    {
+        lua_pop(L, 2);
+        return {};
+    }
     FINALLY([L]() { lua_pop(L, 1); }); 
     return pop<T>(mScript, L);
 }
@@ -254,7 +258,7 @@ template<class... Args> std::vector<cLuaValue> cLuaValue::callFunction(const std
     {
         return {};
     }
-    cLuaValue function = get<cLuaValue>(key);
+    cLuaValue function = *get<cLuaValue>(key);
     return function.call(args...);
 }
 
@@ -264,7 +268,7 @@ template<class... Args> std::vector<cLuaValue> cLuaValue::callMemberFunction(con
     {
         return {};
     }
-    cLuaValue function = get<cLuaValue>(key);
+    cLuaValue function = *get<cLuaValue>(key);
     return function.call(this, args...);
 }
 
