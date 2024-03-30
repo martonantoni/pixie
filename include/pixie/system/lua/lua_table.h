@@ -5,6 +5,7 @@ class cLuaValue final
 public:
     enum class IsRecursive { Yes, No };
     using cKey = std::variant<std::reference_wrapper<const std::string>, const char*, int>;
+    struct cFunctionMustExist {};
 private:
     std::shared_ptr<cLuaScript> mScript;
     int mReference = LUA_NOREF;
@@ -33,7 +34,9 @@ public:
     template<class T> void set(const std::string& key, const T& value);
     template<class R, class... Args, class C> void registerFunction(const std::string& key, const C&& func);
     template<class... Args> std::vector<cLuaValue> callFunction(const std::string& key, const Args&... args);
+    template<class... Args> std::vector<cLuaValue> callFunction(const std::string& key, const cFunctionMustExist&, const Args&... args);
     template<class... Args> std::vector<cLuaValue> callMemberFunction(const std::string& key, const Args&... args);
+    template<class... Args> std::vector<cLuaValue> callMemberFunction(const std::string& key, const cFunctionMustExist&, const Args&... args);
     template<class T> bool isType(const std::string& key) const;
     bool has(const std::string& key) const;
 // operating on the value itself:
@@ -274,7 +277,21 @@ template<class... Args> std::vector<cLuaValue> cLuaValue::callFunction(const std
     {
         return {};
     }
-    cLuaValue function = *get<cLuaValue>(key);
+    auto function = get<cLuaValue>(key);
+    if(function.has_value())
+    {
+        return function->call(args...);
+    }
+    return {};
+}
+
+template<class... Args> std::vector<cLuaValue> cLuaValue::callFunction(const std::string& key, const cFunctionMustExist&, const Args&... args)
+{
+    if (!mScript || mReference == LUA_NOREF)
+    {
+        return {};
+    }
+    cLuaValue function = *get<cLuaValue>(key); // results in an exception if the function doesn't exist
     return function.call(args...);
 }
 
@@ -284,7 +301,21 @@ template<class... Args> std::vector<cLuaValue> cLuaValue::callMemberFunction(con
     {
         return {};
     }
-    cLuaValue function = *get<cLuaValue>(key);
+    auto function = get<cLuaValue>(key);
+    if(function.has_value())
+    {
+        return function->call(this, args...);
+    }
+    return {};
+}
+
+template<class... Args> std::vector<cLuaValue> cLuaValue::callMemberFunction(const std::string& key, const cFunctionMustExist&, const Args&... args)
+{
+    if (!mScript || mReference == LUA_NOREF)
+    {
+        return {};
+    }
+    cLuaValue function = *get<cLuaValue>(key); // results in an exception if the function doesn't exist
     return function.call(this, args...);
 }
 
