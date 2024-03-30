@@ -28,6 +28,7 @@ public:
     int arraySize() const; // returns the length of the array, returns 0 if the value is not an array
 // when the value is a table, accessing an element:
     template<class T> std::optional<T> get(const std::string& key) const;
+    template<class T> T get(const std::string& key, const T& defaultValue) const;
     template<class T> T get(int index) const; // array access. index >= 1
     template<class T> void set(const std::string& key, const T& value);
     template<class R, class... Args, class C> void registerFunction(const std::string& key, const C&& func);
@@ -138,6 +139,13 @@ T cLuaValue::pop(std::shared_ptr<cLuaScript> script, lua_State* L)
     {
         return cLuaScript(L);
     }
+    else if constexpr (std::is_same_v<T, bool>)
+    {
+        if (lua_isboolean(L, -1))
+        {
+            return lua_toboolean(L, -1) != 0;
+        }
+    }
     ASSERT(false);
     // handle error
     return T{};
@@ -161,6 +169,12 @@ template<typename T> std::optional<T> cLuaValue::get(const std::string& key) con
     }
     FINALLY([L]() { lua_pop(L, 1); }); 
     return pop<T>(mScript, L);
+}
+
+template<class T> T cLuaValue::get(const std::string& key, const T& defaultValue) const
+{
+    std::optional<T> value = get<T>(key);
+    return value ? *value : defaultValue;
 }
 
 template<class T> T cLuaValue::get(int index) const
@@ -222,12 +236,14 @@ template<class... Args> std::vector<cLuaValue> cLuaValue::call(const Args&... ar
         return {};
     }
     lua_State* L = mScript->state();
+    int startSize = lua_gettop(L);
     lua_rawgeti(L, LUA_REGISTRYINDEX, mReference); // Retrieve the table from the registry
     if (!lua_isfunction(L, -1))
     {
         // handle error
         return {};
     }
+    int oldSize = lua_gettop(L);
     if constexpr (sizeof...(args) > 0)
     {
         push(L, args...);

@@ -21,6 +21,7 @@ class cLuaScript: public std::enable_shared_from_this<cLuaScript>
     static int gcUserData(lua_State* L);
     static const char* userDataMetaTableName;
     static std::vector<std::string> globalTableInternalElements;
+    static int panicHandler(lua_State* L);
 public:
     cLuaScript();
     cLuaScript(lua_State* l);

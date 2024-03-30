@@ -195,6 +195,7 @@ TEST(lua_value, get_value_not_present)
         auto failedRetrievedValue = globalTable.get<cLuaValue>("citrom");
         ASSERT_FALSE(failedRetrievedValue.has_value());
     }
+    ASSERT_EQ(script->stackSize(), 0);
 }
 
 TEST(lua_value, arraySize)
@@ -356,13 +357,40 @@ TEST(lua_function_call, function_i_ii)
 {
     auto script = std::make_shared<cLuaScript>();
 
-    script->executeString("function testedFunction(a, b) return a+b end");
+    script->executeString(
+        "function otherFunction(a, b) return a+b end\n"
+        "function testedFunction(a, b)\n"
+        "local x = otherFunction(a,b)\n"
+        "return x\n"
+        "end");
     
     cLuaValue globalTable = script->globalTable();
     auto returned = globalTable.callFunction("testedFunction"s, 10, 11);
     ASSERT_EQ(returned.size(), 1u);
     ASSERT_EQ(returned.front().toInt(), 21);
 
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_value, c_to_lua_back_to_c)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    cLuaValue globalTable = script->globalTable();
+    globalTable.registerFunction<int, int, int>("test"s,
+        [](int a, int b) -> int
+        {
+            return a * b;
+        });
+    script->executeString(
+        "my_table = {\n"
+        "  testedFunction = function(self, a, b) return test(a, b) end\n"
+        "}\n");
+
+    auto myTable = *globalTable.get<cLuaValue>("my_table"s);
+    auto returned = myTable.callMemberFunction("testedFunction"s, 10, 11);
+    ASSERT_EQ(returned.size(), 1u);
+    ASSERT_EQ(returned.front().toInt(), 110);
     ASSERT_EQ(script->stackSize(), 0);
 }
 
@@ -460,6 +488,7 @@ TEST(lua_table, toConfig_nonrecursive)
     setupConfigTestVariables(*script);
     auto config = script->globalTable().toConfig(cLuaValue::IsRecursive::No);
     verifyConfigSingleLevel(*config);
+    ASSERT_EQ(script->stackSize(), 0);
 }
 
 TEST(lua_table, toConfig_recursive)
@@ -472,6 +501,7 @@ TEST(lua_table, toConfig_recursive)
     auto subConfig = config->GetSubConfig("mySubTable");
     ASSERT_TRUE(subConfig);
     verifyConfigSingleLevel(*subConfig);
+    ASSERT_EQ(script->stackSize(), 0);
 }
 
 
@@ -488,6 +518,7 @@ TEST(lua_execute, simple_execute)
     auto subTable = *globalTable.get<cLuaValue>("my_table");
     ASSERT_EQ(subTable.get<int>("apple"), 22);
     ASSERT_EQ(subTable.get<int>("pear"), 33);
+    ASSERT_EQ(script->stackSize(), 0);
 }
 
 TEST(lua_execute, c_function_i_ii)
@@ -503,6 +534,7 @@ TEST(lua_execute, c_function_i_ii)
     script->executeString("result = test(1234, 4321)");
 
     ASSERT_EQ(*globalTable.get<int>("result"), 5555);
+    ASSERT_EQ(script->stackSize(), 0);
 }
 
 TEST(lua_execute, c_function_t_t)

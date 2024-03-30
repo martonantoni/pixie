@@ -216,7 +216,9 @@ tIntrusivePtr<cConfig> cLuaValue::toConfig(IsRecursive isRecursive) const
     }
     lua_State* L = mScript->state();
     lua_rawgeti(L, LUA_REGISTRYINDEX, mReference);
-    return toConfig_topTable(L, isRecursive);
+    auto config = toConfig_topTable(L, isRecursive);
+    lua_pop(L, 1);
+    return config;
 }
 
 int cLuaValue::toInt() const

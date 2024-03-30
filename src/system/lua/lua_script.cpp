@@ -27,6 +27,7 @@ bool cLuaScript::isGlobalInternalElement(const std::string& key)
 
 void cLuaScript::dumpStack(lua_State* L)
 {
+    printf("\n---- STACK START ----\n");
     int top = lua_gettop(L);
     for (int i = 1; i <= top; i++) 
     {
@@ -45,6 +46,29 @@ void cLuaScript::dumpStack(lua_State* L)
         case LUA_TNIL:
             printf("%s\n", "nil");
             break;
+        case LUA_TTABLE:
+        {
+            printf("table:\n");
+            lua_pushnil(L);
+            while (lua_next(L, i) != 0) {
+                // At this point, the key is at index -2 and the value is at index -1 on the stack
+
+                // Check if the key is the first one
+                if (lua_type(L, -2) == LUA_TSTRING || lua_type(L, -2) == LUA_TNUMBER) {
+                    const char* key = lua_tostring(L, -2); // Get the key as a string
+                    const char* value = lua_tostring(L, -1); // Get the value as a string
+
+                    // Print the key-value pair
+                    printf("key-value pair: %s = %s\n", key, value);
+
+                }
+
+                // Pop the value, but keep the key for the next iteration
+                lua_pop(L, 1);
+            }
+            break;
+        }
+
         default:
             printf("%p\n", lua_topointer(L, i));
             break;
@@ -54,11 +78,18 @@ void cLuaScript::dumpStack(lua_State* L)
     fflush(stdout);
 }
 
+int cLuaScript::panicHandler(lua_State* L) 
+{
+    const char* errorMessage = lua_tostring(L, -1); // Get the error message from the Lua stack
+    printf("LUA PANIC: %s\n", errorMessage); // Print the error message
+    return 0; // Return 0 to exit the application
+}
+
 cLuaScript::cLuaScript()
 {
     L = luaL_newstate();
     luaL_openlibs(L);
-//    lua_atpanic(mState, panicHandler);
+    lua_atpanic(L, panicHandler);
 
     lua_getglobal(L, "package");
     lua_pushstring(L, "./?.lua");
