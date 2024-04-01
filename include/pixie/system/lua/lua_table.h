@@ -207,7 +207,6 @@ bool cLuaValue::isType(const std::string& variableName) const
 
     lua_rawgeti(L, LUA_REGISTRYINDEX, mReference); // Retrieve the table from the registry
     lua_pushstring(L, variableName.c_str()); // Push the variable name onto the Lua stack
-    cLuaScript::dumpStack(L);
     lua_gettable(L, -2); // Get the value from the table using the variable name
     int type = lua_type(L, -1);
 
