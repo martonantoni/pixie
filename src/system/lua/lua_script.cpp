@@ -195,3 +195,14 @@ tIntrusivePtr<cConfig> cLuaScript::fileToConfig(const cPath& scriptPath)
     script->executeFile(scriptPath);
     return script->globalTable().toConfig();
 }
+
+void cLuaScript::error(lua_State* L, const std::string& message)
+{
+    lua_Debug ar;
+    lua_getstack(L, 1, &ar);
+    lua_getinfo(L, "Sl", &ar);
+    std::string errorMessage = message + " at " + ar.short_src + ":" + std::to_string(ar.currentline);
+    printf("%s\n", errorMessage.c_str());
+    dumpStack(L);
+    throw std::runtime_error(errorMessage);
+}

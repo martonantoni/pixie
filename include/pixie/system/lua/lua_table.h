@@ -149,8 +149,7 @@ T cLuaValue::pop(std::shared_ptr<cLuaScript> script, lua_State* L)
             return lua_toboolean(L, -1) != 0;
         }
     }
-    ASSERT(false);
-    // handle error
+    cLuaScript::error(L, "pop: type mismatch");
     return T{};
 }
 

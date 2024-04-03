@@ -60,5 +60,6 @@ public:
 // debug functions:
     int stackSize() const;
     static void dumpStack(lua_State* L);
+    static void error(lua_State* L, const std::string& message);
 };
 
