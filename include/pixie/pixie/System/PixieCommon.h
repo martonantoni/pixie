@@ -35,7 +35,8 @@ struct cRect
 	cPoint size() const { return cPoint(mWidth,mHeight); }
 	void Move(cPoint Offset) { mLeft+=Offset.x; mTop+=Offset.y; }
     void Grow(cPoint Offset) { mWidth += Offset.x; mHeight += Offset.y; }
-	bool IsPointInside(cPoint Point) const { return Point.x>=mLeft&&Point.x<mLeft+mWidth&&Point.y>=mTop&&Point.y<mTop+mHeight; }
+	bool IsPointInside(cPoint Point) const;
+	bool hasOverlap(const cRect &Other) const;
 	bool operator==(const cRect &Other) const { return mLeft==Other.mLeft&&mTop==Other.mTop&&mWidth==Other.mWidth&&mHeight==Other.mHeight; }
 	cPoint GetCenter() const { return { mLeft+mWidth/2, mTop+mHeight/2 }; }
 	cPoint TopLeft() const { return cPoint(mLeft, mTop); }
@@ -50,3 +51,12 @@ struct cRect
 	void GrowToBound(const cRect &RectToBound);
 };
 
+inline bool cRect::hasOverlap(const cRect& Other) const
+{
+	return mLeft < Other.Right() && Right() > Other.mLeft && mTop < Other.Bottom() && Bottom() > Other.mTop;
+}
+
+inline bool cRect::IsPointInside(cPoint Point) const
+{ 
+	return Point.x >= mLeft && Point.x < mLeft + mWidth && Point.y >= mTop && Point.y < mTop + mHeight; 
+}
