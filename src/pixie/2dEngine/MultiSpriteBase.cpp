@@ -227,3 +227,22 @@ std::unique_ptr<cSpriteBase> cSimpleMultiSprite::Clone() const
     clone->CopyProperties(*this);
     return clone;
 }
+
+cRectBorderMultiSprite::cRectBorderMultiSprite(int borderWidth):
+	mBorderWidth(borderWidth)
+{
+	for (int i = 0; i < 4; ++i)
+	{
+		auto sprite = std::make_unique<cSprite>();
+		sprite->SetTexture("1pix");
+		mSprites.emplace_back(std::move(sprite));
+	}
+}
+
+void cRectBorderMultiSprite::ArrangeSprites()
+{
+	mSprites[spriteIndexes.top]->SetRect(cRect { 0, 0, GetWidth(), mBorderWidth });
+	mSprites[spriteIndexes.bottom]->SetRect(cRect { 0, GetHeight() - mBorderWidth, GetWidth(), mBorderWidth });
+	mSprites[spriteIndexes.left]->SetRect(cRect { 0, mBorderWidth, mBorderWidth, GetHeight() - 2 * mBorderWidth });
+	mSprites[spriteIndexes.right]->SetRect(cRect { GetWidth() - mBorderWidth, mBorderWidth, mBorderWidth, GetHeight() - 2 * mBorderWidth });
+}

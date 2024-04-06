@@ -46,7 +46,6 @@ public:
 
 USE_DROP_INSTEAD_DELETE_PARENT(cSimpleMultiSprite, cMultiSpriteBase);
 
-
 class cAutoMultiSpriteBase: public cMultiSpriteBase
 {
 	std::vector<tIntrusivePtr<cTexture>> mTextureOverrides;
@@ -61,3 +60,20 @@ public:
 };
 
 USE_DROP_INSTEAD_DELETE_PARENT(cAutoMultiSpriteBase, cMultiSpriteBase);
+
+class cRectBorderMultiSprite : public cMultiSpriteBase
+{
+	virtual void ArrangeSprites() override;
+	int mBorderWidth;
+	struct
+	{
+		static constexpr int top = 0;
+		static constexpr int right = 1;
+		static constexpr int bottom = 2;
+		static constexpr int left = 3;
+	} spriteIndexes;
+public:
+	cRectBorderMultiSprite(int borderWidth);
+};
+
+USE_DROP_INSTEAD_DELETE_PARENT(cRectBorderMultiSprite, cMultiSpriteBase);
