@@ -241,8 +241,9 @@ cRectBorderMultiSprite::cRectBorderMultiSprite(int borderWidth):
 
 void cRectBorderMultiSprite::ArrangeSprites()
 {
-	mSprites[spriteIndexes.top]->SetRect(cRect { 0, 0, GetWidth(), mBorderWidth });
-	mSprites[spriteIndexes.bottom]->SetRect(cRect { 0, GetHeight() - mBorderWidth, GetWidth(), mBorderWidth });
-	mSprites[spriteIndexes.left]->SetRect(cRect { 0, mBorderWidth, mBorderWidth, GetHeight() - 2 * mBorderWidth });
-	mSprites[spriteIndexes.right]->SetRect(cRect { GetWidth() - mBorderWidth, mBorderWidth, mBorderWidth, GetHeight() - 2 * mBorderWidth });
+	cRect rect = GetRect();
+	mSprites[spriteIndexes.top]->SetRect(cRect{ rect.Left(), rect.Top(), rect.Width(), mBorderWidth });
+	mSprites[spriteIndexes.bottom]->SetRect(cRect{ rect.Left(), rect.Bottom() - mBorderWidth, rect.Width(), mBorderWidth });
+	mSprites[spriteIndexes.left]->SetRect(cRect{ rect.Left(), rect.Top(), mBorderWidth, rect.Height() });
+	mSprites[spriteIndexes.right]->SetRect(cRect{ rect.Right() - mBorderWidth, rect.Top(), mBorderWidth, rect.Height() });
 }

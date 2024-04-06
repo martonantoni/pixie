@@ -63,11 +63,11 @@ public:
 	DWORD GetAlpha() const { return mProperties.mColor.GetAlpha(); }
 
 	void SetRect(const cRect &Rect);
+	void SetPlacement(const cRect& Rect) { SetRect(Rect); } // just an alias
 	void SetCenterAndHSize(const cRect &Rect);
 	void SetCenter(cPoint Point);
 	void SetPosition(int x,int y) { SetPosition(cPoint(x,y)); }
 	void SetPosition(cPoint Position);
-	void SetPlacement(const cRect &Rect) { SetPosition(Rect.GetPosition()); SetSize(Rect.GetSize()); }
 	void SetScreenPosition(cPoint Position);
 	void SetPositionOffset(int XOffset,int YOffset) { SetPositionOffset(cPoint(XOffset,YOffset)); }
 	void SetPositionOffset(const cPoint &PositionOffset);

@@ -29,17 +29,10 @@ public:
 
 class cColorServer
 {
-	struct cNamedColor
-	{
-		std::string mName;
-		cColor mColor;
-		cNamedColor(const std::string &Name, cColor Color): mName(Name), mColor(Color) {}
-		cNamedColor(cNamedColor &&)=default;
-	};
-	std::vector<cNamedColor> mColors;
+	std::unordered_map<std::string, cColor> mColorMap;
 public:
 	void Init();
-	cColor GetColor(const std::string &Name) const;
+	cColor GetColor(const std::string& name) const;
 };
 
 extern cColorServer theColorServer;

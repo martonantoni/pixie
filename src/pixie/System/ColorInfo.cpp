@@ -4,18 +4,18 @@ cColorServer theColorServer;
 
 void cColorServer::Init()
 {
-	auto FontsConfig= theGlobalConfig->GetSubConfig("colors");
-	auto Names=FontsConfig->GetKeys();
-	for(auto &Name: Names)
+	auto colorsConfig = theGlobalConfig->GetSubConfig("colors");
+	for(auto &name: colorsConfig->GetKeys())
 	{
-		mColors.emplace_back(Name, FontsConfig->GetInt(Name));
+		mColorMap[name] = cColor(colorsConfig->get<int>(name));
 	}
 }
 
-cColor cColorServer::GetColor(const std::string &Name) const
+cColor cColorServer::GetColor(const std::string& name) const
 {
- 	auto i=std::find_if(mColors, [&Name](auto &ColorInfo) {return ColorInfo.mName==Name; });
- 	return ASSERTFALSE(i==mColors.end())?cColor():i->mColor;
+	auto i = mColorMap.find(name);
+	ASSERT(i != mColorMap.end());
+	return i->second;
 }
 
 cColor::cColor(const std::string &ColorName)
