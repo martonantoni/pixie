@@ -366,6 +366,81 @@ TEST(config_array, set_bool_get_double)
     }
 }
 
+TEST(config, visit)
+{
+    auto config = make_intrusive_ptr<cConfig2>();
+    fillConfig(*config);
+    config->visit([](const std::string& key, const auto& value) 
+        {
+            if constexpr(std::is_same_v<std::decay_t<decltype(value)>, int>)
+            {
+                EXPECT_EQ(std::stoi(key.substr(4)), value);
+            }
+            else if constexpr(std::is_same_v<std::decay_t<decltype(value)>, std::string>)
+            {
+                EXPECT_STREQ(std::to_string(std::stoi(key.substr(7)) + 100).c_str(), value.c_str());
+            }
+            else if constexpr(std::is_same_v<std::decay_t<decltype(value)>, double>)
+            {
+                EXPECT_EQ((double)std::stoi(key.substr(7)) + 200, value);
+            }
+            else if constexpr(std::is_same_v<std::decay_t<decltype(value)>, bool>)
+            {
+                EXPECT_EQ(std::stoi(key.substr(5)) % 2 == 0, value);
+            }
+        });
+}
+
+TEST(config_array, visit)
+{
+    auto config = make_intrusive_ptr<cConfig2>();
+    fillConfigArray(*config);
+    config->visit([](const std::string& key, const auto& value)
+        {
+            if constexpr(std::is_same_v<std::decay_t<decltype(value)>, int>)
+            {
+                EXPECT_EQ(std::stoi(key) / 4, value);
+            }
+            else if constexpr(std::is_same_v<std::decay_t<decltype(value)>, std::string>)
+            {
+                EXPECT_STREQ(std::to_string((std::stoi(key) - 1) / 4 + 100).c_str(), value.c_str());
+            }
+            else if constexpr(std::is_same_v<std::decay_t<decltype(value)>, double>)
+            {
+                EXPECT_EQ((double)(std::stoi(key) - 2) / 4 + 200, value);
+            }
+            else if constexpr(std::is_same_v<std::decay_t<decltype(value)>, bool>)
+            {
+                EXPECT_EQ((std::stoi(key) - 3) / 4 % 2 == 0, value);
+            }
+        });
+}
+
+TEST(config_array, visit_int_key)
+{
+    auto config = make_intrusive_ptr<cConfig2>();
+    fillConfigArray(*config);
+    config->visit([](int idx, const auto& value)
+        {
+            if constexpr (std::is_same_v<std::decay_t<decltype(value)>, int>)
+            {
+                EXPECT_EQ(idx / 4, value);
+            }
+            else if constexpr (std::is_same_v<std::decay_t<decltype(value)>, std::string>)
+            {
+                EXPECT_STREQ(std::to_string((idx - 1) / 4 + 100).c_str(), value.c_str());
+            }
+            else if constexpr (std::is_same_v<std::decay_t<decltype(value)>, double>)
+            {
+                EXPECT_EQ((double)(idx - 2) / 4 + 200, value);
+            }
+            else if constexpr (std::is_same_v<std::decay_t<decltype(value)>, bool>)
+            {
+                EXPECT_EQ((idx - 3) / 4 % 2 == 0, value);
+            }
+        });
+}
+
 TEST(subconfigs, set_get)
 {
     auto config = make_intrusive_ptr<cConfig2>();
@@ -484,6 +559,43 @@ TEST(subconfigs, in_array_get_keypath)
         EXPECT_EQ(key % 2 == 0, config->get<bool>(std::to_string(i) + ".bool_" + std::to_string(key + 3)));
     }
 }
+
+TEST(subconfigs, forEachSubConfig_const_ref)
+{
+    auto config = make_intrusive_ptr<cConfig2>();
+    fillSubconfigsArray(*config);
+    int i = 0;
+    config->forEachSubConfig([&i](const std::string& key, const cConfig2& subConfig)
+        {
+            int keyInt = std::stoi(key);
+            int keyOffset = keyInt * 4;
+            EXPECT_EQ(keyOffset, subConfig.get<int>("int_" + std::to_string(keyOffset)));
+            EXPECT_STREQ(std::to_string(keyOffset + 100).c_str(), subConfig.get<std::string>("string_" + std::to_string(keyOffset + 1)).c_str());
+            EXPECT_EQ((double)keyOffset + 200, subConfig.get<double>("double_" + std::to_string(keyOffset + 2)));
+            EXPECT_EQ(keyOffset % 2 == 0, subConfig.get<bool>("bool_" + std::to_string(keyOffset + 3)));
+            ++i;
+        });
+    EXPECT_EQ(5, i);
+}
+
+TEST(subconfigs, forEachSubConfig_intrusive_ptr)
+{
+    auto config = make_intrusive_ptr<cConfig2>();
+    fillSubconfigsArray(*config);
+    int i = 0;
+    config->forEachSubConfig([&i](const std::string& key, tIntrusivePtr<cConfig2> subConfig)
+        {
+            int keyInt = std::stoi(key);
+            int keyOffset = keyInt * 4;
+            EXPECT_EQ(keyOffset, subConfig->get<int>("int_" + std::to_string(keyOffset)));
+            EXPECT_STREQ(std::to_string(keyOffset + 100).c_str(), subConfig->get<std::string>("string_" + std::to_string(keyOffset + 1)).c_str());
+            EXPECT_EQ((double)keyOffset + 200, subConfig->get<double>("double_" + std::to_string(keyOffset + 2)));
+            EXPECT_EQ(keyOffset % 2 == 0, subConfig->get<bool>("bool_" + std::to_string(keyOffset + 3)));
+            ++i;
+        });
+    EXPECT_EQ(5, i);
+}
+
 
 tIntrusivePtr<cConfig2> createConfigForCountingTests()
 {

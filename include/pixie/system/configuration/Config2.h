@@ -30,11 +30,11 @@ public:
         get(const std::string& keyPath, std::optional<tGetRV<T>> defaultValue = std::optional<tGetRV<T>>()) const;
     template<class T> tGetRV<T> 
         get(int index, std::optional<tGetRV<T>> defaultValue = std::optional<tGetRV<T>>()) const;
-    template<class C> void forEachValue(const C& callable) const;
 
     tIntrusivePtr<cConfig2> getSubConfig(const std::string& keyPath) const; // creates if doesn't exist
     template<class C> void forEachSubConfig(const C& callable) const;
     bool isArray() const;
+    template<class Visitor> void visit(Visitor&& visitor) const;
 };
 
 inline bool cConfig2::empty() const
@@ -310,4 +310,65 @@ template<class T> cConfig2::tGetRV<T> cConfig2::get(int index, std::optional<tGe
         }, mValues);
 }
 
+template<class Visitor> void cConfig2::visit(Visitor&& visitor) const
+{
+    std::visit([&](auto& values)
+        {
+            if constexpr (std::is_same_v<std::decay_t<decltype(values)>, cValueMap>)
+            {
+                for (auto& [key, value] : values)
+                {
+                    std::visit([&](auto& actualValue)
+                        {
+                            if constexpr (std::is_invocable_r_v<void, Visitor, const std::string&, decltype(value)>)
+                            {
+                                visitor(key, actualValue);
+                            }
+                            else
+                            {
+                                // if the value is a subconfig, we can silently ignore it
+                                if constexpr (!std::is_same_v<std::remove_cvref_t<decltype(actualValue)>, tIntrusivePtr<cConfig2>>)
+                                {
+                                    throw std::runtime_error("Unsupported visitor signature");
+                                }
+                            }
+                        }, value);
+                }
+            }
+            else if constexpr (std::is_same_v<std::decay_t<decltype(values)>, cValueArray>)
+            {
+                for (size_t i = 0; i < values.size(); ++i)
+                {
+                    std::visit([&](auto& actualValue)
+                        {
+                            if constexpr (std::is_invocable_r_v<void, Visitor, int, decltype(actualValue)>)
+                            {
+                                visitor(i, actualValue);
+                            }
+                            else
+                            {
+                                visitor(std::to_string(i), actualValue);
+                            }
+                        }, values[i]);
+                }
+            }
+        }, mValues);
+}
 
+template<class C> void cConfig2::forEachSubConfig(const C& callable) const
+{
+    visit([&](const std::string& key, const auto& value)
+        {
+            if constexpr (std::is_same_v<std::remove_cvref_t<decltype(value)>, tIntrusivePtr<cConfig2>>)
+            {
+                if constexpr (std::is_invocable_r_v<void, C, std::string, const cConfig2&>)
+                {
+                    callable(key, *value);
+                }
+                else if constexpr (std::is_invocable_r_v<void, C, std::string, tIntrusivePtr<cConfig2>>)
+                {
+                    callable(key, value);
+                }
+            }
+        });
+}
