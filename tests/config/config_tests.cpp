@@ -485,6 +485,73 @@ TEST(subconfigs, in_array_get_keypath)
     }
 }
 
+tIntrusivePtr<cConfig2> createConfigForCountingTests()
+{
+    auto config = make_intrusive_ptr<cConfig2>();
+    fillConfig(*config);
+    for (int i = 0; i < 5; ++i)
+    {
+        auto subConfig = make_intrusive_ptr<cConfig2>();
+        fillConfig(*subConfig, i * 1000);
+        config->set(std::format("subconfig_{0}", i), std::move(subConfig));
+    }
+    return config;
+}
+
+tIntrusivePtr<cConfig2> createConfigArrayForCountingTests()
+{
+    auto config = make_intrusive_ptr<cConfig2>();
+    fillConfigArray(*config);
+    for (int i = 0; i < 5; ++i)
+    {
+        auto subConfig = make_intrusive_ptr<cConfig2>();
+        fillConfig(*subConfig, i * 1000);
+        config->set(i + 40, std::move(subConfig));
+    }
+    return config;
+}
+
+TEST(config, numberOfValues)
+{
+    auto config = createConfigForCountingTests();
+    EXPECT_EQ(40, config->numberOfValues());
+}
+
+TEST(config, numberOfSubConfigs)
+{
+    auto config = createConfigForCountingTests();
+    EXPECT_EQ(5, config->numberOfSubConfigs());
+}
+
+TEST(config_array, numberOfValues)
+{
+    auto config = createConfigArrayForCountingTests();
+    EXPECT_EQ(40, config->numberOfValues());
+}
+
+TEST(config_array, numberOfSubConfigs)
+{
+    auto config = createConfigArrayForCountingTests();
+    EXPECT_EQ(5, config->numberOfSubConfigs());
+}
+
+TEST(config, empty)
+{
+    auto config = make_intrusive_ptr<cConfig2>();
+    EXPECT_TRUE(config->empty());
+    fillConfig(*config);
+    EXPECT_FALSE(config->empty());
+}
+
+TEST(config_array, empty)
+{
+    auto config = make_intrusive_ptr<cConfig2>();
+    config->makeArray();
+    EXPECT_TRUE(config->empty());
+    fillConfigArray(*config);
+    EXPECT_FALSE(config->empty());
+}
+
 } // namespace ConfigTests
 //////////////////////////////////////////////////////////////////////////
 

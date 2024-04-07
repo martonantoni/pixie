@@ -15,6 +15,8 @@ class cConfig2 : public cIntrusiveRefCount
     template<class TO, class FROM> static TO convert(const FROM& value);
     template<class T> tGetRV<T> _get(const std::string& key, const std::optional<tGetRV<T>>& defaultValue) const;
     template<class T> void _set(const std::string& key, T&& value);
+    static const cValue& _extractValue(const cValue& value) { return value; }
+    static const cValue& _extractValue(const std::pair<const std::string, cValue>& pair) { return pair.second; }
 public:
 	cConfig2() = default;
 	void makeArray(); // works only if empty
@@ -61,7 +63,10 @@ inline int cConfig2::numberOfValues() const
 		{ 
 			if constexpr (!std::is_same_v<std::decay_t<decltype(values)>, std::monostate>)
 			{
-				return values.size();
+				return std::ranges::count_if(values, [](const auto& value)
+                    {
+                        return !std::holds_alternative<tIntrusivePtr<cConfig2>>(_extractValue(value));
+                    });
 			}
 			else
 			{
@@ -72,23 +77,16 @@ inline int cConfig2::numberOfValues() const
 
 inline int cConfig2::numberOfSubConfigs() const
 {
-    std::visit([](const auto& values) -> int
+    return std::visit([](const auto& values) -> int
         {
-            if constexpr (std::is_same_v<std::decay_t<decltype(values)>, cValueMap>)          // map
+            if constexpr (!std::is_same_v<std::decay_t<decltype(values)>, std::monostate>)
             {
-                return std::count_if(values.begin(), values.end(), [](const auto& pair)
+                return std::ranges::count_if(values, [](const auto& value)
                     {
-                        return std::holds_alternative<tIntrusivePtr<cConfig2>>(pair.second);
+                        return std::holds_alternative<tIntrusivePtr<cConfig2>>(_extractValue(value));
                     });
             }
-            else if constexpr (std::is_same_v<std::decay_t<decltype(values)>, cValueArray>)   // array
-            {
-                return std::count_if(values.begin(), values.end(), [](const auto& value)
-                    {
-                        return std::holds_alternative<tIntrusivePtr<cConfig2>>(value);
-                    });
-            }
-            else // std::monostate
+            else
             {
                 return 0;
             }
