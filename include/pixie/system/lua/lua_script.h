@@ -35,6 +35,7 @@ public:
     static void staticInit();
     static std::string valueToString(lua_State* L, int index);
     static bool isGlobalInternalElement(const std::string& key);
+    static std::string configToScript(const cConfig& config, const std::string& ident = std::string());
 
     lua_State* state() { return L; }
     cLuaValue globalTable();

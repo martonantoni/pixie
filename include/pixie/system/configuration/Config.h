@@ -15,6 +15,7 @@ public:
 	virtual void Set(const std::string &Key, double Value)=0;
 	virtual void Set(const std::string &Key, const char *Value)=0;
 	virtual void Set(const std::string &Key, const std::string &Value)=0;
+	template<class T> void set(const std::string& keyPath, const T& value) { Set(keyPath, value); }
 	virtual int GetInt(const std::string &Key, const tDefaultValue<int> &Default=tDefaultValue<int>()) const=0;
 	virtual int GetInt(int Index, const tDefaultValue<int> &Default=tDefaultValue<int>()) const { return GetInt(std::to_string(Index), Default); }
 	virtual double GetDouble(const std::string &Key, const tDefaultValue<double> &Default=tDefaultValue<double>()) const=0;
@@ -37,7 +38,7 @@ public:
 	virtual std::vector<std::string> GetKeys() const=0;
 	virtual size_t GetValueCount() const=0;
 	void SetSubConfig(const std::string &Key, tIntrusivePtr<cConfig> SubConfig);
-	template<class C> void forEachSubConfig(const C& callable) const; // callable: void (const std::string& key, const cConfig& config)
+	template<class C> void forEachSubConfig(const C& callable) const; // callable: void (const std::string& key, const cConfig& subConfig)
 
 	static tIntrusivePtr<cConfig> FromFile(const cPath &Path); // checks file extension for type of config
 

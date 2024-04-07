@@ -206,3 +206,16 @@ void cLuaScript::error(lua_State* L, const std::string& message)
     dumpStack(L);
     throw std::runtime_error(errorMessage);
 }
+
+std::string cLuaScript::configToScript(const cConfig& config)
+{
+    std::string script;
+    config.forEachSubConfig([&script](const std::string& key, const cConfig& subConfig)
+    {
+        script += key + " =\n{\n";
+        script += subConfig.toScript();
+        script += "}\n";
+    });
+    std::string script;
+    for(auto&
+}
