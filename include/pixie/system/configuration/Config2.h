@@ -6,13 +6,14 @@ class cConfig2 : public cIntrusiveRefCount
 	using cValueMap = std::unordered_map<std::string, cValue>;
 	using cValueArray = std::vector<cValue>;
 	using cValues = std::variant<std::monostate, cValueMap, cValueArray>;
+    template<typename T>
+    using tGetRV = std::conditional_t<std::is_same_v<std::remove_cvref_t<T>, cConfig2>, tIntrusivePtr<cConfig2>, T>;
 	cValues mValues;
-//    static constexpr std::optional<tIntrusivePtr<cConfig2>> nullConfig = std::nullopt;
 	std::pair<cConfig2*, std::string> leafConfig(const std::string& keyPath, bool canCreateSubConfig);
     std::pair<cConfig2*, std::string> leafConfig(const std::string& keyPath) const;
-    template<class T> static T extract(const cValue& value);
+    template<class T> static tGetRV<T> extract(const cValue& value);
     template<class TO, class FROM> static TO convert(const FROM& value);
-    template<class T> T _get(const std::string& key, const std::optional<T>& defaultValue) const;
+    template<class T> tGetRV<T> _get(const std::string& key, const std::optional<tGetRV<T>>& defaultValue) const;
     template<class T> void _set(const std::string& key, T&& value);
 public:
 	cConfig2() = default;
@@ -23,8 +24,10 @@ public:
 	bool empty() const;
 	int numberOfValues() const;
 	int numberOfSubConfigs() const;
-	template<class T> T get(const std::string& keyPath, std::optional<T> defaultValue = std::optional<T>()) const;
-	template<class T> T get(int index, std::optional<T> defaultValue = std::optional<T>()) const;
+	template<class T> tGetRV<T> 
+        get(const std::string& keyPath, std::optional<tGetRV<T>> defaultValue = std::optional<tGetRV<T>>()) const;
+	template<class T> tGetRV<T> 
+        get(int index, std::optional<tGetRV<T>> defaultValue = std::optional<tGetRV<T>>()) const;
 	template<class C> void forEachValue(const C& callable) const;
 
 	tIntrusivePtr<cConfig2> getSubConfig(const std::string& keyPath) const; // creates if doesn't exist
@@ -188,25 +191,25 @@ template<class TO, class FROM> static TO cConfig2::convert(const FROM& value)
     throw std::runtime_error("Unsupported conversion");
 }
 
-template<class T> static T cConfig2::extract(const cValue& value)
+template<class T> static cConfig2::tGetRV<T> cConfig2::extract(const cValue& value)
 {
-    return std::visit([](const auto& value) -> T
+    return std::visit([](const auto& value) -> cConfig2::tGetRV<T>
         {
-            if constexpr (std::is_same_v<std::decay_t<decltype(value)>, T>)
+            if constexpr (std::is_same_v<std::decay_t<decltype(value)>, tGetRV<T>>)
             {
                 return value;
             }
             else
             {
-                return convert<T>(value);
+                return convert<tGetRV<T>>(value);
             }
         }, value);
 }
 
-template<class T> T cConfig2::_get(const std::string& key, const std::optional<T>& defaultValue) const
+template<class T> cConfig2::tGetRV<T> cConfig2::_get(const std::string& key, const std::optional<tGetRV<T>>& defaultValue) const
 {
     return std::visit(
-        [&](const auto& values) -> T
+        [&](const auto& values) -> cConfig2::tGetRV<T>
         {
             if constexpr (std::is_same_v<std::decay_t<decltype(values)>, cValueMap>)  // retrieving from map
             {
@@ -254,7 +257,7 @@ template<class T> T cConfig2::_get(const std::string& key, const std::optional<T
         }, mValues);
 }
 
-template<class T> T cConfig2::get(const std::string& keyPath, std::optional<T> defaultValue) const
+template<class T> cConfig2::tGetRV<T> cConfig2::get(const std::string& keyPath, std::optional<tGetRV<T>> defaultValue) const
 {
     const auto& [config, key] = leafConfig(keyPath);
     if(!config)
@@ -271,10 +274,10 @@ template<class T> T cConfig2::get(const std::string& keyPath, std::optional<T> d
     return config->_get<T>(key, defaultValue);
 }
 
-template<class T> T cConfig2::get(int index, std::optional<T> defaultValue) const
+template<class T> cConfig2::tGetRV<T> cConfig2::get(int index, std::optional<tGetRV<T>> defaultValue) const
 {
     return std::visit(
-        [&](const auto& values) -> T
+        [&](const auto& values) -> cConfig2::tGetRV<T>
         {
             if constexpr (std::is_same_v<std::decay_t<decltype(values)>, cValueMap>)  // retrieving from map
             {

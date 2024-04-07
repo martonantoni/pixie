@@ -8,7 +8,7 @@ std::pair<cConfig2*, std::string> cConfig2::leafConfig(const std::string& keyPat
     if (dotPos == std::string::npos)
         return { this, keyPath };
     auto subKey = keyPath.substr(0, dotPos);
-    auto subConfig = _get<tIntrusivePtr<cConfig2>>(subKey, std::nullopt);
+    auto subConfig = _get<tIntrusivePtr<cConfig2>>(subKey, nullptr);
     if (!subConfig)
     {
         if (!canCreateSubConfig)
