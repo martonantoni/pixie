@@ -207,15 +207,15 @@ void cLuaScript::error(lua_State* L, const std::string& message)
     throw std::runtime_error(errorMessage);
 }
 
-std::string cLuaScript::configToScript(const cConfig& config)
+std::string cLuaScript::configToScript(const cConfig& config, const std::string& ident)
 {
     std::string script;
-    config.forEachSubConfig([&script](const std::string& key, const cConfig& subConfig)
+
+    config.forEachSubConfig([&script, ident](const std::string& key, const cConfig& subConfig)
     {
-        script += key + " =\n{\n";
-        script += subConfig.toScript();
-        script += "}\n";
+        script += key + " =\n{\n"s;
+        script += configToScript(subConfig, ident + "  "s);
+        script += "}\n"s;
     });
-    std::string script;
-    for(auto&
+    return script;
 }
