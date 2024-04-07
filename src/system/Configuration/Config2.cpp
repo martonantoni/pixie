@@ -2,20 +2,24 @@
 
 #include "pixie/system/configuration/config2.h"
 
-std::pair<cConfig2&, std::string> cConfig2::leafConfig(const std::string& keyPath, bool canCreateSubConfig)
+std::pair<cConfig2*, std::string> cConfig2::leafConfig(const std::string& keyPath, bool canCreateSubConfig)
 {
     auto dotPos = keyPath.find('.');
     if (dotPos == std::string::npos)
-        return { *this, keyPath };
+        return { this, keyPath };
     auto subKey = keyPath.substr(0, dotPos);
-    if(auto it = mSubConfigs.find(subKey); it != mSubConfigs.end())
-        return it->second->leafConfig(keyPath.substr(dotPos + 1), canCreateSubConfig);
-    if (!canCreateSubConfig)
-        throw std::runtime_error("Config key not found: " + keyPath);
-    return mSubConfigs.emplace(subKey, make_intrusive_ptr<cConfig2>()).first->second->leafConfig(keyPath.substr(dotPos + 1), canCreateSubConfig);
+    auto subConfig = _get<tIntrusivePtr<cConfig2>>(subKey, std::nullopt);
+    if (!subConfig)
+    {
+        if (!canCreateSubConfig)
+            return { nullptr, std::string() };
+        subConfig = make_intrusive_ptr<cConfig2>();
+        _set(subKey, subConfig);
+    }
+    return subConfig->leafConfig(keyPath.substr(dotPos + 1), canCreateSubConfig);
 }
 
-std::pair<cConfig2&, std::string> cConfig2::leafConfig(const std::string& keyPath) const
+std::pair<cConfig2*, std::string> cConfig2::leafConfig(const std::string& keyPath) const
 {
     return const_cast<cConfig2*>(this)->leafConfig(keyPath, false);
 }
