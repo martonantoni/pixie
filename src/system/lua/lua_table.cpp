@@ -34,7 +34,7 @@ cLuaValue::cLuaValue(const cLuaValue& src)
     copy_(src);
 }
 
-void cLuaValue::retriveWithKey(lua_State* L, cKey key) // assumes the table is on top of the stack
+void cLuaValue::retrieveWithKey(lua_State* L, cKey key) // assumes the table is on top of the stack
 {
     std::visit(
         overloaded
@@ -217,6 +217,71 @@ tIntrusivePtr<cConfig> cLuaValue::toConfig(IsRecursive isRecursive) const
     lua_State* L = mScript->state();
     lua_rawgeti(L, LUA_REGISTRYINDEX, mReference);
     auto config = toConfig_topTable(L, isRecursive);
+    lua_pop(L, 1);
+    return config;
+}
+
+tIntrusivePtr<cConfig2> cLuaValue::toConfig2_topTable(lua_State* L, IsRecursive isRecursive) const
+{
+    if (!lua_istable(L, -1))
+    {
+        return {};
+    }
+    tIntrusivePtr<cConfig2> config = make_intrusive_ptr<cConfig2>();
+
+    lua_pushnil(L);
+    while (lua_next(L, -2) != 0)
+    {
+        // key: -2, value: -1
+        std::variant<std::string, int> key;
+        bool skip = false;
+        if (lua_type(L, -2) == LUA_TNUMBER)
+        {
+            key = static_cast<int>(lua_tointeger(L, -2) - 1);
+        }
+        else
+        {
+            key = cLuaScript::valueToString(L, -2);
+            skip = mIsGlobalTable && cLuaScript::isGlobalInternalElement(std::get<std::string>(key));
+        }
+        if (!skip)
+        {
+            switch (lua_type(L, -1))
+            {
+            case LUA_TBOOLEAN:
+                std::visit([&](auto&& key) { config->set(key, static_cast<bool>(lua_toboolean(L, -1))); }, key);
+                break;
+            case LUA_TNUMBER:
+                if (lua_isinteger(L, -1))
+                {
+                    std::visit([&](auto&& key) { config->set(key, static_cast<int>(lua_tointeger(L, -1))); }, key);
+                }
+                else
+                {
+                    std::visit([&](auto&& key) { config->set(key, lua_tonumber(L, -1)); }, key);
+                }
+                break;
+            case LUA_TSTRING:
+                std::visit([&](auto&& key) { config->set(key, lua_tostring(L, -1)); }, key);
+                break;
+            case LUA_TTABLE:
+                if (isRecursive == IsRecursive::Yes)
+                {
+                    std::visit([&](auto&& key) { config->set(key, toConfig2_topTable(L, isRecursive)); }, key);
+                }
+                break;
+            }
+        }
+        lua_pop(L, 1); // pop the value, keep the key
+    }
+    return config;
+}
+
+tIntrusivePtr<cConfig2> cLuaValue::toConfig2(IsRecursive isRecursive) const
+{
+    lua_State* L = mScript->state();
+    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference);
+    auto config = toConfig2_topTable(L, isRecursive);
     lua_pop(L, 1);
     return config;
 }

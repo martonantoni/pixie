@@ -207,15 +207,45 @@ void cLuaScript::error(lua_State* L, const std::string& message)
     throw std::runtime_error(errorMessage);
 }
 
-std::string cLuaScript::configToScript(const cConfig& config, const std::string& ident)
+std::string cLuaScript::configToScript(const cConfig2& config, const std::string& ident)
 {
     std::string script;
 
-    config.forEachSubConfig([&script, ident](const std::string& key, const cConfig& subConfig)
-    {
-        script += key + " =\n{\n"s;
-        script += configToScript(subConfig, ident + "  "s);
-        script += "}\n"s;
-    });
+    config.visit([&script, ident](auto key, auto value)
+        {
+            // print out the key (it can be int or std::string)
+
+            if constexpr (std::is_same_v<decltype(key), int>)
+            {
+                script += ident + "[" + std::to_string(key) + "] = ";
+            }
+            else if constexpr (std::is_same_v<decltype(key), std::string>)
+            {
+                script += ident + key + " = ";
+            }
+            // print out the value(it can be int, double, bool, std::string, tIntrusivePtr<cConfig2>)
+            if constexpr (std::is_same_v<decltype(value), int>)
+            {
+                script += std::to_string(value) + "\n";
+            }
+            else if constexpr (std::is_same_v<decltype(value), double>)
+            {
+                script += std::to_string(value) + "\n";
+            }
+            else if constexpr (std::is_same_v<decltype(value), bool>)
+            {
+                script += value ? "true\n" : "false\n";
+            }
+            else if constexpr (std::is_same_v<decltype(value), std::string>)
+            {
+                script += "\"" + value + "\"\n";
+            }
+            else if constexpr (std::is_same_v<decltype(value), tIntrusivePtr<cConfig2>>)
+            {
+                script += "\n{\n";
+                script += configToScript(*value, ident + "  ");
+                script += ident + "}\n";
+            }
+        });
     return script;
 }

@@ -366,6 +366,30 @@ TEST(config_array, set_bool_get_double)
     }
 }
 
+TEST(config_array, push)
+{
+    for (int makeArray = 0; makeArray <= 1; ++makeArray)
+    {
+        auto config = make_intrusive_ptr<cConfig2>();
+        if(makeArray)
+            config->makeArray();
+        for (int i = 0; i < 10; ++i)
+        {
+            config->push(i);
+            config->push(std::to_string(i + 100));
+            config->push((double)i + 200);
+            config->push(i % 2 == 0);
+        }
+        for (int i = 0; i < 10; ++i)
+        {
+            EXPECT_EQ(i, config->get<int>(i * 4));
+            EXPECT_STREQ(std::to_string(i + 100).c_str(), config->get<std::string>(i * 4 + 1).c_str());
+            EXPECT_EQ((double)i + 200, config->get<double>(i * 4 + 2));
+            EXPECT_EQ(i % 2 == 0, config->get<bool>(i * 4 + 3));
+        }
+    }
+}
+
 TEST(config, visit)
 {
     auto config = make_intrusive_ptr<cConfig2>();
@@ -662,6 +686,13 @@ TEST(config_array, empty)
     EXPECT_TRUE(config->empty());
     fillConfigArray(*config);
     EXPECT_FALSE(config->empty());
+}
+
+TEST(config_string_c_str, set_c_str_get_string)
+{
+    auto config = make_intrusive_ptr<cConfig2>();
+    config->set("key", "value");
+    EXPECT_STREQ("value", config->get<std::string>("key").c_str());
 }
 
 } // namespace ConfigTests

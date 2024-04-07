@@ -19,6 +19,7 @@ class cConfig2 : public cIntrusiveRefCount
     static const cValue& _extractValue(const std::pair<const std::string, cValue>& pair) { return pair.second; }
 public:
     cConfig2() = default;
+    virtual ~cConfig2() = default;
     void makeArray(); // works only if empty
     template<class T> void set(const std::string& keyPath, T&& value);
     template<class T> void set(int index, T&& value);
@@ -31,7 +32,8 @@ public:
     template<class T> tGetRV<T> 
         get(int index, std::optional<tGetRV<T>> defaultValue = std::optional<tGetRV<T>>()) const;
 
-    tIntrusivePtr<cConfig2> getSubConfig(const std::string& keyPath) const; // creates if doesn't exist
+    tIntrusivePtr<cConfig2> getSubConfig(const std::string& keyPath) const { return get<tIntrusivePtr<cConfig2>>(keyPath); }
+    tIntrusivePtr<cConfig2> createSubConfig(const std::string& key);
     template<class C> void forEachSubConfig(const C& callable) const;
     bool isArray() const;
     template<class Visitor> void visit(Visitor&& visitor) const;
@@ -150,6 +152,26 @@ template<class T> void cConfig2::set(int index, T&& value)
         }, mValues);
 }
 
+template<class T> void cConfig2::push(T&& value)
+{
+    std::visit(
+        [&, this](auto& values)
+        {
+            if constexpr (std::is_same_v<std::decay_t<decltype(values)>, cValueArray>)
+            {
+                values.push_back(std::forward<T>(value));
+            }
+            else if constexpr (std::is_same_v<std::decay_t<decltype(values)>, std::monostate>)
+            {
+                mValues = cValueArray();
+                push(std::forward<T>(value));
+            }
+            else
+            {
+                throw std::runtime_error("Cannot push to a map");
+            }
+        }, mValues);
+}
 
 template<class TO, class FROM> static TO cConfig2::convert(const FROM& value)
 {
@@ -326,7 +348,7 @@ template<class Visitor> void cConfig2::visit(Visitor&& visitor) const
                             }
                             else
                             {
-                                // if the value is a subconfig, we can silently ignore it
+                                // if the value is a subconfig, we can silently ignore it:
                                 if constexpr (!std::is_same_v<std::remove_cvref_t<decltype(actualValue)>, tIntrusivePtr<cConfig2>>)
                                 {
                                     throw std::runtime_error("Unsupported visitor signature");
@@ -371,4 +393,9 @@ template<class C> void cConfig2::forEachSubConfig(const C& callable) const
                 }
             }
         });
+}
+
+tIntrusivePtr<cConfig2> cConfig2::createSubConfig(const std::string& key)
+{
+    return {};
 }
