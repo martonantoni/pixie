@@ -48,7 +48,7 @@ void fillConfigArray(cConfig& config)
 
 TEST(config, set_int_get_int)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -58,7 +58,7 @@ TEST(config, set_int_get_int)
 
 TEST(config_array, set_int_get_int)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -68,7 +68,7 @@ TEST(config_array, set_int_get_int)
 
 TEST(config, set_int_get_string)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -78,7 +78,7 @@ TEST(config, set_int_get_string)
 
 TEST(config_array, set_int_get_string)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -88,7 +88,7 @@ TEST(config_array, set_int_get_string)
 
 TEST(config, set_int_get_double)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -98,7 +98,7 @@ TEST(config, set_int_get_double)
 
 TEST(config_array, set_int_get_double)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -108,7 +108,7 @@ TEST(config_array, set_int_get_double)
 
 TEST(config, set_int_get_bool)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -118,7 +118,7 @@ TEST(config, set_int_get_bool)
 
 TEST(config_array, set_int_get_bool)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -128,7 +128,7 @@ TEST(config_array, set_int_get_bool)
 
 TEST(config, set_double_get_int)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -138,7 +138,7 @@ TEST(config, set_double_get_int)
 
 TEST(config_array, set_double_get_int)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -148,7 +148,7 @@ TEST(config_array, set_double_get_int)
 
 TEST(config, set_double_get_string)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -158,7 +158,7 @@ TEST(config, set_double_get_string)
 
 TEST(config_array, set_double_get_string)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -168,7 +168,7 @@ TEST(config_array, set_double_get_string)
 
 TEST(config, set_double_get_double)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -178,7 +178,7 @@ TEST(config, set_double_get_double)
 
 TEST(config_array, set_double_get_double)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -188,7 +188,7 @@ TEST(config_array, set_double_get_double)
 
 TEST(config, set_double_get_bool)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     for (int i = 0; i < 10; ++i)
     {
         config->set(std::format("double_{0}", i), (double)i);
@@ -198,7 +198,7 @@ TEST(config, set_double_get_bool)
 
 TEST(config_array, set_double_get_bool)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     for (int i = 0; i < 10; ++i)
     {
         config->set(i * 4 + 2, (double)i);
@@ -208,7 +208,7 @@ TEST(config_array, set_double_get_bool)
 
 TEST(config, set_string_get_int)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -218,7 +218,7 @@ TEST(config, set_string_get_int)
 
 TEST(config_array, set_string_get_int)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -228,7 +228,7 @@ TEST(config_array, set_string_get_int)
 
 TEST(config, set_string_get_string)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -238,7 +238,7 @@ TEST(config, set_string_get_string)
 
 TEST(config_array, set_string_get_string)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -248,7 +248,7 @@ TEST(config_array, set_string_get_string)
 
 TEST(config, set_string_get_double)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -258,7 +258,7 @@ TEST(config, set_string_get_double)
 
 TEST(config_array, set_string_get_double)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -268,7 +268,7 @@ TEST(config_array, set_string_get_double)
 
 TEST(config, set_string_get_bool)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     for (int i = 0; i < 10; ++i)
     {
         config->set(std::format("string_{0}", i), i % 2 == 0 ? "true" : "false");
@@ -278,7 +278,7 @@ TEST(config, set_string_get_bool)
 
 TEST(config_array, set_string_get_bool)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     for (int i = 0; i < 10; ++i)
     {
         config->set(i * 4 + 1, i % 2 == 0 ? "true" : "false");
@@ -288,7 +288,7 @@ TEST(config_array, set_string_get_bool)
 
 TEST(config, set_bool_get_int)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -298,7 +298,7 @@ TEST(config, set_bool_get_int)
 
 TEST(config_array, set_bool_get_int)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -308,7 +308,7 @@ TEST(config_array, set_bool_get_int)
 
 TEST(config, set_bool_get_string)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -318,7 +318,7 @@ TEST(config, set_bool_get_string)
 
 TEST(config_array, set_bool_get_string)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -328,7 +328,7 @@ TEST(config_array, set_bool_get_string)
 
 TEST(config, set_bool_get_bool)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -338,7 +338,7 @@ TEST(config, set_bool_get_bool)
 
 TEST(config_array, set_bool_get_bool)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -348,7 +348,7 @@ TEST(config_array, set_bool_get_bool)
 
 TEST(config, set_bool_get_double)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -358,7 +358,7 @@ TEST(config, set_bool_get_double)
 
 TEST(config_array, set_bool_get_double)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -370,7 +370,7 @@ TEST(config_array, push)
 {
     for (int makeArray = 0; makeArray <= 1; ++makeArray)
     {
-        auto config = make_intrusive_ptr<cConfig>();
+        auto config = std::make_shared<cConfig>();
         if(makeArray)
             config->makeArray();
         for (int i = 0; i < 10; ++i)
@@ -392,7 +392,7 @@ TEST(config_array, push)
 
 TEST(config, visit)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfig(*config);
     int visited = 0;
     config->visit([&](const std::string& key, const auto& value) 
@@ -420,7 +420,7 @@ TEST(config, visit)
 
 TEST(config_array, visit)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfigArray(*config);
     int visited[4] = { 0, 0, 0, 0 };
     config->visit([&](const std::string& key, const auto& value)
@@ -454,7 +454,7 @@ TEST(config_array, visit)
 
 TEST(config_array, visit_int_key)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfigArray(*config);
     int visited = 0;
     config->visit([&](int idx, const auto& value)
@@ -482,7 +482,7 @@ TEST(config_array, visit_int_key)
 
 TEST(config, forEachString)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfig(*config);
     int i = 0;
     config->forEachString([&i](const std::string& key, std::string value)
@@ -496,7 +496,7 @@ TEST(config, forEachString)
 
 TEST(config_array, forEachString)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfigArray(*config);
     int i = 0;
     config->forEachString([&i](const std::string& key, const std::string& value)
@@ -510,7 +510,7 @@ TEST(config_array, forEachString)
 
 TEST(config_array, forEachString_intKey)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfigArray(*config);
     int i = 0;
     config->forEachString([&i](int key, const std::string& value)
@@ -523,11 +523,11 @@ TEST(config_array, forEachString_intKey)
 
 TEST(subconfigs, set_get)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
-        auto subconfig = make_intrusive_ptr<cConfig>();
+        auto subconfig = std::make_shared<cConfig>();
         fillConfig(*subconfig, 1000 * (i + 1));
         config->set(std::format("subconfig_{0}", i), subconfig);
     }
@@ -541,7 +541,7 @@ TEST(subconfigs, set_get)
 
 TEST(subconfigs, set_keypath_get_keypath)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     config->set("subconfig_0.int_0", 0);
     config->set("subconfig_0.int_1", 1);
     config->set("subconfig_0.subconfig_a.int_100", 100);
@@ -556,15 +556,15 @@ TEST(subconfigs, set_keypath_get_keypath)
 
 TEST(subconfigs, set_normal_get_keypath)
 {
-    auto config = make_intrusive_ptr<cConfig>();
-    auto subConfig0 = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
+    auto subConfig0 = std::make_shared<cConfig>();
     subConfig0->set("int_0", 0);
     subConfig0->set("int_1", 1);
     config->set("subconfig_0", subConfig0);
-    auto subConfig1 = make_intrusive_ptr<cConfig>();
+    auto subConfig1 = std::make_shared<cConfig>();
     subConfig1->set("int_100", 100);
     subConfig1->set("int_101", 101);
-    auto subconfigA = make_intrusive_ptr<cConfig>();
+    auto subconfigA = std::make_shared<cConfig>();
     subconfigA->set("int_200", 200);
     subConfig1->set("subconfig_a", subconfigA);
     config->set("subconfig_1", subConfig1);
@@ -578,7 +578,7 @@ TEST(subconfigs, set_normal_get_keypath)
 
 TEST(subconfigs, set_keypath_get_normal)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     config->set("subconfig_0.int_0", 0);
     config->set("subconfig_0.int_1", 1);
     config->set("subconfig_1.int_100", 100);
@@ -600,7 +600,7 @@ void fillSubconfigsArray(cConfig& config)
 {
     for (int i = 0; i < 5; ++i)
     {
-        auto subConfig = make_intrusive_ptr<cConfig>();
+        auto subConfig = std::make_shared<cConfig>();
         int key = i * 4;
         subConfig->set("int_" + std::to_string(key), key);
         subConfig->set("string_" + std::to_string(key + 1), std::to_string(key + 100));
@@ -613,7 +613,7 @@ void fillSubconfigsArray(cConfig& config)
 
 TEST(subconfigs, in_array)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillSubconfigsArray(*config);
     for (int i = 0; i < 5; ++i)
     {
@@ -628,7 +628,7 @@ TEST(subconfigs, in_array)
 
 TEST(subconfigs, in_array_get_keypath)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillSubconfigsArray(*config);
     for(int i = 0; i < 5; ++i)
     {
@@ -642,7 +642,7 @@ TEST(subconfigs, in_array_get_keypath)
 
 TEST(subconfigs, in_array_forEachSubConfig_const_ref)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillSubconfigsArray(*config);
     int i = 0;
     config->forEachSubConfig([&i](const std::string& key, const cConfig& subConfig)
@@ -660,10 +660,10 @@ TEST(subconfigs, in_array_forEachSubConfig_const_ref)
 
 TEST(subconfigs, forEachSubConfig_intrusive_ptr)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillSubconfigsArray(*config);
     int i = 0;
-    config->forEachSubConfig([&i](const std::string& key, tIntrusivePtr<cConfig> subConfig)
+    config->forEachSubConfig([&i](const std::string& key, std::shared_ptr<cConfig> subConfig)
         {
             int keyInt = std::stoi(key);
             int keyOffset = keyInt * 4;
@@ -677,26 +677,26 @@ TEST(subconfigs, forEachSubConfig_intrusive_ptr)
 }
 
 
-tIntrusivePtr<cConfig> createConfigForCountingTests()
+std::shared_ptr<cConfig> createConfigForCountingTests()
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 5; ++i)
     {
-        auto subConfig = make_intrusive_ptr<cConfig>();
+        auto subConfig = std::make_shared<cConfig>();
         fillConfig(*subConfig, i * 1000);
         config->set(std::format("subconfig_{0}", i), std::move(subConfig));
     }
     return config;
 }
 
-tIntrusivePtr<cConfig> createConfigArrayForCountingTests()
+std::shared_ptr<cConfig> createConfigArrayForCountingTests()
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 5; ++i)
     {
-        auto subConfig = make_intrusive_ptr<cConfig>();
+        auto subConfig = std::make_shared<cConfig>();
         fillConfig(*subConfig, i * 1000);
         config->set(i + 40, std::move(subConfig));
     }
@@ -729,7 +729,7 @@ TEST(config_array, numberOfSubConfigs)
 
 TEST(config, empty)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     EXPECT_TRUE(config->empty());
     fillConfig(*config);
     EXPECT_FALSE(config->empty());
@@ -737,7 +737,7 @@ TEST(config, empty)
 
 TEST(config_array, empty)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     config->makeArray();
     EXPECT_TRUE(config->empty());
     fillConfigArray(*config);
@@ -746,7 +746,7 @@ TEST(config_array, empty)
 
 TEST(config_string_c_str, set_c_str_get_string)
 {
-    auto config = make_intrusive_ptr<cConfig>();
+    auto config = std::make_shared<cConfig>();
     config->set("key", "value");
     EXPECT_STREQ("value", config->get<std::string>("key").c_str());
 }

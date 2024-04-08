@@ -96,7 +96,7 @@ void cDialogItem::OnMouseMove(cPoint ScreenCoords, bool IsInside)
 
 /// ---------------------------------------------------------------------------------------------------------------------------------------
 
-void cDialogItems::AddPushButton(cPixieWindow &Window, tIntrusivePtr<cConfig> config)
+void cDialogItems::AddPushButton(cPixieWindow &Window, std::shared_ptr<cConfig> config)
 {
 	cPushButton::cInitData InitData;
 	InitData.setConfig(config);
@@ -106,7 +106,7 @@ void cDialogItems::AddPushButton(cPixieWindow &Window, tIntrusivePtr<cConfig> co
 	mItems.emplace_back(std::move(Button));
 }
 
-void cDialogItems::AddTextField(cPixieWindow &Window, tIntrusivePtr<cConfig> config)
+void cDialogItems::AddTextField(cPixieWindow &Window, std::shared_ptr<cConfig> config)
 {
 	cTextField::cInitData InitData;
 	InitData.setConfig(config);
@@ -116,7 +116,7 @@ void cDialogItems::AddTextField(cPixieWindow &Window, tIntrusivePtr<cConfig> con
 	mItems.emplace_back(std::move(TextField));
 }
 
-void cDialogItems::AddEditField(cPixieWindow &Window, tIntrusivePtr<cConfig> config)
+void cDialogItems::AddEditField(cPixieWindow &Window, std::shared_ptr<cConfig> config)
 {
 	cEditField::cInitData InitData;
 	InitData.setConfig(config);
@@ -126,10 +126,10 @@ void cDialogItems::AddEditField(cPixieWindow &Window, tIntrusivePtr<cConfig> con
 	mItems.emplace_back(std::move(EditField));
 }
 
-void cDialogItems::Init(cPixieWindow &Window, tIntrusivePtr<cConfig> config)
+void cDialogItems::Init(cPixieWindow &Window, std::shared_ptr<cConfig> config)
 {
 	config->forEachSubConfig(
-		[this, &Window](auto& key, tIntrusivePtr<cConfig> subConfig)
+		[this, &Window](auto& key, std::shared_ptr<cConfig> subConfig)
 		{
 			auto TypeName = subConfig->get<std::string>("control_type");
 			if (TypeName == "pushbutton")

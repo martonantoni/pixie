@@ -5,7 +5,7 @@ cMouseCursorServer::cMouseCursorServer()
 #ifdef NO_CUSTOM_CURSORS
 	return;
 #else
-	tIntrusivePtr<cConfig> Config=cLuaBasedConfig::CreateConfig("pixie_system.folders", theLuaState);
+	std::shared_ptr<cConfig> Config=cLuaBasedConfig::CreateConfig("pixie_system.folders", theLuaState);
 	std::string CursorsFolder=Config->get<std::string>("cursors");
 	WIN32_FIND_DATA FindData;
 	memset(&FindData, 0, sizeof(WIN32_FIND_DATA));

@@ -2,7 +2,7 @@
 
 struct cPixieInitData
 {
-	tIntrusivePtr<cConfig> mConfig;
+	std::shared_ptr<cConfig> mConfig;
 
 	cRect mPlacement;
 	cPixieWindow *mParentWindow=nullptr;
@@ -14,13 +14,13 @@ struct cPixieInitData
 
 	void BindToFromConfig(const cConfig &Config);
 	cPixieInitData();
-	void setConfig(tIntrusivePtr<cConfig> config); // also reads config
+	void setConfig(std::shared_ptr<cConfig> config); // also reads config
 };
 
 template<class BaseClass> struct tPixieSimpleInitData: public BaseClass::cInitData
 {
 	tPixieSimpleInitData()=default;
-	void setConfig(tIntrusivePtr<cConfig> config)
+	void setConfig(std::shared_ptr<cConfig> config)
     {
         BaseClass::cInitData::setConfig(config);
     }

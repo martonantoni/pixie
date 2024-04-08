@@ -1,13 +1,13 @@
 #pragma once
 
-class cConfig : public cIntrusiveRefCount
+class cConfig: public std::enable_shared_from_this<cConfig>
 {
-    using cValue = std::variant<int, double, std::string, bool, tIntrusivePtr<cConfig>>;
+    using cValue = std::variant<int, double, std::string, bool, std::shared_ptr<cConfig>>;
     using cValueMap = std::unordered_map<std::string, cValue>;
     using cValueArray = std::vector<cValue>;
     using cValues = std::variant<std::monostate, cValueMap, cValueArray>;
     template<typename T>
-    using tGetRV = std::conditional_t<std::is_same_v<std::remove_cvref_t<T>, cConfig>, tIntrusivePtr<cConfig>, T>;
+    using tGetRV = std::conditional_t<std::is_same_v<std::remove_cvref_t<T>, cConfig>, std::shared_ptr<cConfig>, T>;
     cValues mValues;
     std::pair<cConfig*, std::string> leafConfig(const std::string& keyPath, bool canCreateSubConfig);
     std::pair<cConfig*, std::string> leafConfig(const std::string& keyPath) const;
@@ -33,9 +33,9 @@ public:
     template<class T> tGetRV<T> 
         get(int index, std::optional<tGetRV<T>> defaultValue = std::optional<tGetRV<T>>()) const;
 
-    tIntrusivePtr<cConfig> getSubConfig(const std::string& keyPath) const { return get<tIntrusivePtr<cConfig>>(keyPath); }
-    tIntrusivePtr<cConfig> getSubOrEmptyConfig(const std::string& keyPath) const { return get<tIntrusivePtr<cConfig>>(keyPath, make_intrusive_ptr<cConfig>()); }
-    tIntrusivePtr<cConfig> createSubConfig(const std::string& key);
+    std::shared_ptr<cConfig> getSubConfig(const std::string& keyPath) const { return get<std::shared_ptr<cConfig>>(keyPath); }
+    std::shared_ptr<cConfig> getSubOrEmptyConfig(const std::string& keyPath) const { return get<std::shared_ptr<cConfig>>(keyPath, std::make_shared<cConfig>()); }
+    std::shared_ptr<cConfig> createSubConfig(const std::string& key);
     bool isArray() const;
     template<class Visitor> void visit(Visitor&& visitor) const;
         // Visitor signature:
@@ -43,7 +43,7 @@ public:
         //     void (const std::string& key, auto& value)
         //     void (int index, auto& value)
         //     void (auto& value)
-        // for handling subconfigs it works with both tIntrusivePtr<cConfig> and const cConfig&
+        // for handling subconfigs it works with both std::shared_ptr<cConfig> and const cConfig&
      
     // simplified versions of visit:
     template<class C> void forEachSubConfig(C&& callable) const;
@@ -79,7 +79,7 @@ inline int cConfig::numberOfValues() const
             {
                 return std::ranges::count_if(values, [](const auto& value)
                     {
-                        return !std::holds_alternative<tIntrusivePtr<cConfig>>(_extractValue(value));
+                        return !std::holds_alternative<std::shared_ptr<cConfig>>(_extractValue(value));
                     });
             }
             else
@@ -97,7 +97,7 @@ inline int cConfig::numberOfSubConfigs() const
             {
                 return std::ranges::count_if(values, [](const auto& value)
                     {
-                        return std::holds_alternative<tIntrusivePtr<cConfig>>(_extractValue(value));
+                        return std::holds_alternative<std::shared_ptr<cConfig>>(_extractValue(value));
                     });
             }
             else
@@ -190,8 +190,11 @@ template<class TO, class FROM> static TO cConfig::convert(const FROM& value)
     if constexpr (std::is_same_v<TO, std::string>)               // conveert to string
     {
         if constexpr (std::is_same_v<FROM, bool>)
-            return value ? "true" : "false";
-        return std::to_string(value);
+            return value ? "true"s : "false"s;
+        if constexpr (std::is_same_v<FROM, std::shared_ptr<cConfig>>)
+            return "subconfig"s;
+        else
+            return std::to_string(value);
     }
     else if constexpr (std::is_same_v<TO, int>)                  // convert to int
     {
@@ -362,7 +365,7 @@ template<class Visitor> void cConfig::_visit(Visitor&& visitor) const
                             {
                                 visitor(actualValue);
                             }
-                            else if constexpr (std::is_same_v<std::decay_t<decltype(actualValue)>, tIntrusivePtr<cConfig>>)
+                            else if constexpr (std::is_same_v<std::decay_t<decltype(actualValue)>, std::shared_ptr<cConfig>>)
                             {
                                 if constexpr (std::is_invocable_r_v<void, Visitor, const std::string&, const cConfig&>)
                                 {
@@ -395,7 +398,7 @@ template<class Visitor> void cConfig::_visit(Visitor&& visitor) const
                             {
                                 visitor(actualValue);
                             }
-                            else if constexpr (std::is_same_v<std::decay_t<decltype(actualValue)>, tIntrusivePtr<cConfig>>)
+                            else if constexpr (std::is_same_v<std::decay_t<decltype(actualValue)>, std::shared_ptr<cConfig>>)
                             {
                                 if constexpr (std::is_invocable_r_v<void, Visitor, const std::string&, const cConfig&>)
                                 {
@@ -440,9 +443,9 @@ template<class Visitor> void cConfig::visit(Visitor&& visitor) const
 
 template<class C> void cConfig::forEachSubConfig(C&& callable) const
 {
-    static_assert(std::is_invocable_r_v<void, C, const std::string&, tIntrusivePtr<cConfig>> ||
-                  std::is_invocable_r_v<void, C, int, tIntrusivePtr<cConfig>> ||
-                  std::is_invocable_r_v<void, C, tIntrusivePtr<cConfig>> ||
+    static_assert(std::is_invocable_r_v<void, C, const std::string&, std::shared_ptr<cConfig>> ||
+                  std::is_invocable_r_v<void, C, int, std::shared_ptr<cConfig>> ||
+                  std::is_invocable_r_v<void, C, std::shared_ptr<cConfig>> ||
                   std::is_invocable_r_v<void, C, const std::string&, const cConfig&> ||
                   std::is_invocable_r_v<void, C, int, const cConfig&> ||
                   std::is_invocable_r_v<void, C, const cConfig&>);
@@ -466,20 +469,20 @@ template<class C> void cConfig::forEachInt(C&& callable) const
     _visit(std::forward<C>(callable));
 }
 
-inline tIntrusivePtr<cConfig> cConfig::createSubConfig(const std::string& key)
+inline std::shared_ptr<cConfig> cConfig::createSubConfig(const std::string& key)
 {
-    tIntrusivePtr<cConfig> subConfig;
+    std::shared_ptr<cConfig> subConfig;
     std::visit([&](auto& values)
         {
             if constexpr (std::is_same_v<std::decay_t<decltype(values)>, cValueMap>)  // retrieving from map
             {
                 if(auto it = values.find(key); it != values.end())
                 {
-                    subConfig = extract<tIntrusivePtr<cConfig>>(it->second);
+                    subConfig = extract<std::shared_ptr<cConfig>>(it->second);
                 }
                 else
                 {
-                    auto [i, added] = values.emplace(key, subConfig = make_intrusive_ptr<cConfig>());
+                    auto [i, added] = values.emplace(key, subConfig = std::make_shared<cConfig>());
                 }
             }
             else if constexpr (std::is_same_v<std::decay_t<decltype(values)>, cValueArray>) // retrieving from array
@@ -487,12 +490,12 @@ inline tIntrusivePtr<cConfig> cConfig::createSubConfig(const std::string& key)
                 int index = std::stoi(std::string(key));
                 if(index < values.size())
                 {
-                    subConfig = extract<tIntrusivePtr<cConfig>>(values[index]);
+                    subConfig = extract<std::shared_ptr<cConfig>>(values[index]);
                 }
                 else
                 {
                     values.resize(index + 1);
-                    values[index] = subConfig = make_intrusive_ptr<cConfig>();
+                    values[index] = subConfig = std::make_shared<cConfig>();
                 }
             }
             else // std::monostate

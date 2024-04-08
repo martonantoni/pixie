@@ -182,14 +182,14 @@ int cLuaScript::stackSize() const
     return lua_gettop(L);
 }
 
-tIntrusivePtr<cConfig> cLuaScript::stringToConfig(const std::string& scriptText)
+std::shared_ptr<cConfig> cLuaScript::stringToConfig(const std::string& scriptText)
 {
     auto script = std::make_shared<cLuaScript>();
     script->executeString(scriptText);
     return script->globalTable().toConfig();
 }
 
-tIntrusivePtr<cConfig> cLuaScript::fileToConfig(const cPath& scriptPath)
+std::shared_ptr<cConfig> cLuaScript::fileToConfig(const cPath& scriptPath)
 {
     auto script = std::make_shared<cLuaScript>();
     script->executeFile(scriptPath);
@@ -226,7 +226,7 @@ std::string cLuaScript::configToScript(const cConfig& config, const std::string&
             {
                 script += ident + key + " = ";
             }
-            // print out the value(it can be int, double, bool, std::string, tIntrusivePtr<cConfig>)
+            // print out the value(it can be int, double, bool, std::string, std::shared_ptr<cConfig>)
             if constexpr (std::is_same_v<decltype(value), int>)
             {
                 script += std::to_string(value) + newLine;
@@ -243,7 +243,7 @@ std::string cLuaScript::configToScript(const cConfig& config, const std::string&
             {
                 script += "\"" + value + "\"" + newLine;
             }
-            else if constexpr (std::is_same_v<decltype(value), tIntrusivePtr<cConfig>>)
+            else if constexpr (std::is_same_v<decltype(value), std::shared_ptr<cConfig>>)
             {
                 script += "\n{\n";
                 script += configToScript(*value, ident + "  ");

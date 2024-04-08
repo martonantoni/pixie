@@ -8,7 +8,7 @@ const cEventDispatchers::cDispatcherRangeInfo cEditField::mDispatcherRangeInfo=
 };
 
 
-void cEditField::cInitData::setConfig(tIntrusivePtr<cConfig> config)
+void cEditField::cInitData::setConfig(std::shared_ptr<cConfig> config)
 {
 	tPixieSimpleInitData<cMouseTarget>::setConfig(config);
 	mTitle = config->get<std::string>("title", std::string());

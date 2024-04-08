@@ -2,7 +2,7 @@
 #include "pixie/pixie/i_pixie.h"
 
 
-void cPixieInitData::setConfig(tIntrusivePtr<cConfig> config)
+void cPixieInitData::setConfig(std::shared_ptr<cConfig> config)
 {
 	mConfig = std::move(config);
 	mVisualizer = mConfig->get<std::string>("visualizer", mVisualizer);

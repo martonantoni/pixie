@@ -8,12 +8,12 @@ std::pair<cConfig*, std::string> cConfig::leafConfig(const std::string& keyPath,
     if (dotPos == std::string::npos)
         return { this, keyPath };
     auto subKey = keyPath.substr(0, dotPos);
-    auto subConfig = _get<tIntrusivePtr<cConfig>>(subKey, nullptr);
+    auto subConfig = _get<std::shared_ptr<cConfig>>(subKey, nullptr);
     if (!subConfig)
     {
         if (!canCreateSubConfig)
             return { nullptr, std::string() };
-        subConfig = make_intrusive_ptr<cConfig>();
+        subConfig = std::make_shared<cConfig>();
         _set(subKey, subConfig);
     }
     return subConfig->leafConfig(keyPath.substr(dotPos + 1), canCreateSubConfig);

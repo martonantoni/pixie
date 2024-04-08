@@ -1,3 +1,3 @@
 #pragma once
 
-extern tIntrusivePtr<cConfig> theGlobalConfig;
+extern std::shared_ptr<cConfig> theGlobalConfig;

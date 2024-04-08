@@ -2,7 +2,7 @@
 
 #include "pixie/system/lua/lua_global_config.h"
 
-// tIntrusivePtr<cConfig> theGlobalConfig;
+// std::shared_ptr<cConfig> theGlobalConfig;
 // 
 // void registerGlobalPixieLuaFunctions(cLuaValue globalTable);
 

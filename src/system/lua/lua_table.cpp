@@ -152,13 +152,13 @@ std::string cLuaScript::valueToString(lua_State* L, int index)
     return convertedString;
 }
 
-tIntrusivePtr<cConfig> cLuaValue::toConfig_topTable(lua_State* L, IsRecursive isRecursive) const
+std::shared_ptr<cConfig> cLuaValue::toConfig_topTable(lua_State* L, IsRecursive isRecursive) const
 {
     if (!lua_istable(L, -1))
     {
         return {};
     }
-    tIntrusivePtr<cConfig> config = make_intrusive_ptr<cConfig>();
+    std::shared_ptr<cConfig> config = std::make_shared<cConfig>();
 
     lua_pushnil(L);
     while (lua_next(L, -2) != 0)
@@ -208,7 +208,7 @@ tIntrusivePtr<cConfig> cLuaValue::toConfig_topTable(lua_State* L, IsRecursive is
     return config;
 }
 
-tIntrusivePtr<cConfig> cLuaValue::toConfig(IsRecursive isRecursive) const
+std::shared_ptr<cConfig> cLuaValue::toConfig(IsRecursive isRecursive) const
 {
     lua_State* L = mScript->state();
     lua_rawgeti(L, LUA_REGISTRYINDEX, mReference);

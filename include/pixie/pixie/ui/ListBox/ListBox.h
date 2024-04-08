@@ -89,7 +89,7 @@ public:
 		eListDirection mListDirection=eListDirection::Vertical;
 		bool mItemHighlightEnabled=true;
 		bool mItemSelectEnabled=true;
-		void setConfig(tIntrusivePtr<cConfig> config);
+		void setConfig(std::shared_ptr<cConfig> config);
 		cInitData()=default;
 	};
 protected:
