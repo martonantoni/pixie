@@ -382,14 +382,14 @@ template<class Visitor> void cConfig::_visit(Visitor&& visitor) const
                 {
                     std::visit([&](auto& actualValue)
                         {
-                            if constexpr (std::is_invocable_r_v<void, Visitor, const std::string&, decltype(actualValue)>) 
+                            if constexpr (std::is_invocable_r_v<void, Visitor, int, decltype(actualValue)>)
+                            {
+                                visitor(i, actualValue);
+                            }
+                            else if constexpr (std::is_invocable_r_v<void, Visitor, const std::string&, decltype(actualValue)>)
                             {
                                 auto idxString = std::to_string(i);
                                 visitor(idxString, actualValue);
-                            }
-                            else if constexpr (std::is_invocable_r_v<void, Visitor, int, decltype(actualValue)>)
-                            {
-                                visitor(i, actualValue);
                             }
                             else if constexpr (std::is_invocable_r_v<void, Visitor, decltype(actualValue)>)
                             {

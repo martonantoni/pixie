@@ -135,7 +135,7 @@ TEST(config_to_lua_script, array)
     subConfig->push(3.14);
 
     auto scriptifiedConfig = cLuaScript::configToScript(config);
-//    printf("%s\n", scriptifiedConfig.c_str());
+    printf("%s\n", scriptifiedConfig.c_str());
     auto script = std::make_shared<cLuaScript>();
     script->executeString(scriptifiedConfig);
 
