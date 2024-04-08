@@ -2,13 +2,13 @@
 #include "pixie/pixie/i_pixie.h"
 
 
-void cPixieInitData::setConfig(tIntrusivePtr<cConfig> config)
+void cPixieInitData::setConfig(tIntrusivePtr<cConfig2> config)
 {
 	mConfig = std::move(config);
-	mVisualizer = mConfig->GetString("visualizer", mVisualizer);
+	mVisualizer = mConfig->get<std::string>("visualizer", mVisualizer);
 	mPlacement.FromConfig(*mConfig, cRect::eIsOptional::Yes);
-	mZOrder = mConfig->GetInt("z", mZOrder);
-	mVisualizerBaseZ = mConfig->GetInt("visualizer_base_z", mVisualizerBaseZ);
+	mZOrder = mConfig->get<int>("z", mZOrder);
+	mVisualizerBaseZ = mConfig->get<int>("visualizer_base_z", mVisualizerBaseZ);
 	BindToFromConfig(*mConfig);
 }
 
@@ -16,9 +16,9 @@ cPixieInitData::cPixieInitData()
 {
 }
 
-void cPixieInitData::BindToFromConfig(const cConfig &Config)
+void cPixieInitData::BindToFromConfig(const cConfig2& config)
 {
-	auto BindToConfig= Config.GetString("bind_to", std::string());
+	auto BindToConfig= config.get<std::string>("bind_to", std::string());
 	if(!BindToConfig.empty())
 		mBindTo.FromString(BindToConfig);
 }

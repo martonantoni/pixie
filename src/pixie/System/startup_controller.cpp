@@ -3,7 +3,7 @@
 #include "pixie/system/lua/lua_global_config.h"
 #include <filesystem>
 
-tIntrusivePtr<cConfig> theGlobalConfig;
+tIntrusivePtr<cConfig2> theGlobalConfig;
 
 void registerGlobalPixieLuaFunctions(cLuaValue globalTable);
 
@@ -36,10 +36,10 @@ void cStartupController::continueStartup()
     auto script = std::make_shared<cLuaScript>();
     registerGlobalPixieLuaFunctions(script->globalTable());
     script->executeFile(mConfig.mainLuaConfigPath.empty() ? "MainConfig.lua" : mConfig.mainLuaConfigPath.c_str());
-    theGlobalConfig = script->globalTable().toConfig();
+    theGlobalConfig = script->globalTable().toConfig2();
 
 
-    auto InstanceName = theGlobalConfig->GetString("instance_name", std::string());
+    auto InstanceName = theGlobalConfig->get<std::string>("instance_name", std::string());
     if (!InstanceName.empty())
         cProgramTitle::Get()->SetInstanceName(InstanceName);
     cEventCenter::Get();

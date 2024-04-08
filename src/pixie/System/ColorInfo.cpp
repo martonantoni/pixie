@@ -4,11 +4,10 @@ cColorServer theColorServer;
 
 void cColorServer::Init()
 {
-	auto colorsConfig = theGlobalConfig->GetSubConfig("colors");
-	for(auto &name: colorsConfig->GetKeys())
-	{
-		mColorMap[name] = cColor(colorsConfig->get<int>(name));
-	}
+	theGlobalConfig->createSubConfig("colors")->forEachInt([&](const std::string& name, int color)
+    {
+        mColorMap[name] = cColor(color);
+    });
 }
 
 cColor cColorServer::GetColor(const std::string& name) const

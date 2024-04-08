@@ -8,7 +8,7 @@ public:
 		std::string mTitle;
 		std::string mTextStyle { "text_field" };
 		cInitData()=default;
-		void setConfig(tIntrusivePtr<cConfig> Config);
+		void setConfig(tIntrusivePtr<cConfig2> Config);
 	};
 	class cVisualizer: public tVisualizerBase<cTextField>
 	{

@@ -235,8 +235,8 @@ void cTextureManager2::ProcessInfoFile(const std::string &Path, const cPath &Tex
 
 void cTextureManager2::Initialize()
 {
-// 	tIntrusivePtr<cConfig> Config=cLuaBasedConfig::CreateConfig("pixie_system.folders", theLuaState);
-// 	std::string TexturesFolderConfig=Config->GetString("textures", "textures"s);
+// 	tIntrusivePtr<cConfig2> Config=cLuaBasedConfig::CreateConfig("pixie_system.folders", theLuaState);
+// 	std::string TexturesFolderConfig=Config->get<std::string>("textures", "textures"s);
 	std::string TexturesFolderConfig = theGlobalConfig->get<std::string>("pixie_system.folders.textures", "textures"s);
 	cStringVector TexturesFolders(TexturesFolderConfig, ", ", false);
 	for(auto &TexturesFolder: TexturesFolders)
@@ -290,11 +290,11 @@ void cTextureManager2::Initialize()
 		}
 	}
 // init aliases:
-	auto AlisesConfig= theGlobalConfig->GetSubConfig("texture_aliases");
-	for(auto &TextureName: AlisesConfig->GetKeys())
-	{
-		mTextureAliases[TextureName]=AlisesConfig->GetString(TextureName);
-	}
+	theGlobalConfig->createSubConfig("texture_aliases")->forEachString(
+		[this](const std::string &Key, const std::string &Value)
+    {
+        mTextureAliases[Key]=Value;
+    });
 }
 
 tIntrusivePtr<cTexture> cTextureManager2::GetTexture(const std::string &TextureName, bool IsOptional) const

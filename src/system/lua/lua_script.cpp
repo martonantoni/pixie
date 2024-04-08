@@ -182,18 +182,18 @@ int cLuaScript::stackSize() const
     return lua_gettop(L);
 }
 
-tIntrusivePtr<cConfig> cLuaScript::stringToConfig(const std::string& scriptText)
+tIntrusivePtr<cConfig2> cLuaScript::stringToConfig(const std::string& scriptText)
 {
     auto script = std::make_shared<cLuaScript>();
     script->executeString(scriptText);
-    return script->globalTable().toConfig();
+    return script->globalTable().toConfig2();
 }
 
-tIntrusivePtr<cConfig> cLuaScript::fileToConfig(const cPath& scriptPath)
+tIntrusivePtr<cConfig2> cLuaScript::fileToConfig(const cPath& scriptPath)
 {
     auto script = std::make_shared<cLuaScript>();
     script->executeFile(scriptPath);
-    return script->globalTable().toConfig();
+    return script->globalTable().toConfig2();
 }
 
 void cLuaScript::error(lua_State* L, const std::string& message)

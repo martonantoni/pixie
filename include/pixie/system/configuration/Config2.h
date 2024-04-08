@@ -33,10 +33,13 @@ public:
         get(int index, std::optional<tGetRV<T>> defaultValue = std::optional<tGetRV<T>>()) const;
 
     tIntrusivePtr<cConfig2> getSubConfig(const std::string& keyPath) const { return get<tIntrusivePtr<cConfig2>>(keyPath); }
+    tIntrusivePtr<cConfig2> getSubOrEmptyConfig(const std::string& keyPath) const { return get<tIntrusivePtr<cConfig2>>(keyPath, make_intrusive_ptr<cConfig2>()); }
     tIntrusivePtr<cConfig2> createSubConfig(const std::string& key);
     template<class C> void forEachSubConfig(const C& callable) const;
     bool isArray() const;
     template<class Visitor> void visit(Visitor&& visitor) const;
+    template<class C> void forEachString(const C& callable) const; // callable: void (const std::string& key, const std::string& value)
+    template<class C> void forEachInt(const C& callable) const; // callable: void (const std::string& key, int value)
 };
 
 inline bool cConfig2::empty() const
@@ -98,11 +101,11 @@ inline int cConfig2::numberOfSubConfigs() const
 template<class T> void cConfig2::_set(const std::string& key, T&& value)
 {
     std::visit(
-        [&, this](auto& values)
+        [value = std::forward<T>(value), this, &key](auto& values) 
         {
             if constexpr (std::is_same_v<std::decay_t<decltype(values)>, cValueMap>)
             {
-                values[key] = std::forward<T>(value);
+                values[key] = value;
             }
             else if constexpr (std::is_same_v<std::decay_t<decltype(values)>, cValueArray>)
             {
@@ -111,12 +114,12 @@ template<class T> void cConfig2::_set(const std::string& key, T&& value)
                 {
                     values.resize(index + 1);
                 }
-                values[index] = std::forward<T>(value);
+                values[index] = value;
             }
             else // std::monostate
             {
                 mValues = cValueMap();
-                (std::get<1>(mValues))[key] = std::forward<T>(value);
+                (std::get<1>(mValues))[key] = value;
             }
         }, mValues);
 }
@@ -375,6 +378,41 @@ template<class Visitor> void cConfig2::visit(Visitor&& visitor) const
                 }
             }
         }, mValues);
+}
+
+template<class C> void cConfig2::forEachString(const C& callable) const
+{
+    if constexpr (std::is_invocable_v<C, const std::string&, const std::string&>)
+    {
+        visit([&](const std::string& key, const auto& value)
+            {
+                if constexpr (std::is_same_v<std::remove_cvref_t<decltype(value)>, std::string>)
+                {
+                    callable(key, value);
+                }
+            });
+    }
+    else
+    {
+        visit([&](int idx, const auto& value)
+        {
+            if constexpr (std::is_same_v<std::remove_cvref_t<decltype(value)>, std::string>)
+            {
+                callable(idx, value);
+            }
+        });
+    }
+}
+
+template<class C> void cConfig2::forEachInt(const C& callable) const
+{
+    visit([&](const std::string& key, const auto& value)
+        {
+            if constexpr (std::is_same_v<std::remove_cvref_t<decltype(value)>, int>)
+            {
+                callable(key, value);
+            }
+        });
 }
 
 template<class C> void cConfig2::forEachSubConfig(const C& callable) const

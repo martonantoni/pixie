@@ -55,8 +55,8 @@ public:
     }
 
 // shortcuts for creating config from lua script:
-    static tIntrusivePtr<cConfig> stringToConfig(const std::string& scriptText);
-    static tIntrusivePtr<cConfig> fileToConfig(const cPath& scriptPath);
+    static tIntrusivePtr<cConfig2> stringToConfig(const std::string& scriptText);
+    static tIntrusivePtr<cConfig2> fileToConfig(const cPath& scriptPath);
 
 // debug functions:
     int stackSize() const;

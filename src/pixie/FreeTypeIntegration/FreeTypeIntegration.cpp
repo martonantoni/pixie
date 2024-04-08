@@ -25,27 +25,25 @@ void InitFreeType()
 	if(ASSERTFALSE(x)) \
 		return false;
 
-bool cFontManager2::InitFont(cFont2 &Font, tIntrusivePtr<cConfig> Config)
+bool cFontManager2::InitFont(cFont2 &Font, const cConfig2& config)
 {
-	if(ASSERTFALSE(!Config))
-		return false;
 	FT_Library  library;
 	FT_CHECKED_CALL(FT_Init_FreeType(&library));
 	FT_Face     face;      /* handle to face object */
-    auto fileName = Config->GetString("file");
+    auto fileName = config.get<std::string>("file");
 	if(FT_New_Face(library, fileName.c_str(), 0, &face))
     {
         printf("unable to load font: \"%s\"\n", fileName.c_str());
         return false;
     }
-//	Font.mFontHeight=Config->GetInt("height");
-	FT_CHECKED_CALL(FT_Set_Pixel_Sizes(face, 0, Config->GetInt("height")));
+//	Font.mFontHeight=config.get<int>("height");
+	FT_CHECKED_CALL(FT_Set_Pixel_Sizes(face, 0, config.get<int>("height")));
 	Font.mFontHeight=face->size->metrics.height>>6;
 	Font.mAscender=face->size->metrics.ascender>>6;
 	Font.mDescender=face->size->metrics.descender>>6;
 
 	static std::string Letters="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"#$%&'()*+-'.,/:; <=>?@[\\]^_`{|}~";
-	auto ExtraLettersUTF8=Config->GetString("extra_letters", std::string());
+	auto ExtraLettersUTF8= config.get<std::string>("extra_letters", std::string());
 	auto ExtraLetters=UTF8::Decode(ExtraLettersUTF8);
 	ExtraLetters.pop_back(); // the terminating zero
 	std::vector<FT_Glyph> Glyphs(Letters.size()+ExtraLetters.size()+1);
@@ -196,32 +194,27 @@ cFont2 *cFontManager2::GetFont(const std::string &Name)
 
 void cFontManager2::Init()
 {
-	auto FontsConfig= theGlobalConfig->GetSubConfig("fonts");
-	auto FontNames=FontsConfig->GetSubConfigNames();
-	mFonts.reserve(FontNames.size());
-	for(size_t i=0; i<FontNames.size(); ++i)
-	{
-		cFontData FontData(FontNames[i]);
-		auto FontConfig=FontsConfig->GetSubConfig(FontNames[i]);
-		if(ASSERTFALSE(!FontConfig))
-			continue;
-		std::string AliasOf=FontConfig->GetString("alias_of",std::string());
-		if(!AliasOf.empty())
+	theGlobalConfig->createSubConfig("fonts")->forEachSubConfig(
+		[this](const std::string& name, const cConfig2& config)
 		{
-			FontData.mAliasOf=std::move(AliasOf);
-			mFonts.emplace_back(std::move(FontData));
-		}
-		else
-		{
-			FontData.mFont=std::make_unique<cFont2>(FontNames[i]);
-			if(InitFont(*FontData.mFont, FontConfig))
-			{
-				mFonts.emplace_back(std::move(FontData));
-			}
-			else
-			{
-				MainLog->Log("Unable to initialize font: \"%s\"", FontNames[i].c_str());
-			}
-		}
-	}
+			cFontData FontData(name);
+            auto AliasOf=config.get<std::string>("alias_of", std::string());
+            if(!AliasOf.empty())
+            {
+                FontData.mAliasOf=std::move(AliasOf);
+                mFonts.emplace_back(std::move(FontData));
+            }
+            else
+            {
+                FontData.mFont=std::make_unique<cFont2>(name);
+                if(InitFont(*FontData.mFont, config))
+                {
+                    mFonts.emplace_back(std::move(FontData));
+                }
+                else
+                {
+                    MainLog->Log("Unable to initialize font: \"%s\"", name.c_str());
+                }
+            }
+		});
 }

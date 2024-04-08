@@ -1,3 +1,3 @@
 #pragma once
 
-extern tIntrusivePtr<cConfig> theGlobalConfig;
+extern tIntrusivePtr<cConfig2> theGlobalConfig;

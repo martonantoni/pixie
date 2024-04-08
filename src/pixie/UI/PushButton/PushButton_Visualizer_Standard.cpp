@@ -10,7 +10,7 @@ void tStandardPushButtonVisualizer<T>::Init(const cPushButton::cInitData &InitDa
 	if(mTextureBaseName.empty())
 		mTextureBaseName="ui_button";
 	if(InitData.mConfig)
-		mUseTextRenderer=InitData.mConfig->GetBool("use_text_renderer", mUseTextRenderer);
+		mUseTextRenderer=InitData.mConfig->get<bool>("use_text_renderer", mUseTextRenderer);
 }
 
 template<class T>

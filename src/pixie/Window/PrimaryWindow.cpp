@@ -53,7 +53,7 @@ cPrimaryWindow::cPrimaryWindow()
 #endif
 
 	::RegisterClassEx(&WindowClass);
-	auto config = theGlobalConfig->GetSubConfig("primary_window");
+	auto config = theGlobalConfig->getSubConfig("primary_window");
 	mWindowHandle=::CreateWindow("PixieWindow",cProgramTitle::Get()->c_str(),WS_VISIBLE|WS_SYSMENU|WS_MINIMIZEBOX,0,0,500,500,NULL,NULL,gInstance,0);
 
 	RECT WindowRect,ClientRect;

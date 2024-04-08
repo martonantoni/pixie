@@ -122,7 +122,7 @@ void InitPixieSystem()
 {
 	cPrimaryWindow::Get();
 	theColorServer.Init();
-	(new cBasicDeviceClearer)->Init(cEmptyConfig());
+	(new cBasicDeviceClearer)->Init(cConfig2());
 	cDevice::Get();
 	thePixieDesktop.Init(cPixieDesktop::cInitData());
 	theTextureManager.Initialize();

@@ -19,7 +19,7 @@ public:
 		std::string mTooltipText;
 //todo		std::unique_ptr<cSpriteBase> mTextSprite;
 		cInitData()=default;
-		void setConfig(tIntrusivePtr<cConfig> Config);
+		void setConfig(tIntrusivePtr<cConfig2> Config);
 	};
 	class cVisualizer: public tVisualizerBase<cPushButton>
 	{

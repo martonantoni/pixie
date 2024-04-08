@@ -80,7 +80,7 @@ void cDevice::Init()
 
 	mRenderingTimerID=theMainThread->AddTimer([this]() { RenderingLoop(); }, cTimerRequest(10));
 
-	mNeedClear= theGlobalConfig->GetSubConfig("pixie_system")->GetBool("clear_device_before_frame", false);
+	mNeedClear= theGlobalConfig->get<bool>("pixie_system.clear_device_before_frame", false);
 }
 
 void cDevice::Close()

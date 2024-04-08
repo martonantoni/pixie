@@ -24,13 +24,13 @@ protected:
 	void StartMouseTracking();
 	void StopMouseTracking();
 
-	virtual void InitVisualizer(const cConfig &Config)=0;
-	virtual void InitSelf(const cConfig &Config)=0;
+	virtual void InitVisualizer(const cConfig2 &Config)=0;
+	virtual void InitSelf(const cConfig2 &Config)=0;
 	virtual void Redraw() {}
 public:
 	cPixieWindow();
-	void Init(const cConfig &Config);
-	void Init(const cRect &Placement,const cConfig &Config);
+	void Init(const cConfig2 &Config);
+	void Init(const cRect &Placement,const cConfig2 &Config);
 	virtual ~cPixieWindow();
 	void RedrawIfNeeded();
 	void Invalidate();

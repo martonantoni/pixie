@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
 
-void cBasicDeviceClearer::Init(const cConfig &Config)
+void cBasicDeviceClearer::Init(const cConfig2 &Config)
 {
 	// ARGB
 //	Color=0x40604000;

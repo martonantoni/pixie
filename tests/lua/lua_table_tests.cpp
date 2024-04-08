@@ -452,30 +452,30 @@ void setupConfigTestVariables(cLuaScript& script)
     storeTestVariables(subTable);
 }
 
-void verifyConfigSingleLevel(const cConfig& config)
+void verifyConfigSingleLevel(const cConfig2& config)
 {
     {
-        auto value = config.Get<int>("twelve", 0);
+        auto value = config.get<int>("twelve", 0);
         ASSERT_EQ(value, 12) << "twelve";
     }
     {
-        auto value = config.Get<int>("ten", 0);
+        auto value = config.get<int>("ten", 0);
         ASSERT_EQ(value, 10) << "ten";
     }
     {
-        auto value = config.Get<double>("twelve_and_half", 0.0);
+        auto value = config.get<double>("twelve_and_half", 0.0);
         ASSERT_EQ(value, 12.5) << "twelve_and_half";
     }
     {
-        auto value = config.Get<double>("ten_and_half", 0.0);
+        auto value = config.get<double>("ten_and_half", 0.0);
         ASSERT_EQ(value, 10.5) << "ten_and_half";
     }
     {
-        auto value = config.Get<std::string>("twelve", {});
+        auto value = config.get<std::string>("twelve", {});
         ASSERT_STREQ(value.c_str(), "12") << "twelve";
     }
     {
-        auto value = config.Get<std::string>("ten", {});
+        auto value = config.get<std::string>("ten", {});
         ASSERT_STREQ(value.c_str(), "10") << "ten";
     }
 
@@ -486,7 +486,7 @@ TEST(lua_table, toConfig_nonrecursive)
     auto script = std::make_shared<cLuaScript>();
 
     setupConfigTestVariables(*script);
-    auto config = script->globalTable().toConfig(cLuaValue::IsRecursive::No);
+    auto config = script->globalTable().toConfig2(cLuaValue::IsRecursive::No);
     verifyConfigSingleLevel(*config);
     ASSERT_EQ(script->stackSize(), 0);
 }
@@ -496,9 +496,9 @@ TEST(lua_table, toConfig_recursive)
     auto script = std::make_shared<cLuaScript>();
 
     setupConfigTestVariables(*script);
-    auto config = script->globalTable().toConfig(cLuaValue::IsRecursive::Yes);
+    auto config = script->globalTable().toConfig2(cLuaValue::IsRecursive::Yes);
     verifyConfigSingleLevel(*config);
-    auto subConfig = config->GetSubConfig("mySubTable");
+    auto subConfig = config->getSubConfig("mySubTable");
     ASSERT_TRUE(subConfig);
     verifyConfigSingleLevel(*subConfig);
     ASSERT_EQ(script->stackSize(), 0);

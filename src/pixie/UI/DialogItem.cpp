@@ -96,7 +96,7 @@ void cDialogItem::OnMouseMove(cPoint ScreenCoords, bool IsInside)
 
 /// ---------------------------------------------------------------------------------------------------------------------------------------
 
-void cDialogItems::AddPushButton(cPixieWindow &Window, tIntrusivePtr<cConfig> config)
+void cDialogItems::AddPushButton(cPixieWindow &Window, tIntrusivePtr<cConfig2> config)
 {
 	cPushButton::cInitData InitData;
 	InitData.setConfig(config);
@@ -106,7 +106,7 @@ void cDialogItems::AddPushButton(cPixieWindow &Window, tIntrusivePtr<cConfig> co
 	mItems.emplace_back(std::move(Button));
 }
 
-void cDialogItems::AddTextField(cPixieWindow &Window, tIntrusivePtr<cConfig> config)
+void cDialogItems::AddTextField(cPixieWindow &Window, tIntrusivePtr<cConfig2> config)
 {
 	cTextField::cInitData InitData;
 	InitData.setConfig(config);
@@ -116,7 +116,7 @@ void cDialogItems::AddTextField(cPixieWindow &Window, tIntrusivePtr<cConfig> con
 	mItems.emplace_back(std::move(TextField));
 }
 
-void cDialogItems::AddEditField(cPixieWindow &Window, tIntrusivePtr<cConfig> config)
+void cDialogItems::AddEditField(cPixieWindow &Window, tIntrusivePtr<cConfig2> config)
 {
 	cEditField::cInitData InitData;
 	InitData.setConfig(config);
@@ -126,12 +126,12 @@ void cDialogItems::AddEditField(cPixieWindow &Window, tIntrusivePtr<cConfig> con
 	mItems.emplace_back(std::move(EditField));
 }
 
-void cDialogItems::Init(cPixieWindow &Window, tIntrusivePtr<cConfig> config)
+void cDialogItems::Init(cPixieWindow &Window, tIntrusivePtr<cConfig2> config)
 {
 	config->forEachSubConfig(
-		[this, &Window](auto& key, tIntrusivePtr<cConfig> subConfig)
+		[this, &Window](auto& key, tIntrusivePtr<cConfig2> subConfig)
 		{
-			auto TypeName = subConfig->GetString("control_type");
+			auto TypeName = subConfig->get<std::string>("control_type");
 			if (TypeName == "pushbutton")
 			{
 				AddPushButton(Window, subConfig);
@@ -150,7 +150,7 @@ void cDialogItems::Init(cPixieWindow &Window, tIntrusivePtr<cConfig> config)
 				return;
 			}
 			auto& NewItem = mItems.back();
-			if (subConfig->GetBool("grab_focus", false))
+			if (subConfig->get<bool>("grab_focus", false))
 			{
 				NewItem->SetFocus();
 			}

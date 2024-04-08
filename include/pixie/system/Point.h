@@ -9,9 +9,9 @@ struct tPoint
 	constexpr tPoint(T _x, T _y): x(_x), y(_y) {}
 	template<class U> constexpr tPoint(const tPoint<U> &Other): x(Other.x), y(Other.y) {}
 
-	void FromConfig_Point(const cConfig &Config);
-	void FromConfig_Size(const cConfig &Config);
-	void FromConfig_Pair(const cConfig &Config);
+	void FromConfig_Point(const cConfig2 &Config);
+	void FromConfig_Size(const cConfig2 &Config);
+	void FromConfig_Pair(const cConfig2 &Config);
 	tPoint &operator-=(const tPoint &Other) { x-=Other.x; y-=Other.y; return *this; }
 	tPoint &operator+=(const tPoint &Other) { x+=Other.x; y+=Other.y; return *this; }
 	tPoint operator+(const tPoint &Offset) const { return tPoint(x+Offset.x, y+Offset.y); }
@@ -38,22 +38,22 @@ struct tPoint
     }
 };
 
-template<class T> inline void tPoint<T>::FromConfig_Point(const cConfig &Config)
+template<class T> inline void tPoint<T>::FromConfig_Point(const cConfig2 &Config)
 {
-	x=Config.Get<T>("x", {});
-	y=Config.Get<T>("y", {});
+	x=Config.get<T>("x", {});
+	y=Config.get<T>("y", {});
 }
 
-template<class T> inline void tPoint<T>::FromConfig_Size(const cConfig &Config)
+template<class T> inline void tPoint<T>::FromConfig_Size(const cConfig2 &Config)
 {
-	x=Config.Get<T>("w", {});
-	y=Config.Get<T>("h", {});
+	x=Config.get<T>("w", {});
+	y=Config.get<T>("h", {});
 }
 
-template<class T> inline void tPoint<T>::FromConfig_Pair(const cConfig &Config)
+template<class T> inline void tPoint<T>::FromConfig_Pair(const cConfig2 &Config)
 {
-	x=Config.Get<T>(0, {});
-	y=Config.Get<T>(1, {});
+	x=Config.get<T>(0, {});
+	y=Config.get<T>(1, {});
 }
 
 typedef tPoint<int> cPoint;

@@ -17,7 +17,7 @@ class cStandardListBoxVisualizer: public cListBox::cVisualizer
 public:
 	cStandardListBoxVisualizer();
 	~cStandardListBoxVisualizer();
-	void Init(const cConfig &Config);
+	void Init(const cConfig2 &Config);
 	virtual void StateChanged() override;
 	virtual void Redraw() override;
 	virtual cRect GetItemsRect() const override;

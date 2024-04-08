@@ -6,35 +6,35 @@ RECT cRect::ToRECT() const
 	return Rect;
 }
 
-cRect::cRect(const cConfig &Config)
+cRect::cRect(const cConfig2 &Config)
 {
 	FromConfig(Config);
 }
 
-void cRect::FromConfig(const cConfig &Config, eIsOptional IsOptional)
+void cRect::FromConfig(const cConfig2 &Config, eIsOptional IsOptional)
 {
 	if (IsOptional == eIsOptional::Yes)
 	{
-		mLeft = Config.GetInt("x", mLeft);
-		mTop = Config.GetInt("y", mTop);
-		mWidth = Config.GetInt("w", mWidth);
-		mHeight = Config.GetInt("h", mHeight);
+		mLeft = Config.get<int>("x", mLeft);
+		mTop = Config.get<int>("y", mTop);
+		mWidth = Config.get<int>("w", mWidth);
+		mHeight = Config.get<int>("h", mHeight);
 	}
 	else
 	{
-		mLeft = Config.GetInt("x");
-        mTop = Config.GetInt("y");
-        mWidth = Config.GetInt("w");
-        mHeight = Config.GetInt("h");
+		mLeft = Config.get<int>("x");
+        mTop = Config.get<int>("y");
+        mWidth = Config.get<int>("w");
+        mHeight = Config.get<int>("h");
     }
 }
 
-void cRect::ToConfig(cConfig &Config) const
+void cRect::ToConfig(cConfig2 &Config) const
 {
-	Config.Set("x"s, mLeft);
-	Config.Set("y"s, mTop);
-	Config.Set("w"s, mWidth);
-	Config.Set("h"s, mHeight);
+	Config.set("x"s, mLeft);
+	Config.set("y"s, mTop);
+	Config.set("w"s, mWidth);
+	Config.set("h"s, mHeight);
 }
 
 cRect cRect::GetAlignedRect(const cRect &RectToAlign, eHorizontalAlign HorizontalAlign, eVerticalAlign VerticalAlign) const

@@ -2,11 +2,11 @@
 #include "pixie/pixie/i_pixie.h"
 INIT_VISUALIZER_IMP(cTextField);
 
-void cTextField::cInitData::setConfig(tIntrusivePtr<cConfig> Config)
+void cTextField::cInitData::setConfig(tIntrusivePtr<cConfig2> Config)
 {
 	tPixieSimpleInitData<cMouseTarget>::setConfig(Config);
-	mTitle=Config->GetString("title", std::string());
-	mTextStyle=Config->GetString("text_style", mTextStyle);
+	mTitle=Config->get<std::string>("title", std::string());
+	mTextStyle=Config->get<std::string>("text_style", mTextStyle);
 }
 
 void cTextField::Init(const cInitData &InitData)

@@ -7,14 +7,14 @@ const cEventDispatchers::cDispatcherRangeInfo cPushButton::mDispatcherRangeInfo=
 	PixieEvents::PushButton_First, { "activated" }
 };
 
-void cPushButton::cInitData::setConfig(tIntrusivePtr<cConfig> config) 
+void cPushButton::cInitData::setConfig(tIntrusivePtr<cConfig2> config) 
 {
 	tPixieSimpleInitData<cMouseTarget>::setConfig(config);
-    mTextureBaseName = config->GetString("texture", std::string());
-    mTitle = config->GetString("title", std::string());
-	mTooltipText = config->GetString("tooltip", std::string());
-    mTextStyle = config->GetString("text_style", mTextStyle);
-    auto ActivationKeyString = config->GetString("key", std::string());
+    mTextureBaseName = config->get<std::string>("texture", std::string());
+    mTitle = config->get<std::string>("title", std::string());
+	mTooltipText = config->get<std::string>("tooltip", std::string());
+    mTextStyle = config->get<std::string>("text_style", mTextStyle);
+    auto ActivationKeyString = config->get<std::string>("key", std::string());
     if (!ActivationKeyString.empty())
         mActivationKey = cKeyboardServer::ConfigStringToEventID(ActivationKeyString);
 }

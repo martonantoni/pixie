@@ -16,7 +16,7 @@ public:
 		std::string mTextStyle { "edit_field" };
 		int mMaxTextLength=std::numeric_limits<int>::max();
 		cInitData()=default;
-		void setConfig(tIntrusivePtr<cConfig> config);
+		void setConfig(tIntrusivePtr<cConfig2> config);
 	};
 	class cVisualizer: public tVisualizerBase<cEditField>
 	{
