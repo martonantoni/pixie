@@ -15,7 +15,7 @@ inline std::string FormatThousands64(__int64 Value)
 {
 	if(!Value)
 		return "0";
-	__int64 AbsValue=Abs(Value);
+	__int64 AbsValue=std::abs(Value);
 	std::string Result;
 	for(;;)
 	{

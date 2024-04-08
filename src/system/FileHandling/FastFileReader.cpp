@@ -47,7 +47,7 @@ int cFastFileReader::MoveView()
 	}
 	__int64 OffsetError=Offset%SystemGranuality;
 	mViewOffset=Offset-OffsetError;
-	int ViewSize=Low32(Min<__int64>(mFileSize-mViewOffset,MaxViewSize));
+	int ViewSize=Low32(std::min<__int64>(mFileSize-mViewOffset,MaxViewSize));
 	mViewPosition=(char *)::MapViewOfFile(FileMappingHandle,FILE_MAP_COPY,High32(mViewOffset),Low32(mViewOffset),ViewSize);
 	if(!mViewPosition)
 		ThrowLastError(fmt::sprintf("MapViewOfFile failed (offset= %d, size: %d). File: %s",mViewOffset,ViewSize,FileName.c_str()));
