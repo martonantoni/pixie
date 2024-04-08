@@ -183,7 +183,7 @@ bool cFontManager2::InitFont(cFont2 &Font, const cConfig& config)
 
 cFont2 *cFontManager2::GetFont(const std::string &Name)
 {
-	auto i=std::find_if(mFonts, [&Name](auto &Font) { return Font.mName==Name; });
+	auto i=std::ranges::find_if(mFonts, [&Name](auto &Font) { return Font.mName==Name; });
 	if(ASSERTFALSE(i==mFonts.end()))
 		return nullptr;
 	auto &FontData=*i;

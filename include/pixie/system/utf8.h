@@ -9,7 +9,7 @@ namespace UTF8
 
 	inline bool DoesNeedDecode(const std::string &Text)
 	{
-		return std::none_of(Text, [](auto c) { return c&0x80; });
+		return std::none_of(ALL(Text), [](auto c) { return c&0x80; });
 	}
 
 	wchar_t DecodeCharacter(const char *&i);

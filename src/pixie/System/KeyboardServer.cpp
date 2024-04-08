@@ -45,7 +45,7 @@ const cEventDispatchers::cDispatcherRangeInfo cKeyboardServer::mDispatcherRangeI
 
 int cKeyboardServer::ConfigStringToEventID(const std::string &ConfigString)
 {
-	auto i=std::find_if(mDispatcherRangeInfo.mEventNames, [NameToFind="keydown_"s+ConfigString](auto &Name) { return Name==NameToFind; });
+	auto i=std::ranges::find_if(mDispatcherRangeInfo.mEventNames, [NameToFind="keydown_"s+ConfigString](auto &Name) { return Name==NameToFind; });
 	return i==mDispatcherRangeInfo.mEventNames.end()?0:i-mDispatcherRangeInfo.mEventNames.begin()-1; // -1 because of Keyboard_First is invalid
 }
 

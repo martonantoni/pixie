@@ -63,7 +63,7 @@ void cTimedAnimators::HandleScheduledAnimators(cPixieObject &Object)
 
 void cTimedAnimators::Activated(cPixieObject &Object)
 {
-	std::stable_sort(mScheduledAnimators, [](auto &a, auto &b)
+	std::ranges::stable_sort(mScheduledAnimators, [](auto &a, auto &b)
 	{
 		return a.mTiming.mStartTime>b.mTiming.mStartTime||
 			(a.mTiming.mStartTime==b.mTiming.mStartTime&&a.mTiming.mStartTime!=a.mTiming.mEndTime&&b.mTiming.mStartTime==b.mTiming.mEndTime);
@@ -77,8 +77,8 @@ void cTimedAnimators::Activated(cPixieObject &Object)
 cPixieObjectAnimator::eAnimateResult cTimedAnimators::Animate(cPixieObject &Object)
 {
 // 1) handle the active blenders
-	mActiveAnimators.erase(std::remove_if(mActiveAnimators, 
-		[&Object](auto &Blender) { return Blender->Animate(Object)==cPixieObjectAnimator::AnimationDone; }), mActiveAnimators.end());
+	std::erase_if(mActiveAnimators, 
+		[&Object](auto &Blender) { return Blender->Animate(Object)==cPixieObjectAnimator::AnimationDone; });
 // 2) handle the scheduled blenders
 	HandleScheduledAnimators(Object);
 // 3) Handle looping:

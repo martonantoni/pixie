@@ -42,7 +42,7 @@ void cEventDispatchers::PostEvent(size_t DispatcherIndex, cEvent &&Event)
 
 tIntrusivePtr<cEventDispatcher> cEventDispatchers::operator[](size_t Index) const
 {
-	auto range_i=std::find_if(mRanges, [Index](auto &Range) 
+	auto range_i=std::ranges::find_if(mRanges, [Index](auto &Range) 
 		{ return Range.mInfo.mFirstIndex<=Index&&(Range.mInfo.mFirstIndex+Range.mInfo.mEventNames.size())>Index; });
 	if(ASSERTFALSE(range_i==mRanges.end()))
 		return nullptr;

@@ -29,7 +29,7 @@ void cReactor::SwapListeners(size_t First, size_t Second)
 
 void cReactor::RemoveEventListener(size_t ID)
 {
-	auto i=std::find(mIDs, ID);
+	auto i=std::ranges::find(mIDs, ID);
 	if(i==mIDs.end())
 		return;
 	mAddOrRemoveTrap=true;

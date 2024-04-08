@@ -27,7 +27,7 @@ template<typename T> class tSafeObjects
 public:
 	void Unregister(unsigned int ID)
 	{
-		auto i=std::find_if(mObjects, [ID](auto &Object) { return Object.mID==ID; });
+		auto i=std::ranges::find_if(mObjects, [ID](auto &Object) { return Object.mID==ID; });
 		if(i==mObjects.end())
 			return;
 		if(mForEachIndex!=InvalidIndex)
@@ -48,7 +48,7 @@ public:
 			if(!mObjects[mForEachIndex].IsUnregistered())
 				FunctionObjectToCall(mObjects[mForEachIndex].mObject);
 		}
-		mObjects.erase(std::remove_if(mObjects, [](auto &Object) {return Object.IsUnregistered(); }), mObjects.end());
+		std::erase_if(mObjects, [](auto &Object) {return Object.IsUnregistered(); });
 		mForEachIndex=InvalidIndex;
 	}
 	template<typename U> void ForEach(U FunctionObjectToCall) const
@@ -59,8 +59,8 @@ public:
 			if(!mObjects[mForEachIndex].IsUnregistered())
 				FunctionObjectToCall(mObjects[mForEachIndex].mObject);
 		}
-		const_cast<cObjects &>(mObjects).erase(std::remove_if // const_cast-s are a hack here, should be fixed at some point
-			(const_cast<cObjects &>(mObjects), [](auto &Object) {return Object.IsUnregistered(); }), const_cast<cObjects &>(mObjects).end());
+		std::erase_if // const_cast-s are a hack here, should be fixed at some point
+			(const_cast<cObjects &>(mObjects), [](auto &Object) {return Object.IsUnregistered(); });
 		mForEachIndex=InvalidIndex;
 	}
 
@@ -79,7 +79,7 @@ public:
 				}
 			}
 		}
-		mObjects.erase(std::remove_if(mObjects, [](auto &Object) {return Object.IsUnregistered(); }), mObjects.end());
+		std::erase_if(mObjects, [](auto &Object) {return Object.IsUnregistered(); });
 		mForEachIndex=InvalidIndex;
 		return Result;
 	}
@@ -106,14 +106,13 @@ public:
 				mObjects[mForEachIndex].Unregister();
 			}
 		});
-		mObjects.erase(std::remove_if(mObjects, [](auto &Object) {return Object.IsUnregistered(); }), mObjects.end());
+		std::erase_if(mObjects, [](auto &Object) {return Object.IsUnregistered(); });
 	}
 
 	template<class U>
 	unsigned int Register(U &&Object, int Order=100)
 	{
 		auto i=std::upper_bound(mObjects.begin(), mObjects.end(), Order, [](int Order, const auto &Callable) { return Callable.mOrder>Order; });
-//		auto i=std::lower_bound(mObjects, Order, [](const auto &Callable, int Order) { return Callable.mOrder<Order; });
 		if(mForEachIndex!=InvalidIndex)
 		{
 			int Index=i-mObjects.begin();
@@ -131,7 +130,7 @@ public:
 
 	template<class P> const T *FindIf(P Condition) const
 	{
-		auto i=std::find_if(mObjects, [&Condition](auto &ObjectData) { return Condition(ObjectData.mObject); });
+		auto i=std::ranges::find_if(mObjects, [&Condition](auto &ObjectData) { return Condition(ObjectData.mObject); });
 		return i==mObjects.end()?nullptr:&i->mObject;
 	}
 	template<class P> T *FindIf(P Condition)

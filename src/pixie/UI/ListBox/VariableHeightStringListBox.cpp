@@ -109,7 +109,7 @@ size_t cVariableHeightStringListBoxItemHandler::GetItemIndexAt(int Position)
 {
 	if(!mIsItemPropsValid)
 		const_cast<cVariableHeightStringListBoxItemHandler *>(this)->UpdateItems();
-	auto i=std::lower_bound(mItems, Position, [](auto &Item, int Position) { return Item->GetGlobalPosition()+Item->GetHeight()<Position; });
+	auto i=std::lower_bound(ALL(mItems), Position, [](auto &Item, int Position) { return Item->GetGlobalPosition()+Item->GetHeight()<Position; });
 	if(i==mItems.end())
 		return cListBox::npos;
 	return i-mItems.begin();

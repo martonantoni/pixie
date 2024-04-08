@@ -19,7 +19,7 @@ cCSVConfig::cCSVConfig(const cPath &Path, const std::string &Separator)
 
 size_t cCSVConfig::GetKeyIndex(const std::string &Key) const
 {
-	auto i=std::find(mKeys, Key);
+	auto i=std::ranges::find(mKeys, Key);
 	return i==mKeys.end()?~0:i-mKeys.begin();
 }
 

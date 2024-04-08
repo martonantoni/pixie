@@ -58,13 +58,13 @@ tIntrusivePtr<cEventDispatcher> cPixieWindow::GetDispatcher(eEventType EventType
 
 void cPixieWindow::AddSprite(cSpriteBase *Sprite)
 {
-	auto i=std::lower_bound(mSprites, Sprite->GetZOrder(), [](auto &Sprite, auto ZOrder) { return Sprite->GetZOrder()<ZOrder; });
+	auto i=std::lower_bound(ALL(mSprites), Sprite->GetZOrder(), [](auto &Sprite, auto ZOrder) { return Sprite->GetZOrder()<ZOrder; });
 	mSprites.insert(i, Sprite);
 }
 
 void cPixieWindow::RemoveSprite(cSpriteBase *Sprite)
 {
-	auto i=std::find(mSprites, Sprite);
+	auto i=std::ranges::find(mSprites, Sprite);
 	if(ASSERTTRUE(i!=mSprites.end()))
 		mSprites.erase(i);
 }
@@ -76,14 +76,14 @@ cPixieWindow::cSpriteIterator cPixieWindow::CreateSpriteIterator() const
 
 void cPixieWindow::AddSubWindow(cPixieWindow *SubWindow)
 {
-	auto i=std::lower_bound(mSubWindows, SubWindow->mZOrder, [](auto &Window, auto ZOrder) { return Window->mZOrder>ZOrder; });
+	auto i=std::lower_bound(ALL(mSubWindows), SubWindow->mZOrder, [](auto &Window, auto ZOrder) { return Window->mZOrder>ZOrder; });
 	mSubWindows.insert(i,SubWindow);
 	SubWindow->UpdateScreenRect(mScreenRect);
 }
 
 void cPixieWindow::RemoveSubWindow(cPixieWindow *SubWindow)
 {
-	auto i=std::find(mSubWindows, SubWindow);
+	auto i=std::ranges::find(mSubWindows, SubWindow);
 	if(i!=mSubWindows.end())
 		mSubWindows.erase(i);
 }
@@ -100,13 +100,13 @@ void cPixieWindow::SetParentWindow(cPixieWindow *ParentWindow)
 
 void cPixieWindow::AddMouseTarget(cMouseTarget *Target)
 {
-	auto i=std::lower_bound(mMouseTargets, Target->GetZOrder(), [](auto &Target, auto ZOrder) { return Target->GetZOrder()>ZOrder; });
+	auto i=std::lower_bound(ALL(mMouseTargets), Target->GetZOrder(), [](auto &Target, auto ZOrder) { return Target->GetZOrder()>ZOrder; });
 	mMouseTargets.insert(i, Target);
 }
 
 void cPixieWindow::RemoveMouseTarget(cMouseTarget *Target)
 {
-	auto i=std::find(mMouseTargets, Target);
+	auto i=std::ranges::find(mMouseTargets, Target);
 	if(i!=mMouseTargets.end())
 		mMouseTargets.erase(i);
 	thePixieDesktop.MouseTargetRemoved(Target);
@@ -207,7 +207,7 @@ void cPixieWindow::CheckOwnerlessSprites()
 	for(;;)
 	{
 		bool WasKill=false;
-		mSprites.erase(std::remove_if(mSprites, [&WasKill](auto Sprite)
+		std::erase_if(mSprites, [&WasKill](auto Sprite)
 		{
 			if(Sprite->DestroyZombie()==cSpriteBase::eDestroyZombieResult::Destroyed)
 			{
@@ -215,7 +215,7 @@ void cPixieWindow::CheckOwnerlessSprites()
 				return true;
 			}
 			return false;
-		}), mSprites.end());
+		});
 		if(!WasKill)
 			break;
 	}

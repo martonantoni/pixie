@@ -84,7 +84,7 @@ void cPrimaryWindow::Unregister(const cRegisteredID &RegisteredID,eCallbackType 
 {
 	cIDData *IDData=(cIDData *)RegisteredID.GetIDData();
 	auto &MessageHandlers=mMessageMap[IDData->mMessage];
-	auto i=std::find_if(MessageHandlers, [ID=IDData->mID](auto &item){ return item.second==ID; });
+	auto i=std::ranges::find_if(MessageHandlers, [ID=IDData->mID](auto &item){ return item.second==ID; });
 	if(ASSERTTRUE(i!=MessageHandlers.end()))
 		MessageHandlers.erase(i);
 	delete IDData;

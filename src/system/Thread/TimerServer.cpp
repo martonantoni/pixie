@@ -41,7 +41,7 @@ void cTimerServer::RemoveTimer(size_t ID)
 		SAFEDEL(mCurrentTimer);
 		return;
 	}
-	auto i=std::find_if(mTimers, [ID](auto Timer) { return Timer->mID==ID; });
+	auto i=std::find_if(ALL(mTimers), [ID](auto Timer) { return Timer->mID==ID; });
 	if(i!=mTimers.end())
 	{
 		auto Timer=*i;

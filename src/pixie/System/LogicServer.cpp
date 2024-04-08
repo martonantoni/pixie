@@ -14,7 +14,7 @@ cLogicServer::~cLogicServer()
 
 cRegisteredID cLogicServer::AddLogic(const cLogicListener &Listener,int Order)
 {
-	auto i=std::lower_bound(mLogicUsers, Order, [](const auto &LogicUser, int Order) { return LogicUser.mOrder<Order; });
+	auto i=std::lower_bound(ALL(mLogicUsers), Order, [](const auto &LogicUser, int Order) { return LogicUser.mOrder<Order; });
 	mLogicUsers.emplace(i,Listener,Order);
 	mLogicUsersModifiedTrap=true;
 	return cRegisteredID(this,cLogicUserData::mIDCounter);
@@ -50,7 +50,7 @@ void cLogicServer::Tick()
 
 void cLogicServer::Unregister(const cRegisteredID &RegisteredID,eCallbackType CallbackType)
 {
-	auto i=std::find_if(mLogicUsers, [ID=RegisteredID.GetID()](const auto &LogicUser){ return LogicUser.mID==ID; });
+	auto i=std::find_if(ALL(mLogicUsers), [ID=RegisteredID.GetID()](const auto &LogicUser){ return LogicUser.mID==ID; });
 	if(ASSERTTRUE(i!=mLogicUsers.end()))
 	{
 		mLogicUsers.erase(i);

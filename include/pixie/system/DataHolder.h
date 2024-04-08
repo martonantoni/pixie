@@ -42,7 +42,7 @@ const cDataType *tDataHolder<cDataType, typename std::enable_if<!(std::is_pod<cD
 {
 	if(ASSERTFALSE(RegisteredID.GetRegistrationHandler()!=this))
 		return nullptr;
-	auto i=std::find_if(mStoredData, [ID=RegisteredID.GetID()](const auto &DataAndID) { return DataAndID.first==ID; });
+	auto i=std::ranges::find_if(mStoredData, [ID=RegisteredID.GetID()](const auto &DataAndID) { return DataAndID.first==ID; });
 	return ASSERTFALSE(i==mStoredData.end())?nullptr:&i->second;
 }
 
@@ -50,7 +50,7 @@ template<class cDataType>
 void tDataHolder<cDataType, typename std::enable_if<!(std::is_pod<cDataType>::value&&(sizeof(cDataType)<=sizeof(cRegisteredID::cID)))>::type>::
 	Unregister(const cRegisteredID &RegisteredID, eCallbackType CallbackType)
 {
-	auto i=std::find_if(mStoredData, [ID=RegisteredID.GetID()](const auto &DataAndID) { return DataAndID.first==ID; });
+	auto i=std::ranges::find_if(mStoredData, [ID=RegisteredID.GetID()](const auto &DataAndID) { return DataAndID.first==ID; });
 	if(ASSERTTRUE(i!=mStoredData.end()))
 		mStoredData.erase(i);
 }
@@ -59,7 +59,7 @@ template<class cDataType>
 void tDataHolder<cDataType, typename std::enable_if<!(std::is_pod<cDataType>::value&&(sizeof(cDataType)<=sizeof(cRegisteredID::cID)))>::type>::
 	UpdateData(const cRegisteredID &RegisteredID, const cDataType &Data)
 {
-	auto i=std::find_if(mStoredData, [ID=RegisteredID.GetID()](const auto &DataAndID) { return DataAndID.first==ID; });
+	auto i=std::ranges::find_if(mStoredData, [ID=RegisteredID.GetID()](const auto &DataAndID) { return DataAndID.first==ID; });
 	if(ASSERTTRUE(i!=mStoredData.end()))
 		i->second=Data;
 }
