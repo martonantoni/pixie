@@ -152,13 +152,13 @@ std::string cLuaScript::valueToString(lua_State* L, int index)
     return convertedString;
 }
 
-tIntrusivePtr<cConfig2> cLuaValue::toConfig2_topTable(lua_State* L, IsRecursive isRecursive) const
+tIntrusivePtr<cConfig> cLuaValue::toConfig_topTable(lua_State* L, IsRecursive isRecursive) const
 {
     if (!lua_istable(L, -1))
     {
         return {};
     }
-    tIntrusivePtr<cConfig2> config = make_intrusive_ptr<cConfig2>();
+    tIntrusivePtr<cConfig> config = make_intrusive_ptr<cConfig>();
 
     lua_pushnil(L);
     while (lua_next(L, -2) != 0)
@@ -198,7 +198,7 @@ tIntrusivePtr<cConfig2> cLuaValue::toConfig2_topTable(lua_State* L, IsRecursive 
             case LUA_TTABLE:
                 if (isRecursive == IsRecursive::Yes)
                 {
-                    std::visit([&](auto&& key) { config->set(key, toConfig2_topTable(L, isRecursive)); }, key);
+                    std::visit([&](auto&& key) { config->set(key, toConfig_topTable(L, isRecursive)); }, key);
                 }
                 break;
             }
@@ -208,11 +208,11 @@ tIntrusivePtr<cConfig2> cLuaValue::toConfig2_topTable(lua_State* L, IsRecursive 
     return config;
 }
 
-tIntrusivePtr<cConfig2> cLuaValue::toConfig2(IsRecursive isRecursive) const
+tIntrusivePtr<cConfig> cLuaValue::toConfig(IsRecursive isRecursive) const
 {
     lua_State* L = mScript->state();
     lua_rawgeti(L, LUA_REGISTRYINDEX, mReference);
-    auto config = toConfig2_topTable(L, isRecursive);
+    auto config = toConfig_topTable(L, isRecursive);
     lua_pop(L, 1);
     return config;
 }

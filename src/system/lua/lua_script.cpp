@@ -182,18 +182,18 @@ int cLuaScript::stackSize() const
     return lua_gettop(L);
 }
 
-tIntrusivePtr<cConfig2> cLuaScript::stringToConfig(const std::string& scriptText)
+tIntrusivePtr<cConfig> cLuaScript::stringToConfig(const std::string& scriptText)
 {
     auto script = std::make_shared<cLuaScript>();
     script->executeString(scriptText);
-    return script->globalTable().toConfig2();
+    return script->globalTable().toConfig();
 }
 
-tIntrusivePtr<cConfig2> cLuaScript::fileToConfig(const cPath& scriptPath)
+tIntrusivePtr<cConfig> cLuaScript::fileToConfig(const cPath& scriptPath)
 {
     auto script = std::make_shared<cLuaScript>();
     script->executeFile(scriptPath);
-    return script->globalTable().toConfig2();
+    return script->globalTable().toConfig();
 }
 
 void cLuaScript::error(lua_State* L, const std::string& message)
@@ -207,7 +207,7 @@ void cLuaScript::error(lua_State* L, const std::string& message)
     throw std::runtime_error(errorMessage);
 }
 
-std::string cLuaScript::configToScript(const cConfig2& config, const std::string& ident)
+std::string cLuaScript::configToScript(const cConfig& config, const std::string& ident)
 {
     if (ident.empty() && config.isArray())
     {
@@ -226,7 +226,7 @@ std::string cLuaScript::configToScript(const cConfig2& config, const std::string
             {
                 script += ident + key + " = ";
             }
-            // print out the value(it can be int, double, bool, std::string, tIntrusivePtr<cConfig2>)
+            // print out the value(it can be int, double, bool, std::string, tIntrusivePtr<cConfig>)
             if constexpr (std::is_same_v<decltype(value), int>)
             {
                 script += std::to_string(value) + newLine;
@@ -243,7 +243,7 @@ std::string cLuaScript::configToScript(const cConfig2& config, const std::string
             {
                 script += "\"" + value + "\"" + newLine;
             }
-            else if constexpr (std::is_same_v<decltype(value), tIntrusivePtr<cConfig2>>)
+            else if constexpr (std::is_same_v<decltype(value), tIntrusivePtr<cConfig>>)
             {
                 script += "\n{\n";
                 script += configToScript(*value, ident + "  ");

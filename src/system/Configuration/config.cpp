@@ -1,30 +1,30 @@
 #include "StdAfx.h"
 
-#include "pixie/system/configuration/config2.h"
+#include "pixie/system/configuration/config.h"
 
-std::pair<cConfig2*, std::string> cConfig2::leafConfig(const std::string& keyPath, bool canCreateSubConfig)
+std::pair<cConfig*, std::string> cConfig::leafConfig(const std::string& keyPath, bool canCreateSubConfig)
 {
     auto dotPos = keyPath.find('.');
     if (dotPos == std::string::npos)
         return { this, keyPath };
     auto subKey = keyPath.substr(0, dotPos);
-    auto subConfig = _get<tIntrusivePtr<cConfig2>>(subKey, nullptr);
+    auto subConfig = _get<tIntrusivePtr<cConfig>>(subKey, nullptr);
     if (!subConfig)
     {
         if (!canCreateSubConfig)
             return { nullptr, std::string() };
-        subConfig = make_intrusive_ptr<cConfig2>();
+        subConfig = make_intrusive_ptr<cConfig>();
         _set(subKey, subConfig);
     }
     return subConfig->leafConfig(keyPath.substr(dotPos + 1), canCreateSubConfig);
 }
 
-std::pair<cConfig2*, std::string> cConfig2::leafConfig(const std::string& keyPath) const
+std::pair<cConfig*, std::string> cConfig::leafConfig(const std::string& keyPath) const
 {
-    return const_cast<cConfig2*>(this)->leafConfig(keyPath, false);
+    return const_cast<cConfig*>(this)->leafConfig(keyPath, false);
 }
 
-void cConfig2::makeArray()
+void cConfig::makeArray()
 {
     std::visit([this](auto& values)
         {

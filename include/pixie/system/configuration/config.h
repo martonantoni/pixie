@@ -1,16 +1,16 @@
 #pragma once
 
-class cConfig2 : public cIntrusiveRefCount
+class cConfig : public cIntrusiveRefCount
 {
-    using cValue = std::variant<int, double, std::string, bool, tIntrusivePtr<cConfig2>>;
+    using cValue = std::variant<int, double, std::string, bool, tIntrusivePtr<cConfig>>;
     using cValueMap = std::unordered_map<std::string, cValue>;
     using cValueArray = std::vector<cValue>;
     using cValues = std::variant<std::monostate, cValueMap, cValueArray>;
     template<typename T>
-    using tGetRV = std::conditional_t<std::is_same_v<std::remove_cvref_t<T>, cConfig2>, tIntrusivePtr<cConfig2>, T>;
+    using tGetRV = std::conditional_t<std::is_same_v<std::remove_cvref_t<T>, cConfig>, tIntrusivePtr<cConfig>, T>;
     cValues mValues;
-    std::pair<cConfig2*, std::string> leafConfig(const std::string& keyPath, bool canCreateSubConfig);
-    std::pair<cConfig2*, std::string> leafConfig(const std::string& keyPath) const;
+    std::pair<cConfig*, std::string> leafConfig(const std::string& keyPath, bool canCreateSubConfig);
+    std::pair<cConfig*, std::string> leafConfig(const std::string& keyPath) const;
     template<class T> static tGetRV<T> extract(const cValue& value);
     template<class TO, class FROM> static TO convert(const FROM& value);
     template<class T> tGetRV<T> _get(const std::string& key, const std::optional<tGetRV<T>>& defaultValue) const;
@@ -18,8 +18,8 @@ class cConfig2 : public cIntrusiveRefCount
     static const cValue& _extractValue(const cValue& value) { return value; }
     static const cValue& _extractValue(const std::pair<const std::string, cValue>& pair) { return pair.second; }
 public:
-    cConfig2() = default;
-    virtual ~cConfig2() = default;
+    cConfig() = default;
+    virtual ~cConfig() = default;
     void makeArray(); // works only if empty
     template<class T> void set(const std::string& keyPath, T&& value);
     template<class T> void set(int index, T&& value);
@@ -32,9 +32,9 @@ public:
     template<class T> tGetRV<T> 
         get(int index, std::optional<tGetRV<T>> defaultValue = std::optional<tGetRV<T>>()) const;
 
-    tIntrusivePtr<cConfig2> getSubConfig(const std::string& keyPath) const { return get<tIntrusivePtr<cConfig2>>(keyPath); }
-    tIntrusivePtr<cConfig2> getSubOrEmptyConfig(const std::string& keyPath) const { return get<tIntrusivePtr<cConfig2>>(keyPath, make_intrusive_ptr<cConfig2>()); }
-    tIntrusivePtr<cConfig2> createSubConfig(const std::string& key);
+    tIntrusivePtr<cConfig> getSubConfig(const std::string& keyPath) const { return get<tIntrusivePtr<cConfig>>(keyPath); }
+    tIntrusivePtr<cConfig> getSubOrEmptyConfig(const std::string& keyPath) const { return get<tIntrusivePtr<cConfig>>(keyPath, make_intrusive_ptr<cConfig>()); }
+    tIntrusivePtr<cConfig> createSubConfig(const std::string& key);
     template<class C> void forEachSubConfig(const C& callable) const;
     bool isArray() const;
     template<class Visitor> void visit(Visitor&& visitor) const;
@@ -42,7 +42,7 @@ public:
     template<class C> void forEachInt(const C& callable) const; // callable: void (const std::string& key, int value)
 };
 
-inline bool cConfig2::empty() const
+inline bool cConfig::empty() const
 {
     return std::visit([](const auto& values) -> bool
         {
@@ -57,12 +57,12 @@ inline bool cConfig2::empty() const
         }, mValues);
 }
 
-inline bool cConfig2::isArray() const
+inline bool cConfig::isArray() const
 {
     return std::holds_alternative<cValueArray>(mValues);
 }
 
-inline int cConfig2::numberOfValues() const
+inline int cConfig::numberOfValues() const
 {
     return std::visit([](const auto& values) -> int
         { 
@@ -70,7 +70,7 @@ inline int cConfig2::numberOfValues() const
             {
                 return std::ranges::count_if(values, [](const auto& value)
                     {
-                        return !std::holds_alternative<tIntrusivePtr<cConfig2>>(_extractValue(value));
+                        return !std::holds_alternative<tIntrusivePtr<cConfig>>(_extractValue(value));
                     });
             }
             else
@@ -80,7 +80,7 @@ inline int cConfig2::numberOfValues() const
         }, mValues);
 }
 
-inline int cConfig2::numberOfSubConfigs() const
+inline int cConfig::numberOfSubConfigs() const
 {
     return std::visit([](const auto& values) -> int
         {
@@ -88,7 +88,7 @@ inline int cConfig2::numberOfSubConfigs() const
             {
                 return std::ranges::count_if(values, [](const auto& value)
                     {
-                        return std::holds_alternative<tIntrusivePtr<cConfig2>>(_extractValue(value));
+                        return std::holds_alternative<tIntrusivePtr<cConfig>>(_extractValue(value));
                     });
             }
             else
@@ -98,7 +98,7 @@ inline int cConfig2::numberOfSubConfigs() const
         }, mValues);
 }
 
-template<class T> void cConfig2::_set(const std::string& key, T&& value)
+template<class T> void cConfig::_set(const std::string& key, T&& value)
 {
     std::visit(
         [value = std::forward<T>(value), this, &key](auto& values) 
@@ -124,13 +124,13 @@ template<class T> void cConfig2::_set(const std::string& key, T&& value)
         }, mValues);
 }
 
-template<class T> void cConfig2::set(const std::string& keyPath, T&& value)
+template<class T> void cConfig::set(const std::string& keyPath, T&& value)
 {
     auto [config, key] = leafConfig(keyPath, true);
     config->_set(key, std::forward<T>(value));
 }
 
-template<class T> void cConfig2::set(int index, T&& value)
+template<class T> void cConfig::set(int index, T&& value)
 {
     std::visit(
         [&, this](auto& values)
@@ -155,7 +155,7 @@ template<class T> void cConfig2::set(int index, T&& value)
         }, mValues);
 }
 
-template<class T> void cConfig2::push(T&& value)
+template<class T> void cConfig::push(T&& value)
 {
     std::visit(
         [&, this](auto& values)
@@ -176,7 +176,7 @@ template<class T> void cConfig2::push(T&& value)
         }, mValues);
 }
 
-template<class TO, class FROM> static TO cConfig2::convert(const FROM& value)
+template<class TO, class FROM> static TO cConfig::convert(const FROM& value)
 {
     if constexpr (std::is_same_v<TO, std::string>)               // conveert to string
     {
@@ -214,9 +214,9 @@ template<class TO, class FROM> static TO cConfig2::convert(const FROM& value)
     throw std::runtime_error("Unsupported conversion");
 }
 
-template<class T> static cConfig2::tGetRV<T> cConfig2::extract(const cValue& value)
+template<class T> static cConfig::tGetRV<T> cConfig::extract(const cValue& value)
 {
-    return std::visit([](const auto& value) -> cConfig2::tGetRV<T>
+    return std::visit([](const auto& value) -> cConfig::tGetRV<T>
         {
             if constexpr (std::is_same_v<std::decay_t<decltype(value)>, tGetRV<T>>)
             {
@@ -229,10 +229,10 @@ template<class T> static cConfig2::tGetRV<T> cConfig2::extract(const cValue& val
         }, value);
 }
 
-template<class T> cConfig2::tGetRV<T> cConfig2::_get(const std::string& key, const std::optional<tGetRV<T>>& defaultValue) const
+template<class T> cConfig::tGetRV<T> cConfig::_get(const std::string& key, const std::optional<tGetRV<T>>& defaultValue) const
 {
     return std::visit(
-        [&](const auto& values) -> cConfig2::tGetRV<T>
+        [&](const auto& values) -> cConfig::tGetRV<T>
         {
             if constexpr (std::is_same_v<std::decay_t<decltype(values)>, cValueMap>)  // retrieving from map
             {
@@ -280,7 +280,7 @@ template<class T> cConfig2::tGetRV<T> cConfig2::_get(const std::string& key, con
         }, mValues);
 }
 
-template<class T> cConfig2::tGetRV<T> cConfig2::get(const std::string& keyPath, std::optional<tGetRV<T>> defaultValue) const
+template<class T> cConfig::tGetRV<T> cConfig::get(const std::string& keyPath, std::optional<tGetRV<T>> defaultValue) const
 {
     const auto& [config, key] = leafConfig(keyPath);
     if(!config)
@@ -297,10 +297,10 @@ template<class T> cConfig2::tGetRV<T> cConfig2::get(const std::string& keyPath, 
     return config->_get<T>(key, defaultValue);
 }
 
-template<class T> cConfig2::tGetRV<T> cConfig2::get(int index, std::optional<tGetRV<T>> defaultValue) const
+template<class T> cConfig::tGetRV<T> cConfig::get(int index, std::optional<tGetRV<T>> defaultValue) const
 {
     return std::visit(
-        [&](const auto& values) -> cConfig2::tGetRV<T>
+        [&](const auto& values) -> cConfig::tGetRV<T>
         {
             if constexpr (std::is_same_v<std::decay_t<decltype(values)>, cValueMap>)  // retrieving from map
             {
@@ -335,7 +335,7 @@ template<class T> cConfig2::tGetRV<T> cConfig2::get(int index, std::optional<tGe
         }, mValues);
 }
 
-template<class Visitor> void cConfig2::visit(Visitor&& visitor) const
+template<class Visitor> void cConfig::visit(Visitor&& visitor) const
 {
     std::visit([&](auto& values)
         {
@@ -352,7 +352,7 @@ template<class Visitor> void cConfig2::visit(Visitor&& visitor) const
                             else
                             {
                                 // if the value is a subconfig, we can silently ignore it:
-                                if constexpr (!std::is_same_v<std::remove_cvref_t<decltype(actualValue)>, tIntrusivePtr<cConfig2>>)
+                                if constexpr (!std::is_same_v<std::remove_cvref_t<decltype(actualValue)>, tIntrusivePtr<cConfig>>)
                                 {
                                     throw std::runtime_error("Unsupported visitor signature");
                                 }
@@ -380,7 +380,7 @@ template<class Visitor> void cConfig2::visit(Visitor&& visitor) const
         }, mValues);
 }
 
-template<class C> void cConfig2::forEachString(const C& callable) const
+template<class C> void cConfig::forEachString(const C& callable) const
 {
     if constexpr (std::is_invocable_v<C, const std::string&, const std::string&>)
     {
@@ -404,7 +404,7 @@ template<class C> void cConfig2::forEachString(const C& callable) const
     }
 }
 
-template<class C> void cConfig2::forEachInt(const C& callable) const
+template<class C> void cConfig::forEachInt(const C& callable) const
 {
     visit([&](const std::string& key, const auto& value)
         {
@@ -415,17 +415,17 @@ template<class C> void cConfig2::forEachInt(const C& callable) const
         });
 }
 
-template<class C> void cConfig2::forEachSubConfig(const C& callable) const
+template<class C> void cConfig::forEachSubConfig(const C& callable) const
 {
     visit([&](const std::string& key, const auto& value)
         {
-            if constexpr (std::is_same_v<std::remove_cvref_t<decltype(value)>, tIntrusivePtr<cConfig2>>)
+            if constexpr (std::is_same_v<std::remove_cvref_t<decltype(value)>, tIntrusivePtr<cConfig>>)
             {
-                if constexpr (std::is_invocable_r_v<void, C, std::string, const cConfig2&>)
+                if constexpr (std::is_invocable_r_v<void, C, std::string, const cConfig&>)
                 {
                     callable(key, *value);
                 }
-                else if constexpr (std::is_invocable_r_v<void, C, std::string, tIntrusivePtr<cConfig2>>)
+                else if constexpr (std::is_invocable_r_v<void, C, std::string, tIntrusivePtr<cConfig>>)
                 {
                     callable(key, value);
                 }
@@ -433,20 +433,20 @@ template<class C> void cConfig2::forEachSubConfig(const C& callable) const
         });
 }
 
-inline tIntrusivePtr<cConfig2> cConfig2::createSubConfig(const std::string& key)
+inline tIntrusivePtr<cConfig> cConfig::createSubConfig(const std::string& key)
 {
-    tIntrusivePtr<cConfig2> subConfig;
+    tIntrusivePtr<cConfig> subConfig;
     std::visit([&](auto& values)
         {
             if constexpr (std::is_same_v<std::decay_t<decltype(values)>, cValueMap>)  // retrieving from map
             {
                 if(auto it = values.find(key); it != values.end())
                 {
-                    subConfig = extract<tIntrusivePtr<cConfig2>>(it->second);
+                    subConfig = extract<tIntrusivePtr<cConfig>>(it->second);
                 }
                 else
                 {
-                    auto [i, added] = values.emplace(key, subConfig = make_intrusive_ptr<cConfig2>());
+                    auto [i, added] = values.emplace(key, subConfig = make_intrusive_ptr<cConfig>());
                 }
             }
             else if constexpr (std::is_same_v<std::decay_t<decltype(values)>, cValueArray>) // retrieving from array
@@ -454,12 +454,12 @@ inline tIntrusivePtr<cConfig2> cConfig2::createSubConfig(const std::string& key)
                 int index = std::stoi(std::string(key));
                 if(index < values.size())
                 {
-                    subConfig = extract<tIntrusivePtr<cConfig2>>(values[index]);
+                    subConfig = extract<tIntrusivePtr<cConfig>>(values[index]);
                 }
                 else
                 {
                     values.resize(index + 1);
-                    values[index] = subConfig = make_intrusive_ptr<cConfig2>();
+                    values[index] = subConfig = make_intrusive_ptr<cConfig>();
                 }
             }
             else // std::monostate
