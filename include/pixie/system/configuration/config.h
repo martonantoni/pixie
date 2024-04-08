@@ -38,6 +38,15 @@ public:
     template<class C> void forEachSubConfig(const C& callable) const;
     bool isArray() const;
     template<class Visitor> void visit(Visitor&& visitor) const;
+        // Visitor: void (const std::string& key, auto& value)
+        // or: void (int index, auto& value)
+        // or: void (auto& value)
+
+    template<class T, class C> void forEach(const C& callable) const; 
+                        // callable: void (const std::string& key, const T& value)
+                        // or: void (int index, const T& value)
+                        // or: void (const T& value)
+       
     template<class C> void forEachString(const C& callable) const; // callable: void (const std::string& key, const std::string& value)
     template<class C> void forEachInt(const C& callable) const; // callable: void (const std::string& key, int value)
 };
@@ -349,6 +358,10 @@ template<class Visitor> void cConfig::visit(Visitor&& visitor) const
                             {
                                 visitor(key, actualValue);
                             }
+                            else if constexpr (std::is_invocable_r_v<void, Visitor, decltype(value)>)
+                            {
+                                visitor(actualValue);
+                            }
                             else
                             {
                                 // if the value is a subconfig, we can silently ignore it:
@@ -369,6 +382,10 @@ template<class Visitor> void cConfig::visit(Visitor&& visitor) const
                             if constexpr (std::is_invocable_r_v<void, Visitor, int, decltype(actualValue)>)
                             {
                                 visitor(i, actualValue);
+                            }
+                            else if constexpr (std::is_invocable_r_v<void, Visitor, decltype(actualValue)>)
+                            {
+                                visitor(actualValue);
                             }
                             else
                             {
@@ -469,4 +486,15 @@ inline tIntrusivePtr<cConfig> cConfig::createSubConfig(const std::string& key)
             }
         }, mValues);
     return subConfig;
+}
+
+template<class T, class C> void cConfig::forEach(const C& callable) const
+{
+    //visit([&](const std::string& key, const auto& value)
+    //    {
+    //        if constexpr (std::is_same_v<std::remove_cvref_t<decltype(value)>, T>)
+    //        {
+    //            callable(key, value);
+    //        }
+    //    });
 }

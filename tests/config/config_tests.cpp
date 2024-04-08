@@ -465,6 +465,47 @@ TEST(config_array, visit_int_key)
         });
 }
 
+TEST(config, forEachString)
+{
+    auto config = make_intrusive_ptr<cConfig>();
+    fillConfig(*config);
+    int i = 0;
+    config->forEachString([&i](const std::string& key, const std::string& value)
+        {
+            EXPECT_EQ(i + 100, std::stoi(value));
+            EXPECT_STREQ(std::format("string_{0}", i).c_str(), key.c_str());
+            ++i;
+        });
+    EXPECT_EQ(10, i);
+}
+
+TEST(config_array, forEachString)
+{
+    auto config = make_intrusive_ptr<cConfig>();
+    fillConfigArray(*config);
+    int i = 0;
+    config->forEachString([&i](const std::string& key, const std::string& value)
+        {
+            EXPECT_EQ(i + 100, std::stoi(value));
+            EXPECT_EQ(i * 4 + 1, std::stoi(key));
+            ++i;
+        });
+    EXPECT_EQ(10, i);
+}
+
+TEST(config_array, forEachString_intKey)
+{
+    auto config = make_intrusive_ptr<cConfig>();
+    fillConfigArray(*config);
+    int i = 0;
+    config->forEachString([&i](int key, const std::string& value)
+        {
+            EXPECT_EQ(i + 100, std::stoi(value));
+            EXPECT_EQ(i * 4 + 1, key);
+            ++i;
+        });
+}
+
 TEST(subconfigs, set_get)
 {
     auto config = make_intrusive_ptr<cConfig>();
