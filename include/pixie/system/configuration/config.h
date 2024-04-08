@@ -43,7 +43,9 @@ public:
         //     void (const std::string& key, auto& value)
         //     void (int index, auto& value)
         //     void (auto& value)
-       
+        // for handling subconfigs it works with both tIntrusivePtr<cConfig> and const cConfig&
+     
+    // simplified versions of visit:
     template<class C> void forEachSubConfig(C&& callable) const;
     template<class C> void forEachString(C&& callable) const;
     template<class C> void forEachInt(C&& callable) const;
