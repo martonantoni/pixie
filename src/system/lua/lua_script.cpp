@@ -209,15 +209,18 @@ void cLuaScript::error(lua_State* L, const std::string& message)
 
 std::string cLuaScript::configToScript(const cConfig2& config, const std::string& ident)
 {
+    if (ident.empty() && config.isArray())
+    {
+        throw std::runtime_error("array on global level");
+    }
     std::string script;
-
-    config.visit([&script, ident](auto key, auto value)
+    config.visit([newLine = ident.empty() ? "\n"s : ",\n"s, &script, ident]
+        (auto key, auto value)
         {
-            // print out the key (it can be int or std::string)
-
+        // print out the key (it can be int or std::string)
             if constexpr (std::is_same_v<decltype(key), int>)
             {
-                script += ident + "[" + std::to_string(key) + "] = ";
+                script += ident + "[" + std::to_string(key + 1) + "] = ";
             }
             else if constexpr (std::is_same_v<decltype(key), std::string>)
             {
@@ -226,25 +229,25 @@ std::string cLuaScript::configToScript(const cConfig2& config, const std::string
             // print out the value(it can be int, double, bool, std::string, tIntrusivePtr<cConfig2>)
             if constexpr (std::is_same_v<decltype(value), int>)
             {
-                script += std::to_string(value) + "\n";
+                script += std::to_string(value) + newLine;
             }
             else if constexpr (std::is_same_v<decltype(value), double>)
             {
-                script += std::to_string(value) + "\n";
+                script += std::to_string(value) + newLine;
             }
             else if constexpr (std::is_same_v<decltype(value), bool>)
             {
-                script += value ? "true\n" : "false\n";
+                script += (value ? "true" : "false") + newLine;
             }
             else if constexpr (std::is_same_v<decltype(value), std::string>)
             {
-                script += "\"" + value + "\"\n";
+                script += "\"" + value + "\"" + newLine;
             }
             else if constexpr (std::is_same_v<decltype(value), tIntrusivePtr<cConfig2>>)
             {
                 script += "\n{\n";
                 script += configToScript(*value, ident + "  ");
-                script += ident + "}\n";
+                script += ident + "}" + newLine;
             }
         });
     return script;

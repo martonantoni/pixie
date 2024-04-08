@@ -359,7 +359,7 @@ template<class Visitor> void cConfig2::visit(Visitor&& visitor) const
             }
             else if constexpr (std::is_same_v<std::decay_t<decltype(values)>, cValueArray>)
             {
-                for (size_t i = 0; i < values.size(); ++i)
+                for (int i = 0; i < values.size(); ++i)
                 {
                     std::visit([&](auto& actualValue)
                         {
@@ -395,7 +395,40 @@ template<class C> void cConfig2::forEachSubConfig(const C& callable) const
         });
 }
 
-tIntrusivePtr<cConfig2> cConfig2::createSubConfig(const std::string& key)
+inline tIntrusivePtr<cConfig2> cConfig2::createSubConfig(const std::string& key)
 {
-    return {};
+    tIntrusivePtr<cConfig2> subConfig;
+    std::visit([&](auto& values)
+        {
+            if constexpr (std::is_same_v<std::decay_t<decltype(values)>, cValueMap>)  // retrieving from map
+            {
+                if(auto it = values.find(key); it != values.end())
+                {
+                    subConfig = extract<tIntrusivePtr<cConfig2>>(it->second);
+                }
+                else
+                {
+                    auto [i, added] = values.emplace(key, subConfig = make_intrusive_ptr<cConfig2>());
+                }
+            }
+            else if constexpr (std::is_same_v<std::decay_t<decltype(values)>, cValueArray>) // retrieving from array
+            {
+                int index = std::stoi(std::string(key));
+                if(index < values.size())
+                {
+                    subConfig = extract<tIntrusivePtr<cConfig2>>(values[index]);
+                }
+                else
+                {
+                    values.resize(index + 1);
+                    values[index] = subConfig = make_intrusive_ptr<cConfig2>();
+                }
+            }
+            else // std::monostate
+            {
+                mValues = cValueMap();
+                subConfig = createSubConfig(key);
+            }
+        }, mValues);
+    return subConfig;
 }

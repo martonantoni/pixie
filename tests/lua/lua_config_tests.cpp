@@ -70,8 +70,10 @@ TEST(config_to_lua_script, simple_table)
     config.set("d", true);
     config.set("e", 3.14);
 
+    auto scriptifiedConfig = cLuaScript::configToScript(config);
+    //printf("%s\n", scriptifiedConfig.c_str());
     auto script = std::make_shared<cLuaScript>();
-    script->executeString(cLuaScript::configToScript(config));
+    script->executeString(scriptifiedConfig);
 
     cLuaValue globalTable = script->globalTable();
     ASSERT_EQ(globalTable.get<int>("a"), 1);
@@ -84,29 +86,79 @@ TEST(config_to_lua_script, simple_table)
 TEST(config_to_lua_script, nested_tables)
 {
     cConfig2 config;
-    auto subTable1 = config.createSubConfig("sub_table_1");
-    subTable1->set("a", 1);
-    subTable1->set("b", 2);
-    subTable1->set("c", "hello");
-    subTable1->set("d", true);
-    subTable1->set("e", 3.14);
-    auto subTable11 = subTable1->createSubConfig("sub_table_11");
-    subTable11->set("a", 3);
-    subTable11->set("b", 4);
-    subTable11->set("c", "hi");
-    subTable11->set("d", false);
-    subTable11->set("e", 6.28);
+    {
+        auto subTable1 = config.createSubConfig("sub_table_1");
+        subTable1->set("a", 1);
+        subTable1->set("b", 2);
+        subTable1->set("c", "hello");
+        subTable1->set("d", true);
+        subTable1->set("e", 3.14);
+        auto subTable11 = subTable1->createSubConfig("sub_table_11");
+        subTable11->set("a", 3);
+        subTable11->set("b", 4);
+        subTable11->set("c", "hi");
+        subTable11->set("d", false);
+        subTable11->set("e", 6.28);
+    }
 
+    auto scriptifiedConfig = cLuaScript::configToScript(config);
+    //printf("%s\n", scriptifiedConfig.c_str());
     auto script = std::make_shared<cLuaScript>();
-    script->executeString(cLuaScript::configToScript(config));
+    script->executeString(scriptifiedConfig);
 
-    cLuaValue globalTable = script->globalTable();
-    ASSERT_EQ(globalTable.get<int>("sub_table_1.sub_table_11.a"), 3);
-    ASSERT_EQ(globalTable.get<int>("sub_table_1.sub_table_11.b"), 4);
-    ASSERT_EQ(globalTable.get<std::string>("sub_table_1.sub_table_11.c"), "hi");
-    ASSERT_EQ(globalTable.get<bool>("sub_table_1.sub_table_11.d"), false);
-    ASSERT_EQ(globalTable.get<double>("sub_table_1.sub_table_11.e"), 6.28);
+    {
+        cLuaValue globalTable = script->globalTable();
+        cLuaValue subTable1 = *globalTable.get<cLuaValue>("sub_table_1");
+        ASSERT_EQ(subTable1.get<int>("a"), 1);
+        ASSERT_EQ(subTable1.get<int>("b"), 2);
+        ASSERT_EQ(subTable1.get<std::string>("c"), "hello");
+        ASSERT_EQ(subTable1.get<bool>("d"), true);
+        ASSERT_EQ(subTable1.get<double>("e"), 3.14);
+        cLuaValue subTable11 = *subTable1.get<cLuaValue>("sub_table_11");
+        ASSERT_EQ(subTable11.get<int>("a"), 3);
+        ASSERT_EQ(subTable11.get<int>("b"), 4);
+        ASSERT_EQ(subTable11.get<std::string>("c"), "hi");
+        ASSERT_EQ(subTable11.get<bool>("d"), false);
+        ASSERT_EQ(subTable11.get<double>("e"), 6.28);
+    }
 }
 
+TEST(config_to_lua_script, array)
+{
+    cConfig2 config;
+    auto subConfig = config.createSubConfig("my_array");
+    subConfig->makeArray();
+    subConfig->push(1);
+    subConfig->push(2);
+    subConfig->push("hello");
+    subConfig->push(true);
+    subConfig->push(3.14);
+
+    auto scriptifiedConfig = cLuaScript::configToScript(config);
+//    printf("%s\n", scriptifiedConfig.c_str());
+    auto script = std::make_shared<cLuaScript>();
+    script->executeString(scriptifiedConfig);
+
+    cLuaValue globalTable = script->globalTable();
+    cLuaValue subTable = *globalTable.get<cLuaValue>("my_array");
+    ASSERT_EQ(subTable.get<int>(1), 1);
+    ASSERT_EQ(subTable.get<int>(2), 2);
+    ASSERT_EQ(subTable.get<std::string>(3), "hello");
+    ASSERT_EQ(subTable.get<bool>(4), true);
+    ASSERT_EQ(subTable.get<double>(5), 3.14);
+}
+
+TEST(config_to_lua_script, array_on_global_is_error)
+{
+    cConfig2 config;
+    config.makeArray();
+    config.push(1);
+    config.push(2);
+    config.push("hello");
+    config.push(true);
+    config.push(3.14);
+
+    ASSERT_THROW(cLuaScript::configToScript(config), std::runtime_error);
+}
 
 } // namespace lua_config_tests
