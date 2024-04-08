@@ -15,6 +15,7 @@ class cConfig : public cIntrusiveRefCount
     template<class TO, class FROM> static TO convert(const FROM& value);
     template<class T> tGetRV<T> _get(const std::string& key, const std::optional<tGetRV<T>>& defaultValue) const;
     template<class T> void _set(const std::string& key, T&& value);
+    template<class Visitor> void _visit(Visitor&& visitor) const;
     static const cValue& _extractValue(const cValue& value) { return value; }
     static const cValue& _extractValue(const std::pair<const std::string, cValue>& pair) { return pair.second; }
 public:
@@ -35,20 +36,17 @@ public:
     tIntrusivePtr<cConfig> getSubConfig(const std::string& keyPath) const { return get<tIntrusivePtr<cConfig>>(keyPath); }
     tIntrusivePtr<cConfig> getSubOrEmptyConfig(const std::string& keyPath) const { return get<tIntrusivePtr<cConfig>>(keyPath, make_intrusive_ptr<cConfig>()); }
     tIntrusivePtr<cConfig> createSubConfig(const std::string& key);
-    template<class C> void forEachSubConfig(const C& callable) const;
     bool isArray() const;
     template<class Visitor> void visit(Visitor&& visitor) const;
-        // Visitor: void (const std::string& key, auto& value)
-        // or: void (int index, auto& value)
-        // or: void (auto& value)
-
-    template<class T, class C> void forEach(const C& callable) const; 
-                        // callable: void (const std::string& key, const T& value)
-                        // or: void (int index, const T& value)
-                        // or: void (const T& value)
+        // Visitor signature:
+        // 
+        //     void (const std::string& key, auto& value)
+        //     void (int index, auto& value)
+        //     void (auto& value)
        
-    template<class C> void forEachString(const C& callable) const; // callable: void (const std::string& key, const std::string& value)
-    template<class C> void forEachInt(const C& callable) const; // callable: void (const std::string& key, int value)
+    template<class C> void forEachSubConfig(C&& callable) const;
+    template<class C> void forEachString(C&& callable) const;
+    template<class C> void forEachInt(C&& callable) const;
 };
 
 inline bool cConfig::empty() const
@@ -344,7 +342,7 @@ template<class T> cConfig::tGetRV<T> cConfig::get(int index, std::optional<tGetR
         }, mValues);
 }
 
-template<class Visitor> void cConfig::visit(Visitor&& visitor) const
+template<class Visitor> void cConfig::_visit(Visitor&& visitor) const
 {
     std::visit([&](auto& values)
         {
@@ -354,20 +352,23 @@ template<class Visitor> void cConfig::visit(Visitor&& visitor) const
                 {
                     std::visit([&](auto& actualValue)
                         {
-                            if constexpr (std::is_invocable_r_v<void, Visitor, const std::string&, decltype(value)>)
+                            if constexpr (std::is_invocable_r_v<void, Visitor, const std::string&, decltype(actualValue)>)
                             {
                                 visitor(key, actualValue);
                             }
-                            else if constexpr (std::is_invocable_r_v<void, Visitor, decltype(value)>)
+                            else if constexpr (std::is_invocable_r_v<void, Visitor, decltype(actualValue)>)
                             {
                                 visitor(actualValue);
                             }
-                            else
+                            else if constexpr (std::is_same_v<std::decay_t<decltype(actualValue)>, tIntrusivePtr<cConfig>>)
                             {
-                                // if the value is a subconfig, we can silently ignore it:
-                                if constexpr (!std::is_same_v<std::remove_cvref_t<decltype(actualValue)>, tIntrusivePtr<cConfig>>)
+                                if constexpr (std::is_invocable_r_v<void, Visitor, const std::string&, const cConfig&>)
                                 {
-                                    throw std::runtime_error("Unsupported visitor signature");
+                                    visitor(key, *actualValue);
+                                }
+                                else if constexpr (std::is_invocable_r_v<void, Visitor, const cConfig&>)
+                                {
+                                    visitor(*actualValue);
                                 }
                             }
                         }, value);
@@ -379,7 +380,12 @@ template<class Visitor> void cConfig::visit(Visitor&& visitor) const
                 {
                     std::visit([&](auto& actualValue)
                         {
-                            if constexpr (std::is_invocable_r_v<void, Visitor, int, decltype(actualValue)>)
+                            if constexpr (std::is_invocable_r_v<void, Visitor, const std::string&, decltype(actualValue)>) 
+                            {
+                                auto idxString = std::to_string(i);
+                                visitor(idxString, actualValue);
+                            }
+                            else if constexpr (std::is_invocable_r_v<void, Visitor, int, decltype(actualValue)>)
                             {
                                 visitor(i, actualValue);
                             }
@@ -387,9 +393,21 @@ template<class Visitor> void cConfig::visit(Visitor&& visitor) const
                             {
                                 visitor(actualValue);
                             }
-                            else
+                            else if constexpr (std::is_same_v<std::decay_t<decltype(actualValue)>, tIntrusivePtr<cConfig>>)
                             {
-                                visitor(std::to_string(i), actualValue);
+                                if constexpr (std::is_invocable_r_v<void, Visitor, const std::string&, const cConfig&>)
+                                {
+                                    auto idxString = std::to_string(i);
+                                    visitor(idxString, *actualValue);
+                                }
+                                else if constexpr (std::is_invocable_r_v<void, Visitor, int, const cConfig&>)
+                                {
+                                    visitor(i, *actualValue);
+                                }
+                                else if constexpr (std::is_invocable_r_v<void, Visitor, const cConfig&>)
+                                {
+                                    visitor(*actualValue);
+                                }
                             }
                         }, values[i]);
                 }
@@ -397,57 +415,53 @@ template<class Visitor> void cConfig::visit(Visitor&& visitor) const
         }, mValues);
 }
 
-template<class C> void cConfig::forEachString(const C& callable) const
+template<class Visitor> void cConfig::visit(Visitor&& visitor) const
 {
-    if constexpr (std::is_invocable_v<C, const std::string&, const std::string&>)
-    {
-        visit([&](const std::string& key, const auto& value)
-            {
-                if constexpr (std::is_same_v<std::remove_cvref_t<decltype(value)>, std::string>)
-                {
-                    callable(key, value);
-                }
-            });
-    }
-    else
-    {
-        visit([&](int idx, const auto& value)
-        {
-            if constexpr (std::is_same_v<std::remove_cvref_t<decltype(value)>, std::string>)
-            {
-                callable(idx, value);
-            }
-        });
-    }
+    static_assert(
+        (std::is_invocable_r_v<void, Visitor, const std::string&, int> &&
+         std::is_invocable_r_v<void, Visitor, const std::string&, const std::string&> &&
+         std::is_invocable_r_v<void, Visitor, const std::string&, double> &&
+         std::is_invocable_r_v<void, Visitor, const std::string&, bool>) 
+        ||
+        (std::is_invocable_r_v<void, Visitor, int, int> &&
+         std::is_invocable_r_v<void, Visitor, int, const std::string&> &&
+         std::is_invocable_r_v<void, Visitor, int, double> &&
+         std::is_invocable_r_v<void, Visitor, int, bool>) 
+        ||
+        (std::is_invocable_r_v<void, Visitor, int> &&
+         std::is_invocable_r_v<void, Visitor, const std::string&> &&
+         std::is_invocable_r_v<void, Visitor, double> &&
+         std::is_invocable_r_v<void, Visitor, bool>));
+
+    _visit(std::forward<Visitor>(visitor));
 }
 
-template<class C> void cConfig::forEachInt(const C& callable) const
+template<class C> void cConfig::forEachSubConfig(C&& callable) const
 {
-    visit([&](const std::string& key, const auto& value)
-        {
-            if constexpr (std::is_same_v<std::remove_cvref_t<decltype(value)>, int>)
-            {
-                callable(key, value);
-            }
-        });
+    static_assert(std::is_invocable_r_v<void, C, const std::string&, tIntrusivePtr<cConfig>> ||
+                  std::is_invocable_r_v<void, C, int, tIntrusivePtr<cConfig>> ||
+                  std::is_invocable_r_v<void, C, tIntrusivePtr<cConfig>> ||
+                  std::is_invocable_r_v<void, C, const std::string&, const cConfig&> ||
+                  std::is_invocable_r_v<void, C, int, const cConfig&> ||
+                  std::is_invocable_r_v<void, C, const cConfig&>);
+
+    _visit(std::forward<C>(callable));
 }
 
-template<class C> void cConfig::forEachSubConfig(const C& callable) const
+template<class C> void cConfig::forEachString(C&& callable) const
 {
-    visit([&](const std::string& key, const auto& value)
-        {
-            if constexpr (std::is_same_v<std::remove_cvref_t<decltype(value)>, tIntrusivePtr<cConfig>>)
-            {
-                if constexpr (std::is_invocable_r_v<void, C, std::string, const cConfig&>)
-                {
-                    callable(key, *value);
-                }
-                else if constexpr (std::is_invocable_r_v<void, C, std::string, tIntrusivePtr<cConfig>>)
-                {
-                    callable(key, value);
-                }
-            }
-        });
+    static_assert(std::is_invocable_r_v<void, C, const std::string&, const std::string&> ||
+                  std::is_invocable_r_v<void, C, int, const std::string&> ||
+                  std::is_invocable_r_v<void, C, const std::string&>);
+    _visit(std::forward<C>(callable));
+}
+
+template<class C> void cConfig::forEachInt(C&& callable) const
+{
+    static_assert(std::is_invocable_r_v<void, C, const std::string&, int> ||
+                  std::is_invocable_r_v<void, C, int, int> ||
+                  std::is_invocable_r_v<void, C, int>);
+    _visit(std::forward<C>(callable));
 }
 
 inline tIntrusivePtr<cConfig> cConfig::createSubConfig(const std::string& key)
@@ -486,15 +500,4 @@ inline tIntrusivePtr<cConfig> cConfig::createSubConfig(const std::string& key)
             }
         }, mValues);
     return subConfig;
-}
-
-template<class T, class C> void cConfig::forEach(const C& callable) const
-{
-    //visit([&](const std::string& key, const auto& value)
-    //    {
-    //        if constexpr (std::is_same_v<std::remove_cvref_t<decltype(value)>, T>)
-    //        {
-    //            callable(key, value);
-    //        }
-    //    });
 }

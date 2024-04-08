@@ -394,7 +394,8 @@ TEST(config, visit)
 {
     auto config = make_intrusive_ptr<cConfig>();
     fillConfig(*config);
-    config->visit([](const std::string& key, const auto& value) 
+    int visited = 0;
+    config->visit([&](const std::string& key, const auto& value) 
         {
             if constexpr(std::is_same_v<std::decay_t<decltype(value)>, int>)
             {
@@ -412,39 +413,51 @@ TEST(config, visit)
             {
                 EXPECT_EQ(std::stoi(key.substr(5)) % 2 == 0, value);
             }
+            ++visited;
         });
+    EXPECT_EQ(40, visited);
 }
 
 TEST(config_array, visit)
 {
     auto config = make_intrusive_ptr<cConfig>();
     fillConfigArray(*config);
-    config->visit([](const std::string& key, const auto& value)
+    int visited[4] = { 0, 0, 0, 0 };
+    config->visit([&](const std::string& key, const auto& value)
         {
             if constexpr(std::is_same_v<std::decay_t<decltype(value)>, int>)
             {
                 EXPECT_EQ(std::stoi(key) / 4, value);
+                ++visited[0];
             }
             else if constexpr(std::is_same_v<std::decay_t<decltype(value)>, std::string>)
             {
                 EXPECT_STREQ(std::to_string((std::stoi(key) - 1) / 4 + 100).c_str(), value.c_str());
+                ++visited[1];
             }
             else if constexpr(std::is_same_v<std::decay_t<decltype(value)>, double>)
             {
                 EXPECT_EQ((double)(std::stoi(key) - 2) / 4 + 200, value);
+                ++visited[2];
             }
             else if constexpr(std::is_same_v<std::decay_t<decltype(value)>, bool>)
             {
                 EXPECT_EQ((std::stoi(key) - 3) / 4 % 2 == 0, value);
+                ++visited[3];
             }
         });
+    for (int i = 0; i < 4; ++i)
+    {
+        EXPECT_EQ(10, visited[i]) << "visited[" << i << "] is " << visited[i];
+    }
 }
 
 TEST(config_array, visit_int_key)
 {
     auto config = make_intrusive_ptr<cConfig>();
     fillConfigArray(*config);
-    config->visit([](int idx, const auto& value)
+    int visited = 0;
+    config->visit([&](int idx, const auto& value)
         {
             if constexpr (std::is_same_v<std::decay_t<decltype(value)>, int>)
             {
@@ -462,7 +475,9 @@ TEST(config_array, visit_int_key)
             {
                 EXPECT_EQ((idx - 3) / 4 % 2 == 0, value);
             }
+            ++visited;
         });
+    EXPECT_EQ(40, visited);
 }
 
 TEST(config, forEachString)
@@ -470,7 +485,7 @@ TEST(config, forEachString)
     auto config = make_intrusive_ptr<cConfig>();
     fillConfig(*config);
     int i = 0;
-    config->forEachString([&i](const std::string& key, const std::string& value)
+    config->forEachString([&i](const std::string& key, std::string value)
         {
             EXPECT_EQ(i + 100, std::stoi(value));
             EXPECT_STREQ(std::format("string_{0}", i).c_str(), key.c_str());
@@ -625,7 +640,7 @@ TEST(subconfigs, in_array_get_keypath)
     }
 }
 
-TEST(subconfigs, forEachSubConfig_const_ref)
+TEST(subconfigs, in_array_forEachSubConfig_const_ref)
 {
     auto config = make_intrusive_ptr<cConfig>();
     fillSubconfigsArray(*config);
