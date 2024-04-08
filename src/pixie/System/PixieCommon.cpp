@@ -6,12 +6,12 @@ RECT cRect::ToRECT() const
 	return Rect;
 }
 
-cRect::cRect(const cConfig2 &Config)
+cRect::cRect(const cConfig &Config)
 {
 	FromConfig(Config);
 }
 
-void cRect::FromConfig(const cConfig2 &Config, eIsOptional IsOptional)
+void cRect::FromConfig(const cConfig &Config, eIsOptional IsOptional)
 {
 	if (IsOptional == eIsOptional::Yes)
 	{
@@ -29,7 +29,7 @@ void cRect::FromConfig(const cConfig2 &Config, eIsOptional IsOptional)
     }
 }
 
-void cRect::ToConfig(cConfig2 &Config) const
+void cRect::ToConfig(cConfig &Config) const
 {
 	Config.set("x"s, mLeft);
 	Config.set("y"s, mTop);

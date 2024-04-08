@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "pixie/system/CommonInclude_System.h"
-#include "pixie/system/configuration/config2.h"
+#include "pixie/system/configuration/config.h"
 
 namespace lua_config_tests
 {
@@ -17,7 +17,7 @@ TEST(config_from_lua, simple_table)
         "e = 3.14\n");
 
     cLuaValue globalTable = script->globalTable();
-    auto config = globalTable.toConfig2();
+    auto config = globalTable.toConfig();
     ASSERT_EQ(config->get<int>("a", 0), 1);
     ASSERT_EQ(config->get<int>("b", 0), 2);
     ASSERT_EQ(config->get<std::string>("c", ""), "hello");
@@ -33,7 +33,7 @@ TEST(config_from_lua, nested_table)
         "sub_table_2 = { sub_table_21 = { a = 3, c = 4, d = \"hi\", e = false, f = 6.28 } }\n");
 
     cLuaValue globalTable = script->globalTable();
-    auto config = globalTable.toConfig2();
+    auto config = globalTable.toConfig();
     ASSERT_EQ(config->get<int>("sub_table_1.sub_table_11.a"), 1);
     ASSERT_EQ(config->get<int>("sub_table_1.sub_table_11.c"), 2);
     ASSERT_EQ(config->get<std::string>("sub_table_1.sub_table_11.d"), "hello");
@@ -51,7 +51,7 @@ TEST(config_from_lua, array)
         "array = { 1, 2, 3, 4, 5 }\n");
 
     cLuaValue globalTable = script->globalTable();
-    auto config = globalTable.toConfig2();
+    auto config = globalTable.toConfig();
     auto testedConfig = config->getSubConfig("array");
     ASSERT_TRUE(testedConfig->isArray());
     ASSERT_EQ(testedConfig->get<int>(0), 1);
@@ -63,7 +63,7 @@ TEST(config_from_lua, array)
 
 TEST(config_to_lua_script, simple_table)
 {
-    cConfig2 config;
+    cConfig config;
     config.set("a", 1);
     config.set("b", 2);
     config.set("c", "hello");
@@ -85,7 +85,7 @@ TEST(config_to_lua_script, simple_table)
 
 TEST(config_to_lua_script, nested_tables)
 {
-    cConfig2 config;
+    cConfig config;
     {
         auto subTable1 = config.createSubConfig("sub_table_1");
         subTable1->set("a", 1);
@@ -125,7 +125,7 @@ TEST(config_to_lua_script, nested_tables)
 
 TEST(config_to_lua_script, array)
 {
-    cConfig2 config;
+    cConfig config;
     auto subConfig = config.createSubConfig("my_array");
     subConfig->makeArray();
     subConfig->push(1);
@@ -150,7 +150,7 @@ TEST(config_to_lua_script, array)
 
 TEST(config_to_lua_script, array_on_global_is_error)
 {
-    cConfig2 config;
+    cConfig config;
     config.makeArray();
     config.push(1);
     config.push(2);

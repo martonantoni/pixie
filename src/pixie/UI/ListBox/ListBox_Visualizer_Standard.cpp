@@ -11,7 +11,7 @@ cStandardListBoxVisualizer::~cStandardListBoxVisualizer()
 {
 }
 
-void cStandardListBoxVisualizer::Init(const cConfig2 &Config)
+void cStandardListBoxVisualizer::Init(const cConfig &Config)
 {
 }
 

@@ -48,10 +48,10 @@ public:
 class cDialogItems
 {
 	std::vector<std::unique_ptr<cDialogItem>> mItems;
-	void AddPushButton(cPixieWindow &Window, tIntrusivePtr<cConfig2> config);
-	void AddTextField(cPixieWindow &Window, tIntrusivePtr<cConfig2> config);
-	void AddEditField(cPixieWindow &Window, tIntrusivePtr<cConfig2> config);
+	void AddPushButton(cPixieWindow &Window, tIntrusivePtr<cConfig> config);
+	void AddTextField(cPixieWindow &Window, tIntrusivePtr<cConfig> config);
+	void AddEditField(cPixieWindow &Window, tIntrusivePtr<cConfig> config);
 public:
-	void Init(cPixieWindow &Window, tIntrusivePtr<cConfig2> Config);
+	void Init(cPixieWindow &Window, tIntrusivePtr<cConfig> Config);
 	cDialogItem& item(int index) { return *mItems[index]; }
 };

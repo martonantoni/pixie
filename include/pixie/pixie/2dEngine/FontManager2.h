@@ -12,7 +12,7 @@ class cFontManager2
 		cFontData(const std::string &Name): mName(Name) {}
 	};
 	std::vector<cFontData> mFonts;
-	bool InitFont(cFont2 &Font, const cConfig2& Config);
+	bool InitFont(cFont2 &Font, const cConfig& Config);
 public:
 	void Init();
 	cFont2 *GetFont(const std::string &Name);

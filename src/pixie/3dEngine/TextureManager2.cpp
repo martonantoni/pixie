@@ -235,7 +235,7 @@ void cTextureManager2::ProcessInfoFile(const std::string &Path, const cPath &Tex
 
 void cTextureManager2::Initialize()
 {
-// 	tIntrusivePtr<cConfig2> Config=cLuaBasedConfig::CreateConfig("pixie_system.folders", theLuaState);
+// 	tIntrusivePtr<cConfig> Config=cLuaBasedConfig::CreateConfig("pixie_system.folders", theLuaState);
 // 	std::string TexturesFolderConfig=Config->get<std::string>("textures", "textures"s);
 	std::string TexturesFolderConfig = theGlobalConfig->get<std::string>("pixie_system.folders.textures", "textures"s);
 	cStringVector TexturesFolders(TexturesFolderConfig, ", ", false);

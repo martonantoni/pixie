@@ -35,7 +35,7 @@ public:
     static void staticInit();
     static std::string valueToString(lua_State* L, int index);
     static bool isGlobalInternalElement(const std::string& key);
-    static std::string configToScript(const cConfig2& config, const std::string& ident = std::string());
+    static std::string configToScript(const cConfig& config, const std::string& ident = std::string());
 
     lua_State* state() { return L; }
     cLuaValue globalTable();
@@ -55,8 +55,8 @@ public:
     }
 
 // shortcuts for creating config from lua script:
-    static tIntrusivePtr<cConfig2> stringToConfig(const std::string& scriptText);
-    static tIntrusivePtr<cConfig2> fileToConfig(const cPath& scriptPath);
+    static tIntrusivePtr<cConfig> stringToConfig(const std::string& scriptText);
+    static tIntrusivePtr<cConfig> fileToConfig(const cPath& scriptPath);
 
 // debug functions:
     int stackSize() const;

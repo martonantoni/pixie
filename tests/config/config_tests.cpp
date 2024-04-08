@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "pixie/system/CommonInclude_System.h"
-#include "pixie/system/configuration/config2.h"
+#include "pixie/system/configuration/config.h"
 
 const char* ProgramName = "Pixie Config Test";
 const char* VersionString = "0.1";
@@ -9,7 +9,7 @@ const char* VersionString = "0.1";
 namespace ConfigTests
 {
 
-void fillConfig(cConfig2& config, int keyOffset = 0)
+void fillConfig(cConfig& config, int keyOffset = 0)
 {
     for (int i = 0; i < 10; ++i)
     {
@@ -22,7 +22,7 @@ void fillConfig(cConfig2& config, int keyOffset = 0)
     ASSERT_FALSE(config.isArray());
 }
 
-void verifyConfig(cConfig2& config, const std::string& keyPrefix = std::string(), int keyOffset = 0)
+void verifyConfig(cConfig& config, const std::string& keyPrefix = std::string(), int keyOffset = 0)
 {
     for (int i = 0; i < 10; ++i)
     {
@@ -34,7 +34,7 @@ void verifyConfig(cConfig2& config, const std::string& keyPrefix = std::string()
     }
 }
 
-void fillConfigArray(cConfig2& config)
+void fillConfigArray(cConfig& config)
 {
     for (int i = 0; i < 10; ++i)
     {
@@ -48,7 +48,7 @@ void fillConfigArray(cConfig2& config)
 
 TEST(config, set_int_get_int)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -58,7 +58,7 @@ TEST(config, set_int_get_int)
 
 TEST(config_array, set_int_get_int)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -68,7 +68,7 @@ TEST(config_array, set_int_get_int)
 
 TEST(config, set_int_get_string)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -78,7 +78,7 @@ TEST(config, set_int_get_string)
 
 TEST(config_array, set_int_get_string)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -88,7 +88,7 @@ TEST(config_array, set_int_get_string)
 
 TEST(config, set_int_get_double)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -98,7 +98,7 @@ TEST(config, set_int_get_double)
 
 TEST(config_array, set_int_get_double)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -108,7 +108,7 @@ TEST(config_array, set_int_get_double)
 
 TEST(config, set_int_get_bool)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -118,7 +118,7 @@ TEST(config, set_int_get_bool)
 
 TEST(config_array, set_int_get_bool)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -128,7 +128,7 @@ TEST(config_array, set_int_get_bool)
 
 TEST(config, set_double_get_int)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -138,7 +138,7 @@ TEST(config, set_double_get_int)
 
 TEST(config_array, set_double_get_int)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -148,7 +148,7 @@ TEST(config_array, set_double_get_int)
 
 TEST(config, set_double_get_string)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -158,7 +158,7 @@ TEST(config, set_double_get_string)
 
 TEST(config_array, set_double_get_string)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -168,7 +168,7 @@ TEST(config_array, set_double_get_string)
 
 TEST(config, set_double_get_double)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -178,7 +178,7 @@ TEST(config, set_double_get_double)
 
 TEST(config_array, set_double_get_double)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -188,7 +188,7 @@ TEST(config_array, set_double_get_double)
 
 TEST(config, set_double_get_bool)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     for (int i = 0; i < 10; ++i)
     {
         config->set(std::format("double_{0}", i), (double)i);
@@ -198,7 +198,7 @@ TEST(config, set_double_get_bool)
 
 TEST(config_array, set_double_get_bool)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     for (int i = 0; i < 10; ++i)
     {
         config->set(i * 4 + 2, (double)i);
@@ -208,7 +208,7 @@ TEST(config_array, set_double_get_bool)
 
 TEST(config, set_string_get_int)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -218,7 +218,7 @@ TEST(config, set_string_get_int)
 
 TEST(config_array, set_string_get_int)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -228,7 +228,7 @@ TEST(config_array, set_string_get_int)
 
 TEST(config, set_string_get_string)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -238,7 +238,7 @@ TEST(config, set_string_get_string)
 
 TEST(config_array, set_string_get_string)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -248,7 +248,7 @@ TEST(config_array, set_string_get_string)
 
 TEST(config, set_string_get_double)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -258,7 +258,7 @@ TEST(config, set_string_get_double)
 
 TEST(config_array, set_string_get_double)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -268,7 +268,7 @@ TEST(config_array, set_string_get_double)
 
 TEST(config, set_string_get_bool)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     for (int i = 0; i < 10; ++i)
     {
         config->set(std::format("string_{0}", i), i % 2 == 0 ? "true" : "false");
@@ -278,7 +278,7 @@ TEST(config, set_string_get_bool)
 
 TEST(config_array, set_string_get_bool)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     for (int i = 0; i < 10; ++i)
     {
         config->set(i * 4 + 1, i % 2 == 0 ? "true" : "false");
@@ -288,7 +288,7 @@ TEST(config_array, set_string_get_bool)
 
 TEST(config, set_bool_get_int)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -298,7 +298,7 @@ TEST(config, set_bool_get_int)
 
 TEST(config_array, set_bool_get_int)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -308,7 +308,7 @@ TEST(config_array, set_bool_get_int)
 
 TEST(config, set_bool_get_string)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -318,7 +318,7 @@ TEST(config, set_bool_get_string)
 
 TEST(config_array, set_bool_get_string)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -328,7 +328,7 @@ TEST(config_array, set_bool_get_string)
 
 TEST(config, set_bool_get_bool)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -338,7 +338,7 @@ TEST(config, set_bool_get_bool)
 
 TEST(config_array, set_bool_get_bool)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -348,7 +348,7 @@ TEST(config_array, set_bool_get_bool)
 
 TEST(config, set_bool_get_double)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -358,7 +358,7 @@ TEST(config, set_bool_get_double)
 
 TEST(config_array, set_bool_get_double)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 10; ++i)
     {
@@ -370,7 +370,7 @@ TEST(config_array, push)
 {
     for (int makeArray = 0; makeArray <= 1; ++makeArray)
     {
-        auto config = make_intrusive_ptr<cConfig2>();
+        auto config = make_intrusive_ptr<cConfig>();
         if(makeArray)
             config->makeArray();
         for (int i = 0; i < 10; ++i)
@@ -392,7 +392,7 @@ TEST(config_array, push)
 
 TEST(config, visit)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfig(*config);
     config->visit([](const std::string& key, const auto& value) 
         {
@@ -417,7 +417,7 @@ TEST(config, visit)
 
 TEST(config_array, visit)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfigArray(*config);
     config->visit([](const std::string& key, const auto& value)
         {
@@ -442,7 +442,7 @@ TEST(config_array, visit)
 
 TEST(config_array, visit_int_key)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfigArray(*config);
     config->visit([](int idx, const auto& value)
         {
@@ -467,25 +467,25 @@ TEST(config_array, visit_int_key)
 
 TEST(subconfigs, set_get)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
-        auto subconfig = make_intrusive_ptr<cConfig2>();
+        auto subconfig = make_intrusive_ptr<cConfig>();
         fillConfig(*subconfig, 1000 * (i + 1));
         config->set(std::format("subconfig_{0}", i), subconfig);
     }
     verifyConfig(*config);
     for (int i = 0; i < 10; ++i)
     {
-        auto subconfig = config->get<cConfig2>(std::format("subconfig_{0}", i));
+        auto subconfig = config->get<cConfig>(std::format("subconfig_{0}", i));
         verifyConfig(*subconfig, std::string(), 1000 * (i + 1));
     }
 }
 
 TEST(subconfigs, set_keypath_get_keypath)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     config->set("subconfig_0.int_0", 0);
     config->set("subconfig_0.int_1", 1);
     config->set("subconfig_0.subconfig_a.int_100", 100);
@@ -500,15 +500,15 @@ TEST(subconfigs, set_keypath_get_keypath)
 
 TEST(subconfigs, set_normal_get_keypath)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
-    auto subConfig0 = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
+    auto subConfig0 = make_intrusive_ptr<cConfig>();
     subConfig0->set("int_0", 0);
     subConfig0->set("int_1", 1);
     config->set("subconfig_0", subConfig0);
-    auto subConfig1 = make_intrusive_ptr<cConfig2>();
+    auto subConfig1 = make_intrusive_ptr<cConfig>();
     subConfig1->set("int_100", 100);
     subConfig1->set("int_101", 101);
-    auto subconfigA = make_intrusive_ptr<cConfig2>();
+    auto subconfigA = make_intrusive_ptr<cConfig>();
     subconfigA->set("int_200", 200);
     subConfig1->set("subconfig_a", subconfigA);
     config->set("subconfig_1", subConfig1);
@@ -522,29 +522,29 @@ TEST(subconfigs, set_normal_get_keypath)
 
 TEST(subconfigs, set_keypath_get_normal)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     config->set("subconfig_0.int_0", 0);
     config->set("subconfig_0.int_1", 1);
     config->set("subconfig_1.int_100", 100);
     config->set("subconfig_1.int_101", 101);
     config->set("subconfig_1.subconfig_a.int_200", 200);
 
-    auto subConfig0 = config->get<cConfig2>("subconfig_0");
+    auto subConfig0 = config->get<cConfig>("subconfig_0");
     ASSERT_EQ(0, subConfig0->get<int>("int_0"));
     ASSERT_EQ(1, subConfig0->get<int>("int_1"));
 
-    auto subConfig1 = config->get<cConfig2>("subconfig_1");
+    auto subConfig1 = config->get<cConfig>("subconfig_1");
     ASSERT_EQ(100, subConfig1->get<int>("int_100"));
     ASSERT_EQ(101, subConfig1->get<int>("int_101"));
-    auto subconfigA = subConfig1->get<cConfig2>("subconfig_a");
+    auto subconfigA = subConfig1->get<cConfig>("subconfig_a");
     ASSERT_EQ(200, subconfigA->get<int>("int_200"));
 }
 
-void fillSubconfigsArray(cConfig2& config)
+void fillSubconfigsArray(cConfig& config)
 {
     for (int i = 0; i < 5; ++i)
     {
-        auto subConfig = make_intrusive_ptr<cConfig2>();
+        auto subConfig = make_intrusive_ptr<cConfig>();
         int key = i * 4;
         subConfig->set("int_" + std::to_string(key), key);
         subConfig->set("string_" + std::to_string(key + 1), std::to_string(key + 100));
@@ -557,11 +557,11 @@ void fillSubconfigsArray(cConfig2& config)
 
 TEST(subconfigs, in_array)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillSubconfigsArray(*config);
     for (int i = 0; i < 5; ++i)
     {
-        auto subConfig = config->get<cConfig2>(i);
+        auto subConfig = config->get<cConfig>(i);
         int key = i * 4;
         EXPECT_EQ(key, subConfig->get<int>("int_" + std::to_string(key)));
         EXPECT_STREQ(std::to_string(key + 100).c_str(), subConfig->get<std::string>("string_" + std::to_string(key + 1)).c_str());
@@ -572,7 +572,7 @@ TEST(subconfigs, in_array)
 
 TEST(subconfigs, in_array_get_keypath)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillSubconfigsArray(*config);
     for(int i = 0; i < 5; ++i)
     {
@@ -586,10 +586,10 @@ TEST(subconfigs, in_array_get_keypath)
 
 TEST(subconfigs, forEachSubConfig_const_ref)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillSubconfigsArray(*config);
     int i = 0;
-    config->forEachSubConfig([&i](const std::string& key, const cConfig2& subConfig)
+    config->forEachSubConfig([&i](const std::string& key, const cConfig& subConfig)
         {
             int keyInt = std::stoi(key);
             int keyOffset = keyInt * 4;
@@ -604,10 +604,10 @@ TEST(subconfigs, forEachSubConfig_const_ref)
 
 TEST(subconfigs, forEachSubConfig_intrusive_ptr)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillSubconfigsArray(*config);
     int i = 0;
-    config->forEachSubConfig([&i](const std::string& key, tIntrusivePtr<cConfig2> subConfig)
+    config->forEachSubConfig([&i](const std::string& key, tIntrusivePtr<cConfig> subConfig)
         {
             int keyInt = std::stoi(key);
             int keyOffset = keyInt * 4;
@@ -621,26 +621,26 @@ TEST(subconfigs, forEachSubConfig_intrusive_ptr)
 }
 
 
-tIntrusivePtr<cConfig2> createConfigForCountingTests()
+tIntrusivePtr<cConfig> createConfigForCountingTests()
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfig(*config);
     for (int i = 0; i < 5; ++i)
     {
-        auto subConfig = make_intrusive_ptr<cConfig2>();
+        auto subConfig = make_intrusive_ptr<cConfig>();
         fillConfig(*subConfig, i * 1000);
         config->set(std::format("subconfig_{0}", i), std::move(subConfig));
     }
     return config;
 }
 
-tIntrusivePtr<cConfig2> createConfigArrayForCountingTests()
+tIntrusivePtr<cConfig> createConfigArrayForCountingTests()
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     fillConfigArray(*config);
     for (int i = 0; i < 5; ++i)
     {
-        auto subConfig = make_intrusive_ptr<cConfig2>();
+        auto subConfig = make_intrusive_ptr<cConfig>();
         fillConfig(*subConfig, i * 1000);
         config->set(i + 40, std::move(subConfig));
     }
@@ -673,7 +673,7 @@ TEST(config_array, numberOfSubConfigs)
 
 TEST(config, empty)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     EXPECT_TRUE(config->empty());
     fillConfig(*config);
     EXPECT_FALSE(config->empty());
@@ -681,7 +681,7 @@ TEST(config, empty)
 
 TEST(config_array, empty)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     config->makeArray();
     EXPECT_TRUE(config->empty());
     fillConfigArray(*config);
@@ -690,7 +690,7 @@ TEST(config_array, empty)
 
 TEST(config_string_c_str, set_c_str_get_string)
 {
-    auto config = make_intrusive_ptr<cConfig2>();
+    auto config = make_intrusive_ptr<cConfig>();
     config->set("key", "value");
     EXPECT_STREQ("value", config->get<std::string>("key").c_str());
 }

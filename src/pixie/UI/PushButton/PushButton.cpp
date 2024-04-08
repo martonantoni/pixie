@@ -7,7 +7,7 @@ const cEventDispatchers::cDispatcherRangeInfo cPushButton::mDispatcherRangeInfo=
 	PixieEvents::PushButton_First, { "activated" }
 };
 
-void cPushButton::cInitData::setConfig(tIntrusivePtr<cConfig2> config) 
+void cPushButton::cInitData::setConfig(tIntrusivePtr<cConfig> config) 
 {
 	tPixieSimpleInitData<cMouseTarget>::setConfig(config);
     mTextureBaseName = config->get<std::string>("texture", std::string());

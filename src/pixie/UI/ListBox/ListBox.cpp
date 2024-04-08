@@ -278,7 +278,7 @@ void cListBox::SetGlobalPosition(int Position)
 
 /// -----------------------------------------------------------
 
-void cListBox::cInitData::setConfig(tIntrusivePtr<cConfig2> config)	
+void cListBox::cInitData::setConfig(tIntrusivePtr<cConfig> config)	
 {
 	tPixieSimpleInitData<cMouseTarget>::setConfig(config);
 	mListDirection = config->get<bool>("is_vertical", true) ? eListDirection::Vertical : eListDirection::Horizontal;

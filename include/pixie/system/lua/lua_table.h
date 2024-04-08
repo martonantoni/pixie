@@ -13,7 +13,7 @@ private:
     template<class T> static void push(lua_State* L, const T& value);
     template<class T, class... Ts> static void push(lua_State* L, const T& value, const Ts&... values);
     template<class T> static T pop(std::shared_ptr<cLuaScript> script, lua_State* L);
-    tIntrusivePtr<cConfig2> toConfig2_topTable(lua_State* L, IsRecursive isRecursive) const;
+    tIntrusivePtr<cConfig> toConfig_topTable(lua_State* L, IsRecursive isRecursive) const;
     void copy_(const cLuaValue& src);
     static void retrieveWithKey(lua_State* L, cKey key);
 public:
@@ -50,7 +50,7 @@ public:
     cLuaScript& script() { return *mScript; }
     const cLuaScript& script() const { return *mScript; }
 // if the value is a table, we can create a config from it:
-    tIntrusivePtr<cConfig2> toConfig2(IsRecursive isRecursive = IsRecursive::Yes) const;
+    tIntrusivePtr<cConfig> toConfig(IsRecursive isRecursive = IsRecursive::Yes) const;
 };
 
 template<class T> void cLuaValue::push(lua_State* L, const T& value)

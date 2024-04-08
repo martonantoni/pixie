@@ -452,7 +452,7 @@ void setupConfigTestVariables(cLuaScript& script)
     storeTestVariables(subTable);
 }
 
-void verifyConfigSingleLevel(const cConfig2& config)
+void verifyConfigSingleLevel(const cConfig& config)
 {
     {
         auto value = config.get<int>("twelve", 0);
@@ -486,7 +486,7 @@ TEST(lua_table, toConfig_nonrecursive)
     auto script = std::make_shared<cLuaScript>();
 
     setupConfigTestVariables(*script);
-    auto config = script->globalTable().toConfig2(cLuaValue::IsRecursive::No);
+    auto config = script->globalTable().toConfig(cLuaValue::IsRecursive::No);
     verifyConfigSingleLevel(*config);
     ASSERT_EQ(script->stackSize(), 0);
 }
@@ -496,7 +496,7 @@ TEST(lua_table, toConfig_recursive)
     auto script = std::make_shared<cLuaScript>();
 
     setupConfigTestVariables(*script);
-    auto config = script->globalTable().toConfig2(cLuaValue::IsRecursive::Yes);
+    auto config = script->globalTable().toConfig(cLuaValue::IsRecursive::Yes);
     verifyConfigSingleLevel(*config);
     auto subConfig = config->getSubConfig("mySubTable");
     ASSERT_TRUE(subConfig);

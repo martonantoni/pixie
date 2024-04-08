@@ -2,7 +2,7 @@
 #include "pixie/pixie/i_pixie.h"
 
 
-void cPixieInitData::setConfig(tIntrusivePtr<cConfig2> config)
+void cPixieInitData::setConfig(tIntrusivePtr<cConfig> config)
 {
 	mConfig = std::move(config);
 	mVisualizer = mConfig->get<std::string>("visualizer", mVisualizer);
@@ -16,7 +16,7 @@ cPixieInitData::cPixieInitData()
 {
 }
 
-void cPixieInitData::BindToFromConfig(const cConfig2& config)
+void cPixieInitData::BindToFromConfig(const cConfig& config)
 {
 	auto BindToConfig= config.get<std::string>("bind_to", std::string());
 	if(!BindToConfig.empty())

@@ -15,10 +15,10 @@ struct cRect
 	constexpr cRect(): mLeft(0), mTop(0), mWidth(1), mHeight(1) {}
 	constexpr cRect(int Left,int Top,int Width,int Height): mLeft(Left), mTop(Top), mWidth(Width), mHeight(Height) {}
 	constexpr cRect(cPoint Position, cPoint Size): mLeft(Position.x), mTop(Position.y), mWidth(Size.x), mHeight(Size.y) {}
-	cRect(const cConfig2 &Config);
+	cRect(const cConfig &Config);
 	enum class eIsOptional { Yes, No };
-	void FromConfig(const cConfig2 &Config, eIsOptional IsOptional=eIsOptional::No);
-	void ToConfig(cConfig2 &Config) const;
+	void FromConfig(const cConfig &Config, eIsOptional IsOptional=eIsOptional::No);
+	void ToConfig(cConfig &Config) const;
 	constexpr int Left() const { return mLeft; }
     constexpr int Top() const { return mTop; }
     constexpr int Right() const { return mLeft+mWidth-1; }

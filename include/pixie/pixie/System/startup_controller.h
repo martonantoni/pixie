@@ -6,7 +6,7 @@ extern const char* versionString;
 class cStartupController final
 {
 public:
-    struct cConfig2
+    struct cConfig
     {
         cPath mainLuaConfigPath;
         std::function<void()> startApplication;
@@ -26,10 +26,10 @@ public:
 private:
     void continueStartup();
     void Start_MainThread();
-    cStartupController::cConfig2 mConfig;
+    cStartupController::cConfig mConfig;
 public:
     [[noreturn]] void start();
 };
 
-cStartupController::cConfig2 pixieAppConfiguration();
+cStartupController::cConfig pixieAppConfiguration();
 

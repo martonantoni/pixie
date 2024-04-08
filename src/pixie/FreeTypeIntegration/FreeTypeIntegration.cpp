@@ -25,7 +25,7 @@ void InitFreeType()
 	if(ASSERTFALSE(x)) \
 		return false;
 
-bool cFontManager2::InitFont(cFont2 &Font, const cConfig2& config)
+bool cFontManager2::InitFont(cFont2 &Font, const cConfig& config)
 {
 	FT_Library  library;
 	FT_CHECKED_CALL(FT_Init_FreeType(&library));
@@ -195,7 +195,7 @@ cFont2 *cFontManager2::GetFont(const std::string &Name)
 void cFontManager2::Init()
 {
 	theGlobalConfig->createSubConfig("fonts")->forEachSubConfig(
-		[this](const std::string& name, const cConfig2& config)
+		[this](const std::string& name, const cConfig& config)
 		{
 			cFontData FontData(name);
             auto AliasOf=config.get<std::string>("alias_of", std::string());
