@@ -58,6 +58,7 @@ public:
 	const cRect &GetPlacement() const { return mPlacement; } // relative to parent window
 	cRect GetClientRect() const { return cRect({ 0,0 }, mPlacement.GetSize()); }
 	void setPosition(const cPoint &Position);
+	void setSize(const cPoint &Size);
 	void SetPlacement(const cRect &Rect);
 	int GetZOrder() const { return mZOrder; }
 	bool IsInside(cPoint WindowRelativeCoords) const;
