@@ -16,3 +16,4 @@ struct cBlendData;
 #include "TextureAnimator.h"
 #include "LineSprite.h"
 #include "SpriteOutliner.h"
+#include "sprite_renderer.h"

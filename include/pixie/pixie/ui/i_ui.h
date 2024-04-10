@@ -3,7 +3,6 @@
 #include "MouseTarget2.h"
 #include "Window2.h"
 #include "Desktop2.h"
-#include "SpriteRenderer2.h"
 
 #include "TextLinkHelper.h"
 #include "TooltipDisplayer.h"

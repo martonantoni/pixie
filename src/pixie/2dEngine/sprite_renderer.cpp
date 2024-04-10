@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
-#include "pixie/pixie/ui/SpriteRenderer2.h"
+#include "pixie/pixie/2dEngine/sprite_renderer.h"
 #include "pixie/pixie/ui/Window2_SpriteIterator.h"
 
 void cSpriteRenderer::Init()
