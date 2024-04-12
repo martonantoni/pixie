@@ -44,6 +44,7 @@ struct cRect
 	cPoint BottomLeft() const { return cPoint(mLeft, Bottom()); }
 	cPoint BottomRight() const { return cPoint(Right(), Bottom()); }
 	cRect GetAlignedRect(const cRect &RectToAlign, eHorizontalAlign HorizontalAlign, eVerticalAlign VerticalAlign) const;
+	cRect GetCenteredRect(const cRect &RectToCenter) const { return GetAlignedRect(RectToCenter, eHorizontalAlign::Center, eVerticalAlign::Center); }
 	static cRect FromCenterAndSize(cPoint Center, int Size) { return cRect({ Center-cPoint(Size/2,Size/2) }, { Size, Size }); }
 	static cRect FromCenterAndSize(cPoint Center, cPoint Size) { return cRect({ Center-Size/2 }, Size); }
 	static cRect CreateBoundingBox(const std::vector<cPoint> &Points);
