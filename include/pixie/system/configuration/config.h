@@ -228,15 +228,17 @@ template<class TO, class FROM> static TO cConfig::convert(const FROM& value)
 
 template<class T> static cConfig::tGetRV<T> cConfig::extract(const cValue& value)
 {
+    using requiredType =
+        typename std::conditional<std::is_same_v<cConfig::tGetRV<T>, float>, double, cConfig::tGetRV<T>>::type;
     return std::visit([](const auto& value) -> cConfig::tGetRV<T>
         {
-            if constexpr (std::is_same_v<std::decay_t<decltype(value)>, tGetRV<T>>)
+            if constexpr (std::is_same_v<std::decay_t<decltype(value)>, requiredType>)
             {
                 return value;
             }
             else
             {
-                return convert<tGetRV<T>>(value);
+                return convert<requiredType>(value);
             }
         }, value);
 }

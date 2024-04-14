@@ -2,7 +2,7 @@
 
 class cMouseCursorServer: public tSingleton<cMouseCursorServer>, public cRegistrationHandler
 {
-	std::map<std::string, HCURSOR> mCursors;
+	std::unordered_map<std::string, HCURSOR> mCursors;
 	struct cCursorData
 	{
 		HCURSOR mCursorHandle;
@@ -13,5 +13,5 @@ class cMouseCursorServer: public tSingleton<cMouseCursorServer>, public cRegistr
 	virtual void Unregister(const cRegisteredID &RegisteredID, eCallbackType CallbackType=eCallbackType::Wait) override;
 public:
 	cMouseCursorServer();
-	cRegisteredID SetCursor(const std::string &CursorName);
+	cRegisteredID SetCursor(const std::string& id);
 };

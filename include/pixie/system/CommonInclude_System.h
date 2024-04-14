@@ -50,7 +50,7 @@
 using namespace std::string_literals; // enables s-suffix for std::string literals
 
 //#ifndef _DEBUG
-#define NO_CUSTOM_CURSORS
+//#define NO_CUSTOM_CURSORS
 //#endif
 
 using std::make_unique;

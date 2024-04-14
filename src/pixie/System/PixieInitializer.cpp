@@ -120,7 +120,7 @@ void registerGlobalPixieLuaFunctions(cLuaValue globalTable)
 
 void InitPixieSystem()
 {
-	cPrimaryWindow::Get();
+	cPrimaryWindow::get();
 	theColorServer.Init();
 	(new cBasicDeviceClearer)->Init(cConfig());
 	cDevice::Get();
@@ -128,8 +128,9 @@ void InitPixieSystem()
 	theTextureManager.Initialize();
     theSoundPlayer.Initialize();
 	InitFreeType();
-	cPixieObjectAnimatorManager::Get();
-	cMouseServer::Get();
-	cKeyboardServer::Get();
+	cPixieObjectAnimatorManager::get();
+	cMouseServer::get();
+	cKeyboardServer::get();
+	cMouseCursorServer::get();
 	InitPixieSystemMainLoop();
 }
