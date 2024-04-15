@@ -151,10 +151,9 @@ void cLuaScript::executeString(const std::string& script)
     if (luaL_dostring(L, script.c_str())) 
     {
         const char* errorMessage = lua_tostring(L, -1);
-        printf("LUA Error: %s\n", errorMessage);
-        fflush(stdout);
-        DebugBreak();
-        // Handle the error, if any
+        MainLog->Log("LUA Error: %s\n", errorMessage);
+        MainLog->Log("script: %s\n", script.c_str());
+        throw std::runtime_error(std::format("lua error: {}", errorMessage));
     }
 }
 
