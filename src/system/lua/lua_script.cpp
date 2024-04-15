@@ -220,7 +220,7 @@ std::string cLuaScript::configToScript(const cConfig& config, const std::string&
         // print out the key (it can be int or std::string)
             if constexpr (std::is_same_v<decltype(key), int>)
             {
-                script += ident + "[" + std::to_string(key + 1) + "] = ";
+                // nothing to do
             }
             else if constexpr (std::is_same_v<decltype(key), std::string>)
             {
@@ -245,7 +245,7 @@ std::string cLuaScript::configToScript(const cConfig& config, const std::string&
             }
             else if constexpr (std::is_same_v<decltype(value), std::shared_ptr<cConfig>>)
             {
-                script += "\n{\n";
+                script += "\n"s + ident + "{\n"s;
                 script += configToScript(*value, ident + "  ");
                 script += ident + "}" + newLine;
             }
