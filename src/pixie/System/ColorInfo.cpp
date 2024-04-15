@@ -14,6 +14,10 @@ cColor cColorServer::GetColor(const std::string& name) const
 {
 	auto i = mColorMap.find(name);
 	ASSERT(i != mColorMap.end());
+	if(i == mColorMap.end())
+    {
+        return cColor(0u);
+    }
 	return i->second;
 }
 
