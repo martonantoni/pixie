@@ -2,7 +2,8 @@
 
 class cConfig: public std::enable_shared_from_this<cConfig>
 {
-    using cValue = std::variant<int, double, std::string, bool, std::shared_ptr<cConfig>>;
+    using cConfigPtr = std::shared_ptr<cConfig>;
+    using cValue = std::variant<int, double, std::string, bool, cConfigPtr>;
     using cValueMap = std::unordered_map<std::string, cValue>;
     using cValueArray = std::vector<cValue>;
     using cValues = std::variant<std::monostate, cValueMap, cValueArray>;
@@ -25,6 +26,8 @@ public:
     template<class T> void set(const std::string& keyPath, T&& value);
     template<class T> void set(int index, T&& value);
     template<class T> void push(T&& value);
+    bool operator==(const cConfig& other) const; // recursive comparison, useful for testing
+    bool operator!=(const cConfig& other) const { return !(*this == other); }
     bool empty() const;
     int numberOfValues() const;
     int numberOfSubConfigs() const;
