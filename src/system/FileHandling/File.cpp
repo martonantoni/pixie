@@ -167,8 +167,13 @@ std::tuple<std::vector<uint8_t>, bool> FileHandling::ReadFile(const cPath &Path)
 
 bool FileHandling::WriteFile(const cPath &Path, const std::vector<uint8_t> &Data)
 {
-	cFile File;
-	File.Open(Path, cFile::Open_Truncate|cFile::Open_Write|cFile::Open_Create);
-	File.Write((const char *)Data.data(), Data.size());
-	return File.WasError();
+	return WriteFile(Path, Data.data(), Data.size());
+}
+
+bool FileHandling::WriteFile(const cPath &Path, const void *Data, size_t DataSize)
+{
+    cFile File;
+    File.Open(Path, cFile::Open_Truncate|cFile::Open_Write|cFile::Open_Create);
+    File.Write((const char *)Data, DataSize);
+    return File.WasError();
 }

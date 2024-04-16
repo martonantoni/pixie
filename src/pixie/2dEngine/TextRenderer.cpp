@@ -207,6 +207,8 @@ std::vector<std::unique_ptr<cSpriteBase>> cTextRenderer::render(const std::strin
 			break;
 		case '{':
 			{
+				if(i>0 && Text[i-1]=='\\') // \{ is not a tag
+                    break;
 				EndOfCurrentWord(i, false);
 				auto EndTagPos=Text.find('}', i+1);
 				if(ASSERTFALSE(EndTagPos==std::string::npos)) // missing }
@@ -344,4 +346,18 @@ end_of_text:
 		RenderInfo->mNextLineY=CursorPos.y;
 
 	return AllLetters;
+}
+
+std::string cTextRenderer::escapeText(const std::string& Text)
+{
+	// change any { to \{
+	std::string escapedText;
+	escapedText.reserve(Text.size());
+	for(size_t i=0, iend=Text.size(); i!=iend; ++i)
+    {
+        if(Text[i]=='{')
+			escapedText.push_back('\\');
+		escapedText.push_back(Text[i]);
+    }
+	return escapedText;
 }

@@ -109,4 +109,5 @@ public:
 		mMaxWidth=MaxWidth;
 	}
 	cFont2& defaultFont() const { return *mDefaultFont; }
+	static std::string escapeText(const std::string& Text);
 };

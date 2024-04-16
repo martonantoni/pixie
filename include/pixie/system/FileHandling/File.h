@@ -36,4 +36,5 @@ namespace FileHandling
 	std::vector<uint8_t> ReadFile(cFile &File);
 	std::tuple<std::vector<uint8_t>, bool> ReadFile(const cPath &Path);
 	bool WriteFile(const cPath &Path, const std::vector<uint8_t> &Data);
+	bool WriteFile(const cPath &Path, const void *Data, size_t Size);
 }
