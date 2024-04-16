@@ -17,6 +17,7 @@ class cConfig: public std::enable_shared_from_this<cConfig>
     template<class T> tGetRV<T> _get(const std::string& key, const std::optional<tGetRV<T>>& defaultValue) const;
     template<class T> void _set(const std::string& key, T&& value);
     template<class Visitor> void _visit(Visitor&& visitor) const;
+    bool _has(const std::string& key) const;
     static const cValue& _extractValue(const cValue& value) { return value; }
     static const cValue& _extractValue(const std::pair<const std::string, cValue>& pair) { return pair.second; }
 public:
@@ -29,6 +30,7 @@ public:
     bool operator==(const cConfig& other) const; // recursive comparison, useful for testing
     bool operator!=(const cConfig& other) const { return !(*this == other); }
     bool empty() const;
+    bool has(const std::string& keyPath) const;
     int numberOfValues() const;
     int numberOfSubConfigs() const;
     template<class T> tGetRV<T> 

@@ -21,7 +21,25 @@ std::pair<cConfig*, std::string> cConfig::leafConfig(const std::string& keyPath,
 
 std::pair<cConfig*, std::string> cConfig::leafConfig(const std::string& keyPath) const
 {
+// const_cast is safe here, the second parameter "false" means that we won't modify the config
+//         by creating a new subconfig if it doesn't exist
     return const_cast<cConfig*>(this)->leafConfig(keyPath, false);
+}
+
+bool cConfig::has(const std::string& keyPath) const
+{
+    auto [config, key] = leafConfig(keyPath);
+    return config && config->_has(key);
+}
+
+bool cConfig::_has(const std::string& key) const
+{
+    if(std::holds_alternative<cValueMap>(mValues))
+    {
+        const cValueMap& values = std::get<cValueMap>(mValues);
+        return values.find(key) != values.end();
+    }
+    return false;
 }
 
 void cConfig::makeArray()

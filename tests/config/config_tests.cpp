@@ -3,6 +3,24 @@
 namespace ConfigTests
 {
 
+TEST(config, has)
+{
+    auto config = std::make_shared<cConfig>();
+    fillConfig(*config);
+    for (int i = 0; i < 10; ++i)
+    {
+        EXPECT_TRUE(config->has(std::format("int_{0}", i)));
+        EXPECT_TRUE(config->has(std::format("string_{0}", i)));
+        EXPECT_TRUE(config->has(std::format("double_{0}", i)));
+        EXPECT_TRUE(config->has(std::format("bool_{0}", i)));
+    }
+    EXPECT_FALSE(config->has("nonexistent"));
+    EXPECT_FALSE(config->has("int_10"));
+    EXPECT_FALSE(config->has("string_10"));
+    EXPECT_FALSE(config->has("double_10"));
+    EXPECT_FALSE(config->has("bool_10"));
+}
+
 TEST(config_array, push)
 {
     for (int makeArray = 0; makeArray <= 1; ++makeArray)
