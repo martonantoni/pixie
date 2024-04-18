@@ -10,10 +10,27 @@ class cMessageCenter
     };
     template<class T> struct tDispatcher: public cDispatcher
     {
+        using cFunctions = std::variant<std::monostate, std::function<void(const T&)>, std::function<void(T)>, std::function<void()>>;
         struct cListener
         {
-            std::function<void(const T&)> mFunction;
+            cFunctions mFunction;
             int mEventFilter = -1;
+            template<class C> cListener(const C& callable, int eventFilter)
+                : mEventFilter(eventFilter)
+            {
+                if constexpr (std::is_same_v<C, std::function<void(const T&)>>)
+                    mFunction = callable;
+                else if constexpr (std::is_same_v<C, std::function<void(T)>>)
+                    mFunction = callable;
+                else if constexpr (std::is_same_v<C, std::function<void()>>)
+                    mFunction = callable;
+                else if constexpr (std::is_invocable_r_v<void, C, T>)
+                    mFunction = std::function<void(T)>(callable);
+                else if constexpr (std::is_invocable_r_v<void, C, const T&>)
+                    mFunction = std::function<void(const T&)>(callable);
+                else if constexpr (std::is_invocable_r_v<void, C>)
+                    mFunction = std::function<void()>(callable);
+            }
         };
         using cListeners = tSafeObjects<cListener>;
         cListeners mListeners;
@@ -30,7 +47,17 @@ class cMessageCenter
                     if (messageIndex > listener.mEventFilter)
                     {
                         listener.mEventFilter = messageIndex;
-                        listener.mFunction(messageDataT);
+                        std::visit(
+                            [&messageDataT](auto&& f) 
+                            { 
+                                if constexpr (std::is_same_v<std::decay_t<decltype(f)>, std::function<void(const T&)>>)
+                                    f(messageDataT);
+                                else if constexpr (std::is_same_v<std::decay_t<decltype(f)>, std::function<void(T)>>)
+                                    f(messageDataT);
+                                else if constexpr (std::is_same_v<std::decay_t<decltype(f)>, std::function<void()>>)
+                                    f(); 
+                            },
+                            listener.mFunction);
                     }
                 });
         }
@@ -59,7 +86,7 @@ public:
         ++mLastPostedMessageIndex;
         mEventsWriting.emplace_back(std::forward<T>(messageData), dispatcher.get());
     }
-    template<class T> [[nodiscard]] cRegisteredID registerListener(const std::string& endPointID, std::function<void(const T&)> listener)
+    template<class T, class C> [[nodiscard]] cRegisteredID registerListener(const std::string& endPointID, const C& listener)
     {
         auto& dispatcher = mDispatchers[endPointID];
         if (!dispatcher)
@@ -115,6 +142,9 @@ TEST(message_system, wrong_post_type)
         {
         });
     ASSERT_THROW(messageCenter.post("test.a.b.c", 42), std::runtime_error);
+
+    messageCenter.post("test", "hello world"s);
+    ASSERT_THROW(messageCenter.post("test", 33), std::runtime_error);
 }
 
 TEST(message_system, wrong_listen_type)
@@ -126,6 +156,55 @@ TEST(message_system, wrong_listen_type)
         [&](int message)
         {
         }), std::runtime_error);
+
+    auto listenerID = messageCenter.registerListener<std::string>(
+        "test",
+        [&](const std::string& message)
+        {
+        });
+    ASSERT_THROW(auto listenerID = messageCenter.registerListener<int>(
+        "test",
+        [&](int message)
+        {
+        }), std::runtime_error);
+}
+
+TEST(message_system, post_before_listener_added_is_not_delivered)
+{
+    cMessageCenter messageCenter;
+    messageCenter.post("test.a.b.c", 1);
+    int numberOfMessagesReceived = 0;
+    auto listenerID = messageCenter.registerListener<int>(
+        "test.a.b.c",
+        [&](int message)
+        {
+            EXPECT_EQ(message, 2);
+            ++numberOfMessagesReceived;
+        });
+    messageCenter.post("test.a.b.c", 2);
+
+    messageCenter.dispatch();
+
+    EXPECT_EQ(numberOfMessagesReceived, 1);
+}
+
+TEST(message_system, listening_with_void)
+{
+    cMessageCenter messageCenter;
+    int numberOfMessagesReceived = 0;
+    auto listenerID = messageCenter.registerListener<int>(
+        "test",
+        [&]()
+        {
+            ++numberOfMessagesReceived;
+        });
+    messageCenter.post("test", 1);
+    messageCenter.post("test", 2);
+    messageCenter.post("test", 3);
+
+    messageCenter.dispatch();
+
+    EXPECT_EQ(numberOfMessagesReceived, 3);
 }
 
 
