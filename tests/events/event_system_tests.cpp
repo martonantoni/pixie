@@ -1,116 +1,82 @@
 #include "event_tests_common.h"
 
-class cMessageDataStorage
-{
-protected:
-    static int mNextMessageDataIndex;
-};
-
-template<class T>
-class tMessageDataStorage: public tSingleton<tMessageDataStorage<T>>, public cMessageDataStorage
-{
-    std::map<int, T> data;
-public:
-    int store(T&& event)
-    {
-        int index = mNextMessageDataIndex++;
-        data[index] = std::move(event);
-        return index; // return the index of the added event
-    }
-
-    const T& retrieve(int dataIndex) const
-    {
-        if (data.find(dataIndex) == data.end())
-            throw std::out_of_range("Invalid index");
-
-        return data.at(dataIndex);
-    }
-
-    void remove(int dataIndex)
-    {
-        if (data.find(dataIndex) == data.end())
-            throw std::out_of_range("Invalid index");
-
-        data.erase(dataIndex);
-    }
-
-};
-
-int cMessageDataStorage::mNextMessageDataIndex = 0;
-
 class cMessageCenter
 {
-    struct cListener
-    {
-        std::function<void(int)> mFunction;
-        int mEventFilter = -1;
-    };
-    using cListeners = tSafeObjects<cListener>;
     struct cDispatcher: public cRegistrationHandler
     {
         std::type_index mTypeIndex;
+        cDispatcher(const std::type_index& typeIndex): mTypeIndex(typeIndex) {}
+        virtual void dispatch(const std::any& messageData, int messageIndex) = 0;
+    };
+    template<class T> struct tDispatcher: public cDispatcher
+    {
+        struct cListener
+        {
+            std::function<void(const T&)> mFunction;
+            int mEventFilter = -1;
+        };
+        using cListeners = tSafeObjects<cListener>;
         cListeners mListeners;
         virtual void Unregister(const cRegisteredID& RegisteredID, eCallbackType CallbackType) override
         {
             mListeners.Unregister(RegisteredID.GetID());
         }
-        cDispatcher(const std::type_index& typeIndex): mTypeIndex(typeIndex) {}
+        tDispatcher(): cDispatcher(typeid(T)) {}
+        virtual void dispatch(const std::any& messageData, int messageIndex) override
+        {
+            const T& messageDataT = std::any_cast<const T&>(messageData);
+            mListeners.ForEach([messageIndex, &messageDataT](auto& listener)
+                {
+                    if (messageIndex > listener.mEventFilter)
+                    {
+                        listener.mEventFilter = messageIndex;
+                        listener.mFunction(messageDataT);
+                    }
+                });
+        }
     };
     std::unordered_map<std::string, std::unique_ptr<cDispatcher>> mDispatchers;
     struct cEvent
     {
-        int mEventID;
-        cListeners* mListeners;
+        std::any mMessageData;
+        cDispatcher* mDispatcher;
     };
     std::vector<cEvent> mEventsWriting;
     std::vector<cEvent> mEventsReading;
+    int mLastPostedMessageIndex = -1;
+    int mDispatchedMessageIndex = 0;
 public:
-    template<class T> void post(const std::string& eventID, T&& event)
+    template<class T> void post(const std::string& endPointID, T&& messageData)
     {
-        auto eventIndex = tMessageDataStorage<T>::get().store(std::forward<T>(event));
-        auto& dispatcher = mDispatchers[eventID];
+        auto& dispatcher = mDispatchers[endPointID];
         if(!dispatcher)
-        {
-            dispatcher = std::make_unique<cDispatcher>(typeid(T));
-        }
+            dispatcher = std::make_unique<tDispatcher<T>>();
         else
         {
             if (dispatcher->mTypeIndex != typeid(T))
                 throw std::runtime_error("Wrong message type");
         }
-        mEventsWriting.emplace_back(eventIndex, &dispatcher->mListeners);
+        ++mLastPostedMessageIndex;
+        mEventsWriting.emplace_back(std::forward<T>(messageData), dispatcher.get());
     }
-    template<class T> [[nodiscard]] cRegisteredID registerListener(const std::string& eventID, std::function<void(const T&)> listener)
+    template<class T> [[nodiscard]] cRegisteredID registerListener(const std::string& endPointID, std::function<void(const T&)> listener)
     {
-        auto& dispatcher = mDispatchers[eventID];
+        auto& dispatcher = mDispatchers[endPointID];
         if (!dispatcher)
-        {
-            dispatcher = std::make_unique<cDispatcher>(typeid(T));
-        }
-        else
-        {
-            if (dispatcher->mTypeIndex != typeid(T))
-                throw std::runtime_error("Wrong message type");
-        }
-        return cRegisteredID(dispatcher.get(), dispatcher->mListeners.Register([this, listener](int eventIndex)
-            {
-                listener(tMessageDataStorage<T>::get().retrieve(eventIndex));
-            }));
+            dispatcher = std::make_unique<tDispatcher<T>>();
+        auto dispatcherT = dynamic_cast<tDispatcher<T>*>(dispatcher.get());
+        if(!dispatcherT)
+            throw std::runtime_error("Wrong message type");
+        return cRegisteredID(dispatcher.get(), 
+            dispatcherT->mListeners.Register(tDispatcher<T>::cListener(listener, mLastPostedMessageIndex)));
     }
     void dispatch()
     {
         std::swap(mEventsReading, mEventsWriting);
         for (auto& event : mEventsReading)
         {
-            event.mListeners->ForEach([&event](auto& listener)
-                {
-                    if (event.mEventID > listener.mEventFilter)
-                    {
-                        listener.mEventFilter = event.mEventID;
-                        listener.mFunction(event.mEventID);
-                    }
-                });
-
+            event.mDispatcher->dispatch(event.mMessageData, mDispatchedMessageIndex);
+            ++mDispatchedMessageIndex;
         }
     }
 };
