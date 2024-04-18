@@ -37,7 +37,7 @@ void cMessageCenter::post(const std::string& endpointID)
         dispatcher = std::make_unique<cVoidDispatcher>();
     else
     {
-        if (dispatcher->typeIndex() != typeid(void))
+        if (dispatcher->messageType() != typeid(void))
             throw std::runtime_error("Wrong message type");
     }
     ++mLastPostedMessageIndex;

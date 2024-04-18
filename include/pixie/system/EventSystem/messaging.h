@@ -1,16 +1,15 @@
 #pragma once
 
-
-class cMessageCenter
+class cMessageCenter final
 {
     class cDispatcher
     {
-        std::type_index mTypeIndex;
+        std::type_index mMessageType;
     public:
+        cDispatcher(const std::type_index& messageType) : mMessageType(messageType) {}
         virtual ~cDispatcher() = default;
-        cDispatcher(const std::type_index& typeIndex) : mTypeIndex(typeIndex) {}
         virtual void dispatch(const std::any& messageData, int messageIndex) = 0;
-        const std::type_index& typeIndex() const { return mTypeIndex; }
+        const std::type_index& messageType() const { return mMessageType; }
     };
     template<class T> struct tDispatcher : public cDispatcher
     {
@@ -88,14 +87,14 @@ void cMessageCenter::tDispatcher<T>::dispatch(const std::any& messageData, int m
             {
                 listener.mEventFilter = messageIndex;
                 std::visit(
-                    [&messageDataT](auto&& f)
+                    [&messageDataT](auto& function)
                     {
-                        if constexpr (std::is_same_v<std::decay_t<decltype(f)>, std::function<void(const T&)>>)
-                            f(messageDataT);
-                        else if constexpr (std::is_same_v<std::decay_t<decltype(f)>, std::function<void(T)>> && std::is_copy_constructible_v<T>)
-                            f(messageDataT);
-                        else if constexpr (std::is_same_v<std::decay_t<decltype(f)>, std::function<void()>>)
-                            f();
+                        if constexpr (std::is_same_v<std::decay_t<decltype(function)>, std::function<void(const T&)>>)
+                            function(messageDataT);
+                        else if constexpr (std::is_same_v<std::decay_t<decltype(function)>, std::function<void(T)>> && std::is_copy_constructible_v<T>)
+                            function(messageDataT);
+                        else if constexpr (std::is_same_v<std::decay_t<decltype(function)>, std::function<void()>>)
+                            function();
                     },
                     listener.mFunction);
             }
@@ -109,7 +108,7 @@ template<class T> void cMessageCenter::post(const std::string& endpointID, T&& m
         dispatcher = std::make_unique<tDispatcher<std::decay_t<T>>>();
     else
     {
-        if (dispatcher->typeIndex() != typeid(std::decay_t<T>))
+        if (dispatcher->messageType() != typeid(std::decay_t<T>))
             throw std::runtime_error("Wrong message type");
     }
     ++mLastPostedMessageIndex;
