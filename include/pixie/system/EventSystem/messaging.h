@@ -109,10 +109,10 @@ public:
     {
         auto& dispatcher = mDispatchers[endPointID];
         if (!dispatcher)
-            dispatcher = std::make_unique<tDispatcher<T>>();
+            dispatcher = std::make_unique<tDispatcher<std::decay_t<T>>>();
         else
         {
-            if (dispatcher->mTypeIndex != typeid(T))
+            if (dispatcher->mTypeIndex != typeid(std::decay_t<T>))
                 throw std::runtime_error("Wrong message type");
         }
         ++mLastPostedMessageIndex;
@@ -144,11 +144,17 @@ public:
     }
     void dispatch()
     {
-        std::swap(mEventsReading, mEventsWriting);
-        for (auto& event : mEventsReading)
+        for (;;)
         {
-            event.mDispatcher->dispatch(event.mMessageData, mDispatchedMessageIndex);
-            ++mDispatchedMessageIndex;
+            std::swap(mEventsReading, mEventsWriting);
+            if(mEventsReading.empty())
+                break;
+            for (auto& event : mEventsReading)
+            {
+                event.mDispatcher->dispatch(event.mMessageData, mDispatchedMessageIndex);
+                ++mDispatchedMessageIndex;
+            }
+            mEventsReading.clear();
         }
     }
 };
