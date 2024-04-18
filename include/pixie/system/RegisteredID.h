@@ -11,7 +11,7 @@ public:
 
 class cRegisteredIDSink;
 
-class cRegisteredID final
+class [[nodiscard]] cRegisteredID final
 {
 public:
 	using cID = uint64_t;
