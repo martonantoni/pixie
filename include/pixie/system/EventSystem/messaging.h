@@ -3,7 +3,7 @@
 
 class cMessageCenter
 {
-    struct cDispatcher : public cRegistrationHandler
+    struct cDispatcher
     {
         std::type_index mTypeIndex;
         virtual ~cDispatcher() = default;
@@ -34,12 +34,7 @@ class cMessageCenter
                     mFunction = std::function<void()>(callable);
             }
         };
-        using cListeners = tSafeObjects<cListener>;
-        cListeners mListeners;
-        virtual void Unregister(const cRegisteredID& RegisteredID, eCallbackType CallbackType) override
-        {
-            mListeners.Unregister(RegisteredID.GetID());
-        }
+        tRegisteredObjects<cListener> mListeners;
         tDispatcher() : cDispatcher(typeid(T)) {}
         virtual void dispatch(const std::any& messageData, int messageIndex) override
         {
@@ -74,8 +69,7 @@ class cMessageCenter
             cListener(const cFunction& function, int eventFilter)
                 : mFunction(function), mEventFilter(eventFilter) {}
         };
-        using cListeners = tSafeObjects<cListener>;
-        cListeners mListeners;
+        tRegisteredObjects<cListener> mListeners;
         tDispatcher() : cDispatcher(typeid(void)) {}
         virtual void dispatch(const std::any& messageData, int messageIndex) override
         {
@@ -87,10 +81,6 @@ class cMessageCenter
                         listener.mFunction();
                     }
                 });
-        }
-        virtual void Unregister(const cRegisteredID& RegisteredID, eCallbackType CallbackType) override
-        {
-            mListeners.Unregister(RegisteredID.GetID());
         }
     };
     using cVoidDispatcher = tDispatcher<void>;
@@ -139,8 +129,7 @@ public:
         auto dispatcherT = dynamic_cast<tDispatcher<T>*>(dispatcher.get());
         if (!dispatcherT)
             throw std::runtime_error("Wrong message type");
-        return cRegisteredID(dispatcher.get(),
-            dispatcherT->mListeners.Register(tDispatcher<T>::cListener(listener, mLastPostedMessageIndex)));
+        return dispatcherT->mListeners.Register(tDispatcher<T>::cListener(listener, mLastPostedMessageIndex));
     }
     void dispatch()
     {
