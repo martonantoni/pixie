@@ -1,4 +1,4 @@
-#include "event_tests_common.h"
+#include "messaging_tests_common.h"
 
 
 
@@ -100,5 +100,23 @@ TEST(message_system, listening_with_void)
     EXPECT_EQ(numberOfMessagesReceived, 3);
 }
 
+TEST(message_system, void_end_points)
+{
+    cMessageCenter messageCenter;
+    int numberOfMessagesReceived = 0;
+    auto listenerID = messageCenter.registerListener<void>(
+        "test",
+        [&]()
+        {
+            ++numberOfMessagesReceived;
+        });
+    messageCenter.post("test");
+    messageCenter.post("test");
+    messageCenter.post("test");
+
+    messageCenter.dispatch();
+
+    EXPECT_EQ(numberOfMessagesReceived, 3);
+}
 
 } // namespace MessageSystemTests

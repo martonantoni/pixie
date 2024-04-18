@@ -2,7 +2,7 @@
 
 #include "pixie/system/CommonInclude_System.h"
 
-namespace EventSystemTests
+namespace MessageSystemTests
 {
 
 }

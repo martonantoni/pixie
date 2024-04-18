@@ -6,8 +6,38 @@ class cMessageCenter
     struct cDispatcher : public cRegistrationHandler
     {
         std::type_index mTypeIndex;
+        virtual ~cDispatcher() = default;
         cDispatcher(const std::type_index& typeIndex) : mTypeIndex(typeIndex) {}
         virtual void dispatch(const std::any& messageData, int messageIndex) = 0;
+    };
+    struct cVoidDispatcher : public cDispatcher
+    {
+        using cFunction = std::function<void()>;
+        struct cListener
+        {
+            cFunction mFunction;
+            int mEventFilter = -1;
+            cListener(const cFunction& function, int eventFilter)
+                : mFunction(function), mEventFilter(eventFilter) {}
+        };
+        using cListeners = tSafeObjects<cListener>;
+        cListeners mListeners;
+        cVoidDispatcher(): cDispatcher(typeid(void)) {}
+        virtual void dispatch(const std::any& messageData, int messageIndex) override
+        {
+            mListeners.ForEach([messageIndex](auto& listener)
+                {
+                    if (messageIndex > listener.mEventFilter)
+                    {
+                        listener.mEventFilter = messageIndex;
+                        listener.mFunction();
+                    }
+                });
+        }
+        virtual void Unregister(const cRegisteredID& RegisteredID, eCallbackType CallbackType) override
+        {
+            mListeners.Unregister(RegisteredID.GetID());
+        }
     };
     template<class T> struct tDispatcher : public cDispatcher
     {
@@ -87,16 +117,42 @@ public:
         ++mLastPostedMessageIndex;
         mEventsWriting.emplace_back(std::forward<T>(messageData), dispatcher.get());
     }
-    template<class T, class C> [[nodiscard]] cRegisteredID registerListener(const std::string& endPointID, const C& listener)
+    void post(const std::string& endPointID)
     {
         auto& dispatcher = mDispatchers[endPointID];
         if (!dispatcher)
-            dispatcher = std::make_unique<tDispatcher<T>>();
-        auto dispatcherT = dynamic_cast<tDispatcher<T>*>(dispatcher.get());
-        if (!dispatcherT)
-            throw std::runtime_error("Wrong message type");
-        return cRegisteredID(dispatcher.get(),
-            dispatcherT->mListeners.Register(tDispatcher<T>::cListener(listener, mLastPostedMessageIndex)));
+            dispatcher = std::make_unique<cVoidDispatcher>();
+        else
+        {
+            if (dispatcher->mTypeIndex != typeid(void))
+                throw std::runtime_error("Wrong message type");
+        }
+        ++mLastPostedMessageIndex;
+        mEventsWriting.emplace_back(std::monostate(), dispatcher.get());
+    }
+    template<class T, class C> [[nodiscard]] cRegisteredID registerListener(const std::string& endPointID, const C& listener)
+    {
+        auto& dispatcher = mDispatchers[endPointID];
+        if constexpr (std::is_same_v<T, void>)
+        {
+            if (!dispatcher)
+                dispatcher = std::make_unique<cVoidDispatcher>();
+            auto dispatcherVoid = dynamic_cast<cVoidDispatcher*>(dispatcher.get());
+            if (!dispatcherVoid)
+                throw std::runtime_error("Wrong message type");
+            return cRegisteredID(dispatcher.get(),
+                dispatcherVoid->mListeners.Register(cVoidDispatcher::cListener(listener, mLastPostedMessageIndex)));
+        }
+        else
+        {
+            if (!dispatcher)
+                dispatcher = std::make_unique<tDispatcher<T>>();
+            auto dispatcherT = dynamic_cast<tDispatcher<T>*>(dispatcher.get());
+            if (!dispatcherT)
+                throw std::runtime_error("Wrong message type");
+            return cRegisteredID(dispatcher.get(),
+                dispatcherT->mListeners.Register(tDispatcher<T>::cListener(listener, mLastPostedMessageIndex)));
+        }
     }
     void dispatch()
     {

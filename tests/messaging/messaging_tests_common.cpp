@@ -1,6 +1,6 @@
-#include "event_tests_common.h"
+#include "messaging_tests_common.h"
 
-namespace EventSystemTests
+namespace MessageSystemTests
 {
 
 
@@ -9,8 +9,8 @@ namespace EventSystemTests
 } // namespace EventSystemTests
 //////////////////////////////////////////////////////////////////////////
 
-const char* ProgramName = "Pixie Event System Test";
-const char* VersionString = "0.1";
+const char* ProgramName = "Pixie Message System Test";
+const char* VersionString = "1.0";
 
 // Main function to run the tests
 int main(int argc, char** argv)
