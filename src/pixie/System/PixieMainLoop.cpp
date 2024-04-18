@@ -16,6 +16,7 @@ void cPixieMainLoop::Init()
 void cPixieMainLoop::OnLogic()
 {
 	theEventCenter->DispatchEvents();
+	theMessageCenter.dispatch();
 }
 
 void InitPixieSystemMainLoop()

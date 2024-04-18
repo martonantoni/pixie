@@ -95,9 +95,9 @@ class cMessageCenter
     int mLastPostedMessageIndex = -1;
     int mDispatchedMessageIndex = 0;
 public:
-    template<class T> void post(const std::string& endPointID, T&& messageData)
+    template<class T> void post(const std::string& endpointID, T&& messageData)
     {
-        auto& dispatcher = mDispatchers[endPointID];
+        auto& dispatcher = mDispatchers[endpointID];
         if (!dispatcher)
             dispatcher = std::make_unique<tDispatcher<std::decay_t<T>>>();
         else
@@ -108,9 +108,9 @@ public:
         ++mLastPostedMessageIndex;
         mEventsWriting.emplace_back(std::forward<T>(messageData), dispatcher.get());
     }
-    void post(const std::string& endPointID)
+    void post(const std::string& endpointID)
     {
-        auto& dispatcher = mDispatchers[endPointID];
+        auto& dispatcher = mDispatchers[endpointID];
         if (!dispatcher)
             dispatcher = std::make_unique<cVoidDispatcher>();
         else
@@ -121,9 +121,9 @@ public:
         ++mLastPostedMessageIndex;
         mEventsWriting.emplace_back(std::monostate(), dispatcher.get());
     }
-    template<class T, class C> [[nodiscard]] cRegisteredID registerListener(const std::string& endPointID, const C& listener)
+    template<class T, class C> [[nodiscard]] cRegisteredID registerListener(const std::string& endpointID, const C& listener)
     {
-        auto& dispatcher = mDispatchers[endPointID];
+        auto& dispatcher = mDispatchers[endpointID];
         if (!dispatcher)
             dispatcher = std::make_unique<tDispatcher<T>>();
         auto dispatcherT = dynamic_cast<tDispatcher<T>*>(dispatcher.get());
@@ -145,5 +145,21 @@ public:
             }
             mEventsReading.clear();
         }
+    }
+};
+
+extern cMessageCenter theMessageCenter;
+
+class cMessageListeners final
+{
+    cRegisteredIDList mListeners;
+public:
+    template<class T, class C> void listen(const std::string& endpointID, C&& callback)
+    {
+        mListeners.emplace_back(theMessageCenter.registerListener<T>(endpointID, std::forward<C>(callback)));
+    }
+    template<class C> void listen(const std::string& endpointID, C&& callback)
+    {
+        mListeners.emplace_back(theMessageCenter.registerListener<void>(endpointID, std::forward<C>(callback)));
     }
 };
