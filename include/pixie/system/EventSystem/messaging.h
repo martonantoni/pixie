@@ -49,7 +49,7 @@ class cMessageCenter
                             {
                                 if constexpr (std::is_same_v<std::decay_t<decltype(f)>, std::function<void(const T&)>>)
                                     f(messageDataT);
-                                else if constexpr (std::is_same_v<std::decay_t<decltype(f)>, std::function<void(T)>>)
+                                else if constexpr (std::is_same_v<std::decay_t<decltype(f)>, std::function<void(T)>> && std::is_copy_constructible_v<T>)
                                     f(messageDataT);
                                 else if constexpr (std::is_same_v<std::decay_t<decltype(f)>, std::function<void()>>)
                                     f();
