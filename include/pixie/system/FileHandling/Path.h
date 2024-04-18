@@ -17,6 +17,7 @@ public:
 	cPath(const char *Path): mPath(Path) {}
 	cPath(const std::string &Path): mPath(Path) {}
 	cPath(const cPath &)=default;
+	cPath(const std::filesystem::path &path): mPath(path.string()) {}
 	cPath &operator=(const cPath &)=default;
 
 	std::string GetFileName() const;
