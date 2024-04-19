@@ -212,10 +212,12 @@ std::string cLuaScript::configToScript(const cConfig& config, const std::string&
     {
         throw std::runtime_error("array on global level");
     }
-    std::string script;
-    config.visit([newLine = ident.empty() ? "\n"s : ",\n"s, &script, ident]
+    std::vector<std::tuple<std::string, std::string, bool>> elements; // key, value, isTable
+    config.visit([&elements, ident]
         (auto key, auto value)
         {
+            elements.emplace_back();
+            std::get<2>(elements.back()) = false;
         // print out the key (it can be int or std::string)
             if constexpr (std::is_same_v<decltype(key), int>)
             {
@@ -223,31 +225,63 @@ std::string cLuaScript::configToScript(const cConfig& config, const std::string&
             }
             else if constexpr (std::is_same_v<decltype(key), std::string>)
             {
-                script += ident + key + " = ";
+                std::get<0>(elements.back()) = key;
             }
             // print out the value(it can be int, double, bool, std::string, std::shared_ptr<cConfig>)
             if constexpr (std::is_same_v<decltype(value), int>)
             {
-                script += std::to_string(value) + newLine;
+                std::get<1>(elements.back()) = std::to_string(value);
+//                script += std::to_string(value) + newLine;
             }
             else if constexpr (std::is_same_v<decltype(value), double>)
             {
-                script += std::to_string(value) + newLine;
+                std::get<1>(elements.back()) = std::to_string(value);
+//                script += std::to_string(value) + newLine;
             }
             else if constexpr (std::is_same_v<decltype(value), bool>)
             {
-                script += (value ? "true" : "false") + newLine;
+                std::get<1>(elements.back()) = value ? "true" : "false";
+//                script += (value ? "true" : "false") + newLine;
             }
             else if constexpr (std::is_same_v<decltype(value), std::string>)
             {
-                script += "\"" + value + "\"" + newLine;
+                std::get<1>(elements.back()) = "\""s + value + "\"";
+//                script += "\"" + value + "\"" + newLine;
             }
             else if constexpr (std::is_same_v<decltype(value), std::shared_ptr<cConfig>>)
             {
-                script += "\n"s + ident + "{\n"s;
-                script += configToScript(*value, ident + "  ");
-                script += ident + "}" + newLine;
+                std::get<1>(elements.back()) = configToScript(*value, ident + "  ");
+                std::get<2>(elements.back()) = true;
+
+
+                //script += "\n"s + ident + "{\n"s;
+                //script += configToScript(*value, ident + "  ");
+                //script += ident + "}" + newLine;
             }
         });
+    std::ranges::stable_sort(elements, [](const auto& a, const auto& b) { return std::get<0>(a) < std::get<0>(b); });
+    std::string script;
+    auto newLine = ident.empty() ? "\n"s : ",\n"s;
+    for (const auto& [key, value, isTable] : elements)
+    {
+        if (!key.empty())
+        {
+            script += ident + key + " = ";
+        }
+        else
+        {
+            script += ident;
+        }
+        if (isTable)
+        {
+            script += "{\n";
+            script += value;
+            script += ident + "}" + newLine;
+        }
+        else
+        {
+            script += value + newLine;
+        }
+    }
     return script;
 }
