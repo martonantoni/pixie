@@ -312,6 +312,29 @@ TEST(lua_function_register, funcion_v_v)  // void(void)
     ASSERT_EQ(script->stackSize(), 0) << "after call";
 }
 
+TEST(lua_function_remove, funcion_v_v)  // void(void)
+{
+    bool wasDestroyed = false;
+    {
+        auto script = std::make_shared<cLuaScript>();
+
+        cLuaValue globalTable = script->globalTable();
+        struct cDestructorChecker
+        {
+            cDestructorChecker(bool& wasDestroyed) : mWasDestroyed(wasDestroyed) {}
+            ~cDestructorChecker() { mWasDestroyed = true; }
+            bool& mWasDestroyed;
+        };
+        globalTable.registerFunction<void>("test"s,
+            [destructorChecker = std::make_shared<cDestructorChecker>(wasDestroyed)]() {});
+        ASSERT_EQ(script->stackSize(), 0) << "after register";
+        globalTable.remove("test"s);
+        ASSERT_EQ(script->stackSize(), 0) << "after remove";
+        ASSERT_FALSE(globalTable.has("test"s));
+    }
+    ASSERT_TRUE(wasDestroyed);
+}
+
 TEST(lua_function_register, function_v_iii)  // void(int,int,int)
 {
     auto script = std::make_shared<cLuaScript>();

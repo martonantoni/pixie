@@ -266,3 +266,13 @@ bool cLuaValue::has(const std::string& key) const
     lua_pop(L, 2);
     return result;
 }
+
+void cLuaValue::remove(const std::string& key)
+{
+    lua_State* L = mScript->state();
+    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference);
+    lua_pushstring(L, key.c_str());
+    lua_pushnil(L);
+    lua_settable(L, -3);
+    lua_pop(L, 1);
+}

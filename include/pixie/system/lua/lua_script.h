@@ -32,6 +32,7 @@ public:
     virtual ~cLuaScript();
     void executeFile(const cPath& scriptPath);
     void executeString(const std::string& script);
+    std::shared_ptr<cLuaScript> shareSelf() { return shared_from_this(); }
     static void staticInit();
     static std::string valueToString(lua_State* L, int index);
     static bool isGlobalInternalElement(const std::string& key);
@@ -50,7 +51,8 @@ public:
         static_assert(std::is_base_of<cUserDataBase, T>::value, "must use a cUserDataBase derived class");
         void* allocationPlace = lua_newuserdata(L, sizeof(T));
         T* userData = new (allocationPlace) T(std::forward<Args>(args)...);
-        luaL_setmetatable(L, userDataMetaTableName);
+        luaL_setmetatable(L, userDataMetaTableName); // this metatable was created in the constructor
+                                                     // it is responsible for custom GC destructor
         return userData;
     }
 
