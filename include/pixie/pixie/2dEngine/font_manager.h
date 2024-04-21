@@ -6,7 +6,7 @@ class cFontManager
 	{
 		std::string mName;
 		std::string mAliasOf;
-		std::unique_ptr<cFont> mFont;
+		std::shared_ptr<cFont> mFont;
 		cFontData(const cFontData &)=delete;
 		cFontData(cFontData &&)=default;
 		cFontData(const std::string &Name): mName(Name) {}
