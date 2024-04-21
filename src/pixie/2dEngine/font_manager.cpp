@@ -26,10 +26,9 @@ std::shared_ptr<const cFont> cFontManager::makeFont(const std::string& fileName,
 	FT_Face     face;      /* handle to face object */
 	if(FT_New_Face(library, fileName.c_str(), 0, &face))
     {
-        printf("unable to load font: \"%s\"\n", fileName.c_str());
+        printf("FontManager: unable to load font: \"%s\"\n", fileName.c_str());
         return nullptr;
     }
-//	Font.mFontHeight=config.get<int>("height");
 	FT_CHECKED_CALL(FT_Set_Pixel_Sizes(face, 0, height));
 	auto font = std::make_shared<cFont>(fileName);
 	auto& Font = *font;
@@ -163,8 +162,7 @@ std::shared_ptr<const cFont> cFontManager::makeFont(const std::string& fileName,
 	Font.mAtlasTexture->UnlockSurface();
 	FT_Done_Face(face);
 	FT_Done_Library(library);
-	MainLog->Log("Font %s initialized. Texture size: %d x %d",
-		Font.name().c_str(), textureSize, textureSize);
+
 	return font;
 }
 
@@ -189,7 +187,6 @@ std::shared_ptr<const cFont> createFont(const std::string& name, int size)
 	return {};
 }
 
-
 void cFontManager::Init()
 {
 	auto fontsConfig = theGlobalConfig->createSubConfig("fonts");
@@ -197,7 +194,7 @@ void cFontManager::Init()
 	mExtraLetters = UTF8::Decode(ExtraLettersUTF8);
 	mExtraLetters.pop_back(); // the terminating zero
 
-	theGlobalConfig->createSubConfig("fonts")->forEachSubConfig(
+	fontsConfig->forEachSubConfig(
 		[this](const std::string& name, const cConfig& config)
 		{
 			cFontData FontData(name);
@@ -209,7 +206,7 @@ void cFontManager::Init()
             }
             else
             {
-                FontData.mFont=std::make_shared<cFont>(name);
+				FontData.mFont = std::make_shared<cFont>(name);
 				auto fileName = config.get<std::string>("file");
 				auto height = config.get<int>("height");
 				if(auto font = makeFont(fileName, height))
@@ -219,10 +216,18 @@ void cFontManager::Init()
                 }
                 else
                 {
-                    MainLog->Log("Unable to initialize font: \"%s\"", name.c_str());
+                    MainLog->Log("FontManager: Unable to initialize font: \"%s\"", name.c_str());
                 }
             }
 		});
+
+	int totalTextureSize = 0;
+	for(auto &Font: mFonts)
+    {
+        if(Font.mAliasOf.empty())
+            totalTextureSize += Font.mFont->atlasTexture()->GetSurfaceWidth() * Font.mFont->atlasTexture()->GetSurfaceHeight();
+    }
+	MainLog->Log("FontManager: %d fonts initialized. Total texture size: %d kb", mFonts.size(), totalTextureSize / 1024);
 }
 
 cFontManager theFontManager;

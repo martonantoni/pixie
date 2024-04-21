@@ -44,5 +44,5 @@ public:
 	const cLetterData& letterData(char c) const { return GetLetterData(c); }
 	const cLetterData &GetLetterData(wchar_t Char) const;
 
-	tIntrusivePtr<cTexture> Debug_GetAtlasTexture() const { return mAtlasTexture; }
+	tIntrusivePtr<cTexture> atlasTexture() const { return mAtlasTexture; }
 };
