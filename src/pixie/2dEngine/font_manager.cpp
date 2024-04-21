@@ -19,6 +19,8 @@ void InitFreeType()
 	if(ASSERTFALSE(x)) \
 		return nullptr;
 
+// https://freetype.org/freetype2/docs/reference/ft2-sizing_and_scaling.html#ft_set_pixel_sizes
+
 std::shared_ptr<const cFont> cFontManager::makeFont(const std::string& fileName, int height)
 {
 	FT_Library  library;
