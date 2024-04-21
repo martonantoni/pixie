@@ -33,7 +33,7 @@ void cStandardEditFieldVisualizer::Redraw()
 		auto Texture=theTextureManager.GetTexture("1pix");
 		mCursorSprite=std::make_unique<cSprite>();
 		mCursorSprite->SetTexture(Texture);
-		mCursorSprite->SetSize({ 2, theFontManager.GetFont(mTextStyle)->GetHeight() });
+		mCursorSprite->SetSize({ 2, theFontManager.font(mTextStyle)->GetHeight() });
 		mCursorSprite->SetRGBColor("editfield_cursor");
 		auto TimedAnimators=make_intrusive_ptr<cTimedAnimators>();
 		TimedAnimators->AddStandardBlender({ { 0, 400 }, cSprite::Property_Alpha, { 255 } });

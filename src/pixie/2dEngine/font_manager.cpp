@@ -171,20 +171,32 @@ std::shared_ptr<const cFont> cFontManager::makeFont(const std::string& fileName,
 	if(ASSERTFALSE(x)) \
 		return;
 
-std::shared_ptr<const cFont> cFontManager::GetFont(const std::string &Name)
+std::shared_ptr<const cFont> cFontManager::font(const std::string &Name)
 {
 	auto i=std::ranges::find_if(mFonts, [&Name](auto &Font) { return Font.mName==Name; });
 	if(ASSERTFALSE(i==mFonts.end()))
 		return nullptr;
 	auto &FontData=*i;
 	if(!FontData.mAliasOf.empty())
-		return GetFont(FontData.mAliasOf);
+		return font(FontData.mAliasOf);
 	return FontData.mFont;
 }
 
-std::shared_ptr<const cFont> createFont(const std::string& name, int size)
+std::shared_ptr<const cFont> cFontManager::createFont(const std::string& name, int size)
 {
-	return {};
+	auto i = mVariableFonts.find(name);
+	if (i == mVariableFonts.end())
+    {
+        MainLog->Log("FontManager: Font \"%s\" not found", name.c_str());
+        return nullptr;
+    }
+	auto& fontData = i->second;
+	auto& fontStorage = fontData.mFonts[size];
+	if(auto font = fontStorage.lock())
+        return font;
+	auto font = makeFont(fontData.mPath.string(), size);
+	fontStorage = font;
+	return font;
 }
 
 void cFontManager::Init()
@@ -197,9 +209,15 @@ void cFontManager::Init()
 	fontsConfig->forEachSubConfig(
 		[this](const std::string& name, const cConfig& config)
 		{
+			auto AliasOf = config.get<std::string>("alias_of", std::string());
+			if (AliasOf.empty() && !config.has("height"))
+			{
+				auto fileName = config.get<std::string>("file");
+				mVariableFonts[name].mPath = fileName;
+				return;
+			}
 			cFontData FontData(name);
-            auto AliasOf=config.get<std::string>("alias_of", std::string());
-            if(!AliasOf.empty())
+			if(!AliasOf.empty())
             {
                 FontData.mAliasOf=std::move(AliasOf);
                 mFonts.emplace_back(std::move(FontData));

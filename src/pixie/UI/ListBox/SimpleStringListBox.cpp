@@ -36,7 +36,7 @@ cSimpleStringListBoxItemHandler::cSimpleStringListBoxItemHandler()
 
 void cSimpleStringListBoxItemHandler::Init()
 {
-	mFont=theFontManager.GetFont("listbox_item");
+	mFont=theFontManager.font("listbox_item");
 	mItemHeight=mFont->GetHeight();
 }
 

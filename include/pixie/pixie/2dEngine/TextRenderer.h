@@ -81,9 +81,9 @@ class cTextRenderer
 	static cWord CreateWordFromTexture(const std::string &TextureName);
 
 public:
-	cTextRenderer(std::shared_ptr<const cFont> DefaultFont=theFontManager.GetFont("default")): mDefaultFont(DefaultFont) {}
-	cTextRenderer(const std::string &DefaultFont): mDefaultFont(theFontManager.GetFont(DefaultFont)) {}
-	cTextRenderer(const std::string& defaultFont, const std::string& defaultColor): mDefaultFont(theFontManager.GetFont(defaultFont)), mDefaultColor(theColorServer.GetColor(defaultColor)) {}
+	cTextRenderer(std::shared_ptr<const cFont> DefaultFont=theFontManager.font("default")): mDefaultFont(DefaultFont) {}
+	cTextRenderer(const std::string &DefaultFont): mDefaultFont(theFontManager.font(DefaultFont)) {}
+	cTextRenderer(const std::string& defaultFont, const std::string& defaultColor): mDefaultFont(theFontManager.font(defaultFont)), mDefaultColor(theColorServer.GetColor(defaultColor)) {}
 	void setFont(std::shared_ptr<const cFont> defaultFont) { mDefaultFont = std::move(defaultFont); }
 	struct cRenderInfo
 	{

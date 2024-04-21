@@ -251,7 +251,7 @@ std::vector<std::unique_ptr<cSpriteBase>> cTextRenderer::render(const std::strin
                     }
                     else
                     {
-                        Document.mFontStack.push_back(theFontManager.GetFont(value));
+                        Document.mFontStack.push_back(theFontManager.font(value));
                     }
                     break;
                 case '>':

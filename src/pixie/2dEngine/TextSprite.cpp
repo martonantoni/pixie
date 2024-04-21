@@ -70,7 +70,7 @@ void cTextSprite::SetFont(std::shared_ptr<const cFont> Font)
 
 void cTextSprite::SetFont(const std::string &FontName)
 {
-	SetFont(theFontManager.GetFont(FontName));
+	SetFont(theFontManager.font(FontName));
 }
 
 void cTextSprite::SetAlignment(eHorizontalAlign Horizontal, eVerticalAlign Vertical)

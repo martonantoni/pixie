@@ -51,7 +51,7 @@ cVariableHeightStringListBoxItemHandler::cVariableHeightStringListBoxItemHandler
 
 void cVariableHeightStringListBoxItemHandler::Init()
 {
-	mTextRenderer=std::make_shared<cTextRenderer>(theFontManager.GetFont("listbox_item"));
+	mTextRenderer=std::make_shared<cTextRenderer>(theFontManager.font("listbox_item"));
 }
 
 void cVariableHeightStringListBoxItemHandler::setTabStops(std::vector<int> &&TabStops)

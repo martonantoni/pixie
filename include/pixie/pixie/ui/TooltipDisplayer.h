@@ -12,7 +12,7 @@ public:
 	};
 	struct cTooltipRequest: public cBaseRequest
 	{
-		cTextRenderer mTextRenderer { theFontManager.GetFont("tooltip") };
+		cTextRenderer mTextRenderer { theFontManager.font("tooltip") };
 		std::string mText;
 		bool operator==(const cTooltipRequest &Other) { return Other.mText==mText&&Other.mBaseRegion==mBaseRegion; }
 		cTooltipRequest() { mTextRenderer.setDefaultColor("tooltip"); }
