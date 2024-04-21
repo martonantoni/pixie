@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
 
-cFont2::cTextMetrics cFont2::MeasureText(const UTF8::cDecodedString &Text) const
+cFont::cTextMetrics cFont::MeasureText(const UTF8::cDecodedString &Text) const
 {
 	int Width=0, WidthMax=0, LineCount=1;
 	cTextMetrics Metrics;
@@ -25,12 +25,12 @@ cFont2::cTextMetrics cFont2::MeasureText(const UTF8::cDecodedString &Text) const
 	return Metrics;
 }
 
-std::vector<std::unique_ptr<cSpriteBase>> cFont2::CreateTextSprites(const UTF8::cDecodedString &Text)
+std::vector<std::unique_ptr<cSpriteBase>> cFont::CreateTextSprites(const UTF8::cDecodedString &Text)
 {
 	return CreateTextSprites(Text, { 0,0,0,0 }, eHorizontalAlign::Left, eVerticalAlign::Top);
 }
 
-std::vector<std::unique_ptr<cSpriteBase>> cFont2::CreateTextSprites
+std::vector<std::unique_ptr<cSpriteBase>> cFont::CreateTextSprites
 	(const UTF8::cDecodedString &Text, const cRect &Rect, eHorizontalAlign HorizontalAlign, eVerticalAlign VerticalAlign) const
 {
 	int y=Rect.mTop;
@@ -85,7 +85,7 @@ std::vector<std::unique_ptr<cSpriteBase>> cFont2::CreateTextSprites
 	return TextSprites;
 }
 
-tIntrusivePtr<cTexture> cFont2::CreateTexture(const UTF8::cDecodedString &Text) const
+tIntrusivePtr<cTexture> cFont::CreateTexture(const UTF8::cDecodedString &Text) const
 {
 	if(Text.empty())
 		return nullptr;
@@ -109,21 +109,21 @@ tIntrusivePtr<cTexture> cFont2::CreateTexture(const UTF8::cDecodedString &Text) 
 	return Texture;
 }
 
-int cFont2::GetAdvance(int Char) const
+int cFont::GetAdvance(int Char) const
 {
 	if(ASSERTFALSE(Char<0||Char>=128))
 		return 0;
 	return mNormalLetters[Char].mAdvance>>6;
 }
 
-const cFont2::cLetterData &cFont2::GetLetterData(int Char) const
+const cFont::cLetterData &cFont::GetLetterData(int Char) const
 {
 	if(ASSERTFALSE(Char<0||Char>=128))
 		Char=0;
 	return mNormalLetters[Char];
 }
 
-const cFont2::cLetterData &cFont2::GetLetterData(wchar_t Char) const
+const cFont::cLetterData &cFont::GetLetterData(wchar_t Char) const
 {
 	if(Char>=0&&Char<128)
 		return mNormalLetters[Char];

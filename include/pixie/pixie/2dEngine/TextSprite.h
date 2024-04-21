@@ -1,13 +1,13 @@
 #pragma once
 
-class cFont2;
+class cFont;
 
 // PositionOffset is not changeable for TextSprites
 //   (uses it internally for handling the alignment)
 
 class cTextSprite: public cSprite
 {
-	cFont2 *mFont=nullptr;
+	cFont *mFont=nullptr;
 	eHorizontalAlign mHorizontalAlign=eHorizontalAlign::Left;
 	eVerticalAlign mVeritcalAlign=eVerticalAlign::Center;
 	std::string mText;
@@ -23,7 +23,7 @@ protected:
 	virtual ~cTextSprite()=default;
 public:
 	cTextSprite();   
-	void SetFont(cFont2 *Font);
+	void SetFont(cFont *Font);
 	void SetFont(const std::string &FontName);
 	void SetAlignment(eHorizontalAlign Horizontal, eVerticalAlign Vertical);
 	void SetText(const std::string &Text);

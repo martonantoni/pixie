@@ -166,14 +166,14 @@ std::vector<std::unique_ptr<cSpriteBase>> cTextRenderer::render(const std::strin
 			return;
 		}
 		cPoint Position(0, 0);
-		const cFont2 *Font=Document.mFontStack.back();
+		const cFont *Font=Document.mFontStack.back();
 		std::vector<std::unique_ptr<cSprite>> LetterSprites;
 		for(size_t i=mCurrentWordStart, LastIndex=IncludeSeparator?SeparatorIndex:SeparatorIndex-1; i<=LastIndex;)
 		{
 			auto DecodeIterator=Text.c_str()+i;
 			auto DecodedCharacter=UTF8::DecodeCharacter(DecodeIterator);
 			i=DecodeIterator-Text.c_str();
-			const cFont2::cLetterData &LetterData=Font->GetLetterData(DecodedCharacter);
+			const cFont::cLetterData &LetterData=Font->GetLetterData(DecodedCharacter);
 			if(ASSERTFALSE(!LetterData.mTexture))
 				continue;
 			auto Sprite=std::make_unique<cSprite>();

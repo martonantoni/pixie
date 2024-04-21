@@ -1,21 +1,21 @@
 #pragma once
 
-class cFontManager2
+class cFontManager
 {
 	struct cFontData
 	{
 		std::string mName;
 		std::string mAliasOf;
-		std::unique_ptr<cFont2> mFont;
+		std::unique_ptr<cFont> mFont;
 		cFontData(const cFontData &)=delete;
 		cFontData(cFontData &&)=default;
 		cFontData(const std::string &Name): mName(Name) {}
 	};
 	std::vector<cFontData> mFonts;
-	bool InitFont(cFont2 &Font, const cConfig& Config);
+	bool InitFont(cFont &Font, const cConfig& Config);
 public:
 	void Init();
-	cFont2 *GetFont(const std::string &Name);
+	cFont *GetFont(const std::string &Name);
 };
 
-extern cFontManager2 theFontManager;
+extern cFontManager theFontManager;

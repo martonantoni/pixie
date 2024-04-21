@@ -1,6 +1,6 @@
 #pragma once
 
-class cFont2
+class cFont
 {
 public:
 	struct cLetterData
@@ -11,7 +11,7 @@ public:
 		cPoint offset() const { return cPoint(mXOffset, mYOffset); }
 	};
 private:
-	friend class cFontManager2;
+	friend class cFontManager;
 	std::string mName;
 	tIntrusivePtr<cTexture> mAtlasTexture;
 	std::vector<cLetterData> mNormalLetters; // array doesn't work because msvc bug (http://stackoverflow.com/questions/34052576/stdarray-of-a-private-nested-struct-cant-be-initialized-error-c2248)
@@ -20,7 +20,7 @@ private:
 	int mAscender=0;
 	int mDescender=0;
 public:
-	cFont2(const std::string &Name)
+	cFont(const std::string &Name)
 		: mName(Name)
 	{
 		mNormalLetters.resize(128);

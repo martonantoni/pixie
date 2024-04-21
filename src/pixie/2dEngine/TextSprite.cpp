@@ -59,7 +59,7 @@ void cTextSprite::SetSizeToTextureSize()
     SetSize(mTexture->GetSize());
 }
 
-void cTextSprite::SetFont(cFont2 *Font)
+void cTextSprite::SetFont(cFont *Font)
 {
 	mFont=Font;
 	if(mProperties.mVisible&&mWindow)

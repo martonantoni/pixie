@@ -3,10 +3,10 @@
 class cSimpleStringListBoxItem: public cListBoxItem
 {
 	std::string mText;
-	cFont2 *mFont;
+	cFont *mFont;
 	std::unique_ptr<cSimpleMultiSprite> mSprite;
 public:
-	cSimpleStringListBoxItem(std::string Text, cFont2 *Font);
+	cSimpleStringListBoxItem(std::string Text, cFont *Font);
 	virtual void SetPosition(cPoint Position) override;
 	virtual void Show(cPixieWindow *Window, const cRect &ValidRect, int ZOrder) override;
 	virtual void Hide() override;
@@ -16,7 +16,7 @@ class cSimpleStringListBoxItemHandler: public cFixedHeightListBoxItemHandler
 {
 	std::vector<std::string> mItems;
 	int mItemHeight=1;
-	cFont2 *mFont;
+	cFont *mFont;
 	void Init();
 public:
 	cSimpleStringListBoxItemHandler();

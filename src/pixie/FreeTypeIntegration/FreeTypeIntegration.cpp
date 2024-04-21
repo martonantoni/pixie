@@ -25,7 +25,7 @@ void InitFreeType()
 	if(ASSERTFALSE(x)) \
 		return false;
 
-bool cFontManager2::InitFont(cFont2 &Font, const cConfig& config)
+bool cFontManager::InitFont(cFont &Font, const cConfig& config)
 {
 	FT_Library  library;
 	FT_CHECKED_CALL(FT_Init_FreeType(&library));
@@ -181,7 +181,7 @@ bool cFontManager2::InitFont(cFont2 &Font, const cConfig& config)
 	if(ASSERTFALSE(x)) \
 		return;
 
-cFont2 *cFontManager2::GetFont(const std::string &Name)
+cFont *cFontManager::GetFont(const std::string &Name)
 {
 	auto i=std::ranges::find_if(mFonts, [&Name](auto &Font) { return Font.mName==Name; });
 	if(ASSERTFALSE(i==mFonts.end()))
@@ -192,7 +192,7 @@ cFont2 *cFontManager2::GetFont(const std::string &Name)
 	return FontData.mFont.get();
 }
 
-void cFontManager2::Init()
+void cFontManager::Init()
 {
 	theGlobalConfig->createSubConfig("fonts")->forEachSubConfig(
 		[this](const std::string& name, const cConfig& config)
@@ -206,7 +206,7 @@ void cFontManager2::Init()
             }
             else
             {
-                FontData.mFont=std::make_unique<cFont2>(name);
+                FontData.mFont=std::make_unique<cFont>(name);
                 if(InitFont(*FontData.mFont, config))
                 {
                     mFonts.emplace_back(std::move(FontData));

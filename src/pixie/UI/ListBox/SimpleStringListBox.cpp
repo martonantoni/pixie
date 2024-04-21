@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
-cSimpleStringListBoxItem::cSimpleStringListBoxItem(std::string Text, cFont2 *Font)
+cSimpleStringListBoxItem::cSimpleStringListBoxItem(std::string Text, cFont *Font)
 	: mText(std::move(Text))
 	, mFont(Font)
 {

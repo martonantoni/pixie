@@ -15,7 +15,7 @@
 
 class cTextRenderer
 {
-	cFont2 *mDefaultFont=nullptr;
+	cFont *mDefaultFont=nullptr;
 	std::vector<int> mTabStops;
 	cColor mDefaultColor;
 	unsigned int mMaxWidth=~0u;
@@ -30,7 +30,7 @@ class cTextRenderer
 		int mDescender=0;
 		int mChangeValue=0;
 
-		cWord(std::vector<std::unique_ptr<cSprite>> &&Sprites, int Width, const cFont2 &Font): 
+		cWord(std::vector<std::unique_ptr<cSprite>> &&Sprites, int Width, const cFont &Font): 
 			mSprites(std::move(Sprites)), mType(eType::Word), mWidth(Width), 
 			mAscender(Font.GetAscender()), mHeight(Font.GetHeight()), mDescender(Font.GetDescender()) {}
 		cWord(int Width): mType(eType::Word), mWidth(Width) {}
@@ -67,7 +67,7 @@ class cTextRenderer
 	public:
 		std::vector<cLine> mLines;
 		std::vector<cColor> mColorStack;
-		std::vector<cFont2 *> mFontStack;
+		std::vector<cFont *> mFontStack;
 		std::vector<int> mGroupStack;
 
 		cDocument(const cTextRenderer &Parent): 
@@ -81,10 +81,10 @@ class cTextRenderer
 	static cWord CreateWordFromTexture(const std::string &TextureName);
 
 public:
-	cTextRenderer(cFont2 *DefaultFont=theFontManager.GetFont("default")): mDefaultFont(DefaultFont) {}
+	cTextRenderer(cFont *DefaultFont=theFontManager.GetFont("default")): mDefaultFont(DefaultFont) {}
 	cTextRenderer(const std::string &DefaultFont): mDefaultFont(theFontManager.GetFont(DefaultFont)) {}
 	cTextRenderer(const std::string& defaultFont, const std::string& defaultColor): mDefaultFont(theFontManager.GetFont(defaultFont)), mDefaultColor(theColorServer.GetColor(defaultColor)) {}
-	void setFont(cFont2 *defaultFont) { mDefaultFont=defaultFont; }
+	void setFont(cFont *defaultFont) { mDefaultFont=defaultFont; }
 	struct cRenderInfo
 	{
 		int mNextLineY;
@@ -108,6 +108,6 @@ public:
 	{
 		mMaxWidth=MaxWidth;
 	}
-	cFont2& defaultFont() const { return *mDefaultFont; }
+	cFont& defaultFont() const { return *mDefaultFont; }
 	static std::string escapeText(const std::string& Text);
 };
