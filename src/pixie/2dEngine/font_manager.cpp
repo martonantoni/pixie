@@ -17,50 +17,48 @@ void InitFreeType()
 
 #define FT_CHECKED_CALL(x) \
 	if(ASSERTFALSE(x)) \
-		return false;
+		return nullptr;
 
-bool cFontManager::InitFont(cFont &Font, const cConfig& config)
+std::shared_ptr<const cFont> cFontManager::makeFont(const std::string& fileName, int height)
 {
 	FT_Library  library;
 	FT_CHECKED_CALL(FT_Init_FreeType(&library));
 	FT_Face     face;      /* handle to face object */
-    auto fileName = config.get<std::string>("file");
 	if(FT_New_Face(library, fileName.c_str(), 0, &face))
     {
         printf("unable to load font: \"%s\"\n", fileName.c_str());
-        return false;
+        return nullptr;
     }
 //	Font.mFontHeight=config.get<int>("height");
-	FT_CHECKED_CALL(FT_Set_Pixel_Sizes(face, 0, config.get<int>("height")));
+	FT_CHECKED_CALL(FT_Set_Pixel_Sizes(face, 0, height));
+	auto font = std::make_shared<cFont>(fileName);
+	auto& Font = *font;
 	Font.mFontHeight=face->size->metrics.height>>6;
 	Font.mAscender=face->size->metrics.ascender>>6;
 	Font.mDescender=face->size->metrics.descender>>6;
 
 	static std::string Letters="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!\"#$%&'()*+-'.,/:; <=>?@[\\]^_`{|}~";
-	auto ExtraLettersUTF8= config.get<std::string>("extra_letters", std::string());
-	auto ExtraLetters=UTF8::Decode(ExtraLettersUTF8);
-	ExtraLetters.pop_back(); // the terminating zero
-	std::vector<FT_Glyph> Glyphs(Letters.size()+ExtraLetters.size()+1);
+	std::vector<FT_Glyph> Glyphs(Letters.size() + mExtraLetters.size() + 1);
 	struct cLetterData
 	{
 		cPoint mPos;
 	};
 	std::vector<cLetterData> LetterData;
 	std::vector<int> Sizes;
-	LetterData.resize(Letters.size()+ExtraLetters.size());
+	LetterData.resize(Letters.size() + mExtraLetters.size());
 	int Index=-1;
 	int HeightMax=0;
 	int YMaxMax=0;
 
 	FT_Select_Charmap(face, ft_encoding_unicode);
 
-	auto ForEachLetter=[&Font, &ExtraLetters](const auto &Function)
+	auto ForEachLetter=[&Font, this](const auto &Function)
 	{
 		for(auto Letter: Letters)
 		{
 			Function(Letter, Font.mNormalLetters[(unsigned char)Letter]);
 		}
-		for(auto Letter: ExtraLetters)
+		for(auto Letter: mExtraLetters)
 		{
 			Function(Letter, Font.mExtraLetters[Letter]);
 		}
@@ -167,7 +165,7 @@ bool cFontManager::InitFont(cFont &Font, const cConfig& config)
 	FT_Done_Library(library);
 	MainLog->Log("Font %s initialized. Texture size: %d x %d",
 		Font.name().c_str(), textureSize, textureSize);
-	return true;
+	return font;
 }
 
 #undef FT_CHECKED_CALL
@@ -186,8 +184,19 @@ std::shared_ptr<const cFont> cFontManager::GetFont(const std::string &Name)
 	return FontData.mFont;
 }
 
+std::shared_ptr<const cFont> createFont(const std::string& name, int size)
+{
+	return {};
+}
+
+
 void cFontManager::Init()
 {
+	auto fontsConfig = theGlobalConfig->createSubConfig("fonts");
+	auto ExtraLettersUTF8 = fontsConfig->get<std::string>("extra_letters", std::string());
+	mExtraLetters = UTF8::Decode(ExtraLettersUTF8);
+	mExtraLetters.pop_back(); // the terminating zero
+
 	theGlobalConfig->createSubConfig("fonts")->forEachSubConfig(
 		[this](const std::string& name, const cConfig& config)
 		{
@@ -201,8 +210,11 @@ void cFontManager::Init()
             else
             {
                 FontData.mFont=std::make_shared<cFont>(name);
-                if(InitFont(*FontData.mFont, config))
+				auto fileName = config.get<std::string>("file");
+				auto height = config.get<int>("height");
+				if(auto font = makeFont(fileName, height))
                 {
+					FontData.mFont = std::move(font);
                     mFonts.emplace_back(std::move(FontData));
                 }
                 else
