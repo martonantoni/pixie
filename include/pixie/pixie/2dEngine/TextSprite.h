@@ -7,7 +7,7 @@ class cFont;
 
 class cTextSprite: public cSprite
 {
-	cFont *mFont=nullptr;
+	std::shared_ptr<const cFont> mFont;
 	eHorizontalAlign mHorizontalAlign=eHorizontalAlign::Left;
 	eVerticalAlign mVeritcalAlign=eVerticalAlign::Center;
 	std::string mText;
@@ -23,7 +23,7 @@ protected:
 	virtual ~cTextSprite()=default;
 public:
 	cTextSprite();   
-	void SetFont(cFont *Font);
+	void SetFont(std::shared_ptr<const cFont> Font);
 	void SetFont(const std::string &FontName);
 	void SetAlignment(eHorizontalAlign Horizontal, eVerticalAlign Vertical);
 	void SetText(const std::string &Text);

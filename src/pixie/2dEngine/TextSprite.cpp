@@ -59,9 +59,9 @@ void cTextSprite::SetSizeToTextureSize()
     SetSize(mTexture->GetSize());
 }
 
-void cTextSprite::SetFont(cFont *Font)
+void cTextSprite::SetFont(std::shared_ptr<const cFont> Font)
 {
-	mFont=Font;
+	mFont=std::move(Font);
 	if(mProperties.mVisible&&mWindow)
 		NeedTextureUpdate();
 	else

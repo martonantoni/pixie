@@ -175,7 +175,7 @@ bool cFontManager::InitFont(cFont &Font, const cConfig& config)
 	if(ASSERTFALSE(x)) \
 		return;
 
-cFont *cFontManager::GetFont(const std::string &Name)
+std::shared_ptr<const cFont> cFontManager::GetFont(const std::string &Name)
 {
 	auto i=std::ranges::find_if(mFonts, [&Name](auto &Font) { return Font.mName==Name; });
 	if(ASSERTFALSE(i==mFonts.end()))
@@ -183,7 +183,7 @@ cFont *cFontManager::GetFont(const std::string &Name)
 	auto &FontData=*i;
 	if(!FontData.mAliasOf.empty())
 		return GetFont(FontData.mAliasOf);
-	return FontData.mFont.get();
+	return FontData.mFont;
 }
 
 void cFontManager::Init()

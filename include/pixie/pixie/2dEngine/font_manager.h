@@ -15,7 +15,7 @@ class cFontManager
 	bool InitFont(cFont &Font, const cConfig& Config);
 public:
 	void Init();
-	cFont *GetFont(const std::string &Name);
+	std::shared_ptr<const cFont> GetFont(const std::string &Name);
 };
 
 extern cFontManager theFontManager;

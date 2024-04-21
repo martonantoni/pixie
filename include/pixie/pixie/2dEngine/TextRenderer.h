@@ -15,7 +15,7 @@
 
 class cTextRenderer
 {
-	cFont *mDefaultFont=nullptr;
+	std::shared_ptr<const cFont> mDefaultFont;
 	std::vector<int> mTabStops;
 	cColor mDefaultColor;
 	unsigned int mMaxWidth=~0u;
@@ -67,7 +67,7 @@ class cTextRenderer
 	public:
 		std::vector<cLine> mLines;
 		std::vector<cColor> mColorStack;
-		std::vector<cFont *> mFontStack;
+		std::vector<std::shared_ptr<const cFont>> mFontStack;
 		std::vector<int> mGroupStack;
 
 		cDocument(const cTextRenderer &Parent): 
@@ -81,10 +81,10 @@ class cTextRenderer
 	static cWord CreateWordFromTexture(const std::string &TextureName);
 
 public:
-	cTextRenderer(cFont *DefaultFont=theFontManager.GetFont("default")): mDefaultFont(DefaultFont) {}
+	cTextRenderer(std::shared_ptr<const cFont> DefaultFont=theFontManager.GetFont("default")): mDefaultFont(DefaultFont) {}
 	cTextRenderer(const std::string &DefaultFont): mDefaultFont(theFontManager.GetFont(DefaultFont)) {}
 	cTextRenderer(const std::string& defaultFont, const std::string& defaultColor): mDefaultFont(theFontManager.GetFont(defaultFont)), mDefaultColor(theColorServer.GetColor(defaultColor)) {}
-	void setFont(cFont *defaultFont) { mDefaultFont=defaultFont; }
+	void setFont(std::shared_ptr<const cFont> defaultFont) { mDefaultFont = std::move(defaultFont); }
 	struct cRenderInfo
 	{
 		int mNextLineY;
@@ -108,6 +108,6 @@ public:
 	{
 		mMaxWidth=MaxWidth;
 	}
-	cFont& defaultFont() const { return *mDefaultFont; }
+	const cFont& defaultFont() const { return *mDefaultFont; }
 	static std::string escapeText(const std::string& Text);
 };
