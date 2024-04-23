@@ -21,6 +21,12 @@ cColor cColorServer::GetColor(const std::string& name) const
 	return i->second;
 }
 
+cColor cColor::toGrayscale() const
+{
+    int gray = (0.2126f * GetRed() + 0.7152f * GetGreen() + 0.0722f * GetBlue());
+    return cColor(gray, gray, gray);
+}
+
 cColor::cColor(const std::string &ColorName)
 	: cColor(theColorServer.GetColor(ColorName))
 {

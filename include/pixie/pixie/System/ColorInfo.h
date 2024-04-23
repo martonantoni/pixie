@@ -6,6 +6,7 @@ protected:
 	unsigned int mColor;
 public:
 	cColor(unsigned int Color=0xff000000): mColor(Color) {}
+	cColor(int Red, int Green, int Blue): mColor(0xff000000|((Red&0xff)<<16)|((Green&0xff)<<8)|(Blue&0xff)) {}
 	cColor(const std::string &ColorName);
 	cColor(const char *ColorName): cColor(std::string(ColorName)) {}
 	cColor(const cColor &ColorInfo)=default;
@@ -23,6 +24,10 @@ public:
 	int GetRed() const { return (mColor>>16)&0xff; }
 	int GetGreen() const { return (mColor>>8)&0xff; }
 	int GetBlue() const { return mColor&0xff; }
+	void SetRed(int Red) { ASSERT(Red>=0 && Red<=255); mColor=(mColor&0xff00ffff)|((Red&0xff)<<16); }
+	void SetGreen(int Green) { ASSERT(Green>=0 && Green<=255); mColor=(mColor&0xffff00ff)|((Green&0xff)<<8); }
+	void SetBlue(int Blue) { ASSERT(Blue>=0 && Blue<=255); mColor=(mColor&0xffffff00)|(Blue&0xff); }
+	cColor toGrayscale() const;
 
 	static cColor FromRGBColor(unsigned int Color) { return cColor(Color|0xff000000); }
 };
