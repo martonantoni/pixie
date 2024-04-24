@@ -62,6 +62,44 @@ namespace UTF8
 		return Result;
 	}
 
+	wchar_t popCharacter(std::string_view& s)
+	{
+		wchar_t Result=0;
+        if(!(*s.begin()&0x80))
+        {
+            Result=*s.begin();
+            s.remove_prefix(1);
+        }
+        else
+        {
+            if(*s.begin()&0x20) // >=3 bytes
+            {
+                if(*s.begin()&0x10) // 4 bytes
+                {
+					if(s.size()<4) 
+						throw std::runtime_error("Invalid UTF-8 sequence");
+                    Result=((s[0]&7)<<18)|((s[1]&63)<<12)|((s[2]&63)<<6)|(s[3]&63);
+                    s.remove_prefix(4);
+                }
+                else  // 3 bytes
+                {
+					if(s.size()<3)
+						throw std::runtime_error("Invalid UTF-8 sequence");
+                    Result=((s[0]&15)<<12)|((s[1]&63)<<6)|(s[2]&63);
+                    s.remove_prefix(3);
+                }
+            }
+            else // 2 bytes
+            {
+				if(s.size()<2)
+					throw std::runtime_error("Invalid UTF-8 sequence");
+                Result=((s[0]&31)<<6)|(s[1]&63);
+                s.remove_prefix(2);
+            }
+        }
+        return Result;
+	}
+
 	std::vector<wchar_t> Decode(const std::string &Source)
 	{
 		std::vector<wchar_t> Out;

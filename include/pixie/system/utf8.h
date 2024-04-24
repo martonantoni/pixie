@@ -13,6 +13,7 @@ namespace UTF8
 	}
 
 	wchar_t DecodeCharacter(const char *&i);
+	wchar_t popCharacter(std::string_view& s); // from front
 
 	class cDecodedString
 	{

@@ -8,6 +8,8 @@ public:
 		tIntrusivePtr<cTexture> mTexture;
 		int mAdvance;
 		int mXOffset, mYOffset;
+
+		int advance() const { return mAdvance >> 6; }
 		cPoint offset() const { return cPoint(mXOffset, mYOffset); }
 	};
 private:
@@ -37,12 +39,16 @@ public:
 	};
 	cTextMetrics MeasureText(const UTF8::cDecodedString &Text) const;
 	int GetHeight() const { return mFontHeight; } // temp
+	int height() const { return mFontHeight; }
 	int GetAdvance(int Char) const;
 	int GetAscender() const { return mAscender; }
+	int ascender() const { return mAscender; }
 	int GetDescender() const { return mDescender; }
+	int descender() const { return mDescender; }
 	const cLetterData &GetLetterData(int Char) const;
 	const cLetterData& letterData(char c) const { return GetLetterData(c); }
 	const cLetterData &GetLetterData(wchar_t Char) const;
+	const cLetterData& letterData(wchar_t c) const { return GetLetterData(c); }
 
 	tIntrusivePtr<cTexture> atlasTexture() const { return mAtlasTexture; }
 };
