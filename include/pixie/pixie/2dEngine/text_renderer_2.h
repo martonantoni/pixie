@@ -20,6 +20,7 @@ struct cTextRenderer2Config
         cColor mLinkRegular;
         cColor mLinkHover;
         cColor mCodeBlockBG;
+        cColor mCodeBlockBorder;
     } mColors;
     int mTabWidth;              // in pixels
     std::vector<int> mTabStops; // might be empty, use mTabWidth in that case (and after the last tab stop)
@@ -27,7 +28,6 @@ struct cTextRenderer2Config
 
 // for sprite creation:
     cPixieWindow* mWindow = nullptr;
-    bool mIsVisible = true;
 };
 
 struct cTextRenderer2Span
@@ -37,7 +37,11 @@ struct cTextRenderer2Span
     bool mIsItalic = false;
     bool mIsLink = false;
     bool mIsMonospace = false;
-    int mLinkIndex = 0;
+    union
+    {
+        int mLinkIndex = 0;
+        int mCodeBlockIndex;
+    };
 };
 
 struct cTextRenderer2Block
@@ -80,6 +84,7 @@ class cTextRenderer2
     using eAlign = cTextRenderer2Block::eAlign;
     using cSpan = cTextRenderer2Span;
     using cBlock = cTextRenderer2Block;
+    cTextRenderer2BlockResult renderCodeBlock(const cBlock& block);
     int arrangeWords(
         eAlign align,
         std::vector<std::unique_ptr<cSpriteBase>>& sprites,
@@ -104,6 +109,7 @@ public:
     alma **bold text** korte __italic text__ barack
     alma [[link text]] korte
     __**bold italic**__
+    ``monospace text``
     [[__italic link__]] [[**bold link**]] [[__**bold italic link**__]]
 
     @img texture_name
