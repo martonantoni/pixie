@@ -220,20 +220,18 @@ void cSpriteBase::SetCenter(cPoint Center)
 void cSpriteBase::SetValidRect(const cRect &ValidRect)
 {
 	mProperties.mValidRect=ValidRect;
-	if(ValidRect.mWidth<0||ValidRect.mHeight<0)
+	if (ValidRect.mWidth >= 0 && ValidRect.mHeight >= 0 && mProperties.mClippingMode == eClippingMode::None) // backward compatibility
 	{
-		mUseClipping=false;
-	}
-	else
-	{
-		mUseClipping=true;
+		mProperties.mClippingMode = eClippingMode::Parent;
+		PropertiesChanged(Property_ClippingMode);
 	}
 	PropertiesChanged(Property_ValidRect);
 }
 
 void cSpriteBase::DisableClipping()
 {
-	SetValidRect({ 0,0,-1,-1 });
+	mProperties.mClippingMode = eClippingMode::None;
+	PropertiesChanged(Property_ClippingMode);
 }
 
 cRect cSpriteBase::GetCenterAndHSize() const
@@ -344,8 +342,12 @@ bool cSpriteBase::SetStringProperty(unsigned int PropertyFlags, const std::strin
 void cSpriteBase::CopyProperties(const cSpriteBase& source)
 {
     mProperties = source.mProperties;
-	mProperties.mValidRect = source.mProperties.mValidRect;
     mIsColorSet = source.mIsColorSet;
-    mUseClipping = source.mUseClipping;
     mWindow = source.mWindow;
+}
+
+void cSpriteBase::setClippingMode(eClippingMode ClippingMode)
+{
+    mProperties.mClippingMode = ClippingMode;
+	PropertiesChanged(Property_ClippingMode);
 }

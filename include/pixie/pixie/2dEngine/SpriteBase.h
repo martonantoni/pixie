@@ -28,7 +28,6 @@ protected:
 		eClippingMode mClippingMode = eClippingMode::None;
 	} mProperties;
 	bool mIsColorSet=false;
-	bool mUseClipping=false;
 	virtual ~cSpriteBase(); // use Drop() or Destroy()
     void CopyProperties(const cSpriteBase& source); // used by Clone()
 public:
@@ -82,6 +81,8 @@ public:
 	void SetARGBColor_ByPosition(unsigned int PositionFlags,D3DCOLOR Color);
 	void SetAlpha(DWORD Alpha); // 0 - 255, 0: solid, 255: transparent
 
+	void setClippingMode(eClippingMode ClippingMode);
+	eClippingMode getClippingMode() const { return mProperties.mClippingMode; }
 	void SetValidRect(const cRect &ValidRect); // for clipping
 	cRect GetValidRect() const { return mProperties.mValidRect; }
 	void DisableClipping();

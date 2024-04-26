@@ -25,19 +25,24 @@ void cSprite::SetBlendingMode(cSpriteRenderInfo::eBlendingMode BlendingFlags)
 
 cSpriteRenderInfo cSprite::GetRenderInfo() const
 {
-	if(!mUseClipping)
+	if(mProperties.mClippingMode == eClippingMode::None)
 	{
 		return { GetRectForRendering(), GetRotation(), mTexture.get(), mBlendingMode };
 	}
 // clipping is enabled:
 	cRect OriginalRect = GetRect();
 	OriginalRect.Move(GetPositionOffset());
-	if (mProperties.mValidRect.IsPointInside(OriginalRect.TopLeft()) && mProperties.mValidRect.IsPointInside(OriginalRect.BottomRight()))
+	cRect validRect = mProperties.mValidRect;
+	if (mWindow && mProperties.mClippingMode == eClippingMode::Screen)
+	{
+		validRect.Move(-mWindow->GetScreenRect().GetPosition());
+	}
+	if (validRect.IsPointInside(OriginalRect.TopLeft()) && validRect.IsPointInside(OriginalRect.BottomRight()))
 		return { GetRectForRendering(), GetRotation(), mTexture.get(), mBlendingMode };
-	int Top = std::max(mProperties.mValidRect.Top(), OriginalRect.Top());
-	int Left = std::max(mProperties.mValidRect.Left(), OriginalRect.Left());
-	int Bottom = std::min(mProperties.mValidRect.Bottom(), OriginalRect.Bottom());
-	int Right = std::min(mProperties.mValidRect.Right(), OriginalRect.Right());
+	int Top = std::max(validRect.Top(), OriginalRect.Top());
+	int Left = std::max(validRect.Left(), OriginalRect.Left());
+	int Bottom = std::min(validRect.Bottom(), OriginalRect.Bottom());
+	int Right = std::min(validRect.Right(), OriginalRect.Right());
 	cRect RenderedRect{ Left, Top, Right - Left + 1, Bottom - Top + 1 };
 	if (RenderedRect.mWidth <= 0 || RenderedRect.mHeight <= 0)
 	{
