@@ -37,11 +37,8 @@ struct cTextRenderer2Span
     bool mIsItalic = false;
     bool mIsLink = false;
     bool mIsMonospace = false;
-    union
-    {
-        int mLinkIndex = 0;
-        int mCodeBlockIndex;
-    };
+    int mCodeBlockIndex;
+    std::string_view mLinkId;
 };
 
 struct cTextRenderer2Block
@@ -60,7 +57,7 @@ struct cTextRenderer2BlockResult
     {
         int mFirstSpriteIndex;
         int mLastSpriteIndex;
-        int mLinkIndex;
+        std::string mId; // either the link text or the explicit id
         cRect mRect;
     };
     std::vector<cLinkInfo> mLinks;
@@ -107,7 +104,7 @@ public:
     @= paragraph justified
     @h1 @| centered heading 1
     alma **bold text** korte __italic text__ barack
-    alma [[link text]] korte
+    alma [[link text]] korte [[link_id:link text]] barack
     __**bold italic**__
     ``monospace text``
     [[__italic link__]] [[**bold link**]] [[__**bold italic link**__]]

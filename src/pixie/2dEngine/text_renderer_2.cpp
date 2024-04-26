@@ -214,7 +214,7 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
             auto& linkInfo = result.mLinks.emplace_back();
             linkInfo.mFirstSpriteIndex = firstSpriteInSpan;
             linkInfo.mLastSpriteIndex = sprites.size() - 1;
-            linkInfo.mLinkIndex = span.mLinkIndex;
+            linkInfo.mId = span.mLinkId;  // string_view to string
         }
     }
     int x = 0, lineXOffset = 0, lineYOffset = 0;
@@ -287,6 +287,19 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
             {
                 if (!span.mText.empty())
                 {
+                    if (span.mIsLink) // find the link id. format: [[link_id:link_text]]
+                    {
+                        auto colonPos = span.mText.find(':');
+                        if (colonPos != std::string_view::npos)
+                        {
+                            span.mLinkId = span.mText.substr(0, colonPos);
+                            span.mText = span.mText.substr(colonPos + 1);
+                        }
+                        else // the link id is the text:
+                        {
+                            span.mLinkId = span.mText;
+                        }
+                    }
                     block.mSpans.push_back(span);
                 }
                 span.mText = {};
@@ -346,7 +359,6 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
             {
                 pushSpan();
                 span.mIsLink = true;
-                span.mLinkIndex = numberOfLinks++;
                 word.remove_prefix(2);
             }
             if (word.starts_with("__"))
