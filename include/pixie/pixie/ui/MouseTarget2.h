@@ -22,15 +22,15 @@ public:
 public:
 	using cInitData = cPixieInitData;
 private:
-	cPixieWindow *mWindow=nullptr;
+	cPixieWindow* mWindow = nullptr;
 	cRect mWindowRelativeBoundingBox;
-	bool mIgnoreBoundingBoxForIsInside=false;
-	cRect mValidRect; 
-	bool mUseClipping=false;
-	int mZOrder=100;
+	bool mIgnoreBoundingBoxForIsInside = false;
+	cRect mValidRect;
+	eClippingMode mClippingMode = eClippingMode::None;
+	int mZOrder = 100;
 	cRegisteredID mMouseTrackingID;
 	static unsigned int mMouseTargetIDCounter;
-	unsigned int mMouseTargetID=++mMouseTargetIDCounter;
+	unsigned int mMouseTargetID = ++mMouseTargetIDCounter;
 protected:
 	void StartMouseTracking();
 	void StopMouseTracking();
@@ -56,7 +56,8 @@ public:
 	int GetZOrder() const { return mZOrder; }
 	void SetValidRect(const cRect &ValidRect);
 	cRect GetValidRect() const { return mValidRect; }
-	bool GetUseClipping() const { return mUseClipping; }
+	bool GetUseClipping() const { return mClippingMode != eClippingMode::None; }
+	void setClippingMode(eClippingMode ClippingMode);
 	cPoint ScreenCoordsToWindowRelativeCoords(cPoint ScreenCoords) const;
 	unsigned int GetMouseTargetID() const { return mMouseTargetID; }
 

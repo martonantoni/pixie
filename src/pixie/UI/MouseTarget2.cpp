@@ -15,8 +15,19 @@ cMouseTarget::~cMouseTarget()
 
 bool cMouseTarget::IsInside(cPoint WindowRelativePoint) const
 {
-	if(mUseClipping&&!mValidRect.IsPointInside(WindowRelativePoint))
-		return false;
+	switch (mClippingMode)
+	{
+	case eClippingMode::None:
+		break;
+	case eClippingMode::Parent:
+		if (!mValidRect.IsPointInside(WindowRelativePoint))
+			return false;
+		break;
+	case eClippingMode::Screen:
+		if (!mValidRect.IsPointInside(mWindow->WindowCoordinatesToScreenCoordinates(WindowRelativePoint)))
+			return false;
+		break;
+	}
 	if(mIgnoreBoundingBoxForIsInside)
 	{
 		return IsInside_Overridable(WindowRelativePoint);
@@ -81,8 +92,19 @@ void cMouseTarget::SetPosition(cPoint Position)
 
 void cMouseTarget::SetValidRect(const cRect &ValidRect)
 {
-	mUseClipping=true;
-	mValidRect=ValidRect;
+	mValidRect = ValidRect;
+	if (ValidRect.mWidth >= 0 && ValidRect.mHeight >= 0 && mClippingMode == eClippingMode::None) // backward compatibility
+	{
+		mClippingMode = eClippingMode::Parent;
+		PropertiesSet(Property_ClippingMode);
+	}
+	PropertiesSet(Property_ValidRect);
+}
+
+void cMouseTarget::setClippingMode(eClippingMode ClippingMode)
+{
+	mClippingMode = ClippingMode;
+	PropertiesSet(Property_ClippingMode);
 }
 
 cPoint cMouseTarget::ScreenCoordsToWindowRelativeCoords(cPoint ScreenCoords) const
