@@ -219,7 +219,7 @@ void cSpriteBase::SetCenter(cPoint Center)
 
 void cSpriteBase::SetValidRect(const cRect &ValidRect)
 {
-	mValidRect=ValidRect;
+	mProperties.mValidRect=ValidRect;
 	if(ValidRect.mWidth<0||ValidRect.mHeight<0)
 	{
 		mUseClipping=false;
@@ -344,7 +344,7 @@ bool cSpriteBase::SetStringProperty(unsigned int PropertyFlags, const std::strin
 void cSpriteBase::CopyProperties(const cSpriteBase& source)
 {
     mProperties = source.mProperties;
-    mValidRect = source.mValidRect;
+	mProperties.mValidRect = source.mProperties.mValidRect;
     mIsColorSet = source.mIsColorSet;
     mUseClipping = source.mUseClipping;
     mWindow = source.mWindow;

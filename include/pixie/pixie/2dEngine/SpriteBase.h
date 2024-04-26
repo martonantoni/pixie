@@ -23,11 +23,12 @@ protected:
 		int mZOrder=100;
 		bool mVisible=false;
 		cSpriteColor mColor;
-		float mRotation=0; // in degrees (because that's friendlier to work with)
+		float mRotation = 0; // in degrees (because that's friendlier to work with)
+		cRect mValidRect; 
+		eClippingMode mClippingMode = eClippingMode::None;
 	} mProperties;
 	bool mIsColorSet=false;
 	bool mUseClipping=false;
-	cRect mValidRect;
 	virtual ~cSpriteBase(); // use Drop() or Destroy()
     void CopyProperties(const cSpriteBase& source); // used by Clone()
 public:
@@ -82,7 +83,7 @@ public:
 	void SetAlpha(DWORD Alpha); // 0 - 255, 0: solid, 255: transparent
 
 	void SetValidRect(const cRect &ValidRect); // for clipping
-	cRect GetValidRect() const { return mValidRect; }
+	cRect GetValidRect() const { return mProperties.mValidRect; }
 	void DisableClipping();
 
 	void Show();

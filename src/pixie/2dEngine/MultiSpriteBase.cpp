@@ -51,7 +51,7 @@ void cMultiSpriteBase::PropertiesChanged(unsigned int Properties)
 	}
 	if(Properties&Property_ValidRect)
 	{
-		ForEachSprite([ValidRect=mValidRect](cSpriteBase &Sprite) { Sprite.SetValidRect(ValidRect); });
+		ForEachSprite([ValidRect = mProperties.mValidRect](cSpriteBase& Sprite) { Sprite.SetValidRect(ValidRect); });
 	}
 }
 
