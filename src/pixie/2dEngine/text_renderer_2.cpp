@@ -257,19 +257,36 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
             if (isInsideCodeBlock) // end of code block:
             {                
                 isInsideCodeBlock = false;
+                auto& codeBlock = blocks.back();
+                ASSERT(codeBlock.mIsCodeBlock);
                 if(!startOfCodeBlock) 
                 {
+                    blocks.pop_back();
                     continue; // empty code block, ignore it
                 }
-                auto& codeBlock = blocks.emplace_back();
                 auto& codeBlockSpan = codeBlock.mSpans.emplace_back(); // code blocks has exactly one span
-                codeBlock.mIsCodeBlock = true;
                 codeBlockSpan.mCodeBlockIndex = numberOfCodeBlocks++;
                 codeBlockSpan.mText = std::string_view(startOfCodeBlock, line.data() - startOfCodeBlock - 1);
             }
             else // start of code block:
             {
+                auto& codeBlock = blocks.emplace_back();
+                codeBlock.mIsCodeBlock = true;
                 isInsideCodeBlock = true;
+                startOfCodeBlock = nullptr;
+                if (line.length() > 3)
+                {
+                    auto colonPos = line.find(':');
+                    if (colonPos != std::string_view::npos)
+                    {
+                        codeBlock.mCodeBlock.mType = line.substr(3, colonPos - 3);
+                        codeBlock.mCodeBlock.mTitle = line.substr(colonPos + 1);
+                    }
+                    else
+                    {
+                        codeBlock.mCodeBlock.mTitle = line.substr(3);
+                    }
+                }
             }
             continue;
         }

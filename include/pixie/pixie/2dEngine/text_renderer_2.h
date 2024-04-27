@@ -46,6 +46,11 @@ struct cTextRenderer2Block
     std::vector<cTextRenderer2Span> mSpans;
     enum class eAlign { Left, Center, Right, Justify } mAlign = eAlign::Left;
     bool mIsCodeBlock = false;
+    struct
+    {
+        std::string mTitle;
+        std::string mType;
+    } mCodeBlock;
     int mHeadingLevel = -1; // -1 means not a heading
 };
 
@@ -112,10 +117,11 @@ public:
     @img texture_name
     @img_scaled texture_name
 
-    ```
+    ```type:title          both type and title are optional, but in front of title there must be a colon
     code 
     block
     ```
+
 
     */
     static std::vector<cTextRenderer2Block> parse(const std::string& text);
