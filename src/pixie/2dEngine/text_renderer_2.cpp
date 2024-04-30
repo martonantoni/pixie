@@ -40,6 +40,19 @@ std::pair<const cFont&, const cColor&>  cTextRenderer2::determineFont(const cTex
     return { *mConfig.mFonts.mRegular, color };
 }
 
+int cTextRenderer2::getNextTabStop(int x) const
+{
+    for (int tabStop : mConfig.mTabStops)
+    {
+        if (tabStop > x)
+        {
+            return tabStop;
+        }
+    }
+    int tabWidth = mConfig.mTabWidth * mConfig.mFonts.mRegular->letterData(' ').advance();
+    return x + tabWidth - x % tabWidth;
+}
+
 int cTextRenderer2::arrangeWords(
     cTextRenderer2Block::eAlign align,
     std::vector<std::unique_ptr<cSpriteBase>>& sprites,
@@ -60,11 +73,12 @@ int cTextRenderer2::arrangeWords(
     case cTextRenderer2Block::eAlign::Left:
         for (int i = lineFirstWordIndex; i <= lineLastWordIndex; ++i)
         {
+            int xOffset = mWords[i].mStartX;
             for (int j = mWords[i].mFirstSpriteIndex; j <= mWords[i].mLastSpriteIndex; ++j)
             {
                 auto pos = sprites[j]->GetPosition();
                 pos.y += lineYOffset + ascender - mWords[i].mAscender;
-                pos.x += lineXOffset;
+                pos.x += xOffset;
                 sprites[j]->SetPosition(pos);
             }
         }
@@ -74,11 +88,12 @@ int cTextRenderer2::arrangeWords(
         int centeringOffset = (mConfig.mWidth - wordsWidth) / 2;
         for (int i = lineFirstWordIndex; i <= lineLastWordIndex; ++i)
         {
+            int xOffset = mWords[i].mStartX + centeringOffset;
             for (int j = mWords[i].mFirstSpriteIndex; j <= mWords[i].mLastSpriteIndex; ++j)
             {
                 auto pos = sprites[j]->GetPosition();
                 pos.y += lineYOffset + ascender - mWords[i].mAscender;
-                pos.x += lineXOffset + centeringOffset;
+                pos.x += xOffset;
                 sprites[j]->SetPosition(pos);
             }
         }
@@ -120,6 +135,100 @@ int cTextRenderer2::arrangeWords(
     return lineHeight;
 }
 
+cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& block)
+{
+    if (block.mIsCodeBlock)
+        return renderCodeBlock(block);
+
+    mWords.clear();
+    cTextRenderer2BlockResult result;
+    auto& sprites = result.mSprites;
+
+    for (auto& span : block.mSpans)
+    {
+        auto [font, color] = determineFont(block, span);
+        int spaceWidth = font.letterData(' ').advance();
+        int firstSpriteInSpan = sprites.size();
+        auto text = span.mText;
+        bool wasTabBefore = false;
+        while(!text.empty())
+        {
+            auto wordEnd = text.find_first_of(" \t");
+            char separator = wordEnd == std::string_view::npos ? 0 : text[wordEnd];
+            std::string_view wordView = wordEnd == std::string_view::npos ? text : text.substr(0, wordEnd);
+            text.remove_prefix(std::min(wordView.size() + 1, text.size()));
+
+            std::string_view textWord(wordView.data(), wordView.size());
+            cWord& word = mWords.emplace_back();
+            word.separator = separator ? separator : span.mSeparator;            
+            word.mFirstSpriteIndex = sprites.size();
+            word.mHeight = font.height();
+            word.mAscender = font.ascender();
+            word.mSpaceWidth = spaceWidth;
+            cPoint position(0, 0);
+            while (!textWord.empty())
+            {
+                wchar_t decodedChar = UTF8::popCharacter(textWord);
+                auto& letterData = font.letterData(decodedChar);
+                auto sprite = std::make_unique<cSprite>();
+                sprite->SetTextureAndSize(letterData.mTexture);
+                sprite->SetWindow(mConfig.mWindow);
+                sprite->SetRGBColor(color);
+                sprite->SetPosition(position + letterData.offset());
+                sprites.emplace_back(std::move(sprite));
+                position.x += letterData.advance();
+            }
+            word.mLastSpriteIndex = sprites.size() - 1;
+            word.mWidth = position.x;
+        }
+        if (span.mIsLink)
+        {
+            auto& linkInfo = result.mLinks.emplace_back();
+            linkInfo.mFirstSpriteIndex = firstSpriteInSpan;
+            linkInfo.mLastSpriteIndex = sprites.size() - 1;
+            linkInfo.mId = span.mLinkId;  // string_view to string
+        }
+    }
+    int x = 0, lineYOffset = 0;
+    int lineFirstWordIndex = 0;
+    for (auto [idx, word] : std::ranges::views::enumerate(mWords))
+    {
+        if(x + word.width() > mConfig.mWidth)
+        {
+            int lineLastWordIndex = lineFirstWordIndex == idx ? idx : idx - 1;
+            int lineHeight = arrangeWords(block.mAlign, sprites, lineFirstWordIndex, lineLastWordIndex, lineYOffset);
+            result.mHeight += lineHeight;
+            lineYOffset += lineHeight;
+            lineFirstWordIndex = lineLastWordIndex + 1;
+            word.mStartX = 0;
+            word.mEndX = x + word.width();
+        }
+        else
+        {
+            word.mStartX = x;
+            word.mEndX = x + word.width();
+            x += word.width();
+            if (word.separator == '\t')
+            {
+                x = getNextTabStop(x);
+            }
+            else
+            {
+                x += word.mSpaceWidth;
+            }
+        }
+    }
+    if (lineFirstWordIndex < mWords.size())
+    {
+        lineYOffset += arrangeWords(
+            block.mAlign == eAlign::Justify ? eAlign::Left : block.mAlign,
+            sprites, lineFirstWordIndex, mWords.size() - 1, lineYOffset);
+    }
+    result.mHeight = lineYOffset + mConfig.mFonts.mRegular->height();
+
+    return result;
+}
+
 cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
 {
     cTextRenderer2BlockResult result;
@@ -128,7 +237,7 @@ cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
     const cFont& font = mConfig.mFonts.mMonospace ? *mConfig.mFonts.mMonospace : *mConfig.mFonts.mRegular;
     int startX = font.letterData(' ').advance();
     cPoint position(startX, font.height() / 2);
-    for(auto lineView: span.mText | std::ranges::views::split('\n'))
+    for (auto lineView : span.mText | std::ranges::views::split('\n'))
     {
         std::string_view line(lineView.data(), lineView.size());
         while (!line.empty())
@@ -167,83 +276,6 @@ cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
     result.mSprites.emplace_back(std::move(borderSprite));
 
     result.mHeight = position.y + font.height();
-
-    return result;
-}
-
-cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& block)
-{
-    if (block.mIsCodeBlock)
-        return renderCodeBlock(block);
-
-    mWords.clear();
-    cTextRenderer2BlockResult result;
-    auto& sprites = result.mSprites;
-
-    cPoint position(0, 0);
-    for (auto& span : block.mSpans)
-    {
-        auto [font, color] = determineFont(block, span);
-        int firstSpriteInSpan = sprites.size();
-        auto text = span.mText;
-        while(!text.empty())
-        {
-            auto wordEnd = text.find_first_of(" \t");
-            std::string_view wordView = wordEnd == std::string_view::npos ? text : text.substr(0, wordEnd);
-            text.remove_prefix(std::min(wordView.size() + 1, text.size()));
-
-            std::string_view textWord(wordView.data(), wordView.size());
-            cWord& word = mWords.emplace_back();
-            word.mFirstSpriteIndex = sprites.size();
-            word.mStartX = position.x;
-            word.mHeight = font.height();
-            word.mAscender = font.ascender();
-            while (!textWord.empty())
-            {
-                wchar_t decodedChar = UTF8::popCharacter(textWord);
-                auto& letterData = font.letterData(decodedChar);
-                auto sprite = std::make_unique<cSprite>();
-                sprite->SetTextureAndSize(letterData.mTexture);
-                sprite->SetWindow(mConfig.mWindow);
-                sprite->SetRGBColor(color);
-                sprite->SetPosition(position + letterData.offset());
-                sprites.emplace_back(std::move(sprite));
-                position.x += letterData.advance();
-            }
-            word.mLastSpriteIndex = sprites.size() - 1;
-            position.x += font.letterData(' ').advance();
-            word.mEndX = position.x;
-        }
-        if (span.mIsLink)
-        {
-            auto& linkInfo = result.mLinks.emplace_back();
-            linkInfo.mFirstSpriteIndex = firstSpriteInSpan;
-            linkInfo.mLastSpriteIndex = sprites.size() - 1;
-            linkInfo.mId = span.mLinkId;  // string_view to string
-        }
-    }
-    int x = 0, lineXOffset = 0, lineYOffset = 0;
-    int lineFirstWordIndex = 0;
-    for (auto [idx, word] : std::ranges::views::enumerate(mWords))
-    {
-        if(x + word.width() > mConfig.mWidth)
-        {
-            int lineLastWordIndex = lineFirstWordIndex == idx ? idx : idx - 1;
-            int lineHeight = arrangeWords(block.mAlign, sprites, lineFirstWordIndex, lineLastWordIndex, lineYOffset);
-            result.mHeight += lineHeight;
-            lineYOffset += lineHeight;
-            lineFirstWordIndex = lineLastWordIndex + 1;
-            x = 0;
-        }
-        x += word.width();
-    }
-    if (lineFirstWordIndex < mWords.size())
-    {
-        lineYOffset += arrangeWords(
-            block.mAlign == eAlign::Justify ? eAlign::Left : block.mAlign,
-            sprites, lineFirstWordIndex, mWords.size() - 1, lineYOffset);
-    }
-    result.mHeight = lineYOffset + mConfig.mFonts.mRegular->height();
 
     return result;
 }
@@ -430,6 +462,7 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
             extendSpan(word);
             if (needPush)
             {
+                span.mSeparator = separator;
                 pushSpan();
                 if (removeBold)
                 {

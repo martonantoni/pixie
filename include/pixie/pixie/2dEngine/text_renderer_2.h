@@ -22,8 +22,8 @@ struct cTextRenderer2Config
         cColor mCodeBlockBG;
         cColor mCodeBlockBorder;
     } mColors;
-    int mTabWidth;              // in pixels
-    std::vector<int> mTabStops; // might be empty, use mTabWidth in that case (and after the last tab stop)
+    int mTabWidth = 2;          // in spaces
+    std::vector<int> mTabStops; // in pixels! might be empty, use mTabWidth in that case (and after the last tab stop)
     int mWidth;                 // in pixels
 
 // for sprite creation:
@@ -33,6 +33,7 @@ struct cTextRenderer2Config
 struct cTextRenderer2Span
 {
     std::string_view mText;
+    char mSeparator = 0;
     bool mIsBold = false;
     bool mIsItalic = false;
     bool mIsLink = false;
@@ -79,7 +80,10 @@ class cTextRenderer2
         int mEndX;   // exclusive
         int mHeight;
         int mAscender;
-        int width() const { return mEndX - mStartX; }
+        int mWidth;
+        int mSpaceWidth;
+        char separator = 0;
+        int width() const { return mWidth; }
     };
     std::vector<cWord> mWords;
     std::pair<const cFont&, const cColor&> determineFont(const cTextRenderer2Block& block, const cTextRenderer2Span& span) const;
@@ -93,6 +97,7 @@ class cTextRenderer2
         int lineFirstWordIndex,
         int lineLastWordIndex,
         int lineYOffset) const;
+    int getNextTabStop(int x) const;
 public:
     void init(const cTextRenderer2Config& config);
 
