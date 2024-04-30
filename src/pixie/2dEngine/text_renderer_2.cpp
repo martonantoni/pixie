@@ -185,8 +185,13 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
     {
         auto [font, color] = determineFont(block, span);
         int firstSpriteInSpan = sprites.size();
-        for(auto wordView: span.mText | std::ranges::views::split(' '))
+        auto text = span.mText;
+        while(!text.empty())
         {
+            auto wordEnd = text.find_first_of(" \t");
+            std::string_view wordView = wordEnd == std::string_view::npos ? text : text.substr(0, wordEnd);
+            text.remove_prefix(std::min(wordView.size() + 1, text.size()));
+
             std::string_view textWord(wordView.data(), wordView.size());
             cWord& word = mWords.emplace_back();
             word.mFirstSpriteIndex = sprites.size();
@@ -331,11 +336,13 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
                 {
                     span.mText = std::string_view(span.mText.data(), lastWord.data() + lastWord.size() - span.mText.data());
                 }
-
             });
-        for (auto wordView : line | std::ranges::views::split(' '))
+        while(!line.empty())
         {
-            std::string_view word(wordView.data(), wordView.size());
+            auto wordEnd = line.find_first_of(" \t");
+            std::string_view word = wordEnd == std::string_view::npos ? line : line.substr(0, wordEnd);
+            char separator = wordEnd == std::string_view::npos ? 0 : line[wordEnd];
+            line.remove_prefix(std::min(word.size() + 1, line.size()));
             if (word.starts_with("@h") && word.size() >= 3)
             {
                 pushSpan();
