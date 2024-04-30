@@ -307,10 +307,15 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
                 auto& codeBlockSpan = codeBlock.mSpans.emplace_back(); // code blocks has exactly one span
                 codeBlockSpan.mCodeBlockIndex = numberOfCodeBlocks++;
                 codeBlockSpan.mText = std::string_view(startOfCodeBlock, line.data() - startOfCodeBlock - 1);
+                blocks.emplace_back();
             }
             else // start of code block:
             {
-                auto& codeBlock = blocks.emplace_back();
+                if(blocks.empty() || !blocks.back().mSpans.empty())
+                {
+                    blocks.emplace_back();
+                }
+                auto& codeBlock = blocks.back();
                 codeBlock.mIsCodeBlock = true;
                 isInsideCodeBlock = true;
                 startOfCodeBlock = nullptr;
@@ -338,7 +343,11 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
             }
             continue; // ignore line inside code block
         }
-        auto& block = blocks.emplace_back();
+        if(blocks.empty() || line.empty())
+        {
+            blocks.emplace_back();
+        }
+        auto& block = blocks.back();
         cSpan span;
         auto pushSpan = [&]()
             {
