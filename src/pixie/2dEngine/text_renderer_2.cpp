@@ -104,11 +104,12 @@ int cTextRenderer2::arrangeWords(
         int rightOffset = mConfig.mWidth - wordsWidth;
         for (int i = lineFirstWordIndex; i <= lineLastWordIndex; ++i)
         {
+            int xOffset = mWords[i].mStartX + rightOffset;
             for (int j = mWords[i].mFirstSpriteIndex; j <= mWords[i].mLastSpriteIndex; ++j)
             {
                 auto pos = sprites[j]->GetPosition();
                 pos.y += lineYOffset + ascender - mWords[i].mAscender;
-                pos.x += lineXOffset + rightOffset;
+                pos.x += xOffset;
                 sprites[j]->SetPosition(pos);
             }
         }
@@ -117,17 +118,24 @@ int cTextRenderer2::arrangeWords(
     case cTextRenderer2Block::eAlign::Justify:
     {
         int spaceCount = lineLastWordIndex - lineFirstWordIndex;
-        int spaceWidth = (mConfig.mWidth - wordsWidth) / spaceCount;
+        int missingSpace = mConfig.mWidth - wordsWidth;
+        double extraSpace = spaceCount > 0 ? (double)missingSpace / (double)spaceCount : 0.0;
+        double sum = 0.0;
+        int extraSpaceToUse = 0;
         for (int i = lineFirstWordIndex; i <= lineLastWordIndex; ++i)
         {
+            int xOffset = mWords[i].mStartX + extraSpaceToUse;
             for (int j = mWords[i].mFirstSpriteIndex; j <= mWords[i].mLastSpriteIndex; ++j)
             {
                 auto pos = sprites[j]->GetPosition();
                 pos.y += lineYOffset + ascender - mWords[i].mAscender;
-                pos.x += lineXOffset;
+                pos.x += xOffset;
                 sprites[j]->SetPosition(pos);
             }
-            lineXOffset += spaceWidth;
+            sum += extraSpace;
+            auto extraToUse = (int)sum;
+            extraSpaceToUse += extraToUse;
+            sum -= extraToUse;
         }
         break;
     }
@@ -200,22 +208,17 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
             result.mHeight += lineHeight;
             lineYOffset += lineHeight;
             lineFirstWordIndex = lineLastWordIndex + 1;
-            word.mStartX = 0;
-            word.mEndX = x + word.width();
+            x = 0;
+        }
+        word.mStartX = x;
+        x = word.mEndX = x + word.width();            
+        if (word.separator == '\t')
+        {
+            x = getNextTabStop(x);
         }
         else
         {
-            word.mStartX = x;
-            word.mEndX = x + word.width();
-            x += word.width();
-            if (word.separator == '\t')
-            {
-                x = getNextTabStop(x);
-            }
-            else
-            {
-                x += word.mSpaceWidth;
-            }
+            x += word.mSpaceWidth;
         }
     }
     if (lineFirstWordIndex < mWords.size())
