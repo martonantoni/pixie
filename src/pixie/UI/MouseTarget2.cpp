@@ -23,6 +23,15 @@ bool cMouseTarget::IsInside(cPoint WindowRelativePoint) const
 		if (!mValidRect.IsPointInside(WindowRelativePoint))
 			return false;
 		break;
+	case eClippingMode::ParentParent:
+	{
+		auto screenValidRect = mValidRect;
+		screenValidRect.Move(mWindow->GetParentWindow()->GetScreenRect().GetPosition());
+		auto screenPoint = mWindow->WindowCoordinatesToScreenCoordinates(WindowRelativePoint);
+		if (!screenValidRect.IsPointInside(screenPoint))
+            return false;
+		break;
+	}
 	case eClippingMode::Screen:
 		if (!mValidRect.IsPointInside(mWindow->WindowCoordinatesToScreenCoordinates(WindowRelativePoint)))
 			return false;

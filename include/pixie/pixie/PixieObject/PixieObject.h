@@ -37,7 +37,13 @@ public:
 		Property_Rect           = Property_Position|Property_Size,
 		Property_PositionOffset = Property_XOffset|Property_YOffset,
 	};
-	enum class eClippingMode { None, Parent, Screen }; // meaning that validRect is relative to parent or screen
+	enum class eClippingMode 
+	{ 
+		None,          // no clipping
+		Parent,        // validRect is relative to parent
+		ParentParent,  // validRect is relative to parent's parent (commonly used for scrollable window areas)
+		Screen,        // validRect's coordinates are screen coordinates
+	}; // meaning that validRect is relative to parent or screen
 	struct cPropertyValues;
 	class cPropertyBinder;
 	template<class T> class tPropertyBinder;

@@ -32,10 +32,36 @@ cSpriteRenderInfo cSprite::GetRenderInfo() const
 // clipping is enabled:
 	cRect OriginalRect = GetRect();
 	OriginalRect.Move(GetPositionOffset());
-	cRect validRect = mProperties.mValidRect;
-	if (mWindow && mProperties.mClippingMode == eClippingMode::Screen)
+	if (mWindow)
 	{
-		validRect.Move(-mWindow->GetScreenRect().GetPosition());
+		OriginalRect.Move(mWindow->GetScreenRect().GetPosition());
+	}
+
+	cRect validRect = mProperties.mValidRect;
+
+	//switch (mProperties.mClippingMode)
+	//{
+	//case eClippingMode::Screen:
+	//	if (mWindow)
+	//	{
+	//		validRect.Move(-mWindow->GetScreenRect().GetPosition());
+	//	}
+	//	break;
+	//case eClippingMode::ParentParent:
+	//	if (auto parentParent = mWindow->GetParentWindow())
+	//	{
+	//		validRect.Move(-parentParent->GetScreenRect().GetPosition());
+	//	}
+	//	break;
+	//}
+
+	if (mWindow && mProperties.mClippingMode == eClippingMode::Parent)
+	{
+		validRect.Move(mWindow->GetScreenRect().GetPosition());
+	}
+	if (mWindow && mWindow->GetParentWindow() && mProperties.mClippingMode == eClippingMode::ParentParent)
+	{
+		validRect.Move(mWindow->GetParentWindow()->GetScreenRect().GetPosition());
 	}
 	if (validRect.IsPointInside(OriginalRect.TopLeft()) && validRect.IsPointInside(OriginalRect.BottomRight()))
 		return { GetRectForRendering(), GetRotation(), mTexture.get(), mBlendingMode };
@@ -54,10 +80,10 @@ cSpriteRenderInfo cSprite::GetRenderInfo() const
 	int ClippedTextureBottom = TextureRect.Bottom() - (OriginalRect.Bottom() - RenderedRect.Bottom()) * TextureRect.mHeight / OriginalRect.mHeight;
 	int ClippedTextureRight = TextureRect.Right() - (OriginalRect.Right() - RenderedRect.Right()) * TextureRect.mWidth / OriginalRect.mWidth;
 	mClippedTexture = mTexture->CreateSubTexture(cRect{ ClippedTextureLeft, ClippedTextureTop, ClippedTextureRight - ClippedTextureLeft + 1, ClippedTextureBottom - ClippedTextureTop + 1 });
-	if (mWindow)
-	{
-		RenderedRect.Move(mWindow->GetScreenRect().GetPosition());
-	}
+	//if (mWindow)
+	//{
+	//	RenderedRect.Move(mWindow->GetScreenRect().GetPosition());
+	//}
 	return { RenderedRect, GetRotation(), mClippedTexture.get(), mBlendingMode };
 }
 
