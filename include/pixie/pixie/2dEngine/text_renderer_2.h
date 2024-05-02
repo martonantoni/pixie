@@ -109,10 +109,10 @@ public:
     /*
 
     @hx heading, x: number 1-9
-    @| paragraph centered
-    @< paragraph left aligned
-    @> paragraph right aligned
-    @= paragraph justified
+    @| paragraph centered, @|+ default align: centered
+    @< paragraph left aligned, @<+ default align: left aligned
+    @> paragraph right aligned, @>+ default align: right aligned
+    @= paragraph justified, @=+ default align: justified
     @h1 @| centered heading 1
     alma **bold text** korte __italic text__ barack
     alma [[link text]] korte [[link_id:link text]] barack

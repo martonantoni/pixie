@@ -303,6 +303,8 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
     bool isInsideCodeBlock = false;
     int numberOfCodeBlocks = 0, numberOfLinks = 0;
     const char* startOfCodeBlock = nullptr;
+    eAlign defaultAlign = eAlign::Left;
+
     for (auto lineView : text | std::ranges::views::split('\n'))
     {
         std::string_view line(lineView.data(), lineView.size());
@@ -360,6 +362,7 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
         if(blocks.empty() || line.empty())
         {
             blocks.emplace_back();
+            blocks.back().mAlign = defaultAlign;
         }
         if (line.starts_with("-")) // list item
         {
@@ -367,6 +370,7 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
             if(!blocks.back().mSpans.empty())
             {
                 blocks.emplace_back();
+                blocks.back().mAlign = defaultAlign;
             }
             blocks.back().mIsListItem = true;
         }
@@ -414,31 +418,39 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
             {
                 pushSpan();
                 block.mHeadingLevel = word[2] - '0';
-                block.mAlign = cTextRenderer2Block::eAlign::Center; // the top heading is centered by default
+                if (block.mHeadingLevel == 1)
+                {
+                    block.mAlign = cTextRenderer2Block::eAlign::Center; // the top heading is centered by default
+                }
                 continue; // ignore rest of the word
             }
+            auto setAlign = [&](eAlign align)
+                {
+                    pushSpan();
+                    block.mAlign = align;
+                    if (word.length() >= 3 && word[2] == '+')
+                    {
+                        defaultAlign = align;
+                    }
+                };
             if (word.starts_with("@|"))
             {
-                pushSpan();
-                block.mAlign = cTextRenderer2Block::eAlign::Center;
+                setAlign(cTextRenderer2Block::eAlign::Center);
                 continue; // ignore rest of the word
             }
             if (word.starts_with("@<"))
             {
-                pushSpan();
-                block.mAlign = cTextRenderer2Block::eAlign::Left;
+                setAlign(cTextRenderer2Block::eAlign::Left);
                 continue; // ignore rest of the word
             }
             if (word.starts_with("@>"))
             {
-                pushSpan();
-                block.mAlign = cTextRenderer2Block::eAlign::Right;
+                setAlign(cTextRenderer2Block::eAlign::Right);
                 continue; // ignore rest of the word
             }
             if (word.starts_with("@="))
             {
-                pushSpan();
-                block.mAlign = cTextRenderer2Block::eAlign::Justify;
+                setAlign(cTextRenderer2Block::eAlign::Justify);
                 continue; // ignore rest of the word
             }
             if (word.starts_with("``"))
