@@ -227,7 +227,9 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
             block.mAlign == eAlign::Justify ? eAlign::Left : block.mAlign,
             sprites, lineFirstWordIndex, mWords.size() - 1, lineYOffset);
     }
-    result.mHeight = lineYOffset + mConfig.mFonts.mRegular->height();
+    result.mHeight = lineYOffset;
+    if(!block.mIsListItem)
+        result.mHeight += mConfig.mFonts.mRegular->height();
 
     return result;
 }
@@ -346,6 +348,15 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
         if(blocks.empty() || line.empty())
         {
             blocks.emplace_back();
+        }
+        if (line.starts_with("-")) // list item
+        {
+            line.remove_prefix(line.size() == 1 || line[1] != ' ' ? 1 : 2);
+            if(!blocks.back().mSpans.empty())
+            {
+                blocks.emplace_back();
+            }
+            blocks.back().mIsListItem = true;
         }
         auto& block = blocks.back();
         cSpan span;

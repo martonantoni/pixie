@@ -47,6 +47,7 @@ struct cTextRenderer2Block
     std::vector<cTextRenderer2Span> mSpans;
     enum class eAlign { Left, Center, Right, Justify } mAlign = eAlign::Left;
     bool mIsCodeBlock = false;
+    bool mIsListItem = false;
     struct
     {
         std::string mTitle;
@@ -127,6 +128,9 @@ public:
     block
     ```
 
+    - list item
+    - list item
+    - list item
 
     */
     static std::vector<cTextRenderer2Block> parse(const std::string& text);
