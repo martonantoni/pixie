@@ -158,7 +158,6 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
         auto [font, color] = determineFont(block, span);
         int spaceWidth = font.letterData(' ').advance();
         int firstSpriteInSpan = sprites.size();
- //       auto text = span.mText;
         bool wasTabBefore = false;
         auto addText = [&](std::string_view text)
             {
@@ -196,8 +195,8 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
         if (isFirstSpan && block.mIsListItem)
         {
             isFirstSpan = false;
-            unsigned char bulletPoint[] = { 0xE2, 0x80, 0xA2, ' ' };
-   //         unsigned char bulletPoint[] = { 0xE2, 0x96, 0xA0, ' ' };
+            unsigned char bulletPoint[] = { 0xE2, 0x80, 0xA2, ' ' };   // bullet point
+   //         unsigned char bulletPoint[] = { 0xE2, 0x96, 0xA0, ' ' }; // square bullet point
             std::string_view bulletPointView(reinterpret_cast<const char*>(bulletPoint), 4);
             addText(bulletPointView);
         };
@@ -415,6 +414,7 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
             {
                 pushSpan();
                 block.mHeadingLevel = word[2] - '0';
+                block.mAlign = cTextRenderer2Block::eAlign::Center; // the top heading is centered by default
                 continue; // ignore rest of the word
             }
             if (word.starts_with("@|"))
