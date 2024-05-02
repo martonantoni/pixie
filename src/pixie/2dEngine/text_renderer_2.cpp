@@ -151,44 +151,57 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
     mWords.clear();
     cTextRenderer2BlockResult result;
     auto& sprites = result.mSprites;
+    bool isFirstSpan = true;
 
     for (auto& span : block.mSpans)
     {
         auto [font, color] = determineFont(block, span);
         int spaceWidth = font.letterData(' ').advance();
         int firstSpriteInSpan = sprites.size();
-        auto text = span.mText;
+ //       auto text = span.mText;
         bool wasTabBefore = false;
-        while(!text.empty())
-        {
-            auto wordEnd = text.find_first_of(" \t");
-            char separator = wordEnd == std::string_view::npos ? 0 : text[wordEnd];
-            std::string_view wordView = wordEnd == std::string_view::npos ? text : text.substr(0, wordEnd);
-            text.remove_prefix(std::min(wordView.size() + 1, text.size()));
-
-            std::string_view textWord(wordView.data(), wordView.size());
-            cWord& word = mWords.emplace_back();
-            word.separator = separator ? separator : span.mSeparator;            
-            word.mFirstSpriteIndex = sprites.size();
-            word.mHeight = font.height();
-            word.mAscender = font.ascender();
-            word.mSpaceWidth = spaceWidth;
-            cPoint position(0, 0);
-            while (!textWord.empty())
+        auto addText = [&](std::string_view text)
             {
-                wchar_t decodedChar = UTF8::popCharacter(textWord);
-                auto& letterData = font.letterData(decodedChar);
-                auto sprite = std::make_unique<cSprite>();
-                sprite->SetTextureAndSize(letterData.mTexture);
-                sprite->SetWindow(mConfig.mWindow);
-                sprite->SetRGBColor(color);
-                sprite->SetPosition(position + letterData.offset());
-                sprites.emplace_back(std::move(sprite));
-                position.x += letterData.advance();
-            }
-            word.mLastSpriteIndex = sprites.size() - 1;
-            word.mWidth = position.x;
-        }
+                while (!text.empty())
+                {
+                    auto wordEnd = text.find_first_of(" \t");
+                    char separator = wordEnd == std::string_view::npos ? 0 : text[wordEnd];
+                    std::string_view wordView = wordEnd == std::string_view::npos ? text : text.substr(0, wordEnd);
+                    text.remove_prefix(std::min(wordView.size() + 1, text.size()));
+
+                    std::string_view textWord(wordView.data(), wordView.size());
+                    cWord& word = mWords.emplace_back();
+                    word.separator = separator ? separator : span.mSeparator;
+                    word.mFirstSpriteIndex = sprites.size();
+                    word.mHeight = font.height();
+                    word.mAscender = font.ascender();
+                    word.mSpaceWidth = spaceWidth;
+                    cPoint position(0, 0);
+                    while (!textWord.empty())
+                    {
+                        wchar_t decodedChar = UTF8::popCharacter(textWord);
+                        auto& letterData = font.letterData(decodedChar);
+                        auto sprite = std::make_unique<cSprite>();
+                        sprite->SetTextureAndSize(letterData.mTexture);
+                        sprite->SetWindow(mConfig.mWindow);
+                        sprite->SetRGBColor(color);
+                        sprite->SetPosition(position + letterData.offset());
+                        sprites.emplace_back(std::move(sprite));
+                        position.x += letterData.advance();
+                    }
+                    word.mLastSpriteIndex = sprites.size() - 1;
+                    word.mWidth = position.x;
+                }
+            };
+        if (isFirstSpan && block.mIsListItem)
+        {
+            isFirstSpan = false;
+            unsigned char bulletPoint[] = { 0xE2, 0x80, 0xA2, ' ' };
+   //         unsigned char bulletPoint[] = { 0xE2, 0x96, 0xA0, ' ' };
+            std::string_view bulletPointView(reinterpret_cast<const char*>(bulletPoint), 4);
+            addText(bulletPointView);
+        };
+        addText(span.mText);
         if (span.mIsLink)
         {
             auto& linkInfo = result.mLinks.emplace_back();
