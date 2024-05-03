@@ -1,5 +1,8 @@
 #pragma once
 
+template<class C, class T> concept cMessageListener = 
+    std::is_invocable_r_v<void, C, T> || std::is_invocable_r_v<void, C, const T&> || std::is_invocable_r_v<void, C>;
+
 class cMessageCenter final
 {
     class cDispatcher
@@ -53,7 +56,8 @@ class cMessageCenter final
 public:
     template<class T> void post(const std::string& endpointID, T&& messageData);
     void post(const std::string& endpointID);
-    template<class T, class C> [[nodiscard]] cRegisteredID registerListener(const std::string& endpointID, const C& listener);
+    template<class T, class C> requires cMessageListener<C, T>
+        [[nodiscard]] cRegisteredID registerListener(const std::string& endpointID, const C& listener);
     void dispatch();
     void setNeedDispatchProcessor(std::function<void()> needDispatchProcessor);
 };
@@ -117,7 +121,8 @@ template<class T> void cMessageCenter::post(const std::string& endpointID, T&& m
         mNeedDispatchProcessor();
 }
 
-template<class T, class C> cRegisteredID cMessageCenter::registerListener(const std::string& endpointID, const C& listener)
+template<class T, class C> requires cMessageListener<C, T>
+    cRegisteredID cMessageCenter::registerListener(const std::string& endpointID, const C& listener)
 {
     auto& dispatcher = mDispatchers[endpointID];
     if (!dispatcher)
