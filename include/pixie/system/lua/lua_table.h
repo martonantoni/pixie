@@ -40,6 +40,9 @@ public:
     template<class T> bool isType(const std::string& key) const;
     void remove(const std::string& key);
     bool has(const std::string& key) const;
+    template<class C> void forEach(const C& callable) const; 
+        // callable can be: void (const std::string& key, const cLuaValue& value)
+        //               or void (const cLuaValue& value)
 // operating on the value itself:
     int toInt() const;
     double toDouble() const;
@@ -386,5 +389,47 @@ void cLuaValue::registerFunction(const std::string& key, const C&& func)
                                        // the 1 means that the closure will have 1 upvalue
 
     lua_settable(L, -3); // Set the value in the table using the variable name
+    lua_pop(L, 1); // Pop the table from the stack
+}
+
+template<class C> void cLuaValue::forEach(const C& callable) const
+{
+    if (!mScript || mReference == LUA_NOREF)
+    {
+        return;
+    }
+    lua_State* L = mScript->state();
+    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference); // Retrieve the table from the registry
+    lua_pushnil(L); // Push the first key onto the stack
+    while (lua_next(L, -2) != 0) // key at -2, value at -1
+    {
+        std::string key;
+        bool skip = false;
+        if (lua_type(L, -2) == LUA_TNUMBER)
+        {
+            key = std::to_string(static_cast<int>(lua_tointeger(L, -2) - 1));
+        }
+        else
+        {
+            key = cLuaScript::valueToString(L, -2);
+            skip = mIsGlobalTable && cLuaScript::isGlobalInternalElement(key);
+        }
+        if (!skip)
+        {
+            cLuaValue value = pop<cLuaValue>(*mScript, L);
+            if constexpr (std::is_invocable_v<C, const std::string&, const cLuaValue&>)
+            {
+                callable(key, value);
+            }
+            else if constexpr (std::is_invocable_v<C, const cLuaValue&>)
+            {
+                callable(value);
+            }
+        }
+        else
+        {
+            lua_pop(L, 1); // Pop the value, but leave the key for the next iteration
+        }
+    }
     lua_pop(L, 1); // Pop the table from the stack
 }

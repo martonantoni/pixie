@@ -527,6 +527,29 @@ TEST(lua_table, toConfig_recursive)
     ASSERT_EQ(script->stackSize(), 0);
 }
 
+TEST(lua_table, forEach)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    setupConfigTestVariables(*script);
+    auto globalTable = script->globalTable();
+    std::unordered_map<std::string, cLuaValue> extractedValues;
+    globalTable.forEach([&extractedValues](const std::string& key, const cLuaValue& value)
+        {
+            extractedValues[key] = value;
+        });
+    ASSERT_EQ(script->stackSize(), 0);
+
+    ASSERT_EQ(extractedValues.size(), 7u);
+    ASSERT_EQ(extractedValues["twelve"].toInt(), 12);
+    ASSERT_EQ(extractedValues["ten"].toInt(), 10);
+    ASSERT_EQ(extractedValues["twelve_string"].toString(), "12");
+    ASSERT_EQ(extractedValues["ten_string"].toString(), "10");
+    ASSERT_EQ(extractedValues["twelve_and_half"].toDouble(), 12.5);
+    ASSERT_EQ(extractedValues["ten_and_half"].toDouble(), 10.5);
+    ASSERT_TRUE(extractedValues["mySubTable"].isTable());
+}
+
 
 TEST(lua_execute, simple_execute)
 {
