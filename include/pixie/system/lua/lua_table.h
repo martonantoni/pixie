@@ -40,9 +40,10 @@ public:
     template<class T> bool isType(const std::string& key) const;
     void remove(const std::string& key);
     bool has(const std::string& key) const;
-    template<class C> void forEach(const C& callable) const; 
-        // callable can be: void (const std::string& key, const cLuaValue& value)
-        //               or void (const cLuaValue& value)
+    template<class C> 
+        requires std::is_invocable_v<C, const std::string&, const cLuaValue&> ||
+                 std::is_invocable_v<C, const cLuaValue&>
+    void forEach(const C& callable) const; 
 // operating on the value itself:
     int toInt() const;
     double toDouble() const;
@@ -392,7 +393,10 @@ void cLuaValue::registerFunction(const std::string& key, const C&& func)
     lua_pop(L, 1); // Pop the table from the stack
 }
 
-template<class C> void cLuaValue::forEach(const C& callable) const
+template<class C> 
+    requires std::is_invocable_v<C, const std::string&, const cLuaValue&> ||
+             std::is_invocable_v<C, const cLuaValue&>
+void cLuaValue::forEach(const C& callable) const
 {
     if (!mScript || mReference == LUA_NOREF)
     {
