@@ -16,7 +16,8 @@ private:
     std::shared_ptr<cConfig> toConfig_topTable(lua_State* L, IsRecursive isRecursive) const;
     void copy_(const cLuaValue& src);
     static void retrieveWithKey(lua_State* L, cKey key);
-    lua_State* retrieveSelf() const; // returns nullptr on error, self will be at -1 on stack if successful
+    class cStateWithSelfCleanup;
+    cStateWithSelfCleanup retrieveSelf() const; // returns nullptr on error, self will be at -1 on stack if successful
 public:
 
     cLuaValue() = default;
@@ -61,6 +62,23 @@ public:
 // if the value is a table, we can create a config from it:
     std::shared_ptr<cConfig> toConfig(IsRecursive isRecursive = IsRecursive::Yes) const;
 };
+
+class cLuaValue::cStateWithSelfCleanup
+{
+    lua_State* mState = nullptr;
+public:
+    cStateWithSelfCleanup() = default;
+    cStateWithSelfCleanup(lua_State* L) : mState(L) {}
+    cStateWithSelfCleanup(cStateWithSelfCleanup&& src) : mState(src.mState) { src.mState = nullptr; }
+    cStateWithSelfCleanup& operator=(cStateWithSelfCleanup&& src) { mState = src.mState; src.mState = nullptr; return *this; }
+    cStateWithSelfCleanup(const cStateWithSelfCleanup&) = delete;
+    cStateWithSelfCleanup& operator=(const cStateWithSelfCleanup&) = delete;
+    ~cStateWithSelfCleanup() { if(mState) lua_pop(mState, 1); }
+    lua_State* operator->() { return mState; }
+    operator lua_State* () { return mState; }
+    operator bool() { return mState != nullptr; }
+};
+
 
 template<class T> void cLuaValue::push(lua_State* L, const T& value)
 {
@@ -109,7 +127,6 @@ void cLuaValue::set(const std::string& key, const T& value)
         lua_pushstring(L, key.c_str()); // Push the variable name onto the Lua stack
         push(L, value);
         lua_settable(L, -3); // Set the value in the table using the variable name
-        lua_pop(L, 1); // Pop the table from the stack
     }
 }
 
@@ -117,7 +134,6 @@ template<class C> void cLuaValue::visit(C&& callable) const
 {
     if(auto L = retrieveSelf())
     {
-        FINALLY([L]() { lua_pop(L, 1); });
         switch (lua_type(L, -1))
         {
             case LUA_TNUMBER:
@@ -202,10 +218,9 @@ template<typename T> std::optional<T> cLuaValue::get(const std::string& key) con
         lua_gettable(L, -2); // Get the value from the table using the variable name
         if(lua_isnil(L, -1))
         {
-            lua_pop(L, 2);
+            lua_pop(L, 1); // Pop the nil value
             return {};
         }
-        FINALLY([L]() { lua_pop(L, 1); }); 
         return pop<T>(*mScript, L);
     }
     return {};
@@ -222,7 +237,6 @@ template<class T> T cLuaValue::get(int index) const
     if (auto L = retrieveSelf())
     {
         lua_rawgeti(L, -1, index);
-        FINALLY([L]() { lua_pop(L, 1); });
         return pop<T>(*mScript, L);
     }
     return {};
@@ -258,7 +272,7 @@ bool cLuaValue::isType(const std::string& variableName) const
             result = type == LUA_TBOOLEAN;
         }
 
-        lua_pop(L, 2); // Pop the value and the table from the stack
+        lua_pop(L, 1); // Pop the value (table will be automatically popped when the function returns)
         return result;
     }
     return false;
@@ -411,7 +425,6 @@ void cLuaValue::registerFunction(const std::string& key, const C&& func)
         // the 1 means that the closure will have 1 upvalue
 
         lua_settable(L, -3); // Set the value in the table using the variable name
-        lua_pop(L, 1); // Pop the table from the stack
     }
 }
 
@@ -453,6 +466,5 @@ void cLuaValue::forEach(const C& callable) const
                 lua_pop(L, 1); // Pop the value, but leave the key for the next iteration
             }
         }
-        lua_pop(L, 1); // Pop the table from the stack
     }
 }

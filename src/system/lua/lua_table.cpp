@@ -34,11 +34,11 @@ cLuaValue::cLuaValue(const cLuaValue& src)
     copy_(src);
 }
 
-lua_State* cLuaValue::retrieveSelf() const
+cLuaValue::cStateWithSelfCleanup cLuaValue::retrieveSelf() const
 {
     if (!mScript || mReference == LUA_NOREF)
     {
-        return nullptr;
+        return {};
     }
     lua_State* L = mScript->state();
     lua_rawgeti(L, LUA_REGISTRYINDEX, mReference);
@@ -50,7 +50,6 @@ bool cLuaValue::isNumber() const
     if(auto L = retrieveSelf())
     {
         bool result = lua_type(L, -1) == LUA_TNUMBER;
-        lua_pop(L, 1); // Pop the table from the stack
         return result;
     }
     return false;
@@ -61,7 +60,6 @@ bool cLuaValue::isString() const
     if(auto L = retrieveSelf())
     {
         bool result = lua_type(L, -1) == LUA_TSTRING;
-        lua_pop(L, 1); // Pop the table from the stack
         return result;
     }
     return false;
@@ -72,7 +70,6 @@ bool cLuaValue::isFunction() const
     if(auto L = retrieveSelf())
     {
         bool result = lua_isfunction(L, -1);
-        lua_pop(L, 1); // Pop the table from the stack
         return result;
     }
     return false;
@@ -83,7 +80,6 @@ bool cLuaValue::isTable() const
     if(auto L = retrieveSelf())
     {
         bool result = lua_istable(L, -1);
-        lua_pop(L, 1); // Pop the table from the stack
         return result;
     }
     return false;
@@ -158,7 +154,6 @@ cLuaValue cLuaValue::subTable(const std::string& key) const
             lua_settable(L, -4); // pops key and value 
         }
         int reference = luaL_ref(L, LUA_REGISTRYINDEX); // pops the sub-table
-        lua_pop(L, 1);  // pops our table
         return cLuaValue{ mScript, reference, false };
     }
     return {};
