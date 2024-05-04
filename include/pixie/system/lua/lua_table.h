@@ -16,6 +16,7 @@ private:
     std::shared_ptr<cConfig> toConfig_topTable(lua_State* L, IsRecursive isRecursive) const;
     void copy_(const cLuaValue& src);
     static void retrieveWithKey(lua_State* L, cKey key);
+    lua_State* retrieveSelf() const; // returns nullptr on error, self will be at -1 on stack if successful
 public:
 
     cLuaValue() = default;
@@ -47,9 +48,12 @@ public:
 // operating on the value itself:
     int toInt() const;
     double toDouble() const;
+    bool isNumber() const;
+    bool isString() const;
     std::string toString() const;
     bool isFunction() const;
     bool isTable() const;
+    template<class C> void visit(C&& callable) const;
     template<class... Args> std::vector<cLuaValue> call(const Args&... args);
 
     cLuaScript& script() { return *mScript; }
@@ -100,18 +104,50 @@ template<class T, class... Ts> void cLuaValue::push(lua_State* L, const T& value
 template <typename T>
 void cLuaValue::set(const std::string& key, const T& value)
 {
-    if (!mScript || mReference == LUA_NOREF)
+    if(auto L = retrieveSelf())
     {
-        return;
+        lua_pushstring(L, key.c_str()); // Push the variable name onto the Lua stack
+        push(L, value);
+        lua_settable(L, -3); // Set the value in the table using the variable name
+        lua_pop(L, 1); // Pop the table from the stack
     }
-    lua_State* L = mScript->state();
-    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference); // Retrieve the table from the registry
-    lua_pushstring(L, key.c_str()); // Push the variable name onto the Lua stack
+}
 
-    push(L, value);
-
-    lua_settable(L, -3); // Set the value in the table using the variable name
-    lua_pop(L, 1); // Pop the table from the stack
+template<class C> void cLuaValue::visit(C&& callable) const
+{
+    if(auto L = retrieveSelf())
+    {
+        FINALLY([L]() { lua_pop(L, 1); });
+        switch (lua_type(L, -1))
+        {
+            case LUA_TNUMBER:
+                if (lua_isinteger(L, -1))
+                {
+                    callable(static_cast<int>(lua_tointeger(L, -1)));
+                }
+                else
+                {
+                    callable(static_cast<double>(lua_tonumber(L, -1)));
+                }
+                break;
+            case LUA_TSTRING:
+                callable(std::string(lua_tostring(L, -1)));
+                break;
+            case LUA_TBOOLEAN:
+                callable(lua_toboolean(L, -1) != 0);
+                break;
+            case LUA_TTABLE:
+                callable(cLuaValue(mScript, luaL_ref(L, LUA_REGISTRYINDEX), false));
+                break;
+            default:
+                callable(std::monostate());
+                break;
+        }
+    }
+    else
+    {
+        callable(std::monostate());
+    }
 }
 
 template<class T>
@@ -160,22 +196,19 @@ T cLuaValue::pop(cLuaScript& script, lua_State* L)
 
 template<typename T> std::optional<T> cLuaValue::get(const std::string& key) const
 {
-    if (!mScript || mReference == LUA_NOREF)
+    if(auto L = retrieveSelf())
     {
-        return {};
+        lua_pushstring(L, key.c_str()); // Push the variable name onto the Lua stack
+        lua_gettable(L, -2); // Get the value from the table using the variable name
+        if(lua_isnil(L, -1))
+        {
+            lua_pop(L, 2);
+            return {};
+        }
+        FINALLY([L]() { lua_pop(L, 1); }); 
+        return pop<T>(*mScript, L);
     }
-    lua_State* L = mScript->state();
-
-    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference); // Retrieve the table from the registry
-    lua_pushstring(L, key.c_str()); // Push the variable name onto the Lua stack
-    lua_gettable(L, -2); // Get the value from the table using the variable name
-    if(lua_isnil(L, -1))
-    {
-        lua_pop(L, 2);
-        return {};
-    }
-    FINALLY([L]() { lua_pop(L, 1); }); 
-    return pop<T>(*mScript, L);
+    return {};
 }
 
 template<class T> T cLuaValue::get(const std::string& key, const T& defaultValue) const
@@ -186,57 +219,49 @@ template<class T> T cLuaValue::get(const std::string& key, const T& defaultValue
 
 template<class T> T cLuaValue::get(int index) const
 {
-    if (!mScript || mReference == LUA_NOREF)
+    if (auto L = retrieveSelf())
     {
-        return {};
+        lua_rawgeti(L, -1, index);
+        FINALLY([L]() { lua_pop(L, 1); });
+        return pop<T>(*mScript, L);
     }
-    lua_State* L = mScript->state();
-    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference); // Retrieve the table from the registry
-
-    lua_rawgeti(L, -1, index);
-    FINALLY([L]() { lua_pop(L, 1); });
-    return pop<T>(*mScript, L);
+    return {};
 }
-
 
 template <typename T>
 bool cLuaValue::isType(const std::string& variableName) const
 {
-    if (!mScript || mReference == LUA_NOREF)
+    if (auto L = retrieveSelf())
     {
-        return false;
-    }
-    lua_State* L = mScript->state();
-    bool result = false;
+        lua_pushstring(L, variableName.c_str()); // Push the variable name onto the Lua stack
+        lua_gettable(L, -2); // Get the value from the table using the variable name
+        int type = lua_type(L, -1);
+        bool result = false;
+        if constexpr (std::is_same_v<T, int>)
+        {
+            result = type == LUA_TNUMBER && lua_isinteger(L, -1);
+        }
+        else if constexpr (std::is_same_v<T, double>)
+        {
+            result = type == LUA_TNUMBER;
+        }
+        else if constexpr (std::is_same_v<T, std::string>)
+        {
+            result = type == LUA_TSTRING && lua_isstring(L, -1);
+        }
+        else if constexpr (std::is_same_v<T, cLuaValue>)
+        {
+            result = type == LUA_TTABLE;
+        }
+        else if constexpr (std::is_same_v<T, bool>)
+        {
+            result = type == LUA_TBOOLEAN;
+        }
 
-    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference); // Retrieve the table from the registry
-    lua_pushstring(L, variableName.c_str()); // Push the variable name onto the Lua stack
-    lua_gettable(L, -2); // Get the value from the table using the variable name
-    int type = lua_type(L, -1);
-
-    if constexpr (std::is_same_v<T, int>)
-    {
-        result = type == LUA_TNUMBER && lua_isinteger(L, -1);
+        lua_pop(L, 2); // Pop the value and the table from the stack
+        return result;
     }
-    else if constexpr (std::is_same_v<T, double>)
-    {
-        result = type == LUA_TNUMBER;
-    }
-    else if constexpr (std::is_same_v<T, std::string>)
-    {
-        result = type == LUA_TSTRING && lua_isstring(L, -1);
-    }
-    else if constexpr (std::is_same_v<T, cLuaValue>)
-    {
-        result = type == LUA_TTABLE;
-    }
-    else if constexpr (std::is_same_v<T, bool>)
-    {
-        result = type == LUA_TBOOLEAN;
-    }
-
-    lua_pop(L, 2); // Pop the value and the table from the stack
-    return result;
+    return false;
 }
 
 template<class... Args> std::vector<cLuaValue> cLuaValue::call(const Args&... args)
@@ -330,67 +355,64 @@ template<class... Args> std::vector<cLuaValue> cLuaValue::callMemberFunction(con
 template<class R, class... Args, class C>
 void cLuaValue::registerFunction(const std::string& key, const C&& func)
 {
-    if (!mScript || mReference == LUA_NOREF)
+    if (auto L = retrieveSelf())
     {
-        return;
+        lua_pushstring(L, key.c_str()); // Push the variable name onto the Lua stack
+
+        using FuncType = std::function<R(Args...)>;
+
+        struct cCallableHolder : public cLuaScript::cUserDataBase
+        {
+            C mCallable;
+            cLuaScript& mScript;
+            cCallableHolder(cLuaScript& script, const C& callable)
+                : mCallable(callable)
+                , mScript(script) {}
+            virtual ~cCallableHolder() = default;
+        };
+        cCallableHolder* holder = mScript->pushNewUserData<cCallableHolder>(*mScript, func);
+
+        // Create a C function wrapper that calls the callable object
+        lua_CFunction cFunction = [](lua_State* L) -> int
+            {
+                cCallableHolder* holder = static_cast<cCallableHolder*>(lua_touserdata(L, lua_upvalueindex(1)));
+
+                if constexpr (sizeof...(Args) > 0)
+                {
+                    auto arguments = std::make_tuple(pop<std::remove_reference<Args>::type>(holder->mScript, L)...);
+                    if constexpr (std::is_same_v<R, void>)
+                    {
+                        std::apply(holder->mCallable, arguments);
+                        return 0;
+                    }
+                    else
+                    {
+                        auto result = std::apply(holder->mCallable, arguments);
+                        push(L, result);
+                        return 1;
+                    }
+                }
+                else
+                {
+                    if constexpr (std::is_same_v<R, void>)
+                    {
+                        (holder->mCallable)();
+                        return 0;
+                    }
+                    else
+                    {
+                        auto result = (holder->mCallable)();
+                        push(L, result);
+                        return 1;
+                    }
+                }
+            };
+        lua_pushcclosure(L, cFunction, 1); // the closure will have the mScript as an upvalue
+        // the 1 means that the closure will have 1 upvalue
+
+        lua_settable(L, -3); // Set the value in the table using the variable name
+        lua_pop(L, 1); // Pop the table from the stack
     }
-    lua_State* L = mScript->state();
-    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference); // Retrieve the table from the registry
-    lua_pushstring(L, key.c_str()); // Push the variable name onto the Lua stack
-
-    using FuncType = std::function<R(Args...)>;
-
-    struct cCallableHolder : public cLuaScript::cUserDataBase
-    {
-        C mCallable;
-        cLuaScript& mScript;
-        cCallableHolder(cLuaScript& script, const C& callable) 
-            : mCallable(callable)
-            , mScript(script) {}
-        virtual ~cCallableHolder() = default;
-    };
-    cCallableHolder* holder = mScript->pushNewUserData<cCallableHolder>(*mScript, func);
-
-    // Create a C function wrapper that calls the callable object
-    lua_CFunction cFunction = [](lua_State* L) -> int
-    {
-        cCallableHolder* holder = static_cast<cCallableHolder*>(lua_touserdata(L, lua_upvalueindex(1)));
-
-        if constexpr (sizeof...(Args) > 0)
-        {
-            auto arguments = std::make_tuple(pop<std::remove_reference<Args>::type>(holder->mScript, L)...);
-            if constexpr (std::is_same_v<R, void>)
-            {
-                std::apply(holder->mCallable, arguments);
-                return 0;
-            }
-            else
-            {
-                auto result = std::apply(holder->mCallable, arguments);
-                push(L, result);
-                return 1;
-            }
-        }
-        else
-        {
-            if constexpr (std::is_same_v<R, void>)
-            {
-                (holder->mCallable)();
-                return 0;
-            }
-            else
-            {
-                auto result = (holder->mCallable)();
-                push(L, result);
-                return 1;
-            }
-        }
-    };
-    lua_pushcclosure(L, cFunction, 1); // the closure will have the mScript as an upvalue
-                                       // the 1 means that the closure will have 1 upvalue
-
-    lua_settable(L, -3); // Set the value in the table using the variable name
-    lua_pop(L, 1); // Pop the table from the stack
 }
 
 template<class C> 
@@ -398,42 +420,39 @@ template<class C>
              std::is_invocable_v<C, const cLuaValue&>
 void cLuaValue::forEach(const C& callable) const
 {
-    if (!mScript || mReference == LUA_NOREF)
+    if (auto L = retrieveSelf())
     {
-        return;
-    }
-    lua_State* L = mScript->state();
-    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference); // Retrieve the table from the registry
-    lua_pushnil(L); // Push the first key onto the stack
-    while (lua_next(L, -2) != 0) // key at -2, value at -1
-    {
-        std::string key;
-        bool skip = false;
-        if (lua_type(L, -2) == LUA_TNUMBER)
+        lua_pushnil(L); // Push the first key onto the stack
+        while (lua_next(L, -2) != 0) // key at -2, value at -1
         {
-            key = std::to_string(static_cast<int>(lua_tointeger(L, -2) - 1));
-        }
-        else
-        {
-            key = cLuaScript::valueToString(L, -2);
-            skip = mIsGlobalTable && cLuaScript::isGlobalInternalElement(key);
-        }
-        if (!skip)
-        {
-            cLuaValue value = pop<cLuaValue>(*mScript, L);
-            if constexpr (std::is_invocable_v<C, const std::string&, const cLuaValue&>)
+            std::string key;
+            bool skip = false;
+            if (lua_type(L, -2) == LUA_TNUMBER)
             {
-                callable(key, value);
+                key = std::to_string(static_cast<int>(lua_tointeger(L, -2) - 1));
             }
-            else if constexpr (std::is_invocable_v<C, const cLuaValue&>)
+            else
             {
-                callable(value);
+                key = cLuaScript::valueToString(L, -2);
+                skip = mIsGlobalTable && cLuaScript::isGlobalInternalElement(key);
+            }
+            if (!skip)
+            {
+                cLuaValue value = pop<cLuaValue>(*mScript, L);
+                if constexpr (std::is_invocable_v<C, const std::string&, const cLuaValue&>)
+                {
+                    callable(key, value);
+                }
+                else if constexpr (std::is_invocable_v<C, const cLuaValue&>)
+                {
+                    callable(value);
+                }
+            }
+            else
+            {
+                lua_pop(L, 1); // Pop the value, but leave the key for the next iteration
             }
         }
-        else
-        {
-            lua_pop(L, 1); // Pop the value, but leave the key for the next iteration
-        }
+        lua_pop(L, 1); // Pop the table from the stack
     }
-    lua_pop(L, 1); // Pop the table from the stack
 }

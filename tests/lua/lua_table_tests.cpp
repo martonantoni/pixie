@@ -159,6 +159,72 @@ TEST(lua_value, toDouble)
     ASSERT_EQ(script->stackSize(), 0);
 }
 
+TEST(lua_value, isString)
+{
+    auto script = std::make_shared<cLuaScript>();
+    cLuaValue globalTable = script->globalTable();
+
+    storeTestVariables(globalTable);
+    cLuaValue intValue = *globalTable.get<cLuaValue>("twelve");
+    EXPECT_FALSE(intValue.isString());
+    cLuaValue floatValue = *globalTable.get<cLuaValue>("twelve_and_half");
+    EXPECT_FALSE(floatValue.isString());
+    cLuaValue stringValue = *globalTable.get<cLuaValue>("ten_string");
+    EXPECT_TRUE(stringValue.isString());
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_value, isNumber)
+{
+    auto script = std::make_shared<cLuaScript>();
+    cLuaValue globalTable = script->globalTable();
+
+    storeTestVariables(globalTable);
+    cLuaValue intValue = *globalTable.get<cLuaValue>("twelve");
+    EXPECT_TRUE(intValue.isNumber());
+    cLuaValue floatValue = *globalTable.get<cLuaValue>("twelve_and_half");
+    EXPECT_TRUE(floatValue.isNumber());
+    cLuaValue stringValue = *globalTable.get<cLuaValue>("ten_string");
+    EXPECT_FALSE(stringValue.isNumber());
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_value, visit_single_variable)
+{
+    auto script = std::make_shared<cLuaScript>();
+    cLuaValue globalTable = script->globalTable();
+    storeTestVariables(globalTable);
+
+    std::variant<std::monostate, int, double, std::string, cLuaValue> extractedValue;
+    cLuaValue intValue = *globalTable.get<cLuaValue>("twelve");
+    intValue.visit([&extractedValue](const auto& value)
+        {
+            extractedValue = value;
+        });
+    ASSERT(std::holds_alternative<int>(extractedValue));
+    ASSERT_EQ(std::get<int>(extractedValue), 12);
+
+    cLuaValue floatValue = *globalTable.get<cLuaValue>("twelve_and_half");
+    floatValue.visit([&extractedValue](const auto& value)
+        {
+            extractedValue = value;
+        });
+    ASSERT(std::holds_alternative<double>(extractedValue));
+    ASSERT_EQ(std::get<double>(extractedValue), 12.5);
+
+    cLuaValue stringValue = *globalTable.get<cLuaValue>("ten_string");
+    stringValue.visit([&extractedValue](const auto& value)
+        {
+            extractedValue = value;
+        });
+    ASSERT(std::holds_alternative<std::string>(extractedValue));
+    ASSERT_STREQ(std::get<std::string>(extractedValue).c_str(), "10");
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
 TEST(lua_value, array_get)
 {
     auto script = std::make_shared<cLuaScript>();
