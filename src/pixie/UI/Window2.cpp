@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
-#include "pixie/pixie/ui/Window2_SpriteIterator.h"
 
 const cEventDispatchers::cDispatcherRangeInfo cPixieWindow::mDispatcherRangeInfo
 {
@@ -67,11 +66,6 @@ void cPixieWindow::RemoveSprite(cSpriteBase *Sprite)
 	auto i=std::ranges::find(mSprites, Sprite);
 	if(ASSERTTRUE(i!=mSprites.end()))
 		mSprites.erase(i);
-}
-
-cPixieWindow::cSpriteIterator cPixieWindow::CreateSpriteIterator() const
-{
-	return cSpriteIterator(*this);
 }
 
 void cPixieWindow::AddSubWindow(cPixieWindow *SubWindow)

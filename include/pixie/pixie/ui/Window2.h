@@ -21,7 +21,6 @@ private:
 	static const cEventDispatchers::cDispatcherRangeInfo mDispatcherRangeInfo;
 	cEventDispatchers mEventDispatchers;
 public:
-	class cSpriteIterator;
 	typedef cPixieInitData cInitData;
 private:
 	cRect mPlacement; // relative to parent window
@@ -70,7 +69,6 @@ private:
 	void AddSprite(cSpriteBase *Sprite);
 	void RemoveSprite(cSpriteBase *Sprite);
 public:
-	cSpriteIterator CreateSpriteIterator() const;
 	void CheckOwnerlessSprites();
 	// SubWindows:
 private:

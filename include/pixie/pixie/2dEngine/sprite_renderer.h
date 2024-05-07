@@ -35,7 +35,7 @@ class cSpriteRenderer: public cRenderer
 	void Init();
 	void renderSprites(cPixieWindow& window, cRenderState& renderState);
 	void RenderSprites();
-	void UpdateUsedTextures();
+	void updateUsedTextures(cPixieWindow& window);
 	static void Rotate(cFloatPoint &Point, cFloatPoint Center, float s, float c);
 protected:
 	cDevice *mPixieDevice=nullptr;

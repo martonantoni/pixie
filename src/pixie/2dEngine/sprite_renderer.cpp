@@ -1,7 +1,6 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
 #include "pixie/pixie/2dEngine/sprite_renderer.h"
-#include "pixie/pixie/ui/Window2_SpriteIterator.h"
 
 void cSpriteRenderer::Init()
 {
@@ -135,7 +134,6 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
 				Rotate(BottomRight, Center, s, c);
 			}
 
-
 			//Setup vertices in buffer
 
 			batchVertices[NumberOfBatchedVertices].color = sprite->GetSpriteColor().GetColor_ByCorner(cSpriteColor::Corner_TopLeft).GetARGBColor();
@@ -215,16 +213,20 @@ void cSpriteRenderer::FlushBuffer(cSpriteVertexData* batchVertices, int &NumberO
 	}
 }
 
-void cSpriteRenderer::UpdateUsedTextures()
+void cSpriteRenderer::updateUsedTextures(cPixieWindow& window)
 {
- 	for(cPixieWindow::cSpriteIterator i=mBaseWindow.CreateSpriteIterator(); !i.IsAtEnd(); ++i)
- 	{
-		cSpriteRenderInfo RenderInfo=i->GetRenderInfo();
-		if(RenderInfo.mTexture&&RenderInfo.mTexture->DoesNeedUpdateBeforeUse())
+    for (auto& sprite : window.mSprites)
+    {
+		cSpriteRenderInfo RenderInfo = sprite->GetRenderInfo();
+		if (RenderInfo.mTexture && RenderInfo.mTexture->DoesNeedUpdateBeforeUse())
 		{
-			const_cast<cTexture *>(RenderInfo.mTexture)->Update();  // todo... this might be considered a late init pattern... 
+			const_cast<cTexture*>(RenderInfo.mTexture)->Update();  // todo... this might be considered a late init pattern... 
 		}
- 	}
+    }
+    for (auto& subWindow : window.mSubWindows)
+    {
+        updateUsedTextures(*subWindow);
+    }
 }
 
 void cSpriteRenderer::Render()
@@ -232,7 +234,7 @@ void cSpriteRenderer::Render()
 	if(!mIsInitDone)
 		Init();
 	
-	UpdateUsedTextures();
+	updateUsedTextures(mBaseWindow);
 
 	StopOnError(mDevice->SetRenderTarget(0, mRenderSurface));
 	if(mClearBeforeRender)
