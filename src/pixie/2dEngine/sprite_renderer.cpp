@@ -177,7 +177,7 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
 			FlushBuffer(batchVertices, NumberOfBatchedVertices, true);
 		}
 	}
-	for (auto& subWindow : window.mSubWindows | std::ranges::views::reverse)
+	for (auto& subWindow : window.mSubWindows | std::views::reverse)
 	{
 		renderSprites(*subWindow, renderState);
 	}

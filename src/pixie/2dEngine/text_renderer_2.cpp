@@ -211,7 +211,7 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
     }
     int x = 0, lineYOffset = 0;
     int lineFirstWordIndex = 0;
-    for (auto [idx, word] : std::ranges::views::enumerate(mWords))
+    for (auto [idx, word] : std::views::enumerate(mWords))
     {
         if(x + word.width() > mConfig.mWidth)
         {
@@ -254,7 +254,7 @@ cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
     const cFont& font = mConfig.mFonts.mMonospace ? *mConfig.mFonts.mMonospace : *mConfig.mFonts.mRegular;
     int startX = font.letterData(' ').advance();
     cPoint position(startX, font.height() / 2);
-    for (auto lineView : span.mText | std::ranges::views::split('\n'))
+    for (auto lineView : span.mText | std::views::split('\n'))
     {
         std::string_view line(lineView.data(), lineView.size());
         while (!line.empty())
@@ -305,7 +305,7 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
     const char* startOfCodeBlock = nullptr;
     eAlign defaultAlign = eAlign::Left;
 
-    for (auto lineView : text | std::ranges::views::split('\n'))
+    for (auto lineView : text | std::views::split('\n'))
     {
         std::string_view line(lineView.data(), lineView.size());
         if (line.starts_with("```")) // code block
