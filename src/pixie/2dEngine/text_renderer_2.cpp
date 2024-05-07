@@ -196,7 +196,6 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
         {
             isFirstSpan = false;
             unsigned char bulletPoint[] = { 0xE2, 0x80, 0xA2, ' ' };   // bullet point
-   //         unsigned char bulletPoint[] = { 0xE2, 0x96, 0xA0, ' ' }; // square bullet point
             std::string_view bulletPointView(reinterpret_cast<const char*>(bulletPoint), 4);
             addText(bulletPointView);
         };
