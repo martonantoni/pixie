@@ -33,6 +33,7 @@ class cSpriteRenderer: public cRenderer
 	void UpdateBlending(cSpriteRenderInfo::eBlendingMode BlendingMode);
 	void FlushBuffer(cSpriteVertexData* batchVertices, int &NumberOfBatchedVertices, bool RelockBuffer);
 	void Init();
+	void renderSprites(cPixieWindow& window, cRenderState& renderState);
 	void RenderSprites();
 	void UpdateUsedTextures();
 	static void Rotate(cFloatPoint &Point, cFloatPoint Center, float s, float c);

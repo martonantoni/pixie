@@ -6,6 +6,7 @@ class cPixieWindow: public cPixieObject
 {
 	friend class cSpriteBase;
 	friend class cMouseTarget;
+	friend class cSpriteRenderer;
 public:
 	enum eEventType
 	{

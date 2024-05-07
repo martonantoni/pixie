@@ -89,35 +89,28 @@ void cSpriteRenderer::Rotate(cFloatPoint &Point, cFloatPoint Center, float s, fl
 // 					return (p2.x - p1.x)*(p3.y - p1.y) - (p2.y - p1.y)*(p3.x - p1.x) >0;
 // 				};
 
-
-
-void cSpriteRenderer::RenderSprites()
+void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderState)
 {
-	cRenderState renderState;
-	D3V(mVertexBuffer->Lock(0, mMaxSpritesPerFlush * 4 * sizeof(cSpriteVertexData), (void **)&renderState.batchVertices, 0));
-	D3V(mDevice->SetStreamSource(0, mVertexBuffer, 0, sizeof(cSpriteVertexData)));
-	D3V(mDevice->SetIndices(mIndexBuffer));
-	for(cPixieWindow::cSpriteIterator i=mBaseWindow.CreateSpriteIterator(); !i.IsAtEnd(); )
+	for (auto& sprite : window.mSprites) // smallest Z order first, those are the ones behind the others
 	{
-		cSpriteBase &Sprite=*i;
-		cSpriteRenderInfo RenderInfo=Sprite.GetRenderInfo();
+		cSpriteRenderInfo RenderInfo = sprite->GetRenderInfo();
 		auto batchVertices = renderState.batchVertices;
 		auto& NumberOfBatchedVertices = renderState.NumberOfBatchedVertices;
 		float Z = 0.5f;
-		if(RenderInfo.mTexture)
+		if (RenderInfo.mTexture)
 		{
-			if(RenderInfo.mBlendingMode!= renderState.LastBlendingMode)
+			if (RenderInfo.mBlendingMode != renderState.LastBlendingMode)
 			{
 				++renderState.StateChangeCount;
 				FlushBuffer(batchVertices, NumberOfBatchedVertices, true);
-				renderState.LastBlendingMode=RenderInfo.mBlendingMode;
+				renderState.LastBlendingMode = RenderInfo.mBlendingMode;
 				UpdateBlending(renderState.LastBlendingMode);
 			}
-			if(RenderInfo.mTexture->mTexture!= renderState.Texture)
+			if (RenderInfo.mTexture->mTexture != renderState.Texture)
 			{
 				++renderState.TextureChangeCount;
 				FlushBuffer(batchVertices, NumberOfBatchedVertices, true);
-				renderState.Texture=RenderInfo.mTexture->mTexture;
+				renderState.Texture = RenderInfo.mTexture->mTexture;
 				D3V(mDevice->SetTexture(0, renderState.Texture));
 			}
 			++renderState.SpriteCount;
@@ -125,17 +118,17 @@ void cSpriteRenderer::RenderSprites()
 			cFloatPoint TopRight(RenderInfo.mRect.TopRight());
 			cFloatPoint BottomLeft(RenderInfo.mRect.BottomLeft());
 			cFloatPoint BottomRight(RenderInfo.mRect.BottomRight());
-			TopLeft+=cFloatPoint(-0.5, -0.5);       // https://msdn.microsoft.com/en-us/library/windows/desktop/bb219690%28v=vs.85%29.aspx
-			TopRight+=cFloatPoint(-0.5+1.0, -0.5);   // (Directly Mapping Texels to Pixels (Direct3D 9))
-			BottomLeft+=cFloatPoint(-0.5, -0.5+1.0);
-			BottomRight+=cFloatPoint(-0.5+1.0, -0.5+1.0);
+			TopLeft += cFloatPoint(-0.5, -0.5);       // https://msdn.microsoft.com/en-us/library/windows/desktop/bb219690%28v=vs.85%29.aspx
+			TopRight += cFloatPoint(-0.5 + 1.0, -0.5);   // (Directly Mapping Texels to Pixels (Direct3D 9))
+			BottomLeft += cFloatPoint(-0.5, -0.5 + 1.0);
+			BottomRight += cFloatPoint(-0.5 + 1.0, -0.5 + 1.0);
 
-			if(RenderInfo.mRotation)
+			if (RenderInfo.mRotation)
 			{
 				cFloatPoint Center(RenderInfo.mRect.GetCenter());
-				float Rad=RenderInfo.mRotation*3.1415/180.0;
-				float s=sin(Rad);
-				float c=cos(Rad);
+				float Rad = RenderInfo.mRotation * 3.1415 / 180.0;
+				float s = sin(Rad);
+				float c = cos(Rad);
 				Rotate(TopLeft, Center, s, c);
 				Rotate(TopRight, Center, s, c);
 				Rotate(BottomLeft, Center, s, c);
@@ -145,62 +138,75 @@ void cSpriteRenderer::RenderSprites()
 
 			//Setup vertices in buffer
 
-			batchVertices[NumberOfBatchedVertices].color =Sprite.GetSpriteColor().GetColor_ByCorner(cSpriteColor::Corner_TopLeft).GetARGBColor();
+			batchVertices[NumberOfBatchedVertices].color = sprite->GetSpriteColor().GetColor_ByCorner(cSpriteColor::Corner_TopLeft).GetARGBColor();
 			batchVertices[NumberOfBatchedVertices].x = TopLeft.x;
 			batchVertices[NumberOfBatchedVertices].y = TopLeft.y;
 			batchVertices[NumberOfBatchedVertices].z = Z;
 			batchVertices[NumberOfBatchedVertices].u = RenderInfo.mTexture->GetTextureInfo().mLeft;
 			batchVertices[NumberOfBatchedVertices].v = RenderInfo.mTexture->GetTextureInfo().mTop;
 
-			batchVertices[NumberOfBatchedVertices + 1].color =Sprite.GetSpriteColor().GetColor_ByCorner(cSpriteColor::Corner_TopRight).GetARGBColor();
+			batchVertices[NumberOfBatchedVertices + 1].color = sprite->GetSpriteColor().GetColor_ByCorner(cSpriteColor::Corner_TopRight).GetARGBColor();
 			batchVertices[NumberOfBatchedVertices + 1].x = TopRight.x;
 			batchVertices[NumberOfBatchedVertices + 1].y = TopRight.y;
 			batchVertices[NumberOfBatchedVertices + 1].z = Z;
 			batchVertices[NumberOfBatchedVertices + 1].u = RenderInfo.mTexture->GetTextureInfo().mRight;
 			batchVertices[NumberOfBatchedVertices + 1].v = RenderInfo.mTexture->GetTextureInfo().mTop;
 
-			batchVertices[NumberOfBatchedVertices + 2].color =Sprite.GetSpriteColor().GetColor_ByCorner(cSpriteColor::Corner_BottomRight).GetARGBColor();
+			batchVertices[NumberOfBatchedVertices + 2].color = sprite->GetSpriteColor().GetColor_ByCorner(cSpriteColor::Corner_BottomRight).GetARGBColor();
 			batchVertices[NumberOfBatchedVertices + 2].x = BottomRight.x;
 			batchVertices[NumberOfBatchedVertices + 2].y = BottomRight.y;
 			batchVertices[NumberOfBatchedVertices + 2].z = Z;
 			batchVertices[NumberOfBatchedVertices + 2].u = RenderInfo.mTexture->GetTextureInfo().mRight;
 			batchVertices[NumberOfBatchedVertices + 2].v = RenderInfo.mTexture->GetTextureInfo().mBottom;
 
-			batchVertices[NumberOfBatchedVertices + 3].color =Sprite.GetSpriteColor().GetColor_ByCorner(cSpriteColor::Corner_BottomLeft).GetARGBColor();
+			batchVertices[NumberOfBatchedVertices + 3].color = sprite->GetSpriteColor().GetColor_ByCorner(cSpriteColor::Corner_BottomLeft).GetARGBColor();
 			batchVertices[NumberOfBatchedVertices + 3].x = BottomLeft.x;
 			batchVertices[NumberOfBatchedVertices + 3].y = BottomLeft.y;
 			batchVertices[NumberOfBatchedVertices + 3].z = Z;
 			batchVertices[NumberOfBatchedVertices + 3].u = RenderInfo.mTexture->GetTextureInfo().mLeft;
 			batchVertices[NumberOfBatchedVertices + 3].v = RenderInfo.mTexture->GetTextureInfo().mBottom;
 
-			batchVertices[NumberOfBatchedVertices].rhw=1.0f;
-			batchVertices[NumberOfBatchedVertices+1].rhw=1.0f;
-			batchVertices[NumberOfBatchedVertices+2].rhw=1.0f;
-			batchVertices[NumberOfBatchedVertices+3].rhw=1.0f;
+			batchVertices[NumberOfBatchedVertices].rhw = 1.0f;
+			batchVertices[NumberOfBatchedVertices + 1].rhw = 1.0f;
+			batchVertices[NumberOfBatchedVertices + 2].rhw = 1.0f;
+			batchVertices[NumberOfBatchedVertices + 3].rhw = 1.0f;
 			//Increase vertex count
 			NumberOfBatchedVertices += 4;
 			//Flush buffer if it's full or no more sprite to draw
 		}
-		++i;
-		if(NumberOfBatchedVertices == mMaxSpritesPerFlush * 4  || i.IsAtEnd())
+		if (NumberOfBatchedVertices == mMaxSpritesPerFlush * 4)
 		{
-			FlushBuffer(batchVertices, NumberOfBatchedVertices, !i.IsAtEnd());
+			FlushBuffer(batchVertices, NumberOfBatchedVertices, true);
 		}
 	}
+	for (auto& subWindow : window.mSubWindows | std::ranges::views::reverse)
+	{
+		renderSprites(*subWindow, renderState);
+	}
+}
+
+void cSpriteRenderer::RenderSprites()
+{
+	cRenderState renderState;
+	D3V(mVertexBuffer->Lock(0, mMaxSpritesPerFlush * 4 * sizeof(cSpriteVertexData), (void **)&renderState.batchVertices, 0));
+	D3V(mDevice->SetStreamSource(0, mVertexBuffer, 0, sizeof(cSpriteVertexData)));
+	D3V(mDevice->SetIndices(mIndexBuffer));
+	renderSprites(mBaseWindow, renderState);
+	FlushBuffer(renderState.batchVertices, renderState.NumberOfBatchedVertices, false);
 }
 
 void cSpriteRenderer::FlushBuffer(cSpriteVertexData* batchVertices, int &NumberOfBatchedVertices, bool RelockBuffer)
 {
-	if(!NumberOfBatchedVertices)
-		return;
-
 	D3V(mVertexBuffer->Unlock());
 
-	//Draw quads in the buffer
-	D3V(mDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, NumberOfBatchedVertices, 0, NumberOfBatchedVertices / 2));
+	if (NumberOfBatchedVertices)
+	{
+		//Draw quads in the buffer
+		D3V(mDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, NumberOfBatchedVertices, 0, NumberOfBatchedVertices / 2));
 
-	//Reset vertex count        
-	NumberOfBatchedVertices = 0;
+		//Reset vertex count        
+		NumberOfBatchedVertices = 0;
+	}
 
 	//Lock vertex buffer again
 	if(RelockBuffer)
