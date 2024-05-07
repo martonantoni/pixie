@@ -249,11 +249,44 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
 cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
 {
     cTextRenderer2BlockResult result;
+    int headerHeight = 0;
+    if (!block.mCodeBlock.mTitle.empty())
+    {
+        // ---- header BG ----
+        auto headerFont = *mConfig.mFonts.mHeadings[2];
+        headerHeight = headerFont.height() * 3 / 2;
+        auto headerBackgroundSprite = std::make_unique<cSprite>();
+        headerBackgroundSprite->SetTexture("1pix");
+        headerBackgroundSprite->SetZOrder(99);
+        headerBackgroundSprite->SetWindow(mConfig.mWindow);
+        headerBackgroundSprite->SetRGBColor("dark_gray");
+        headerBackgroundSprite->SetPosition(cPoint(0, 0));
+        headerBackgroundSprite->SetSize(cPoint(mConfig.mWidth, headerHeight));
+        result.mSprites.emplace_back(std::move(headerBackgroundSprite));
+        // ---- header text ----
+        std::string_view headerText = block.mCodeBlock.mTitle;
+        cPoint headerPosition(10, headerFont.height() / 4);
+        while (!headerText.empty())
+        {
+            wchar_t decodedChar = UTF8::popCharacter(headerText);
+            auto& letterData = headerFont.letterData(decodedChar);
+            auto sprite = std::make_unique<cSprite>();
+            sprite->SetTextureAndSize(letterData.mTexture);
+            sprite->SetZOrder(100);
+            sprite->SetWindow(mConfig.mWindow);
+            sprite->SetRGBColor("white");
+            sprite->SetPosition(headerPosition + letterData.offset());
+            result.mSprites.emplace_back(std::move(sprite));
+            headerPosition.x += letterData.advance();
+        }
+    }
+
+    // ---- block ----
     ASSERT(block.mSpans.size() == 1);
     auto& span = block.mSpans[0];
     const cFont& font = mConfig.mFonts.mMonospace ? *mConfig.mFonts.mMonospace : *mConfig.mFonts.mRegular;
     int startX = font.letterData(' ').advance();
-    cPoint position(startX, font.height() / 2);
+    cPoint position(startX, font.height() / 2 + headerHeight);
     for (auto lineView : span.mText | std::views::split('\n'))
     {
         std::string_view line(lineView.data(), lineView.size());
@@ -274,16 +307,16 @@ cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
         position.x = startX;
     }
     position.y += font.height() / 2;
-    // add background sprite:
+    // ---- background ----
     auto backgroundSprite = std::make_unique<cSprite>();
     backgroundSprite->SetTexture("1pix");
-    backgroundSprite->SetZOrder(99);
+    backgroundSprite->SetZOrder(98);
     backgroundSprite->SetWindow(mConfig.mWindow);
     backgroundSprite->SetRGBColor(mConfig.mColors.mCodeBlockBG);
-    backgroundSprite->SetPosition(cPoint(0, 0));
-    backgroundSprite->SetSize(cPoint(mConfig.mWidth, position.y));
+    backgroundSprite->SetPosition(cPoint(0, headerHeight));
+    backgroundSprite->SetSize(cPoint(mConfig.mWidth, position.y - headerHeight));
     result.mSprites.emplace_back(std::move(backgroundSprite));
-    // add border sprite:
+    // ---- border  ----
     auto borderSprite = std::make_unique<cRectBorderMultiSprite>(1);
     borderSprite->SetZOrder(101);
     borderSprite->SetWindow(mConfig.mWindow);
