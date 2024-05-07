@@ -239,7 +239,7 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
             sprites, lineFirstWordIndex, mWords.size() - 1, lineYOffset);
     }
     result.mHeight = lineYOffset;
-    if(!block.mIsListItem)
+    if(block.mEmptyLineAfter)
         result.mHeight += mConfig.mFonts.mRegular->height();
 
     return result;
@@ -401,6 +401,7 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
             line.remove_prefix(line.size() == 1 || line[1] != ' ' ? 1 : 2);
             if(!blocks.back().mSpans.empty())
             {
+                blocks.back().mEmptyLineAfter = false;
                 blocks.emplace_back();
                 blocks.back().mAlign = defaultAlign;
             }

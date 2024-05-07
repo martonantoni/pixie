@@ -48,6 +48,7 @@ struct cTextRenderer2Block
     enum class eAlign { Left, Center, Right, Justify } mAlign = eAlign::Left;
     bool mIsCodeBlock = false;
     bool mIsListItem = false;
+    bool mEmptyLineAfter = true;
     struct
     {
         std::string mTitle;
