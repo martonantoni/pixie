@@ -90,38 +90,37 @@ void cSpriteRenderer::Rotate(cFloatPoint &Point, cFloatPoint Center, float s, fl
 // 				};
 
 
+
 void cSpriteRenderer::RenderSprites()
 {
-	int SpriteCount=0, StateChangeCount=0, TextureChangeCount=0;
-	float Z=0.5f;
-	IDirect3DTexture9 *Texture=nullptr;
-	auto LastBlendingMode=cSpriteRenderInfo::Invalid_Blend_Mode;
-	int NumberOfBatchedVertices=0;
-	cSpriteVertexData* batchVertices;
-	D3V(mVertexBuffer->Lock(0, mMaxSpritesPerFlush * 4 * sizeof(cSpriteVertexData), (void **)&batchVertices, 0));
+	cRenderState renderState;
+	D3V(mVertexBuffer->Lock(0, mMaxSpritesPerFlush * 4 * sizeof(cSpriteVertexData), (void **)&renderState.batchVertices, 0));
 	D3V(mDevice->SetStreamSource(0, mVertexBuffer, 0, sizeof(cSpriteVertexData)));
 	D3V(mDevice->SetIndices(mIndexBuffer));
 	for(cPixieWindow::cSpriteIterator i=mBaseWindow.CreateSpriteIterator(); !i.IsAtEnd(); )
 	{
 		cSpriteBase &Sprite=*i;
 		cSpriteRenderInfo RenderInfo=Sprite.GetRenderInfo();
+		auto batchVertices = renderState.batchVertices;
+		auto& NumberOfBatchedVertices = renderState.NumberOfBatchedVertices;
+		float Z = 0.5f;
 		if(RenderInfo.mTexture)
 		{
-			if(RenderInfo.mBlendingMode!=LastBlendingMode)
+			if(RenderInfo.mBlendingMode!= renderState.LastBlendingMode)
 			{
-				++StateChangeCount;
+				++renderState.StateChangeCount;
 				FlushBuffer(batchVertices, NumberOfBatchedVertices, true);
-				LastBlendingMode=RenderInfo.mBlendingMode;
-				UpdateBlending(LastBlendingMode);
+				renderState.LastBlendingMode=RenderInfo.mBlendingMode;
+				UpdateBlending(renderState.LastBlendingMode);
 			}
-			if(RenderInfo.mTexture->mTexture!=Texture)
+			if(RenderInfo.mTexture->mTexture!= renderState.Texture)
 			{
-				++TextureChangeCount;
+				++renderState.TextureChangeCount;
 				FlushBuffer(batchVertices, NumberOfBatchedVertices, true);
-				Texture=RenderInfo.mTexture->mTexture;
-				D3V(mDevice->SetTexture(0, Texture));
+				renderState.Texture=RenderInfo.mTexture->mTexture;
+				D3V(mDevice->SetTexture(0, renderState.Texture));
 			}
-			++SpriteCount;
+			++renderState.SpriteCount;
 			cFloatPoint TopLeft(RenderInfo.mRect.TopLeft());
 			cFloatPoint TopRight(RenderInfo.mRect.TopRight());
 			cFloatPoint BottomLeft(RenderInfo.mRect.BottomLeft());

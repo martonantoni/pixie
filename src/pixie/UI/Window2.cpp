@@ -224,6 +224,12 @@ void cPixieWindow::CheckOwnerlessSprites()
 		if(!WasKill)
 			break;
 	}
+	int area = 0;
+	for(auto &Sprite: mSprites)
+    {
+		auto rect = Sprite->GetRect();
+        area += rect.Width() * rect.Height();
+    }
 }
 
 bool cPixieWindow::GetProperty(unsigned int PropertyFlags, OUT cPropertyValues &PropertyValues) const

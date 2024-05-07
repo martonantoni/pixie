@@ -13,6 +13,14 @@ class cSpriteRenderer: public cRenderer
 		float v;
 		static const DWORD FVF = D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1;
 	};
+	struct cRenderState
+	{
+		int SpriteCount = 0, StateChangeCount = 0, TextureChangeCount = 0;
+		IDirect3DTexture9* Texture = nullptr;
+		cSpriteRenderInfo::eBlendingMode LastBlendingMode = cSpriteRenderInfo::Invalid_Blend_Mode;
+		int NumberOfBatchedVertices = 0;
+		cSpriteVertexData* batchVertices;
+	};
 	bool mIsUnderDestruction=false;
 	bool mIsInitDone=false;
 	cPixieWindow &mBaseWindow;
