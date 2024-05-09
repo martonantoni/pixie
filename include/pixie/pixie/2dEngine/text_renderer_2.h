@@ -74,7 +74,7 @@ struct cTextRenderer2BlockResult
 class cTextRenderer2
 {
     cTextRenderer2Config mConfig;
-    struct cWord
+    struct cWord final
     {
         int mFirstSpriteIndex;
         int mLastSpriteIndex;
@@ -86,6 +86,15 @@ class cTextRenderer2
         int mSpaceWidth;
         char separator = 0;
         int width() const { return mWidth; }
+    };
+    class cPrefixRemover final
+    {
+        std::string_view& mText;
+        int mPrefixSize;
+    public:
+        cPrefixRemover(std::string_view& text, int prefixSize) : mText(text), mPrefixSize(prefixSize) {}
+        ~cPrefixRemover();
+        void overridePrefixSize(int size);
     };
     std::vector<cWord> mWords;
     std::pair<const cFont&, const cColor&> determineFont(const cTextRenderer2Block& block, const cTextRenderer2Span& span) const;

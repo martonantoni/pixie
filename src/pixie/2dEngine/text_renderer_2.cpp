@@ -157,7 +157,6 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
     {
         auto [font, color] = determineFont(block, span);
         int spaceWidth = font.letterData(' ').advance();
-        int firstSpriteInSpan = sprites.size();
         bool wasTabBefore = false;
         auto addText = [&](std::string_view text)
             {
@@ -199,6 +198,7 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
             std::string_view bulletPointView(reinterpret_cast<const char*>(bulletPoint), 4);
             addText(bulletPointView);
         };
+        int firstSpriteInSpan = sprites.size();
         addText(span.mText);
         if (span.mIsLink)
         {
@@ -227,7 +227,7 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
         {
             x = getNextTabStop(x);
         }
-        else
+        else if (word.separator == ' ')
         {
             x += word.mSpaceWidth;
         }
@@ -446,7 +446,7 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
             auto wordEnd = line.find_first_of(" \t");
             std::string_view word = wordEnd == std::string_view::npos ? line : line.substr(0, wordEnd);
             char separator = wordEnd == std::string_view::npos ? 0 : line[wordEnd];
-            line.remove_prefix(std::min(word.size() + 1, line.size()));
+            cPrefixRemover prefixRemover(line, std::min(word.size() + 1, line.size()));
             if (word.starts_with("@h") && word.size() >= 3)
             {
                 pushSpan();
@@ -486,86 +486,58 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
                 setAlign(cTextRenderer2Block::eAlign::Justify);
                 continue; // ignore rest of the word
             }
-            if (word.starts_with("``"))
+            if([&]() 
+                {
+                    for (int i = 1; i < word.size(); ++i)
+                    {
+                        if (word[i] == word[i - 1] &&
+                            (word[i] == '`' || word[i] == '*' || word[i] == '_' || word[i] == '[' || word[i] == ']'))
+                        {
+                            extendSpan(word.substr(0, i - 1));
+                            span.mSeparator = i == word.size() - 1 ? separator : 0;
+                            pushSpan();
+                            switch (word[i])
+                            {
+                            case '`':
+                                span.mIsMonospace = !span.mIsMonospace;
+                                break;
+                            case '*':
+                                span.mIsBold = !span.mIsBold;
+                                break;
+                            case '_':
+                                span.mIsItalic = !span.mIsItalic;
+                                break;
+                            case '[': [[fallthrough]];
+                            case ']':
+                                span.mIsLink = !span.mIsLink;
+                                break;
+                            default:
+                                break;
+                            }
+                            prefixRemover.overridePrefixSize(i + 1);
+                            return true;
+                        }
+                    }
+                    return false;
+                }())
             {
-                pushSpan();
-                span.mIsMonospace = true;
-                word.remove_prefix(2);
+                continue;
             }
-            if (word.starts_with("[["))
-            {
-                pushSpan();
-                span.mIsLink = true;
-                word.remove_prefix(2);
-            }
-            if (word.starts_with("__"))
-            {
-                pushSpan();
-                span.mIsItalic = true;
-                word.remove_prefix(2);
-            }
-            if (word.starts_with("**"))
-            {
-                pushSpan();
-                span.mIsBold = true;
-                word.remove_prefix(2);
-            }
-            bool needPush = false, removeBold = false, removeItalic = false, removeLink = false, removeMonospace = false;
-            if (word.ends_with("``"))
-            {
-                word.remove_suffix(2);
-                extendSpan(word);
-                needPush = true;
-                removeMonospace = true;
-            }
-            if (word.ends_with("]]"))
-            {
-                word.remove_suffix(2);
-                extendSpan(word);
-                needPush = true;
-                removeLink = true;
-            }
-            if (word.ends_with("__"))
-            {
-                word.remove_suffix(2);
-                extendSpan(word);
-                needPush = true;
-                removeItalic = true;
-            }
-            if (word.ends_with("**"))
-            {
-                word.remove_suffix(2);
-                extendSpan(word);
-                needPush = true;
-                removeBold = true;
-            }
-
             extendSpan(word);
-            if (needPush)
-            {
-                span.mSeparator = separator;
-                pushSpan();
-                if (removeBold)
-                {
-                    span.mIsBold = false;
-                }
-                if (removeItalic)
-                {
-                    span.mIsItalic = false;
-                }
-                if (removeLink)
-                {
-                    span.mIsLink = false;
-                }
-                if (removeMonospace)
-                {
-                    span.mIsMonospace = false;
-                }
-            }
         } // words
         pushSpan();
     }
     return blocks;
+}
+
+cTextRenderer2::cPrefixRemover::~cPrefixRemover()
+{
+    mText.remove_prefix(mPrefixSize);
+}
+
+void cTextRenderer2::cPrefixRemover::overridePrefixSize(int size)
+{
+    mPrefixSize = size;
 }
 
 } // namespace Pixie
