@@ -140,7 +140,7 @@ void cLuaScript::executeFile(const cPath& scriptPath)
     if (luaL_dofile(L, scriptPath.c_str()))
     {
         const char* errorMessage = lua_tostring(L, -1);
-        printf("LUA Error: %s\n", errorMessage);
+        printf("LUA executeFile error: %s\n", errorMessage);
         fflush(stdout);
         DebugBreak();
         // handle error
@@ -152,7 +152,7 @@ void cLuaScript::executeString(const std::string& script)
     if (luaL_dostring(L, script.c_str())) 
     {
         const char* errorMessage = lua_tostring(L, -1);
-        MainLog->Log("LUA Error: %s\n", errorMessage);
+        MainLog->Log("LUA executeString error: %s\n", errorMessage);
         MainLog->Log("script: %s\n", script.c_str());
         throw std::runtime_error(std::format("lua error: {}", errorMessage));
     }
