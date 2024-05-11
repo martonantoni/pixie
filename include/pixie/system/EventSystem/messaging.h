@@ -147,4 +147,8 @@ public:
     {
         mListeners.emplace_back(theMessageCenter.registerListener<void>(endpointID, std::forward<C>(callback)));
     }
+    void clear()
+    {
+        mListeners.clear();
+    }
 };
