@@ -30,6 +30,8 @@ class cSpriteRenderer: public cRenderer
 	IDirect3DIndexBuffer9 *mIndexBuffer=nullptr;
 	int mMaxSpritesPerFlush=0;
 	bool mClearBeforeRender=false;
+	bool mUseClipping = false;
+	cRect mClippingRect;
 	void UpdateBlending(cSpriteRenderInfo::eBlendingMode BlendingMode);
 	void FlushBuffer(cSpriteVertexData* batchVertices, int &NumberOfBatchedVertices, bool RelockBuffer);
 	void Init();

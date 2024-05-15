@@ -90,8 +90,30 @@ void cSpriteRenderer::Rotate(cFloatPoint &Point, cFloatPoint Center, float s, fl
 
 void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderState)
 {
+	auto [useClipping, clippingRect] = window.getSpriteClipping();
+	if (useClipping != mUseClipping || (useClipping && clippingRect != mClippingRect))
+	{
+		FlushBuffer(renderState.batchVertices, renderState.NumberOfBatchedVertices, true);
+        mUseClipping = useClipping;
+        mClippingRect = clippingRect;
+        if (mUseClipping)
+        {
+            D3V(mDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE));
+            RECT rect;
+            rect.left = clippingRect.Left();
+            rect.right = clippingRect.Right();
+            rect.top = clippingRect.Top();
+            rect.bottom = clippingRect.Bottom();
+            D3V(mDevice->SetScissorRect(&rect));
+        }
+        else
+        {
+            D3V(mDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE));
+        }
+	}
 	for (auto& sprite : window.mSprites) // smallest Z order first, those are the ones behind the others
 	{
+
 		cSpriteRenderInfo RenderInfo = sprite->GetRenderInfo();
 		auto batchVertices = renderState.batchVertices;
 		auto& NumberOfBatchedVertices = renderState.NumberOfBatchedVertices;

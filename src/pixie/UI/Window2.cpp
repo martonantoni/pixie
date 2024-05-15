@@ -47,6 +47,8 @@ void cPixieWindow::Init(const cInitData &InitData)
 	else
 		mIsClickThrough=true;
 	mIsModal=InitData.mFlags&Flag_IsModal;
+	mValidRect = InitData.mValidRect;
+	mSpriteClipping = InitData.mClippingMode;
 	SetPlacement(InitData.mPlacement); // uses mEventDispatchers & mParentWindow
 }
 
@@ -224,6 +226,38 @@ void cPixieWindow::CheckOwnerlessSprites()
 		auto rect = Sprite->GetRect();
         area += rect.Width() * rect.Height();
     }
+}
+
+std::pair<bool, cRect> cPixieWindow::getSpriteClipping() const
+{
+	switch (mSpriteClipping)
+	{
+	case eClipping::None:
+		return { false, {} };
+	case eClipping::ClipToClientRect:
+		return { true, GetScreenRect() };
+	case eClipping::ClipToParentClientRect:
+		if (mParentWindow)
+			return { true, mParentWindow->GetScreenRect() };
+        else
+			return { true, thePixieDesktop.GetClientRect() };
+	case eClipping::ClipToValidRect_ScreeCoords:
+		return { true, mValidRect };
+	case eClipping::ClipToValidRect_WindowCoords:
+		{
+			cRect result = mValidRect;
+			result.Move(GetScreenRect().GetPosition());
+			return { true, result };
+		}
+	case eClipping::ClipToValidRect_ParentWindowCoords:
+		{
+			cRect result = mValidRect;
+			if (mParentWindow)
+				result.Move(mParentWindow->GetScreenRect().GetPosition());
+			return { true, result };
+        }
+	}
+	return { false, {} };
 }
 
 bool cPixieWindow::GetProperty(unsigned int PropertyFlags, OUT cPropertyValues &PropertyValues) const

@@ -17,23 +17,40 @@ public:
     // init flags:
     constexpr static int Flag_ClickThrough = 1;
     constexpr static int Flag_IsModal = 2;  // this is within its parentwindow
+	constexpr static int Flag_ClipSpritesToValidRect = 4;
+	constexpr static int Flag_ClipSpritesToScreenRect = 4;
 private:
 	static const cEventDispatchers::cDispatcherRangeInfo mDispatcherRangeInfo;
 	cEventDispatchers mEventDispatchers;
 public:
-	typedef cPixieInitData cInitData;
+	enum class eClipping
+	{
+		None,
+		ClipToClientRect,
+		ClipToParentClientRect,
+		ClipToValidRect_ScreeCoords,
+		ClipToValidRect_WindowCoords,
+		ClipToValidRect_ParentWindowCoords,
+	};
+	struct cInitData : public cPixieInitData
+	{
+		eClipping mClippingMode = eClipping::None;
+		cRect mValidRect;
+	};
 private:
 	cRect mPlacement; // relative to parent window
 	cRect mScreenRect;
-	bool mIsClickThrough=false;
-	bool mIsModal=false;
+	cRect mValidRect; 
+	eClipping mSpriteClipping = eClipping::None;
+	bool mIsClickThrough = false;
+	bool mIsModal = false;
 	int mZOrder=100;  // 0: "above all subwindows" sprite layer (virtual window)
 					  // 1-99 top level windows
 					  // 100+ normal windows
 
-	typedef std::vector<cPixieWindow *> cWindows;
+	using cWindows = std::vector<cPixieWindow*>;
 	cWindows mSubWindows;
-	cPixieWindow *mParentWindow=nullptr;
+	cPixieWindow* mParentWindow = nullptr;
 
 	typedef std::vector<cSpriteBase *> cSprites;
 	cSprites mSprites;
@@ -42,6 +59,7 @@ private:
 	class cMouseTargetIterator;
 	std::unique_ptr<cMouseBlocker> mMouseBlocker;
 	void UpdateScreenRect(const cRect &ParentScreenRect);
+	std::pair<bool, cRect> getSpriteClipping() const; // rect is in screen coordinates
 protected:
 	int mSpriteBaseZ=0;
 public:
