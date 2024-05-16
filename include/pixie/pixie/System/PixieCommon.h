@@ -24,7 +24,9 @@ struct cRect
     constexpr int Right() const { return mLeft+mWidth-1; }
     constexpr int Bottom() const { return mTop+mHeight-1; }
     constexpr int Width() const { return mWidth; }
+    constexpr int width() const { return mWidth; }
     constexpr int Height() const { return mHeight; }
+	constexpr int height() const { return mHeight; }
 	void SetRight(int Right) { mWidth=Right-mLeft+1; }
 	void SetBottom(int Bottom) { mHeight=Bottom-mTop+1; }
 	void SetPosition(cPoint Position) { mLeft=Position.x; mTop=Position.y; }
@@ -33,8 +35,8 @@ struct cRect
 	cPoint position() const { return cPoint(mLeft,mTop); }
 	cPoint GetSize() const { return cPoint(mWidth,mHeight); }
 	cPoint size() const { return cPoint(mWidth,mHeight); }
-	void Move(cPoint Offset) { mLeft+=Offset.x; mTop+=Offset.y; }
-    void Grow(cPoint Offset) { mWidth += Offset.x; mHeight += Offset.y; }
+	cRect Move(cPoint Offset) { mLeft += Offset.x; mTop += Offset.y; return *this; }
+	cRect Grow(cPoint Offset) { mWidth += Offset.x; mHeight += Offset.y; return *this; }
 	bool IsPointInside(cPoint Point) const;
 	bool hasOverlap(const cRect &Other) const;
 	bool operator==(const cRect &Other) const { return mLeft==Other.mLeft&&mTop==Other.mTop&&mWidth==Other.mWidth&&mHeight==Other.mHeight; }
