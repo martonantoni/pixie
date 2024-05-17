@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
 
+// see here: https://en.wikipedia.org/wiki/B%C3%A9zier_curve#Higher-order_curves
+
 cPoint CubicSpline(const cSplineParameters& splineParameters, double t)
 {
 	if(ASSERTFALSE(splineParameters.size()!=4))
@@ -15,32 +17,19 @@ cPoint CubicSpline(const cSplineParameters& splineParameters, double t)
 
 std::vector<cPoint> GenerateSplinePoints(const cSplineParameters& splineParameters, double DesiredSpacing)
 {
-    RELEASE_ASSERT(splineParameters.size() == 4);
-	constexpr int TableSize=100;
-	constexpr double TableResolution=1.0/TableSize;
-	std::vector<std::pair<cPoint, double>> SplinePoints;
-	SplinePoints.reserve(TableSize);
-	SplinePoints.emplace_back(splineParameters.front(), 0.0);
-	for(int i=1; i<TableSize; ++i)
-	{
-		auto Point=CubicSpline(splineParameters, TableResolution*i);
-		SplinePoints.emplace_back(Point, Point.DistanceFrom(SplinePoints.back().first)+SplinePoints.back().second);
-	}
-	double DesiredDistance=DesiredSpacing;
-	std::vector<cPoint> Points;
-	Points.emplace_back(SplinePoints.front().first);
-	for(int i=1;i<TableSize;++i)
-	{
-		while(SplinePoints[i].second>DesiredDistance)
-		{
-			// will be between index i and i-1
-			double DistanceFromPrev=SplinePoints[i].second-SplinePoints[i-1].second;
-			if(DistanceFromPrev<0.00000001)
-				continue;
-			double t=i*TableResolution-TableResolution*((SplinePoints[i].second-DesiredDistance)/DistanceFromPrev);
-			Points.emplace_back(CubicSpline(splineParameters, t));
-			DesiredDistance+=DesiredSpacing;
-		}
-	}
-	return Points;
+    std::vector<cPoint> splinePoints;
+    splinePoints.reserve(1000);
+
+    cPoint startPoint = CubicSpline(splineParameters, 0.0);
+    splinePoints.push_back(startPoint);
+
+    for(double t=0.0; t<1.0; t+=0.001)
+    {
+        cPoint point = CubicSpline(splineParameters, t);
+        if(point.DistanceFrom(splinePoints.back())>DesiredSpacing)
+            splinePoints.push_back(point);        
+    }
+    splinePoints.emplace_back(CubicSpline(splineParameters, 1.0));
+
+    return splinePoints;
 }
