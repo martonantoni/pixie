@@ -119,3 +119,8 @@ cRect cRect::CreateBoundingBox(const std::vector<cPoint> &Points)
 	}
 	return Rect;
 }
+
+cRect cRect::createAroundPoint(cPoint point, cPoint size)
+{
+	return cRect(point - size / 2, size);
+}

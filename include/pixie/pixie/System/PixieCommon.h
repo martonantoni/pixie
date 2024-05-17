@@ -52,6 +52,7 @@ struct cRect
 	static cRect CreateBoundingBox(const std::vector<cPoint> &Points);
 	cRect GetWithModifiedSize(cPoint SizeOffset) const;
 	void GrowToBound(const cRect &RectToBound);
+	static cRect createAroundPoint(cPoint point, cPoint size);
 };
 
 inline bool cRect::hasOverlap(const cRect& Other) const

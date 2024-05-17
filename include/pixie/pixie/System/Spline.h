@@ -1,5 +1,7 @@
 #pragma once
 
-cPoint CubicSpline(const std::vector<cPoint> &SplineParameters, double t);
+using cSplineParameters = std::array<cPoint, 4>;
 
-std::vector<cPoint> GenerateSplinePoints(const std::vector<cPoint> &SplineParameters, double RequiredSpacing); // needs 4 points
+cPoint CubicSpline(const cSplineParameters& splineParameters, double t);
+
+std::vector<cPoint> GenerateSplinePoints(const cSplineParameters& splineParameters, double RequiredSpacing); 
