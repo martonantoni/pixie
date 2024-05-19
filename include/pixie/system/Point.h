@@ -1,6 +1,8 @@
 #pragma once
 
-template<class T>
+template<class T> concept cPointStorage = std::is_same_v<T, int> || std::is_same_v<T, float> || std::is_same_v<T, double>;
+
+template<cPointStorage T>
 struct tPoint
 {
 	T x, y;
@@ -12,6 +14,7 @@ struct tPoint
 	void FromConfig_Point(const cConfig &Config);
 	void FromConfig_Size(const cConfig &Config);
 	void FromConfig_Pair(const cConfig &Config);
+	void toConfig_pair(cConfig& config) const;
 	tPoint &operator-=(const tPoint &Other) { x-=Other.x; y-=Other.y; return *this; }
 	tPoint &operator+=(const tPoint &Other) { x+=Other.x; y+=Other.y; return *this; }
 	tPoint operator+(const tPoint &Offset) const { return tPoint(x+Offset.x, y+Offset.y); }
@@ -38,23 +41,30 @@ struct tPoint
     }
 };
 
-template<class T> inline void tPoint<T>::FromConfig_Point(const cConfig &Config)
+template<cPointStorage T> inline void tPoint<T>::FromConfig_Point(const cConfig &Config)
 {
 	x=Config.get<T>("x", {});
 	y=Config.get<T>("y", {});
 }
 
-template<class T> inline void tPoint<T>::FromConfig_Size(const cConfig &Config)
+template<cPointStorage T> inline void tPoint<T>::FromConfig_Size(const cConfig &Config)
 {
 	x=Config.get<T>("w", {});
 	y=Config.get<T>("h", {});
 }
 
-template<class T> inline void tPoint<T>::FromConfig_Pair(const cConfig &Config)
+template<cPointStorage T> inline void tPoint<T>::FromConfig_Pair(const cConfig &Config)
 {
 	x=Config.get<T>(0, {});
 	y=Config.get<T>(1, {});
 }
+
+template<cPointStorage T> inline void tPoint<T>::toConfig_pair(cConfig& config) const
+{
+	config.push(x);
+	config.push(y);
+}
+
 
 typedef tPoint<int> cPoint;
 typedef tPoint<float> cFloatPoint;
