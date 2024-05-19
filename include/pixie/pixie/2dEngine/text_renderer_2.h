@@ -24,7 +24,7 @@ struct cTextRenderer2Config
     } mColors;
     int mTabWidth = 2;          // in spaces
     std::vector<int> mTabStops; // in pixels! might be empty, use mTabWidth in that case (and after the last tab stop)
-    int mWidth;                 // in pixels
+    int mWidth = std::numeric_limits<int>::max();      // in pixels
 
 // for sprite creation:
     cPixieWindow* mWindow = nullptr;
