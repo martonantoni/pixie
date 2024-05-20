@@ -1,9 +1,18 @@
 #pragma once
 
-class cStringVector: public std::vector<std::string> // could be in its separate header file, but I don't care.
+template<class T> concept cStringContainer = requires(T t) 
+{ 
+	t.begin(); 
+	t.end(); 
+	*t.begin(); 
+	std::string(*t.begin()); 
+};
+
+class cStringVector: public std::vector<std::string>
 {
 public:
 	cStringVector() {}
+	template<cStringContainer T> cStringVector(const T& source);
 	cStringVector(const std::string &SourceString, const std::string &Delimeters, bool EmptyFieldsAllowed=true);
 	void FromString(const std::string &SourceString, const std::string &Delimeters, bool EmptyFieldsAllowed=true);
 	void TrimAll();
@@ -13,3 +22,9 @@ public:
 	cIntVector ToIntVector() const;
 	cStringVector operator+(const std::string &ExtraField) const;
 };
+
+template<cStringContainer T> cStringVector::cStringVector(const T& source)
+{
+    for(auto &s: source)
+        emplace_back(s);
+}
