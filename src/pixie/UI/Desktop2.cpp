@@ -46,6 +46,7 @@ void cPixieDesktop::handleMouseEvent(const cEvent& event, void (cMouseTarget::*M
 {
 	mMouseEventShiftState = cMouseServer::shiftState(event);
 	mMouseEventCtrlState = cMouseServer::ctrlState(event);
+	mMouseEventAltState = cMouseServer::altState(event);
 	cPoint screenCoordinates = cMouseServer::point(event);
 	auto TargetResult=GetMouseTargetAt(screenCoordinates);
 	cMouseTarget *IgnoredTarget=nullptr;
