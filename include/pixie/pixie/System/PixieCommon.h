@@ -3,6 +3,15 @@
 enum class eVerticalAlign { Top, Bottom, Center };
 enum class eHorizontalAlign { Left, Right, Center };
 
+template<class T> concept cPoints = requires(T t) 
+{ 
+    t.begin(); 
+    t.end(); 
+	t.empty();
+    *t.begin(); 
+    cPoint(*t.begin()); 
+};
+
 struct cRect
 {
 	int mLeft;
@@ -49,7 +58,7 @@ struct cRect
 	cRect GetCenteredRect(const cRect &RectToCenter) const { return GetAlignedRect(RectToCenter, eHorizontalAlign::Center, eVerticalAlign::Center); }
 	static cRect FromCenterAndSize(cPoint Center, int Size) { return cRect({ Center-cPoint(Size/2,Size/2) }, { Size, Size }); }
 	static cRect FromCenterAndSize(cPoint Center, cPoint Size) { return cRect({ Center-Size/2 }, Size); }
-	static cRect CreateBoundingBox(const std::vector<cPoint> &Points);
+	template<cPoints T> static cRect CreateBoundingBox(const T &Points);
 	cRect GetWithModifiedSize(cPoint SizeOffset) const;
 	void GrowToBound(const cRect &RectToBound);
 	static cRect createAroundPoint(cPoint point, cPoint size);
@@ -63,4 +72,33 @@ inline bool cRect::hasOverlap(const cRect& Other) const
 inline bool cRect::IsPointInside(cPoint Point) const
 { 
 	return Point.x >= mLeft && Point.x < mLeft + mWidth && Point.y >= mTop && Point.y < mTop + mHeight; 
+}
+
+template<cPoints T> cRect cRect::CreateBoundingBox(const T& points)
+{
+	if (points.empty())
+		return {};
+	cRect rect(points.front(), { 1,1 });
+	for (auto& point : points | std::views::drop(1))
+	{
+		if (point.x < rect.Left())
+		{
+			rect.mWidth += rect.mLeft - point.x;
+			rect.mLeft = point.x;
+		}
+		else if (point.x > rect.Right())
+		{
+			rect.mWidth += point.x - rect.Right();
+		}
+		if (point.y < rect.Top())
+		{
+			rect.mHeight += rect.mTop - point.y;
+			rect.mTop = point.y;
+		}
+		else if (point.y > rect.Bottom())
+		{
+			rect.mHeight += point.y - rect.Bottom();
+		}
+	}
+	return rect;
 }

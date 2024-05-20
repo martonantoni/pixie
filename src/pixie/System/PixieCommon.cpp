@@ -91,35 +91,6 @@ void cRect::GrowToBound(const cRect &RectToBound)
 		SetRight(RectToBound.Right());
 }
 
-cRect cRect::CreateBoundingBox(const std::vector<cPoint> &Points)
-{
-	if(Points.empty())
-		return {};
-	cRect Rect(Points.front(), { 1,1 });
-	for(auto &Point: Points)
-	{
-		if(Point.x<Rect.Left())
-		{
-			Rect.mWidth+=Rect.mLeft-Point.x;
-			Rect.mLeft=Point.x;
-		}
-		else if(Point.x>Rect.Right())
-		{
-			Rect.mWidth+=Point.x-Rect.Right();
-		}
-		if(Point.y<Rect.Top())
-		{
-			Rect.mHeight+=Rect.mTop-Point.y;
-			Rect.mTop=Point.y;
-		}
-		else if(Point.y>Rect.Bottom())
-		{
-			Rect.mHeight+=Point.y-Rect.Bottom();
-		}
-	}
-	return Rect;
-}
-
 cRect cRect::createAroundPoint(cPoint point, cPoint size)
 {
 	return cRect(point - size / 2, size);
