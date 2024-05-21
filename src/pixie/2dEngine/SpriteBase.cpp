@@ -241,7 +241,7 @@ cRect cSpriteBase::GetCenterAndHSize() const
 
 void cSpriteBase::SetCenterAndHSize(const cRect &Rect)
 {
-	SetRect(cRect::FromCenterAndSize(Rect.GetPosition(), Rect.GetSize()*2));
+	SetRect(cRect::createAroundPoint(Rect.GetPosition(), Rect.GetSize()*2));
 }
 
 void cSpriteBase::SetScreenPosition(cPoint Position)

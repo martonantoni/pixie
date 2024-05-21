@@ -56,12 +56,10 @@ struct cRect
 	cPoint BottomRight() const { return cPoint(Right(), Bottom()); }
 	cRect GetAlignedRect(const cRect &RectToAlign, eHorizontalAlign HorizontalAlign, eVerticalAlign VerticalAlign) const;
 	cRect GetCenteredRect(const cRect &RectToCenter) const { return GetAlignedRect(RectToCenter, eHorizontalAlign::Center, eVerticalAlign::Center); }
-	static cRect FromCenterAndSize(cPoint Center, int Size) { return cRect({ Center-cPoint(Size/2,Size/2) }, { Size, Size }); }
-	static cRect FromCenterAndSize(cPoint Center, cPoint Size) { return cRect({ Center-Size/2 }, Size); }
+	static constexpr cRect createAroundPoint(cPoint point, cPoint size) { return cRect(point - size / 2, size); }
 	template<cPoints T> static cRect CreateBoundingBox(const T &Points);
 	cRect GetWithModifiedSize(cPoint SizeOffset) const;
 	void GrowToBound(const cRect &RectToBound);
-	static cRect createAroundPoint(cPoint point, cPoint size);
 };
 
 inline bool cRect::hasOverlap(const cRect& Other) const

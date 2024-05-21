@@ -70,7 +70,7 @@ cRect cRect::GetAlignedRect(const cRect &RectToAlign, eHorizontalAlign Horizonta
 
 cRect cRect::GetWithModifiedSize(cPoint SizeOffset) const
 {
-	return FromCenterAndSize(GetCenter(), GetSize()+SizeOffset);
+	return createAroundPoint(GetCenter(), GetSize()+SizeOffset);
 }
 
 void cRect::GrowToBound(const cRect &RectToBound)
@@ -91,7 +91,3 @@ void cRect::GrowToBound(const cRect &RectToBound)
 		SetRight(RectToBound.Right());
 }
 
-cRect cRect::createAroundPoint(cPoint point, cPoint size)
-{
-	return cRect(point - size / 2, size);
-}
