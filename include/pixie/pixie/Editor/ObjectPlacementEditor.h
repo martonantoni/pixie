@@ -31,6 +31,7 @@ private:
 	cRegisteredID mHelpID;
 	cRegisteredID mCursorID;
 	cRect mEditorArea;
+	bool mEnabled = false;
 	enum class eDragType { None, Position, Size } mDragType = eDragType::None;
 	cPoint mPrevDragPosition;
 	bool mKeepAspectRatio;
@@ -55,12 +56,14 @@ private:
 	std::pair<cPixieObject *, eDragType> HandleHover(cPoint ScreenCoordinates);
 public:
 	cObjectPlacementEditor();
+	void Enable(); // must be called to use any functionality
+
 	cRegisteredID AddEditableObject(cPixieObject *Object, const cNotifierFunction &NotifierFunction=cNotifierFunction());
 	cRegisteredID AddEditableObject(std::unique_ptr<cObjectData> ObjectData);
 	void SelectObject(cPixieObject *Object); // Object must be already added, or nullptr (nullptr means clear selection)
-	bool IsEnabled() const;
-	void Enable();
-	bool Disable(); // returns true if it was enabled before
+	bool IsActive() const;
+	void Activate();
+	bool Deactivate(); // returns true if it was enabled before
 	void SetEditorArea(const cRect &Rect);
 	cPixieObject *GetSelectedObject() const { return mSelectedObject?mSelectedObject->mObject:nullptr; }
 	int GetSelectedObjectCount() const { return mSelectedObject?1:0; }

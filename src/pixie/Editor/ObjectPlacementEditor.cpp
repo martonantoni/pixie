@@ -20,18 +20,23 @@ const cEventDispatchers::cDispatcherRangeInfo cObjectPlacementEditor::mDispatche
 	Event_SelectionChanged, { "selection_changed", "object_moved", "object_resized" }
 };
 
-cObjectPlacementEditor::cObjectPlacementEditor()
+void cObjectPlacementEditor::Enable()
 {
+	mEnabled = true;
 	mEventDispatchers.Init(cEventDispatcher::GetGlobalDispatcher("object_placement_editor"));
 	mEventDispatchers.AddEvents(mDispatcherRangeInfo);
 	mEventDispatchers[Event_SelectionChanged]->SetCoalescing();
 
-	auto &KeyboardServer=cKeyboardServer::Get();
-	mEnableEditorListeningID=KeyboardServer.GetDispatcher(cKeyboardServer::Keyboard_KeyDown_F6)->RegisterListener([this](auto &Event)
-	{ Enable(); });
-	mHelpID=KeyboardServer.GetDispatcher(cKeyboardServer::Keyboard_KeyDown_F1)->RegisterListener([this](auto &Event)
-	{ DisplayHelp(); });
-	mEditorArea=thePixieDesktop.GetClientRect();
+	auto& KeyboardServer = cKeyboardServer::Get();
+	mEnableEditorListeningID = KeyboardServer.GetDispatcher(cKeyboardServer::Keyboard_KeyDown_F6)->RegisterListener([this](auto& Event)
+		{ Activate(); });
+	mHelpID = KeyboardServer.GetDispatcher(cKeyboardServer::Keyboard_KeyDown_F1)->RegisterListener([this](auto& Event)
+		{ DisplayHelp(); });
+}
+
+cObjectPlacementEditor::cObjectPlacementEditor()
+{
+	mEditorArea = thePixieDesktop.GetClientRect();
 }
 
 void cObjectPlacementEditor::RegisterListeners()
@@ -63,7 +68,7 @@ void cObjectPlacementEditor::RegisterListeners()
 	mListeningIDs.emplace_back(KeyboardServer.GetDispatcher(cKeyboardServer::Keyboard_KeyDown_Esc)->RegisterListener([this](auto &Event)
 	{ ResetSelection(); }));
 	mListeningIDs.emplace_back(KeyboardServer.GetDispatcher(cKeyboardServer::Keyboard_KeyDown_F7)->RegisterListener([this](auto &Event)
-	{ Disable(); }));
+	{ Deactivate(); }));
 
 	auto &MouseServer=cMouseServer::Get();
 	mListeningIDs.push_back(MouseServer.GetDispatcher(cMouseServer::Event_Move)->
@@ -74,14 +79,14 @@ void cObjectPlacementEditor::RegisterListeners()
 		RegisterListener([this](const auto &Event) { OnLeftButtonUp(Event); }));
 }
 
-bool cObjectPlacementEditor::IsEnabled() const
+bool cObjectPlacementEditor::IsActive() const
 {
-	return !!mMouseBlockerTarget;
+	return mEnabled && !!mMouseBlockerTarget;
 }
 
-void cObjectPlacementEditor::Enable()
+void cObjectPlacementEditor::Activate()
 {
-	if(IsEnabled())
+	if(!mEnabled || IsActive())
 		return;
 	RegisterListeners();
 	cMouseBlocker::cInitData MouseBlockerInit;
@@ -94,9 +99,9 @@ void cObjectPlacementEditor::Enable()
 	DisplayNotification("Editor enabled");
 }
 
-bool cObjectPlacementEditor::Disable()
+bool cObjectPlacementEditor::Deactivate()
 {
-	if(!IsEnabled())
+	if(!IsActive())
 		return false;
 	ResetSelection();
 	mCursorID.Unregister();
@@ -118,14 +123,14 @@ void cObjectPlacementEditor::DisplayHelp()
 {
 	bool WasEnabled=!!mMouseBlockerTarget;
 	if(WasEnabled)
-		Disable();
+		Deactivate();
 	cMessageBox::cInitData MessageBoxConfig;
 	MessageBoxConfig.mWindowWidth=340;
 	MessageBoxConfig.mButtons.emplace_back("Thanks",
 		[this, WasEnabled]()
 	{
 		if(WasEnabled)
-			Enable();
+			Activate();
 	});
 	MessageBoxConfig.mText=
 		"{|}{f:messagebox_title}{c:messagebox_title}Object Placement Editor{c}{f}\n\n"
@@ -353,7 +358,7 @@ void cObjectPlacementEditor::OnLeftButtonUp(const cEvent& event)
 
 void cObjectPlacementEditor::SelectObject(cPixieObject *Object)
 {
-	if(!IsEnabled())
+	if(!IsActive())
 		return;
 	SetSelectedObject(Object);
 	if(mSelectedObject)

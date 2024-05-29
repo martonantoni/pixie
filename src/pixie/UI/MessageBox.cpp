@@ -4,7 +4,7 @@
 
 void cMessageBox::Init(const cInitData &InitData)
 {
-	bool EditorWasEnabled=cObjectPlacementEditor::Get().Disable();
+	bool EditorWasEnabled=cObjectPlacementEditor::Get().Deactivate();
 
 	int HorizontalBorder=InitData.mHorizontalBorder, WindowWidth=InitData.mWindowWidth;
 
@@ -43,7 +43,7 @@ void cMessageBox::Init(const cInitData &InitData)
 			[FunctionToCall=ButtonRequest.mFunction, EditorWasEnabled, this](auto &)
 		{
 			if(EditorWasEnabled)
-				cObjectPlacementEditor::Get().Enable();
+				cObjectPlacementEditor::Get().Activate();
 			delete this;
 			if(FunctionToCall)
 				FunctionToCall();
