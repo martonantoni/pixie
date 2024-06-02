@@ -398,6 +398,10 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
         }
         if (line.starts_with("-")) // list item
         {
+            if(line.size()>=1 && line[1] == '-') // is comment?
+            {
+                continue;
+            }
             line.remove_prefix(line.size() == 1 || line[1] != ' ' ? 1 : 2);
             if(!blocks.back().mSpans.empty())
             {

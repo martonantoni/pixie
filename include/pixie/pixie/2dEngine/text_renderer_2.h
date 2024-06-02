@@ -121,6 +121,7 @@ public:
 
     /*
 
+    -- : comment (entire line is ignored)
     @hx heading, x: number 1-9
     @| paragraph centered, @|+ default align: centered
     @< paragraph left aligned, @<+ default align: left aligned
