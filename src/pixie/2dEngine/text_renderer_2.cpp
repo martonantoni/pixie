@@ -5,9 +5,10 @@
 namespace Pixie
 {
 
-void cTextRenderer2::init(const cTextRenderer2Config& config)
+void cTextRenderer2::init(const cTextRenderer2Config& config, const cTextRenderer2Target& target)
 {
     mConfig = config;
+    mTarget = target;
 }
 
 std::pair<const cFont&, const cColor&>  cTextRenderer2::determineFont(const cTextRenderer2Block& block, const cTextRenderer2Span& span) const
@@ -85,7 +86,7 @@ int cTextRenderer2::arrangeWords(
         break;
     case cTextRenderer2Block::eAlign::Center:
     {
-        int centeringOffset = (mConfig.mWidth - wordsWidth) / 2;
+        int centeringOffset = (mTarget.mWidth - wordsWidth) / 2;
         for (int i = lineFirstWordIndex; i <= lineLastWordIndex; ++i)
         {
             int xOffset = mWords[i].mStartX + centeringOffset;
@@ -101,7 +102,7 @@ int cTextRenderer2::arrangeWords(
     }
     case cTextRenderer2Block::eAlign::Right:
     {
-        int rightOffset = mConfig.mWidth - wordsWidth;
+        int rightOffset = mTarget.mWidth - wordsWidth;
         for (int i = lineFirstWordIndex; i <= lineLastWordIndex; ++i)
         {
             int xOffset = mWords[i].mStartX + rightOffset;
@@ -118,7 +119,7 @@ int cTextRenderer2::arrangeWords(
     case cTextRenderer2Block::eAlign::Justify:
     {
         int spaceCount = lineLastWordIndex - lineFirstWordIndex;
-        int missingSpace = mConfig.mWidth - wordsWidth;
+        int missingSpace = mTarget.mWidth - wordsWidth;
         double extraSpace = spaceCount > 0 ? (double)missingSpace / (double)spaceCount : 0.0;
         double sum = 0.0;
         int extraSpaceToUse = 0;
@@ -181,7 +182,7 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
                         auto& letterData = font.letterData(decodedChar);
                         auto sprite = std::make_unique<cSprite>();
                         sprite->SetTextureAndSize(letterData.mTexture);
-                        sprite->SetWindow(mConfig.mWindow);
+                        sprite->SetWindow(mTarget.mWindow);
                         sprite->SetRGBColor(color);
                         sprite->SetPosition(position + letterData.offset());
                         sprites.emplace_back(std::move(sprite));
@@ -212,7 +213,7 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
     int lineFirstWordIndex = 0;
     for (auto [idx, word] : std::views::enumerate(mWords))
     {
-        if(x + word.width() > mConfig.mWidth)
+        if(x + word.width() > mTarget.mWidth)
         {
             int lineLastWordIndex = lineFirstWordIndex == idx ? idx : idx - 1;
             int lineHeight = arrangeWords(block.mAlign, sprites, lineFirstWordIndex, lineLastWordIndex, lineYOffset);
@@ -257,10 +258,10 @@ cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
         auto headerBackgroundSprite = std::make_unique<cSprite>();
         headerBackgroundSprite->SetTexture("1pix");
         headerBackgroundSprite->SetZOrder(99);
-        headerBackgroundSprite->SetWindow(mConfig.mWindow);
+        headerBackgroundSprite->SetWindow(mTarget.mWindow);
         headerBackgroundSprite->SetRGBColor("dark_gray");
         headerBackgroundSprite->SetPosition(cPoint(0, 0));
-        headerBackgroundSprite->SetSize(cPoint(mConfig.mWidth, headerHeight));
+        headerBackgroundSprite->SetSize(cPoint(mTarget.mWidth, headerHeight));
         result.mSprites.emplace_back(std::move(headerBackgroundSprite));
         // ---- header text ----
         std::string_view headerText = block.mCodeBlock.mTitle;
@@ -272,7 +273,7 @@ cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
             auto sprite = std::make_unique<cSprite>();
             sprite->SetTextureAndSize(letterData.mTexture);
             sprite->SetZOrder(100);
-            sprite->SetWindow(mConfig.mWindow);
+            sprite->SetWindow(mTarget.mWindow);
             sprite->SetRGBColor("white");
             sprite->SetPosition(headerPosition + letterData.offset());
             result.mSprites.emplace_back(std::move(sprite));
@@ -296,7 +297,7 @@ cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
             auto sprite = std::make_unique<cSprite>();
             sprite->SetTextureAndSize(letterData.mTexture);
             sprite->SetZOrder(100);
-            sprite->SetWindow(mConfig.mWindow);
+            sprite->SetWindow(mTarget.mWindow);
             sprite->SetRGBColor(mConfig.mColors.mDefaultColor);
             sprite->SetPosition(position + letterData.offset());
             result.mSprites.emplace_back(std::move(sprite));
@@ -310,18 +311,18 @@ cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
     auto backgroundSprite = std::make_unique<cSprite>();
     backgroundSprite->SetTexture("1pix");
     backgroundSprite->SetZOrder(98);
-    backgroundSprite->SetWindow(mConfig.mWindow);
+    backgroundSprite->SetWindow(mTarget.mWindow);
     backgroundSprite->SetRGBColor(mConfig.mColors.mCodeBlockBG);
     backgroundSprite->SetPosition(cPoint(0, headerHeight));
-    backgroundSprite->SetSize(cPoint(mConfig.mWidth, position.y - headerHeight));
+    backgroundSprite->SetSize(cPoint(mTarget.mWidth, position.y - headerHeight));
     result.mSprites.emplace_back(std::move(backgroundSprite));
     // ---- border  ----
     auto borderSprite = std::make_unique<cRectBorderMultiSprite>(1);
     borderSprite->SetZOrder(101);
-    borderSprite->SetWindow(mConfig.mWindow);
+    borderSprite->SetWindow(mTarget.mWindow);
     borderSprite->SetRGBColor(mConfig.mColors.mCodeBlockBorder);
     borderSprite->SetPosition(cPoint(0, 0));
-    borderSprite->SetSize(cPoint(mConfig.mWidth, position.y));
+    borderSprite->SetSize(cPoint(mTarget.mWidth, position.y));
     result.mSprites.emplace_back(std::move(borderSprite));
 
     result.mHeight = position.y + font.height();

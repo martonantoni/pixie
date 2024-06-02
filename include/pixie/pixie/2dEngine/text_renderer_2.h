@@ -24,10 +24,12 @@ struct cTextRenderer2Config
     } mColors;
     int mTabWidth = 2;          // in spaces
     std::vector<int> mTabStops; // in pixels! might be empty, use mTabWidth in that case (and after the last tab stop)
-    int mWidth = std::numeric_limits<int>::max();      // in pixels
+};
 
-// for sprite creation:
+struct cTextRenderer2Target
+{
     cPixieWindow* mWindow = nullptr;
+    int mWidth = std::numeric_limits<int>::max();      // in pixel
 };
 
 struct cTextRenderer2Span
@@ -74,6 +76,7 @@ struct cTextRenderer2BlockResult
 class cTextRenderer2
 {
     cTextRenderer2Config mConfig;
+    cTextRenderer2Target mTarget;
     struct cWord final
     {
         int mFirstSpriteIndex;
@@ -110,7 +113,7 @@ class cTextRenderer2
         int lineYOffset) const;
     int getNextTabStop(int x) const;
 public:
-    void init(const cTextRenderer2Config& config);
+    void init(const cTextRenderer2Config& config, const cTextRenderer2Target& target);
 
 
     cTextRenderer2BlockResult render(const cTextRenderer2Block& block);
