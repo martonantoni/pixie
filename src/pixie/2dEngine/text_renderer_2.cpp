@@ -43,7 +43,7 @@ std::pair<const cFont&, const cColor&>  cTextRenderer2::determineFont(const cTex
 
 int cTextRenderer2::getNextTabStop(int x) const
 {
-    for (int tabStop : mConfig.mTabStops)
+    for (int tabStop : mTarget.mTabStops)
     {
         if (tabStop > x)
         {
@@ -158,7 +158,6 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
     {
         auto [font, color] = determineFont(block, span);
         int spaceWidth = font.letterData(' ').advance();
-        bool wasTabBefore = false;
         auto addText = [&](std::string_view text)
             {
                 while (!text.empty())

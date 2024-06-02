@@ -23,13 +23,13 @@ struct cTextRenderer2Config
         cColor mCodeBlockBorder;
     } mColors;
     int mTabWidth = 2;          // in spaces
-    std::vector<int> mTabStops; // in pixels! might be empty, use mTabWidth in that case (and after the last tab stop)
 };
 
 struct cTextRenderer2Target
 {
     cPixieWindow* mWindow = nullptr;
     int mWidth = std::numeric_limits<int>::max();      // in pixel
+    std::vector<int> mTabStops; // in pixels! might be empty, use mTabWidth in that case (and after the last tab stop)
 };
 
 struct cTextRenderer2Span
