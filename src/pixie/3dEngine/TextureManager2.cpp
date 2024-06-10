@@ -54,8 +54,18 @@ IDirect3DTexture9 *cTextureManager2::LoadTexture(const cPath &FileName,D3DXIMAGE
 	return d3dTexture;
 }
 
-
-
+tIntrusivePtr<cTexture> cTextureManager2::loadFromFile(const std::filesystem::path& path)
+{
+	D3DXIMAGE_INFO SourceInfo;
+	IDirect3DTexture9* Direct3DTexture = LoadTexture(path, &SourceInfo);
+	if(!Direct3DTexture)
+    {
+        return{};
+    }
+	auto texture = make_intrusive_ptr<cTexture>(Direct3DTexture, SourceInfo.Width, SourceInfo.Height);
+	Direct3DTexture->Release();
+	return texture;
+}
 
 tIntrusivePtr<cTexture> cTextureManager2::LoadFromMemory(const void* memory, size_t size)
 {

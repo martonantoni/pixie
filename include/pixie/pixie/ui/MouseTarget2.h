@@ -61,11 +61,11 @@ public:
 	cPoint ScreenCoordsToWindowRelativeCoords(cPoint ScreenCoords) const;
 	unsigned int GetMouseTargetID() const { return mMouseTargetID; }
 
-	virtual void OnMouseMove(cPoint ScreenCoords, bool IsInside) {}
-	virtual void OnLeftButtonDown(cPoint ScreenCoords, bool IsInside) {}
-	virtual void OnLeftButtonUp(cPoint ScreenCoords, bool IsInside) {}
-	virtual void OnLeftButtonDoubleClick(cPoint ScreenCoords, bool IsInside) {}
-	virtual void OnRightButtonDown(cPoint ScreenCoords, bool IsInside) {}
-	virtual void OnRightButtonUp(cPoint ScreenCoords, bool IsInside) {}
-	virtual void OnMouseWheel(cPoint ScreenCoords, double delta, bool IsInside) {}
+	virtual void OnMouseMove(cPoint screenCoords, bool isInside) {}
+	virtual void OnLeftButtonDown(cPoint screenCoords, bool isInside) {}
+	virtual void OnLeftButtonUp(cPoint screenCoords, bool isInside) {}
+	virtual void OnLeftButtonDoubleClick(cPoint screenCoords, bool isInside) {}
+	virtual void OnRightButtonDown(cPoint screenCoords, bool isInside) {}
+	virtual void OnRightButtonUp(cPoint screenCoords, bool isInside) {}
+	virtual void OnMouseWheel(cPoint screenCoords, double delta, bool isInside) {}
 };
