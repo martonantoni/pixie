@@ -45,9 +45,8 @@ void cDevice::Init()
 	mPresentParameters.BackBufferWidth   = 640;
 	mPresentParameters.BackBufferHeight  = 480;
 	}else{*/
-// 	mPresentParameters.BackBufferWidth   = 1680;
-// 	mPresentParameters.BackBufferHeight  = 1050;
-
+ 	//mPresentParameters.BackBufferWidth   = 3840/2;
+ 	//mPresentParameters.BackBufferHeight  = 2160/2;
 	mPresentParameters.Windowed          = TRUE;
 
 

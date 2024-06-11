@@ -46,7 +46,7 @@ IDirect3DTexture9 *cTextureManager2::LoadTexture(const cPath &FileName,D3DXIMAGE
 		colorkey, SrcInfo, NULL, &d3dTexture)))
 	{
 		int Err=GetLastError();
-		MainLog->Log("Failed to load texture file: %s, Error: %d",FileName,Err);
+		MainLog->Log("Failed to load texture file: %s, Error: %d", FileName.c_str(), Err);
 		return NULL;
 	}
 

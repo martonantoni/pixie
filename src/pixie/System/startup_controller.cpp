@@ -67,6 +67,8 @@ void cStartupController::start()
 int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
     //    gInstance = hInstance;
+//    SetProcessDPIAware();
+  //  SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_UNAWARE);
     cStartupController StartupController;
     StartupController.start();
     return 0;
