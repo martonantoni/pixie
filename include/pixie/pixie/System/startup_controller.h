@@ -10,6 +10,7 @@ public:
     {
         cPath mainLuaConfigPath;
         std::function<void()> startApplication;
+        std::function<void()> stopApplication;
         bool initPixie = true;
 #ifdef _CONSOLE
         bool createConsole = true;
@@ -27,6 +28,7 @@ private:
     void continueStartup();
     void Start_MainThread();
     cStartupController::cConfig mConfig;
+    cRegisteredID mDestroyHandlerID;
 public:
     [[noreturn]] void start();
 };
