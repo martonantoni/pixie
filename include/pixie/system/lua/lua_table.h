@@ -153,7 +153,7 @@ template<class C> void cLuaValue::visit(C&& callable) const
                 callable(lua_toboolean(L, -1) != 0);
                 break;
             case LUA_TTABLE:
-                callable(cLuaValue(mScript, luaL_ref(L, LUA_REGISTRYINDEX), false));
+                callable(*this);
                 break;
             default:
                 callable(std::monostate());

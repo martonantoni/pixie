@@ -203,7 +203,7 @@ TEST(lua_value, visit_single_variable)
         {
             extractedValue = value;
         });
-    ASSERT(std::holds_alternative<int>(extractedValue));
+    ASSERT_TRUE(std::holds_alternative<int>(extractedValue));
     ASSERT_EQ(std::get<int>(extractedValue), 12);
 
     cLuaValue floatValue = *globalTable.get<cLuaValue>("twelve_and_half");
@@ -211,7 +211,7 @@ TEST(lua_value, visit_single_variable)
         {
             extractedValue = value;
         });
-    ASSERT(std::holds_alternative<double>(extractedValue));
+    ASSERT_TRUE(std::holds_alternative<double>(extractedValue));
     ASSERT_EQ(std::get<double>(extractedValue), 12.5);
 
     cLuaValue stringValue = *globalTable.get<cLuaValue>("ten_string");
@@ -219,8 +219,29 @@ TEST(lua_value, visit_single_variable)
         {
             extractedValue = value;
         });
-    ASSERT(std::holds_alternative<std::string>(extractedValue));
+    ASSERT_TRUE(std::holds_alternative<std::string>(extractedValue));
     ASSERT_STREQ(std::get<std::string>(extractedValue).c_str(), "10");
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_value, visit_table_value)
+{
+    auto script = std::make_shared<cLuaScript>();
+    cLuaValue globalTable = script->globalTable();
+    storeTestVariables(globalTable);
+
+    cLuaValue subTable = globalTable.subTable("mySubTable");
+    storeTestVariables(subTable);
+
+    std::variant<std::monostate, int, double, std::string, cLuaValue> extractedValue;
+    subTable.visit([&extractedValue](const auto& value)
+        {
+            extractedValue = value;
+        });
+    ASSERT_TRUE(std::holds_alternative<cLuaValue>(extractedValue));
+    auto extractedSubTable = std::get<cLuaValue>(extractedValue);
+    verifyTestVariableValues(extractedSubTable);
 
     ASSERT_EQ(script->stackSize(), 0);
 }

@@ -47,12 +47,15 @@ void cStartupController::continueStartup()
     if(mConfig.initPixie)
         InitPixieSystem();
 
-    mDestroyHandlerID = cPrimaryWindow::get().AddMessageHandler(WM_DESTROY, [this](WPARAM wParam, LPARAM lParam)
-        {
-            if(mConfig.stopApplication)
-                mConfig.stopApplication();
-            return cWindowsMessageResult();
-        });
+    if (mConfig.stopApplication)
+    {
+        mDestroyHandlerID = cPrimaryWindow::get().AddMessageHandler(WM_DESTROY, [this](WPARAM wParam, LPARAM lParam)
+            {
+                if (mConfig.stopApplication)
+                    mConfig.stopApplication();
+                return cWindowsMessageResult();
+            });
+    }
 
     if(mConfig.startApplication)
         mConfig.startApplication();
