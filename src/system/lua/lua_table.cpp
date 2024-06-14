@@ -167,9 +167,18 @@ std::string cLuaScript::valueToString(lua_State* L, int index)
         return text;
     }
     lua_pushvalue(L, index);
+    FINALLY([&]() { lua_pop(L, 1); });
+    if(lua_isnumber(L, -1))
+    {
+        double number = lua_tonumber(L, -1);
+        if (number == static_cast<int>(number))
+        {
+            return std::to_string(static_cast<int>(number));
+        }
+        return std::format("{:.5g}", number);
+    }
     const char* convertedText = lua_tolstring(L, -1, nullptr);
     std::string convertedString = convertedText ? convertedText : std::string{};
-    lua_pop(L, 1);
     return convertedString;
 }
 

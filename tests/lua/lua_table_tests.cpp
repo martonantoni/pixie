@@ -131,20 +131,6 @@ TEST(lua_value, toInt)
     ASSERT_EQ(script->stackSize(), 0);
 }
 
-TEST(lua_value, toString)
-{
-    auto script = std::make_shared<cLuaScript>();
-    cLuaValue globalTable = script->globalTable();
-
-    storeTestVariables(globalTable);
-    cLuaValue intValue = *globalTable.get<cLuaValue>("twelve");
-    ASSERT_STREQ(intValue.toString().c_str(), "12");
-    cLuaValue stringValue = *globalTable.get<cLuaValue>("ten_string");
-    ASSERT_STREQ(stringValue.toString().c_str(), "10");
-
-    ASSERT_EQ(script->stackSize(), 0);
-}
-
 TEST(lua_value, toDouble)
 {
     auto script = std::make_shared<cLuaScript>();
@@ -187,6 +173,38 @@ TEST(lua_value, isNumber)
     EXPECT_TRUE(floatValue.isNumber());
     cLuaValue stringValue = *globalTable.get<cLuaValue>("ten_string");
     EXPECT_FALSE(stringValue.isNumber());
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_value, toStringIntegers)
+{
+    auto script = std::make_shared<cLuaScript>();
+    cLuaValue globalTable = script->globalTable();
+
+    storeTestVariables(globalTable);
+    cLuaValue intValue = *globalTable.get<cLuaValue>("twelve");
+    ASSERT_STREQ(intValue.toString().c_str(), "12");
+    cLuaValue stringValue = *globalTable.get<cLuaValue>("ten_string");
+    ASSERT_STREQ(stringValue.toString().c_str(), "10");
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_value, toStringMixed)
+{
+    auto script = std::make_shared<cLuaScript>();
+    script->executeString("my_array = { 2, 9/3, 0.5*2, 13.5, \"hello\" }\n");
+    {
+        cLuaValue globalTable = script->globalTable();
+        std::string result;
+        globalTable.get<cLuaValue>("my_array")->forEach(
+            [&result](const auto& value)
+            {
+                result += value.toString() + " ";
+            });
+        ASSERT_STREQ(result.c_str(), "2 3 1 13.5 hello ");
+    }
 
     ASSERT_EQ(script->stackSize(), 0);
 }
