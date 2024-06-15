@@ -225,7 +225,7 @@ constexpr bool NoneOfType()
 #include "Factory.h"
 #include "MemoryStream.h"
 #include "FormatThousands.h"
-#include "StringList.h"
+#include "string_vector.h"
 #include "ResourceLocation.h"
 #include "LocatableResource.h"
 #include "SharedValue/i_SharedValue.h"
