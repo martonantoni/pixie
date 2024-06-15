@@ -36,11 +36,11 @@ class tStringVector : public std::vector<StoredType>
 public:
 	tStringVector() {}
 	template<cStringContainer T> tStringVector(const T& source);
-	template<cStringVectorSupportedSource T> tStringVector(const T &SourceString, const std::string &Delimeters, bool EmptyFieldsAllowed=true);
-	template<cStringVectorSupportedSource T> void fromString(const T &source, const std::string &Delimeters, bool EmptyFieldsAllowed=true);
+	template<cStringVectorSupportedSource T> tStringVector(const T &sourceString, const std::string &delimeters, bool emptyFieldsAllowed=true);
+	template<cStringVectorSupportedSource T> void fromString(const T &source, const std::string &delimeters, bool emptyFieldsAllowed=true);
 	void trimAll();
 	std::string toString(const std::string &Separator) const;
-	void fromIntVector(const cIntVector &IntVector) requires std::same_as<StoredType, std::string>;
+	void fromIntVector(const cIntVector &intVector) requires std::same_as<StoredType, std::string>;
 	cIntVector toIntVector() const;
 };
 
@@ -88,63 +88,63 @@ void tStringVector<StoredType>::fromString(const T& source, const std::string& d
 template<cStringVectorSupportedStoredTypes StoredType>
 std::string tStringVector<StoredType>::toString(const std::string& Separator) const
 {
-	std::string Result;
+	std::string result;
 	for (typename base::const_iterator i = this->begin(), iend = this->end(); i != iend; ++i)
 	{
-		if (Result.length())
-			Result += fmt::sprintf("%s%s", Separator, *i);
+		if (result.length())
+			result += Separator + *i;
 		else
-			Result = *i;
+			result = *i;
 	}
-	return Result;
+	return result;
 }
 
 template<cStringVectorSupportedStoredTypes StoredType>
-void tStringVector<StoredType>::fromIntVector(const cIntVector& IntVector) requires std::same_as<StoredType, std::string>
+void tStringVector<StoredType>::fromIntVector(const cIntVector& intVector) requires std::same_as<StoredType, std::string>
 {
-	this->resize(IntVector.size());
-	for (int i = 0, iend = (int)this->size(); i != iend; ++i)
-		(*this)[i] = fmt::sprintf("%d", IntVector[i]);
+	this->resize(intVector.size());
+	for (auto&& [idx, value] : std::views::enumerate(intVector))
+		(*this)[idx] = std::to_string(value);
 }
 
 template<cStringVectorSupportedStoredTypes StoredType>
 cIntVector tStringVector<StoredType>::toIntVector() const
 {
-	cIntVector IntVector;
-	IntVector.resize(this->size());
+	cIntVector intVector;
+	intVector.resize(this->size());
 	for (auto&& [idx, s] : std::views::enumerate(*this))
 	{
 		if constexpr (std::is_same_v<StoredType, std::string>)
 		{
-			IntVector[idx] = std::stoi(s);
+			intVector[idx] = std::stoi(s);
 		}
 		else
 		{
-			IntVector[idx] = 0;
+			intVector[idx] = 0;
 			std::string_view sv(s);
 			trim(sv);
 			if (sv.empty())
 				continue;
 			int isNegative = sv[0] == '-';
 			if (isNegative)
-                sv.remove_prefix(1);
+				sv.remove_prefix(1);
 			if (sv.empty())
 				continue;
-			if(sv[0] < '0' || sv[0] > '9')
-                throw std::runtime_error("Invalid number format");
-			for(auto c: sv)
-            {
+			if (sv[0] < '0' || sv[0] > '9')
+				throw std::runtime_error("Invalid number format");
+			for (auto c : sv)
+			{
 				if (c < '0' || c > '9')
 				{
 					break;
 				}
-                IntVector[idx] = IntVector[idx] * 10 + c - '0';
-            }
+				intVector[idx] = intVector[idx] * 10 + c - '0';
+			}
 			if (isNegative)
-				IntVector[idx] = -IntVector[idx];
+				intVector[idx] = -intVector[idx];
 		}
 	}
-	return IntVector;
+	return intVector;
 }
 
 template<cStringVectorSupportedStoredTypes StoredType>
