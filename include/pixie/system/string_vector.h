@@ -51,11 +51,7 @@ template<cStringVectorSupportedStoredTypes StoredType>
 template<cStringVectorSupportedSource T> 
 void tStringVector<StoredType>::addFields(const T& source, const std::string& delimeters, bool emptyFieldsAllowed)
 {
-	using UsedSourceType = typename std::conditional<
-			std::is_same_v<T, std::string> && std::is_same_v<StoredType, std::string>,
-			const std::string&, 
-			std::string_view>::type; // substr would create a temporary string, that would be bad if we are storing string_views
-	UsedSourceType sourceView(source);
+	std::string_view sourceView(source);
 	std::string::size_type start = 0;
     std::string::size_type end = sourceView.find_first_of(delimeters);
     while(end != std::string::npos)

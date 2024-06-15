@@ -67,6 +67,18 @@ void testConstructionExtendedSV(const std::string &source, const std::string &de
     testConstruction(std::string_view(extendedSource), delimeters, emptyFieldsAllowed, extendedExpected);
 }
 
+void testConstructionExtendedCStar(const std::string& source, const std::string& delimeters, bool emptyFieldsAllowed, const std::vector<std::string>& expected)
+{
+    testConstruction(source.c_str(), delimeters, emptyFieldsAllowed, expected);
+    std::string extendedSource = source;
+    extendString(extendedSource);
+    auto extendedExpected = expected;
+    for (auto& s : extendedExpected)
+    {
+        extendString(s);
+    }
+    testConstruction(extendedSource.c_str(), delimeters, emptyFieldsAllowed, extendedExpected);
+}
 
 TEST(construction, single_delimeter_allow_empty_fields)
 {
@@ -190,6 +202,68 @@ TEST(construction_from_string_view, multiple_delimeters_empty_fields_not_allowed
     testConstructionExtendedSV("a,b;", ",;", false, { "a", "b" });
     testConstructionExtendedSV("a,b,c", ",;", false, { "a", "b", "c" });
     testConstructionExtendedSV(";a,b;c", ",;", false, { "a", "b", "c" });
+}
+
+TEST(construction_from_cs, single_delimeter_allow_empty_fields)
+{
+    testConstructionExtendedCStar("", ",", true, { "" });
+    testConstructionExtendedCStar("a", ",", true, { "a" });
+    testConstructionExtendedCStar("a,b", ",", true, { "a", "b" });
+    testConstructionExtendedCStar(",,,", ",", true, { "", "", "", "" });
+    testConstructionExtendedCStar("a,,b", ",", true, { "a", "", "b" });
+    testConstructionExtendedCStar("a,b,", ",", true, { "a", "b", "" });
+    testConstructionExtendedCStar("a,b,c", ",", true, { "a", "b", "c" });
+    testConstructionExtendedCStar(",a,b,c", ",", true, { "", "a", "b", "c" });
+}
+
+TEST(construction_from_cs, single_delimeter_empty_fields_not_allowed)
+{
+    testConstructionExtendedCStar("", ",", false, {});
+    testConstructionExtendedCStar("a", ",", false, { "a" });
+    testConstructionExtendedCStar("a,b", ",", false, { "a", "b" });
+    testConstructionExtendedCStar(",,,", ",", false, {});
+    testConstructionExtendedCStar("a,,b", ",", false, { "a", "b" });
+    testConstructionExtendedCStar("a,b,", ",", false, { "a", "b" });
+    testConstructionExtendedCStar("a,b,c", ",", false, { "a", "b", "c" });
+    testConstructionExtendedCStar(",a,b,c", ",", false, { "a", "b", "c" });
+}
+
+TEST(construction_from_cs, multiple_delimeters_allow_empty_fields)
+{
+    testConstructionExtendedCStar("", ",;", true, { "" });
+    testConstructionExtendedCStar("a", ",;", true, { "a" });
+    testConstructionExtendedCStar("a,b", ",;", true, { "a", "b" });
+    testConstructionExtendedCStar(",,,", ",;", true, { "", "", "", "" });
+    testConstructionExtendedCStar("a,,b", ",;", true, { "a", "", "b" });
+    testConstructionExtendedCStar("a,b,", ",;", true, { "a", "b", "" });
+    testConstructionExtendedCStar("a,b,c", ",;", true, { "a", "b", "c" });
+    testConstructionExtendedCStar(",a,b,c", ",;", true, { "", "a", "b", "c" });
+
+    testConstructionExtendedCStar("a;b", ",;", true, { "a", "b" });
+    testConstructionExtendedCStar(";,;", ",;", true, { "", "", "", "" });
+    testConstructionExtendedCStar("a;,b", ",;", true, { "a", "", "b" });
+    testConstructionExtendedCStar("a,b;", ",;", true, { "a", "b", "" });
+    testConstructionExtendedCStar("a,b,c", ",;", true, { "a", "b", "c" });
+    testConstructionExtendedCStar(";a,b;c", ",;", true, { "", "a", "b", "c" });
+}
+
+TEST(construction_from_cs, multiple_delimeters_empty_fields_not_allowed)
+{
+    testConstructionExtendedCStar("", ",;", false, {});
+    testConstructionExtendedCStar("a", ",;", false, { "a" });
+    testConstructionExtendedCStar("a,b", ",;", false, { "a", "b" });
+    testConstructionExtendedCStar(",,,", ",;", false, {});
+    testConstructionExtendedCStar("a,,b", ",;", false, { "a", "b" });
+    testConstructionExtendedCStar("a,b,", ",;", false, { "a", "b" });
+    testConstructionExtendedCStar("a,b,c", ",;", false, { "a", "b", "c" });
+    testConstructionExtendedCStar(",a,b,c", ",;", false, { "a", "b", "c" });
+
+    testConstructionExtendedCStar("a;b", ",;", false, { "a", "b" });
+    testConstructionExtendedCStar(";,;", ",;", false, {});
+    testConstructionExtendedCStar("a;,b", ",;", false, { "a", "b" });
+    testConstructionExtendedCStar("a,b;", ",;", false, { "a", "b" });
+    testConstructionExtendedCStar("a,b,c", ",;", false, { "a", "b", "c" });
+    testConstructionExtendedCStar(";a,b;c", ",;", false, { "a", "b", "c" });
 }
 
 TEST(construction_from_char_array, mixed)
