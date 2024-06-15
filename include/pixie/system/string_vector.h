@@ -42,7 +42,7 @@ public:
     template<cStringVectorSupportedSource T> 
         void fromString(const T& source, const std::string& delimeters, bool emptyFieldsAllowed = true);
     void trimAll();
-    std::string toString(const std::string& Separator) const;
+    std::string toString(const std::string& separator) const;
     void fromIntVector(const cIntVector& intVector) requires std::same_as<StoredType, std::string>;
     cIntVector toIntVector() const;
 };
@@ -85,17 +85,26 @@ void tStringVector<StoredType>::fromString(const T& source, const std::string& d
 }
 
 template<cStringVectorSupportedStoredTypes StoredType>
-std::string tStringVector<StoredType>::toString(const std::string& Separator) const
+std::string tStringVector<StoredType>::toString(const std::string& separator) const
 {
-    std::string result;
-    for (typename base::const_iterator i = this->begin(), iend = this->end(); i != iend; ++i)
-    {
-        if (result.length())
-            result += Separator + *i;
-        else
-            result = *i;
-    }
-    return result;
+    return std::accumulate(
+        this->begin(), 
+        this->end(), 
+        std::string(), 
+            [&separator](const std::string& a, const StoredType& b) 
+            { 
+                if constexpr (std::same_as<StoredType, std::string>)
+                    return a.empty() ? b : a + separator + b; 
+                else
+                {
+                    if(a.empty())
+                        return std::string(b);
+                    std::string result = a + separator;
+                    result.reserve(result.size() + b.size());
+                    result.insert(result.end(), b.begin(), b.end());
+                    return result;
+                }
+            });
 }
 
 template<cStringVectorSupportedStoredTypes StoredType>

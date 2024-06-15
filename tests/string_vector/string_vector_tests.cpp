@@ -323,7 +323,7 @@ TEST(storing_string_view, construction_from_string_view)
     EXPECT_STREQ(std::string(tested[4]).c_str(), "");
 }
 
-TEST(construction, fromIntVector)
+TEST(storing_string, fromIntVector)
 {
     cIntVector intVector = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
     cStringVector tested;
@@ -333,7 +333,7 @@ TEST(construction, fromIntVector)
         EXPECT_STREQ(tested[i].c_str(), std::to_string(i + 1).c_str());
 }
 
-TEST(utility, trimAll)
+TEST(storing_string, trimAll)
 {
     cStringVector tested("alma korte, banan ,     citrom   eper   ", ",", true);
     tested.trimAll();
@@ -343,7 +343,7 @@ TEST(utility, trimAll)
     EXPECT_STREQ(tested[2].c_str(), "citrom   eper");
 }
 
-TEST(utility, toIntVector)
+TEST(storing_string, toIntVector)
 {
     cStringVector tested("1, 2, 3, 4, 5, 6 ,7,8,  9   ,10,11 ", ",", true);
     cIntVector intVector = tested.toIntVector();
@@ -366,11 +366,46 @@ TEST(storing_string_views, toIntVector)
     }
 }
 
-TEST(utility, toString)
+TEST(storing_string, toString)
 {
     cStringVector tested("alma, korte, banan, citrom, eper, alma", ", ", false);
     EXPECT_STREQ(tested.toString(";").c_str(), "alma;korte;banan;citrom;eper;alma");
     EXPECT_STREQ(tested.toString(", ").c_str(), "alma, korte, banan, citrom, eper, alma");
+}
+
+TEST(storing_string, toString_empty)
+{
+    cStringVector tested("", ", ", false);
+    EXPECT_STREQ(tested.toString(";").c_str(), "");
+    EXPECT_STREQ(tested.toString(", ").c_str(), "");
+}
+
+TEST(storing_string, toString_singleElement)
+{
+    cStringVector tested("alma", ", ", false);
+    EXPECT_STREQ(tested.toString(";").c_str(), "alma");
+    EXPECT_STREQ(tested.toString(", ").c_str(), "alma");
+}
+
+TEST(storing_string_view, toString)
+{
+    cStringViewVector tested("alma, korte, banan, citrom, eper, alma", ", ", false);
+    EXPECT_STREQ(tested.toString(";").c_str(), "alma;korte;banan;citrom;eper;alma");
+    EXPECT_STREQ(tested.toString(", ").c_str(), "alma, korte, banan, citrom, eper, alma");
+}
+
+TEST(storing_string_view, toString_empty)
+{
+    cStringViewVector tested("", ", ", false);
+    EXPECT_STREQ(tested.toString(";").c_str(), "");
+    EXPECT_STREQ(tested.toString(", ").c_str(), "");
+}
+
+TEST(storing_string_view, toString_singleElement)
+{
+    cStringViewVector tested("alma", ", ", false);
+    EXPECT_STREQ(tested.toString(";").c_str(), "alma");
+    EXPECT_STREQ(tested.toString(", ").c_str(), "alma");
 }
 
 } // namespace StringVectorTests
