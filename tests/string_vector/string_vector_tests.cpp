@@ -202,6 +202,53 @@ TEST(construction_from_char_array, mixed)
     EXPECT_STREQ(tested[2].c_str(), "c");
 }
 
+TEST(storing_string_views, construction_from_cstar)
+{
+    {
+        cStringViewVector tested("alma, korte, banan, citrom, eper, alma", ", ", false);
+        EXPECT_EQ(tested.size(), 6);
+        EXPECT_STREQ(std::string(tested[0]).c_str(), "alma");
+        EXPECT_STREQ(std::string(tested[1]).c_str(), "korte");
+        EXPECT_STREQ(std::string(tested[2]).c_str(), "banan");
+        EXPECT_STREQ(std::string(tested[3]).c_str(), "citrom");
+        EXPECT_STREQ(std::string(tested[4]).c_str(), "eper");
+        EXPECT_STREQ(std::string(tested[5]).c_str(), "alma");
+    }
+    {
+        cStringViewVector tested(",alma,,korte,", ", ", true);
+        EXPECT_EQ(tested.size(), 5);
+        EXPECT_STREQ(std::string(tested[0]).c_str(), "");
+        EXPECT_STREQ(std::string(tested[1]).c_str(), "alma");
+        EXPECT_STREQ(std::string(tested[2]).c_str(), "");
+        EXPECT_STREQ(std::string(tested[3]).c_str(), "korte");
+        EXPECT_STREQ(std::string(tested[4]).c_str(), "");
+    }
+}
+
+TEST(stroring_string_view, construction_from_string)
+{
+    std::string source(",alma,,korte,");
+    cStringViewVector tested(source, ", ", true);
+    EXPECT_EQ(tested.size(), 5);
+    EXPECT_STREQ(std::string(tested[0]).c_str(), "");
+    EXPECT_STREQ(std::string(tested[1]).c_str(), "alma");
+    EXPECT_STREQ(std::string(tested[2]).c_str(), "");
+    EXPECT_STREQ(std::string(tested[3]).c_str(), "korte");
+    EXPECT_STREQ(std::string(tested[4]).c_str(), "");
+}
+
+TEST(storing_string_view, construction_from_string_view)
+{
+    std::string source(",alma,,korte,");
+    cStringViewVector tested(std::string_view(source), ", ", true);
+    EXPECT_EQ(tested.size(), 5);
+    EXPECT_STREQ(std::string(tested[0]).c_str(), "");
+    EXPECT_STREQ(std::string(tested[1]).c_str(), "alma");
+    EXPECT_STREQ(std::string(tested[2]).c_str(), "");
+    EXPECT_STREQ(std::string(tested[3]).c_str(), "korte");
+    EXPECT_STREQ(std::string(tested[4]).c_str(), "");
+}
+
 TEST(construction, FromIntVector)
 {
     cIntVector intVector = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
@@ -231,10 +278,41 @@ TEST(utility, ToIntVector)
         EXPECT_EQ(intVector[i], i + 1);
 }
 
+TEST(storing_string_views, ToIntVector)
+{
+    cStringViewVector tested("1, 2AAA, -353, 4, 5, 6 ,7,8,  9   ,10,11 ", ",", true);
+    cIntVector intVector = tested.ToIntVector();
+    EXPECT_EQ(intVector.size(), 11);
+    for (int i = 0; i < 11; i++)
+    {
+        if (i != 2)
+            EXPECT_EQ(intVector[i], i + 1);
+        else
+            EXPECT_EQ(intVector[i], -353);
+    }
+}
+
 TEST(utility, FindIndex)
 {
     //                    0      1       2       3       4      5
     cStringVector tested("alma, korte, banan, citrom, eper, alma", ",", true);
+    tested.TrimAll();
+    EXPECT_EQ(tested.FindIndex("alma"), 0);
+    EXPECT_EQ(tested.FindIndex("korte"), 1);
+    EXPECT_EQ(tested.FindIndex("banan"), 2);
+    EXPECT_EQ(tested.FindIndex("citrom"), 3);
+    EXPECT_EQ(tested.FindIndex("eper"), 4);
+    EXPECT_EQ(tested.FindIndex("alma", 1), 5);
+    EXPECT_EQ(tested.FindIndex("korte", 2), -1);
+    EXPECT_EQ(tested.FindIndex("banan", 3), -1);
+    EXPECT_EQ(tested.FindIndex("citrom", 4), -1);
+    EXPECT_EQ(tested.FindIndex("eper", 5), -1);
+}
+
+TEST(storing_string_views, FindIndex)
+{
+    //                         0      1       2       3       4      5
+    cStringViewVector tested("alma, korte, banan, citrom, eper, alma", ",", true);
     tested.TrimAll();
     EXPECT_EQ(tested.FindIndex("alma"), 0);
     EXPECT_EQ(tested.FindIndex("korte"), 1);
