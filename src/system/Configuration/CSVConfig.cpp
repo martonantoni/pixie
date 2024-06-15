@@ -6,14 +6,14 @@ cCSVConfig::cCSVConfig(const cPath &Path, const std::string &Separator)
 	auto Line=File.GetNextLine();
 	if(!Line.IsValid())
 		return;
-	mKeys.FromString(Line, Separator, false);
+	mKeys.FromString(std::string(Line), Separator, false);
 	for(;;)
 	{
 		auto Line=File.GetNextLine();
 		if(!Line.IsValid())
 			return;
 		if(Line.Length>0)
-			mRows.emplace_back(Line, Separator, true);
+			mRows.emplace_back(std::string(Line), Separator, true);
 	}
 }
 

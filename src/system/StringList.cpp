@@ -1,55 +1,5 @@
 #include "StdAfx.h"
 
-//namespace
-//{
-//	template<class T> void AddFields(T &Container, const std::string &SourceString, const std::string &Delimeters, int EmptyFieldsAllowed)
-//	{
-//		const char *SourcePos=SourceString.c_str();
-//		if(Delimeters.length()>1)
-//		{
-//			for(;;)
-//			{
-//				const char *DelimeterPos=strpbrk(SourcePos, Delimeters.c_str());
-//				if(!DelimeterPos)
-//					DelimeterPos=SourceString.c_str()+SourceString.length();
-//				if(EmptyFieldsAllowed||DelimeterPos-SourcePos>0)
-//					Container.push_back(std::string(SourcePos, (int)(DelimeterPos-SourcePos)));
-//				if(!*DelimeterPos)
-//					break;
-//				SourcePos=DelimeterPos+1;
-//			}
-//		}
-//		else
-//		{
-//			char DelimeterChar=Delimeters[0];
-//			for(;;)
-//			{
-//				const char *DelimeterPos=strchr(SourcePos, DelimeterChar);
-//				if(!DelimeterPos)
-//					DelimeterPos=SourceString.c_str()+SourceString.length();
-//				if(EmptyFieldsAllowed||DelimeterPos-SourcePos>0)
-//					Container.push_back(std::string(SourcePos, (int)(DelimeterPos-SourcePos)));
-//				if(!*DelimeterPos)
-//					break;
-//				SourcePos=DelimeterPos+1;
-//			}
-//		}
-//	}
-//}
-
-cStringVector::cStringVector(const std::string &SourceString, const std::string &Delimeters, bool EmptyFieldsAllowed)
-{
-	reserve(4);
-	addFields(SourceString, Delimeters, EmptyFieldsAllowed);
-}
-
-void cStringVector::FromString(const std::string &SourceString, const std::string &Delimeters, bool EmptyFieldsAllowed)
-{
-	clear();
-	reserve(4);
-	addFields(SourceString, Delimeters, EmptyFieldsAllowed);
-}
-
 int cStringVector::FindIndex(const std::string &Token, int From) const
 {
 	for(int i=From, iend=(int)size(); i<iend; ++i)

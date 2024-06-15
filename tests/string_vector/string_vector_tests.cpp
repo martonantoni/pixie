@@ -5,7 +5,8 @@
 namespace StringVectorTests
 {
 
-void testConstruction(const std::string &source, const std::string &delimeters, bool emptyFieldsAllowed, const std::vector<std::string> &expected)
+template<class SourceType>
+void testConstruction(SourceType source, const std::string &delimeters, bool emptyFieldsAllowed, const std::vector<std::string> &expected)
 {
     cStringVector tested(source, delimeters, emptyFieldsAllowed);
     EXPECT_EQ(tested.size(), expected.size()) << "source: \"" << source << "\", delimeters: \"" << delimeters << "\", emptyFieldsAllowed: " << emptyFieldsAllowed;
@@ -51,6 +52,19 @@ void testConstructionExtended(const std::string &source, const std::string &deli
         extendString(s);
     }
     testConstruction(extendedSource, delimeters, emptyFieldsAllowed, extendedExpected);
+}
+
+void testConstructionExtendedSV(const std::string &source, const std::string &delimeters, bool emptyFieldsAllowed, const std::vector<std::string> &expected)
+{
+    testConstruction(std::string_view(source), delimeters, emptyFieldsAllowed, expected);
+    std::string extendedSource = source;
+    extendString(extendedSource);
+    auto extendedExpected = expected;
+    for (auto &s: extendedExpected)
+    {
+        extendString(s);
+    }
+    testConstruction(std::string_view(extendedSource), delimeters, emptyFieldsAllowed, extendedExpected);
 }
 
 
@@ -114,6 +128,78 @@ TEST(construction, multiple_delimeters_empty_fields_not_allowed)
     testConstructionExtended("a,b;", ",;", false, { "a", "b" });
     testConstructionExtended("a,b,c", ",;", false, { "a", "b", "c" });
     testConstructionExtended(";a,b;c", ",;", false, { "a", "b", "c" });
+}
+
+TEST(construction_from_string_view, single_delimeter_allow_empty_fields)
+{
+    testConstructionExtendedSV("", ",", true, { "" });
+    testConstructionExtendedSV("a", ",", true, { "a" });
+    testConstructionExtendedSV("a,b", ",", true, { "a", "b" });
+    testConstructionExtendedSV(",,,", ",", true, { "", "", "", "" });
+    testConstructionExtendedSV("a,,b", ",", true, { "a", "", "b" });
+    testConstructionExtendedSV("a,b,", ",", true, { "a", "b", "" });
+    testConstructionExtendedSV("a,b,c", ",", true, { "a", "b", "c" });
+    testConstructionExtendedSV(",a,b,c", ",", true, { "", "a", "b", "c" });
+}
+
+TEST(construction_from_string_view, single_delimeter_empty_fields_not_allowed)
+{
+    testConstructionExtendedSV("", ",", false, {});
+    testConstructionExtendedSV("a", ",", false, { "a" });
+    testConstructionExtendedSV("a,b", ",", false, { "a", "b" });
+    testConstructionExtendedSV(",,,", ",", false, {});
+    testConstructionExtendedSV("a,,b", ",", false, { "a", "b" });
+    testConstructionExtendedSV("a,b,", ",", false, { "a", "b" });
+    testConstructionExtendedSV("a,b,c", ",", false, { "a", "b", "c" });
+    testConstructionExtendedSV(",a,b,c", ",", false, { "a", "b", "c" });
+}
+
+TEST(construction_from_string_view, multiple_delimeters_allow_empty_fields)
+{
+    testConstructionExtendedSV("", ",;", true, { "" });
+    testConstructionExtendedSV("a", ",;", true, { "a" });
+    testConstructionExtendedSV("a,b", ",;", true, { "a", "b" });
+    testConstructionExtendedSV(",,,", ",;", true, { "", "", "", "" });
+    testConstructionExtendedSV("a,,b", ",;", true, { "a", "", "b" });
+    testConstructionExtendedSV("a,b,", ",;", true, { "a", "b", "" });
+    testConstructionExtendedSV("a,b,c", ",;", true, { "a", "b", "c" });
+    testConstructionExtendedSV(",a,b,c", ",;", true, { "", "a", "b", "c" });
+
+    testConstructionExtendedSV("a;b", ",;", true, { "a", "b" });
+    testConstructionExtendedSV(";,;", ",;", true, { "", "", "", "" });
+    testConstructionExtendedSV("a;,b", ",;", true, { "a", "", "b" });
+    testConstructionExtendedSV("a,b;", ",;", true, { "a", "b", "" });
+    testConstructionExtendedSV("a,b,c", ",;", true, { "a", "b", "c" });
+    testConstructionExtendedSV(";a,b;c", ",;", true, { "", "a", "b", "c" });
+}
+
+TEST(construction_from_string_view, multiple_delimeters_empty_fields_not_allowed)
+{
+    testConstructionExtendedSV("", ",;", false, {});
+    testConstructionExtendedSV("a", ",;", false, { "a" });
+    testConstructionExtendedSV("a,b", ",;", false, { "a", "b" });
+    testConstructionExtendedSV(",,,", ",;", false, {});
+    testConstructionExtendedSV("a,,b", ",;", false, { "a", "b" });
+    testConstructionExtendedSV("a,b,", ",;", false, { "a", "b" });
+    testConstructionExtendedSV("a,b,c", ",;", false, { "a", "b", "c" });
+    testConstructionExtendedSV(",a,b,c", ",;", false, { "a", "b", "c" });
+
+    testConstructionExtendedSV("a;b", ",;", false, { "a", "b" });
+    testConstructionExtendedSV(";,;", ",;", false, {});
+    testConstructionExtendedSV("a;,b", ",;", false, { "a", "b" });
+    testConstructionExtendedSV("a,b;", ",;", false, { "a", "b" });
+    testConstructionExtendedSV("a,b,c", ",;", false, { "a", "b", "c" });
+    testConstructionExtendedSV(";a,b;c", ",;", false, { "a", "b", "c" });
+}
+
+TEST(construction_from_char_array, mixed)
+{
+    static char source[] = "a,b,c";
+    cStringVector tested(source, ",", true);
+    EXPECT_EQ(tested.size(), 3);
+    EXPECT_STREQ(tested[0].c_str(), "a");
+    EXPECT_STREQ(tested[1].c_str(), "b");
+    EXPECT_STREQ(tested[2].c_str(), "c");
 }
 
 TEST(construction, FromIntVector)
