@@ -11,156 +11,159 @@
 // - from a container of strings (e.g. std::vector<std::string>)
 
 template<class T> concept cStringVectorSupportedStoredTypes =
-	std::same_as<T, std::string> ||
-	std::same_as<T, std::string_view>;
+    std::same_as<T, std::string> ||
+    std::same_as<T, std::string_view>;
 
 template<class T> concept cStringVectorSupportedSource =
-	std::same_as<std::decay_t<T>, std::string> ||
-	std::same_as<std::decay_t<T>, std::string_view> ||
-	std::is_convertible_v<T, const char*>;
+    std::same_as<std::decay_t<T>, std::string> ||
+    std::same_as<std::decay_t<T>, std::string_view> ||
+    std::is_convertible_v<T, const char*>;
 
-template<class T> concept cStringContainer = requires(T t) 
-{ 
-	t.begin(); 
-	t.end(); 
-	*t.begin(); 
-	std::string(*t.begin()); 
+template<class T> concept cStringContainer = requires(T t)
+{
+    t.begin();
+    t.end();
+    *t.begin();
+    std::string(*t.begin());
 };
 
 template<cStringVectorSupportedStoredTypes StoredType>
 class tStringVector : public std::vector<StoredType>
 {
-	using base = std::vector<StoredType>;
-	template<cStringVectorSupportedSource T> void addFields(const T& source, const std::string& delimeters, bool emptyFieldsAllowed);
-	static void trim(StoredType& s);
+    using base = std::vector<StoredType>;
+    template<cStringVectorSupportedSource T> void addFields(const T& source, const std::string& delimeters, bool emptyFieldsAllowed);
+    static void trim(StoredType& s);
 public:
-	tStringVector() {}
-	template<cStringContainer T> tStringVector(const T& source);
-	template<cStringVectorSupportedSource T> tStringVector(const T &sourceString, const std::string &delimeters, bool emptyFieldsAllowed=true);
-	template<cStringVectorSupportedSource T> void fromString(const T &source, const std::string &delimeters, bool emptyFieldsAllowed=true);
-	void trimAll();
-	std::string toString(const std::string &Separator) const;
-	void fromIntVector(const cIntVector &intVector) requires std::same_as<StoredType, std::string>;
-	cIntVector toIntVector() const;
+    tStringVector() {}
+    template<cStringContainer T> 
+        tStringVector(const T& source);
+    template<cStringVectorSupportedSource T> 
+        tStringVector(const T& sourceString, const std::string& delimeters, bool emptyFieldsAllowed = true);
+    template<cStringVectorSupportedSource T> 
+        void fromString(const T& source, const std::string& delimeters, bool emptyFieldsAllowed = true);
+    void trimAll();
+    std::string toString(const std::string& Separator) const;
+    void fromIntVector(const cIntVector& intVector) requires std::same_as<StoredType, std::string>;
+    cIntVector toIntVector() const;
 };
 
 using cStringVector = tStringVector<std::string>;
 using cStringViewVector = tStringVector<std::string_view>;
 
 template<cStringVectorSupportedStoredTypes StoredType>
-template<cStringVectorSupportedSource T> 
+template<cStringVectorSupportedSource T>
 void tStringVector<StoredType>::addFields(const T& source, const std::string& delimeters, bool emptyFieldsAllowed)
 {
-	std::string_view sourceView(source);
-	std::string::size_type start = 0;
+    std::string_view sourceView(source);
+    std::string::size_type start = 0;
     std::string::size_type end = sourceView.find_first_of(delimeters);
-    while(end != std::string::npos)
+    while (end != std::string::npos)
     {
-        if(emptyFieldsAllowed || end > start)
-			this->emplace_back(sourceView.substr(start, end - start));
+        if (emptyFieldsAllowed || end > start)
+            this->emplace_back(sourceView.substr(start, end - start));
         start = end + 1;
         end = sourceView.find_first_of(delimeters, start);
     }
-    if(emptyFieldsAllowed || start < sourceView.size())
-		this->emplace_back(sourceView.substr(start));
+    if (emptyFieldsAllowed || start < sourceView.size())
+        this->emplace_back(sourceView.substr(start));
 }
 
 template<cStringVectorSupportedStoredTypes StoredType>
 template<cStringVectorSupportedSource T>
 tStringVector<StoredType>::tStringVector(const T& source, const std::string& delimeters, bool emptyFieldsAllowed)
 {
-	this->reserve(4);
-	addFields(source, delimeters, emptyFieldsAllowed);
+    this->reserve(4);
+    addFields(source, delimeters, emptyFieldsAllowed);
 }
 
 template<cStringVectorSupportedStoredTypes StoredType>
 template<cStringVectorSupportedSource T>
 void tStringVector<StoredType>::fromString(const T& source, const std::string& delimeters, bool emptyFieldsAllowed)
 {
-	this->clear(); this->reserve(4);
-	addFields(source, delimeters, emptyFieldsAllowed);
+    this->clear(); this->reserve(4);
+    addFields(source, delimeters, emptyFieldsAllowed);
 }
 
 template<cStringVectorSupportedStoredTypes StoredType>
 std::string tStringVector<StoredType>::toString(const std::string& Separator) const
 {
-	std::string result;
-	for (typename base::const_iterator i = this->begin(), iend = this->end(); i != iend; ++i)
-	{
-		if (result.length())
-			result += Separator + *i;
-		else
-			result = *i;
-	}
-	return result;
+    std::string result;
+    for (typename base::const_iterator i = this->begin(), iend = this->end(); i != iend; ++i)
+    {
+        if (result.length())
+            result += Separator + *i;
+        else
+            result = *i;
+    }
+    return result;
 }
 
 template<cStringVectorSupportedStoredTypes StoredType>
 void tStringVector<StoredType>::fromIntVector(const cIntVector& intVector) requires std::same_as<StoredType, std::string>
 {
-	this->resize(intVector.size());
-	for (auto&& [idx, value] : std::views::enumerate(intVector))
-		(*this)[idx] = std::to_string(value);
+    this->resize(intVector.size());
+    for (auto&& [idx, value] : std::views::enumerate(intVector))
+        (*this)[idx] = std::to_string(value);
 }
 
 template<cStringVectorSupportedStoredTypes StoredType>
 cIntVector tStringVector<StoredType>::toIntVector() const
 {
-	cIntVector intVector;
-	intVector.resize(this->size());
-	for (auto&& [idx, s] : std::views::enumerate(*this))
-	{
-		if constexpr (std::is_same_v<StoredType, std::string>)
-		{
-			intVector[idx] = std::stoi(s);
-		}
-		else
-		{
-			intVector[idx] = 0;
-			std::string_view sv(s);
-			trim(sv);
-			if (sv.empty())
-				continue;
-			int isNegative = sv[0] == '-';
-			if (isNegative)
-				sv.remove_prefix(1);
-			if (sv.empty())
-				continue;
-			if (sv[0] < '0' || sv[0] > '9')
-				throw std::runtime_error("Invalid number format");
-			for (auto c : sv)
-			{
-				if (c < '0' || c > '9')
-				{
-					break;
-				}
-				intVector[idx] = intVector[idx] * 10 + c - '0';
-			}
-			if (isNegative)
-				intVector[idx] = -intVector[idx];
-		}
-	}
-	return intVector;
+    cIntVector intVector;
+    intVector.resize(this->size());
+    for (auto&& [idx, s] : std::views::enumerate(*this))
+    {
+        if constexpr (std::is_same_v<StoredType, std::string>)
+        {
+            intVector[idx] = std::stoi(s);
+        }
+        else
+        {
+            intVector[idx] = 0;
+            std::string_view sv(s);
+            trim(sv);
+            if (sv.empty())
+                continue;
+            int isNegative = sv[0] == '-';
+            if (isNegative)
+                sv.remove_prefix(1);
+            if (sv.empty())
+                continue;
+            if (sv[0] < '0' || sv[0] > '9')
+                throw std::runtime_error("Invalid number format");
+            for (auto c : sv)
+            {
+                if (c < '0' || c > '9')
+                {
+                    break;
+                }
+                intVector[idx] = intVector[idx] * 10 + c - '0';
+            }
+            if (isNegative)
+                intVector[idx] = -intVector[idx];
+        }
+    }
+    return intVector;
 }
 
 template<cStringVectorSupportedStoredTypes StoredType>
 void tStringVector<StoredType>::trim(StoredType& s)
 {
-	auto left = std::find_if_not(s.begin(), s.end(), [](int c) { return std::isspace(c); });
-	auto right = std::find_if_not(s.rbegin(), s.rend(), [](int c) { return std::isspace(c); });
-	s = s.substr(left - s.begin(), right.base() - left);
+    auto left = std::find_if_not(s.begin(), s.end(), [](int c) { return std::isspace(c); });
+    auto right = std::find_if_not(s.rbegin(), s.rend(), [](int c) { return std::isspace(c); });
+    s = s.substr(left - s.begin(), right.base() - left);
 }
 
 template<cStringVectorSupportedStoredTypes StoredType>
 void tStringVector<StoredType>::trimAll()
 {
-	for(auto& s: *this)
+    for (auto& s : *this)
         trim(s);
 }
 
 template<cStringVectorSupportedStoredTypes StoredType>
 template<cStringContainer T> tStringVector<StoredType>::tStringVector(const T& source)
 {
-    for(auto &s: source)
-		this->emplace_back(s);
+    for (auto& s : source)
+        this->emplace_back(s);
 }
