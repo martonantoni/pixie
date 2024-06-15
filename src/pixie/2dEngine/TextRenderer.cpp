@@ -270,7 +270,7 @@ std::vector<std::unique_ptr<cSpriteBase>> cTextRenderer::render(const std::strin
                     Document.AddWord(CreateWordFromTexture(value));
                     break;
                 case 't':
-                    Document.setTabStops(cStringVector(value, ",", false).ToIntVector());
+                    Document.setTabStops(cStringVector(value, ",", false).toIntVector());
                     break;
                 case 'g':
                     if(!RenderInfo)

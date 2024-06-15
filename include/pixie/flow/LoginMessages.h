@@ -10,7 +10,7 @@ struct cFlowLoginMessage: public cFlowMessageBase
 
 	virtual std::shared_ptr<cMemoryStream> ToStream() const override;
 	virtual bool FromStream(const cMemoryStream &Stream) override;
-	std::string ToString() const;
+	std::string toString() const;
 };
 
 struct cFlowLoginReplyMessage: public cFlowMessageBase

@@ -23,7 +23,7 @@ public:
 	std::string GetFileName() const;
 	std::string GetExtension() const;
 	std::string GetFileNameWithoutExtension() const;
-	std::string ToString() const { return mPath; }
+	std::string toString() const { return mPath; }
 	const char *c_str() const { return mPath.c_str(); }
 	cPath operator+(const cPath &Path) const;
 	bool empty() const { return mPath.empty(); }

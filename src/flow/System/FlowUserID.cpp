@@ -17,7 +17,7 @@ void cFlowUniqueID::FromStream(const cMemoryStream &Stream)
 	mID=Stream.ReadQWORD();
 }
 
-std::string cFlowUniqueID::ToString() const
+std::string cFlowUniqueID::toString() const
 {
 	return fmt::sprintf("%llx", mID);
 }

@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 
 
-cFastFileReader::cFastFileReader(const cPath &Path): FileName(Path.ToString())
+cFastFileReader::cFastFileReader(const cPath &Path): FileName(Path.toString())
 {
 	FileHandle=::CreateFile(FileName.c_str(),GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,NULL);
 	if(FileHandle==INVALID_HANDLE_VALUE)

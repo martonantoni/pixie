@@ -3,7 +3,7 @@
 #include "LogChunk.h"
 #include "StandardLogPlugins.h"
 
-cLog::cLog(const cPath &pFileName,int pFlags): FileName(pFileName.ToString()), Flags(pFlags)
+cLog::cLog(const cPath &pFileName,int pFlags): FileName(pFileName.toString()), Flags(pFlags)
 {
 	ConstructionHelper();
 }

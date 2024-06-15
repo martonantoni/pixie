@@ -113,7 +113,7 @@ void cSocket::Cleanup()
 void cSocket::Connect(const cSocketAddress &Address)
 {
 	if(mLog)
-		mLog->Log("Connecting to %s", Address.ToString().c_str());
+		mLog->Log("Connecting to %s", Address.toString().c_str());
 	ASSERT(gNetworkThread->IsInThread());
 	const sockaddr_in *ResolvedAddress=Address.GetSockaddr_in();
 	if(!ResolvedAddress)

@@ -18,7 +18,7 @@ void testConstruction(SourceType source, const std::string &delimeters, bool emp
     tested.emplace_back("be");
     tested.emplace_back("replaced");
 
-    tested.FromString(source, delimeters, emptyFieldsAllowed);
+    tested.fromString(source, delimeters, emptyFieldsAllowed);
     EXPECT_EQ(tested.size(), expected.size()) << "source: \"" << source << "\", delimeters: \"" << delimeters << "\", emptyFieldsAllowed: " << emptyFieldsAllowed;
     for (size_t i = 0; i < expected.size(); i++)
         EXPECT_STREQ(tested[i].c_str(), expected[i].c_str()) << "source: \"" << source << "\", delimeters: \"" << delimeters << "\", emptyFieldsAllowed: " << emptyFieldsAllowed;
@@ -249,39 +249,39 @@ TEST(storing_string_view, construction_from_string_view)
     EXPECT_STREQ(std::string(tested[4]).c_str(), "");
 }
 
-TEST(construction, FromIntVector)
+TEST(construction, fromIntVector)
 {
     cIntVector intVector = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
     cStringVector tested;
-    tested.FromIntVector(intVector);
+    tested.fromIntVector(intVector);
     EXPECT_EQ(tested.size(), 10);
     for (int i = 0; i < 10; i++)
         EXPECT_STREQ(tested[i].c_str(), std::to_string(i + 1).c_str());
 }
 
-TEST(utility, TrimAll)
+TEST(utility, trimAll)
 {
     cStringVector tested("alma korte, banan ,     citrom   eper   ", ",", true);
-    tested.TrimAll();
+    tested.trimAll();
     EXPECT_EQ(tested.size(), 3);
     EXPECT_STREQ(tested[0].c_str(), "alma korte");
     EXPECT_STREQ(tested[1].c_str(), "banan");
     EXPECT_STREQ(tested[2].c_str(), "citrom   eper");
 }
 
-TEST(utility, ToIntVector)
+TEST(utility, toIntVector)
 {
     cStringVector tested("1, 2, 3, 4, 5, 6 ,7,8,  9   ,10,11 ", ",", true);
-    cIntVector intVector = tested.ToIntVector();
+    cIntVector intVector = tested.toIntVector();
     EXPECT_EQ(intVector.size(), 11);
     for (int i = 0; i < 11; i++)
         EXPECT_EQ(intVector[i], i + 1);
 }
 
-TEST(storing_string_views, ToIntVector)
+TEST(storing_string_views, toIntVector)
 {
     cStringViewVector tested("1, 2AAA, -353, 4, 5, 6 ,7,8,  9   ,10,11 ", ",", true);
-    cIntVector intVector = tested.ToIntVector();
+    cIntVector intVector = tested.toIntVector();
     EXPECT_EQ(intVector.size(), 11);
     for (int i = 0; i < 11; i++)
     {
@@ -292,45 +292,11 @@ TEST(storing_string_views, ToIntVector)
     }
 }
 
-TEST(utility, FindIndex)
-{
-    //                    0      1       2       3       4      5
-    cStringVector tested("alma, korte, banan, citrom, eper, alma", ",", true);
-    tested.TrimAll();
-    EXPECT_EQ(tested.FindIndex("alma"), 0);
-    EXPECT_EQ(tested.FindIndex("korte"), 1);
-    EXPECT_EQ(tested.FindIndex("banan"), 2);
-    EXPECT_EQ(tested.FindIndex("citrom"), 3);
-    EXPECT_EQ(tested.FindIndex("eper"), 4);
-    EXPECT_EQ(tested.FindIndex("alma", 1), 5);
-    EXPECT_EQ(tested.FindIndex("korte", 2), -1);
-    EXPECT_EQ(tested.FindIndex("banan", 3), -1);
-    EXPECT_EQ(tested.FindIndex("citrom", 4), -1);
-    EXPECT_EQ(tested.FindIndex("eper", 5), -1);
-}
-
-TEST(storing_string_views, FindIndex)
-{
-    //                         0      1       2       3       4      5
-    cStringViewVector tested("alma, korte, banan, citrom, eper, alma", ",", true);
-    tested.TrimAll();
-    EXPECT_EQ(tested.FindIndex("alma"), 0);
-    EXPECT_EQ(tested.FindIndex("korte"), 1);
-    EXPECT_EQ(tested.FindIndex("banan"), 2);
-    EXPECT_EQ(tested.FindIndex("citrom"), 3);
-    EXPECT_EQ(tested.FindIndex("eper"), 4);
-    EXPECT_EQ(tested.FindIndex("alma", 1), 5);
-    EXPECT_EQ(tested.FindIndex("korte", 2), -1);
-    EXPECT_EQ(tested.FindIndex("banan", 3), -1);
-    EXPECT_EQ(tested.FindIndex("citrom", 4), -1);
-    EXPECT_EQ(tested.FindIndex("eper", 5), -1);
-}
-
-TEST(utility, ToString)
+TEST(utility, toString)
 {
     cStringVector tested("alma, korte, banan, citrom, eper, alma", ", ", false);
-    EXPECT_STREQ(tested.ToString(";").c_str(), "alma;korte;banan;citrom;eper;alma");
-    EXPECT_STREQ(tested.ToString(", ").c_str(), "alma, korte, banan, citrom, eper, alma");
+    EXPECT_STREQ(tested.toString(";").c_str(), "alma;korte;banan;citrom;eper;alma");
+    EXPECT_STREQ(tested.toString(", ").c_str(), "alma, korte, banan, citrom, eper, alma");
 }
 
 } // namespace StringVectorTests

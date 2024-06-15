@@ -197,7 +197,7 @@ bool cFlowServerStream::ProcessFirstMessage(const cMemoryStream &Stream, const c
 	cFlowLoginMessage LoginMessage;
 	if(!LoginMessage.FromStream(Stream))
 		return false;
-	MainLog->Log("LoginMessage arrived -- %s", LoginMessage.ToString().c_str());
+	MainLog->Log("LoginMessage arrived -- %s", LoginMessage.toString().c_str());
 	mIsConnected=true;
 
 	auto Connection=LoginMessage.mConnectionID.IsValid()?
@@ -207,7 +207,7 @@ bool cFlowServerStream::ProcessFirstMessage(const cMemoryStream &Stream, const c
 	{
 		if(LoginMessage.mConnectionID.IsValid())
 		{
-			MainLog->Log("ERROR: Player %s tried to login with expired/fake ConnectionID: %s", LoginMessage.mUserID.ToString().c_str(), LoginMessage.mConnectionID.ToString().c_str());
+			MainLog->Log("ERROR: Player %s tried to login with expired/fake ConnectionID: %s", LoginMessage.mUserID.toString().c_str(), LoginMessage.mConnectionID.toString().c_str());
 		}
 		return false;
 	}

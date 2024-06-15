@@ -22,5 +22,5 @@ public:
 	void SetAddressString(const std::string &AddressString, int Port=-1);
 	void SetPort(int Port);
 	std::string GetHostName() const;
-	std::string ToString() const;
+	std::string toString() const;
 };

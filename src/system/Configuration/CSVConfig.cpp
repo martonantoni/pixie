@@ -6,7 +6,7 @@ cCSVConfig::cCSVConfig(const cPath &Path, const std::string &Separator)
 	auto Line=File.GetNextLine();
 	if(!Line.IsValid())
 		return;
-	mKeys.FromString(std::string(Line), Separator, false);
+	mKeys.fromString(std::string(Line), Separator, false);
 	for(;;)
 	{
 		auto Line=File.GetNextLine();

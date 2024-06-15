@@ -20,9 +20,9 @@ bool cFlowLoginMessage::FromStream(const cMemoryStream &Stream)
 	return true;
 }
 
-std::string cFlowLoginMessage::ToString() const
+std::string cFlowLoginMessage::toString() const
 {
-	return fmt::sprintf("ConnectionID: %s, UserID: %s, MessageSuiteID: %.4s", mConnectionID.ToString().c_str(), mUserID.ToString().c_str(), (const char *)&mMessageSuiteID);
+	return fmt::sprintf("ConnectionID: %s, UserID: %s, MessageSuiteID: %.4s", mConnectionID.toString().c_str(), mUserID.toString().c_str(), (const char *)&mMessageSuiteID);
 }
 
 std::shared_ptr<cMemoryStream> cFlowLoginReplyMessage::ToStream() const

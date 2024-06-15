@@ -20,5 +20,5 @@ void cPixieInitData::BindToFromConfig(const cConfig& config)
 {
 	auto BindToConfig= config.get<std::string>("bind_to", std::string());
 	if(!BindToConfig.empty())
-		mBindTo.FromString(BindToConfig);
+		mBindTo.fromString(BindToConfig);
 }

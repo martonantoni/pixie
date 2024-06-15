@@ -6,9 +6,9 @@ public:
 	cResourceLocation() {}
 	cResourceLocation(const std::string &Location): cStringVector(Location,".",false) {}
 	cResourceLocation(const char *Location): cStringVector(Location,".",false) {}
-	void FromString(const std::string &Location)
+	void fromString(const std::string &Location)
 	{
-		cStringVector::FromString(Location, ".", false);
+		cStringVector::fromString(Location, ".", false);
 	}
 	bool IsValid() const { return !empty(); }
 	cResourceLocation &operator+=(const std::string &SubLocation)

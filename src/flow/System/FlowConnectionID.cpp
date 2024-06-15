@@ -19,7 +19,7 @@ void cFlowConnectionID::FromStream(const cMemoryStream &Stream)
 	mID=Stream.ReadQWORD();
 }
 
-std::string cFlowConnectionID::ToString() const
+std::string cFlowConnectionID::toString() const
 {
 	return fmt::sprintf("%llu", mID);
 }

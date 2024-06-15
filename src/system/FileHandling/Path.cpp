@@ -5,7 +5,7 @@ void cPath::UpdateParsedDataIfNeeded() const
 	if(mParsedData.mIsValid)
 		return;
 	mParsedData.mIsValid=true;
-	mParsedData.mPathParts.FromString(mPath, "/", false);
+	mParsedData.mPathParts.fromString(mPath, "/", false);
 	auto &FileName=mParsedData.mPathParts[mParsedData.mPathParts.size()-1];
 	auto DotPos=FileName.find_last_of('.');
 	if(DotPos==std::string::npos)

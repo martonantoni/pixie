@@ -37,12 +37,11 @@ public:
 	tStringVector() {}
 	template<cStringContainer T> tStringVector(const T& source);
 	template<cStringVectorSupportedSource T> tStringVector(const T &SourceString, const std::string &Delimeters, bool EmptyFieldsAllowed=true);
-	template<cStringVectorSupportedSource T> void FromString(const T &source, const std::string &Delimeters, bool EmptyFieldsAllowed=true);
-	void TrimAll();
-	std::string ToString(const std::string &Separator) const;
-	int FindIndex(const std::string &Token, int From=0) const; // returns -1 if not found
-	void FromIntVector(const cIntVector &IntVector) requires std::same_as<StoredType, std::string>;
-	cIntVector ToIntVector() const;
+	template<cStringVectorSupportedSource T> void fromString(const T &source, const std::string &Delimeters, bool EmptyFieldsAllowed=true);
+	void trimAll();
+	std::string toString(const std::string &Separator) const;
+	void fromIntVector(const cIntVector &IntVector) requires std::same_as<StoredType, std::string>;
+	cIntVector toIntVector() const;
 };
 
 using cStringVector = tStringVector<std::string>;
@@ -80,23 +79,14 @@ tStringVector<StoredType>::tStringVector(const T& source, const std::string& del
 
 template<cStringVectorSupportedStoredTypes StoredType>
 template<cStringVectorSupportedSource T>
-void tStringVector<StoredType>::FromString(const T& source, const std::string& delimeters, bool emptyFieldsAllowed)
+void tStringVector<StoredType>::fromString(const T& source, const std::string& delimeters, bool emptyFieldsAllowed)
 {
 	this->clear(); this->reserve(4);
 	addFields(source, delimeters, emptyFieldsAllowed);
 }
 
 template<cStringVectorSupportedStoredTypes StoredType>
-int tStringVector<StoredType>::FindIndex(const std::string& Token, int From) const
-{
-	for (int i = From, iend = (int)this->size(); i < iend; ++i)
-		if ((*this)[i] == Token)
-			return i;
-	return -1;
-}
-
-template<cStringVectorSupportedStoredTypes StoredType>
-std::string tStringVector<StoredType>::ToString(const std::string& Separator) const
+std::string tStringVector<StoredType>::toString(const std::string& Separator) const
 {
 	std::string Result;
 	for (typename base::const_iterator i = this->begin(), iend = this->end(); i != iend; ++i)
@@ -110,7 +100,7 @@ std::string tStringVector<StoredType>::ToString(const std::string& Separator) co
 }
 
 template<cStringVectorSupportedStoredTypes StoredType>
-void tStringVector<StoredType>::FromIntVector(const cIntVector& IntVector) requires std::same_as<StoredType, std::string>
+void tStringVector<StoredType>::fromIntVector(const cIntVector& IntVector) requires std::same_as<StoredType, std::string>
 {
 	this->resize(IntVector.size());
 	for (int i = 0, iend = (int)this->size(); i != iend; ++i)
@@ -118,7 +108,7 @@ void tStringVector<StoredType>::FromIntVector(const cIntVector& IntVector) requi
 }
 
 template<cStringVectorSupportedStoredTypes StoredType>
-cIntVector tStringVector<StoredType>::ToIntVector() const
+cIntVector tStringVector<StoredType>::toIntVector() const
 {
 	cIntVector IntVector;
 	IntVector.resize(this->size());
@@ -166,7 +156,7 @@ void tStringVector<StoredType>::trim(StoredType& s)
 }
 
 template<cStringVectorSupportedStoredTypes StoredType>
-void tStringVector<StoredType>::TrimAll()
+void tStringVector<StoredType>::trimAll()
 {
 	for(auto& s: *this)
         trim(s);

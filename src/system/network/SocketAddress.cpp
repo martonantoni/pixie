@@ -88,7 +88,7 @@ std::string cSocketAddress::GetHostName() const
 	return mUnresolvedAddress.mIsValid?mUnresolvedAddress.mAddressString:std::string();
 }
 
-std::string cSocketAddress::ToString() const
+std::string cSocketAddress::toString() const
 { 
 	return mUnresolvedAddress.mIsValid?fmt::sprintf("%s:%d", mUnresolvedAddress.mAddressString.c_str(), mUnresolvedAddress.mPort):std::string(); 
 }

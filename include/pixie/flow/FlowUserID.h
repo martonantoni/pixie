@@ -16,7 +16,7 @@ public:
 	bool operator!=(const cFlowUniqueID &Other) const { return mID!=Other.mID; }
 	bool IsValid() const { return mID!=0ull; }
 	void Invalidate() { mID=0ull; }
-	std::string ToString() const;
+	std::string toString() const;
 
 	void ToStream(cMemoryStream &Stream) const;
 	void FromStream(const cMemoryStream &Stream);

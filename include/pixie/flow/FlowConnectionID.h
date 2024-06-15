@@ -18,7 +18,7 @@ public:
 	void ToStream(cMemoryStream &Stream) const;
 	void FromStream(const cMemoryStream &Stream);
 
-	std::string ToString() const;
+	std::string toString() const;
 
 	static cFlowConnectionID GenerateRandom();
 };
