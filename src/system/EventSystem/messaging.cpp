@@ -46,6 +46,16 @@ void cMessageCenter::post(const std::string& endpointID)
         mNeedDispatchProcessor();
 }
 
+void cMessageCenter::send(const std::string& endpointID)
+{
+    auto& dispatcher = mDispatchers[endpointID];
+    if (!dispatcher)
+        return;
+    if (dispatcher->messageType() != typeid(void))
+        throw std::runtime_error("Wrong message type");
+    dispatcher->dispatch(std::monostate(), mDirectMessageIndex);
+}
+ 
 void cMessageCenter::setNeedDispatchProcessor(std::function<void()> needDispatchProcessor)
 {
     mNeedDispatchProcessor = needDispatchProcessor;

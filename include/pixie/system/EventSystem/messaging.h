@@ -5,6 +5,7 @@ template<class C, class T> concept cMessageListener =
 
 class cMessageCenter final
 {
+    static constexpr int mDirectMessageIndex = -1;
     class cDispatcher
     {
         std::type_index mMessageType;
@@ -55,7 +56,9 @@ class cMessageCenter final
     std::function<void()> mNeedDispatchProcessor;
 public:
     template<class T> void post(const std::string& endpointID, T&& messageData);
+    template<class T> void send(const std::string& endpointID, T&& messageData);
     void post(const std::string& endpointID);
+    void send(const std::string& endpointID);
     template<class T, class C> requires cMessageListener<C, T>
         [[nodiscard]] cRegisteredID registerListener(const std::string& endpointID, const C& listener);
     void dispatch();
@@ -87,9 +90,10 @@ void cMessageCenter::tDispatcher<T>::dispatch(const std::any& messageData, int m
     const T& messageDataT = std::any_cast<const T&>(messageData);
     mListeners.ForEach([messageIndex, &messageDataT](auto& listener)
         {
-            if (messageIndex > listener.mEventFilter)
+            if (messageIndex == mDirectMessageIndex || messageIndex > listener.mEventFilter)
             {
-                listener.mEventFilter = messageIndex;
+                if(messageIndex != mDirectMessageIndex)
+                    listener.mEventFilter = messageIndex;
                 std::visit(
                     [&messageDataT](auto& function)
                     {
@@ -119,6 +123,16 @@ template<class T> void cMessageCenter::post(const std::string& endpointID, T&& m
     mEventsWriting.emplace_back(std::forward<T>(messageData), dispatcher.get());
     if(mNeedDispatchProcessor)
         mNeedDispatchProcessor();
+}
+
+template<class T> void cMessageCenter::send(const std::string& endpointID, T&& messageData)
+{
+    auto& dispatcher = mDispatchers[endpointID];
+    if (!dispatcher)
+        return; // no listeners
+    if (dispatcher->messageType() != typeid(std::decay_t<T>))
+        throw std::runtime_error("Wrong message type");
+    dispatcher->dispatch(std::forward<T>(messageData), mDirectMessageIndex);
 }
 
 template<class T, class C> requires cMessageListener<C, T>
