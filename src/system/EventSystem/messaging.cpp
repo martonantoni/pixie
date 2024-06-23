@@ -6,7 +6,7 @@ void cMessageCenter::tDispatcher<void>::dispatch(const std::any& messageData, in
 {
     mListeners.ForEach([messageIndex](auto& listener)
         {
-            if (messageIndex > listener.mEventFilter)
+            if (messageIndex == mDirectMessageIndex || messageIndex > listener.mEventFilter)
             {
                 listener.mEventFilter = messageIndex;
                 listener.mFunction();
