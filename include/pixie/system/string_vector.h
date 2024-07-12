@@ -1,5 +1,15 @@
 #pragma once
 
+#include <string>
+#include <string_view>
+#include <type_traits>
+#include <vector>
+#include <ranges>
+#include <algorithm>
+#include <numeric>
+
+using cIntVector = std::vector<int>;
+
 // Can store either:
 // - std::string, the name of the type is then cStringVector
 // - std::string_view, the name of the type is then cStringViewVector
