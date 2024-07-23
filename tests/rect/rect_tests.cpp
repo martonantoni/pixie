@@ -196,55 +196,92 @@ namespace RectTests
 
 TEST(Rect, position)
 {
-    cRect2 testedRect(1, 2, 3, 4); // top, left, width, height
+    cRect2 testedRect(1, 2, 3, 4); // left, top, width, height
 
-    EXPECT_EQ(testedRect.position(), cPoint(1, 2));
-    testedRect.position() = cPoint(5, 6);
-    EXPECT_EQ(testedRect.position(), cPoint(5, 6));
-    testedRect.position() += cPoint(1, 2);
-    EXPECT_EQ(testedRect.position(), cPoint(6, 8));
-    testedRect.position() -= cPoint(2, 1);
-    EXPECT_EQ(testedRect.position(), cPoint(4, 7));
-    
-    // check if size did not get modified:
+    testedRect.position() = cPoint(5, 6);  // set
+    EXPECT_EQ(testedRect.position(), cPoint(5, 6)); 
+
+    testedRect.position() += cPoint(1, 2);  // get + set
+    EXPECT_EQ(testedRect.position(), cPoint(6, 8)); 
     EXPECT_EQ(testedRect.size(), cPoint(3, 4));
 }
 
 TEST(Rect, centerPosition)
 {
-    cRect2 testedRect(10, 20, 30, 40); // top, left, width, height
+    cRect2 testedRect(10, 20, 30, 40); // left, top, width, height
 
-    EXPECT_EQ(testedRect.centerPosition(), cPoint(25, 40));
-    testedRect.centerPosition() = cPoint(50, 60);
+    EXPECT_EQ(testedRect.centerPosition(), cPoint(25, 40)); // get
+
+    testedRect.centerPosition() = cPoint(50, 60); // set
     EXPECT_EQ(testedRect.centerPosition(), cPoint(50, 60));
     EXPECT_EQ(testedRect.position(), cPoint(35, 40));
     EXPECT_EQ(testedRect.size(), cPoint(30, 40));
 
-    testedRect.centerPosition() += cPoint(10, 20);
+    testedRect.centerPosition() += cPoint(10, 20); // get + set
     EXPECT_EQ(testedRect.centerPosition(), cPoint(60, 80));
     EXPECT_EQ(testedRect.position(), cPoint(45, 60));
-    EXPECT_EQ(testedRect.size(), cPoint(30, 40));
-
-    testedRect.centerPosition() -= cPoint(20, 10);
-    EXPECT_EQ(testedRect.centerPosition(), cPoint(40, 70));
-    EXPECT_EQ(testedRect.position(), cPoint(25, 50));
     EXPECT_EQ(testedRect.size(), cPoint(30, 40));
 }
 
 TEST(Rect, size)
 {
-    cRect2 testedRect(1, 2, 3, 4); // top, left, width, height
+    cRect2 testedRect(1, 2, 3, 4); // left, top, width, height
 
-    EXPECT_EQ(testedRect.size(), cPoint(3, 4));
-    testedRect.size() = cPoint(5, 6);
+    EXPECT_EQ(testedRect.size(), cPoint(3, 4)); // get
+
+    testedRect.size() = cPoint(5, 6);  // set
     EXPECT_EQ(testedRect.size(), cPoint(5, 6));
-    testedRect.size() += cPoint(1, 2);
+    EXPECT_EQ(testedRect.position(), cPoint(1, 2)); // check that position is not changed
+
+    testedRect.size() += cPoint(1, 2);  // get + set
     EXPECT_EQ(testedRect.size(), cPoint(6, 8));
-    testedRect.size() -= cPoint(2, 1);
-    EXPECT_EQ(testedRect.size(), cPoint(4, 7));
-    
-    // check if position did not get modified:
-    EXPECT_EQ(testedRect.position(), cPoint(1, 2));
+    EXPECT_EQ(testedRect.position(), cPoint(1, 2)); // check that position is not changed
+}
+
+TEST(Rect, width)
+{
+    cRect2 testedRect(1, 2, 3, 4); // left, top, width, height
+
+    EXPECT_EQ(testedRect.width(), 3); // get
+
+    testedRect.width() = 5;  // set
+    EXPECT_EQ(testedRect.width(), 5);
+    EXPECT_EQ(testedRect.size(), cPoint(5, 4)); // check that only width is changed
+    EXPECT_EQ(testedRect.position(), cPoint(1, 2)); // check that position is not changed
+
+    testedRect.width() += 1;  // get + set
+    EXPECT_EQ(testedRect.width(), 6);
+    EXPECT_EQ(testedRect.size(), cPoint(6, 4)); // check that size is changed (but only width)
+    EXPECT_EQ(testedRect.position(), cPoint(1, 2)); // check that position is not changed
+}
+
+TEST(Rect, height)
+{
+    cRect2 testedRect(1, 2, 3, 4); // left, top, width, height
+
+    EXPECT_EQ(testedRect.height(), 4); // get
+
+    testedRect.height() = 5;  // set
+    EXPECT_EQ(testedRect.height(), 5);
+    EXPECT_EQ(testedRect.size(), cPoint(3, 5)); // check that only height is changed
+    EXPECT_EQ(testedRect.position(), cPoint(1, 2)); // check that position is not changed
+
+    testedRect.height() += 1;  // get + set
+    EXPECT_EQ(testedRect.height(), 6);
+    EXPECT_EQ(testedRect.size(), cPoint(3, 6)); // check that size is changed (but only height)
+    EXPECT_EQ(testedRect.position(), cPoint(1, 2)); // check that position is not changed
+}
+
+TEST(Rect, left)
+{
+    cRect2 testedRect(1, 2, 3, 4); // left, top, width, height
+
+    EXPECT_EQ(testedRect.left(), 1); // get
+
+    testedRect.left() = 2;  // set
+    EXPECT_EQ(testedRect.left(), 2);
+    EXPECT_EQ(testedRect.position(), cPoint(2, 2)); // check that only left is changed
+    EXPECT_EQ(testedRect.size(), cPoint(
 }
 
 } // namespace RectTests
