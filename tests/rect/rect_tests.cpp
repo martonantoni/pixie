@@ -93,21 +93,21 @@ public:
 
 auto cRect2::centerPosition()
 {
-    return tProxy < cRect2, cPoint,
+    return tProxy<cRect2, cPoint,
         [](auto& rect) { return rect.mTopLeft + rect.mSize / 2; },
         [](auto& rect, auto value) { rect.mTopLeft = value - rect.mSize / 2; } > (*this);
 }
 
 auto cRect2::width()
 {
-    return tProxy < cRect2, int,
+    return tProxy<cRect2, int,
         [](auto& rect) { return rect.mSize.x; },
         [](auto& rect, auto value) { rect.mSize.x = value; } > (*this);
 }
 
 auto cRect2::height()
 {
-    return tProxy < cRect2, int,
+    return tProxy<cRect2, int,
         [](auto& rect) { return rect.mSize.y; },
         [](auto& rect, auto value) { rect.mSize.y = value; } > (*this);
 }
@@ -288,7 +288,6 @@ cRect2 cRect2::aroundPoint(cPoint point, cPoint size)
 { 
     return cRect2(point - size / 2, size); 
 }
-
 
 cRect2 cRect2::centeredRect(const cRect2& baseRect, const cRect2& rectToCenter)
 {
