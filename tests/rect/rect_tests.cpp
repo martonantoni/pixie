@@ -44,13 +44,12 @@ public:
     constexpr cRect2(int left, int top, int width, int height) : mTopLeft(left, top), mSize(width, height) {}
     constexpr cRect2(cPoint topLeft, cPoint size) : mTopLeft(topLeft), mSize(size) {}
 
-    cPoint topLeft() const { return mTopLeft; }
-    cPoint& topLeft() { return mTopLeft; }
     cPoint position() const { return mTopLeft; }
     cPoint& position() { return mTopLeft; }
     cPoint size() const { return mSize; }
     cPoint& size() { return mSize; }
 
+    cPoint topLeft() const { return mTopLeft; }
     cPoint bottomRight() const { return mTopLeft + mSize; }
     cPoint topRight() const { return mTopLeft + cPoint(mSize.x, 0); }
     cPoint bottomLeft() const { return mTopLeft + cPoint(0, mSize.y); }
@@ -62,15 +61,17 @@ public:
     int right() const { return mTopLeft.x + mSize.x; }
     int bottom() const { return mTopLeft.y + mSize.y; }
 
-
     auto centerPosition();
     auto width();
     auto height();
 
     struct PreserveSize {};
-
+// corners:
     template<class... Properties> auto bottomRight();
     template<class... Properties> auto bottomLeft();
+    template<class... Properties> auto topRight();
+    template<class... Properties> auto topLeft();
+// sides:
     template<class... Properties> auto left();
     template<class... Properties> auto top();
     template<class... Properties> auto right();
@@ -149,6 +150,44 @@ template<class... Properties> auto cRect2::bottomLeft()
     }
 }
 
+template<class... Properties> auto cRect2::topRight()
+{
+    if constexpr (std::disjunction_v<std::is_same<Properties, PreserveSize>...>)
+    {
+        return tProxy<cRect2, cPoint,
+            [](auto& rect) { return rect.mTopLeft + cPoint(rect.mSize.x, 0); },
+            [](auto& rect, auto value) { rect.mTopLeft = value - cPoint(rect.mSize.x, 0); }> (*this);
+    }
+    else
+    {
+        return tProxy<cRect2, cPoint,
+            [](auto& rect) { return rect.mTopLeft + cPoint(rect.mSize.x, 0); },
+            [](auto& rect, auto value) // bottom left corner is fixed
+            {
+                rect.mSize.x = value.x - rect.mTopLeft.x;
+                rect.mSize.y += rect.mTopLeft.y - value.y;
+                rect.mTopLeft.y = value.y;
+            }> (*this);
+    }
+}
+
+template<class... Properties> auto cRect2::topLeft()
+{
+    if constexpr (std::disjunction_v<std::is_same<Properties, PreserveSize>...>)
+    {
+        return tProxy<cRect2, cPoint,
+            [](auto& rect) { return rect.mTopLeft; },
+            [](auto& rect, auto value) { rect.mTopLeft = value; }> (*this);
+    }
+    else
+    {
+        return tProxy<cRect2, cPoint,
+            [](auto& rect) { return rect.mTopLeft; },
+            [](auto& rect, auto value) { rect.mSize += rect.mTopLeft - value; rect.mTopLeft = value; }> (*this);
+    }
+}
+
+
 template<class... Properties> auto cRect2::left()
 {
     if constexpr (std::disjunction_v<std::is_same<Properties, PreserveSize>...>)
@@ -187,13 +226,13 @@ template<class... Properties> auto cRect2::right()
     {
         return tProxy<cRect2, int,
             [](auto& rect) { return rect.mTopLeft.x + rect.mSize.x; },
-            [](auto& rect, auto value) { rect.mSize.x = value - rect.mTopLeft.x; }> (*this);
+            [](auto& rect, auto value) { rect.mTopLeft.x = value - rect.mSize.x; }> (*this);
     }
     else
     {
         return tProxy<cRect2, int,
             [](auto& rect) { return rect.mTopLeft.x + rect.mSize.x; },
-            [](auto& rect, auto value) { rect.mTopLeft.x = value - rect.mSize.x; }> (*this);
+            [](auto& rect, auto value) { rect.mSize.x = value - rect.mTopLeft.x; }> (*this);
     }
 }
 
@@ -203,7 +242,7 @@ template<class... Properties> auto cRect2::bottom()
     {
         return tProxy<cRect2, int,
             [](auto& rect) { return rect.mTopLeft.y + rect.mSize.y; },
-            [](auto& rect, auto value) { rect.mSize.y = value - rect.mTopLeft.y; }> (*this);
+            [](auto& rect, auto value) { rect.mTopLeft.y = value - rect.mSize.y; }> (*this);
     }
     else
     {
@@ -410,6 +449,7 @@ TEST(Rect, height)
     EXPECT_EQ(testedRect.position(), cPoint(1, 2)); // check that position is not changed
 }
 
+
 TEST(Rect, left)
 {
     cRect2 testedRect(1, 2, 3, 4); // left, top, width, height
@@ -418,8 +458,94 @@ TEST(Rect, left)
 
     testedRect.left() = 2;  // set
     EXPECT_EQ(testedRect.left(), 2);
-    EXPECT_EQ(testedRect.position(), cPoint(2, 2)); // check that only left is changed
+    EXPECT_EQ(testedRect.position(), cPoint(2, 2));
+    EXPECT_EQ(testedRect.size(), cPoint(2, 4));
 }
+
+TEST(Rect, left_preserveSize)
+{
+    cRect2 testedRect(1, 2, 3, 4); // left, top, width, height
+
+    EXPECT_EQ(testedRect.left(), 1); // get
+
+    testedRect.left<cRect2::PreserveSize>() = 2;  // set
+    EXPECT_EQ(testedRect.left(), 2);
+    EXPECT_EQ(testedRect.position(), cPoint(2, 2));
+    EXPECT_EQ(testedRect.size(), cPoint(3, 4));
+}
+
+TEST(Rect, top)
+{
+    cRect2 testedRect(1, 2, 3, 4); // left, top, width, height
+
+    EXPECT_EQ(testedRect.top(), 2); // get
+
+    testedRect.top() = 3;  // set
+    EXPECT_EQ(testedRect.top(), 3);
+    EXPECT_EQ(testedRect.position(), cPoint(1, 3));
+    EXPECT_EQ(testedRect.size(), cPoint(3, 3));
+}
+
+TEST(Rect, top_preserveSize)
+{
+    cRect2 testedRect(1, 2, 3, 4); // left, top, width, height
+
+    EXPECT_EQ(testedRect.top(), 2); // get
+
+    testedRect.top<cRect2::PreserveSize>() = 3;  // set
+    EXPECT_EQ(testedRect.top(), 3);
+    EXPECT_EQ(testedRect.position(), cPoint(1, 3));
+    EXPECT_EQ(testedRect.size(), cPoint(3, 4));
+}
+
+TEST(Rect, bottom)
+{
+    cRect2 testedRect(1, 2, 3, 4); // left, top, width, height
+
+    EXPECT_EQ(testedRect.bottom(), 6); // get
+
+    testedRect.bottom() = 7;  // set
+    EXPECT_EQ(testedRect.bottom(), 7);
+    EXPECT_EQ(testedRect.position(), cPoint(1, 2));
+    EXPECT_EQ(testedRect.size(), cPoint(3, 5));
+}
+
+TEST(Rect, bottom_preserveSize)
+{
+    cRect2 testedRect(1, 2, 3, 4); // left, top, width, height
+
+    EXPECT_EQ(testedRect.bottom(), 6); // get
+
+    testedRect.bottom<cRect2::PreserveSize>() = 7;  // set
+    EXPECT_EQ(testedRect.bottom(), 7);
+    EXPECT_EQ(testedRect.position(), cPoint(1, 3));
+    EXPECT_EQ(testedRect.size(), cPoint(3, 4));
+}
+
+TEST(Rect, right)
+{
+    cRect2 testedRect(1, 2, 3, 4); // left, top, width, height
+
+    EXPECT_EQ(testedRect.right(), 4); // get
+
+    testedRect.right() = 5;  // set
+    EXPECT_EQ(testedRect.right(), 5);
+    EXPECT_EQ(testedRect.position(), cPoint(1, 2));
+    EXPECT_EQ(testedRect.size(), cPoint(4, 4));
+}
+
+TEST(Rect, right_preserveSize)
+{
+    cRect2 testedRect(1, 2, 3, 4); // left, top, width, height
+
+    EXPECT_EQ(testedRect.right(), 4); // 1 + 3 = 4
+
+    testedRect.right<cRect2::PreserveSize>() = 5;  // move --> +1
+    EXPECT_EQ(testedRect.right(), 5);
+    EXPECT_EQ(testedRect.position(), cPoint(2, 2));
+    EXPECT_EQ(testedRect.size(), cPoint(3, 4));
+}
+
 
 TEST(Rect, bottomRight)
 {
@@ -430,7 +556,7 @@ TEST(Rect, bottomRight)
     testedRect.bottomRight() = cPoint(5, 7);  // set
     EXPECT_EQ(testedRect.bottomRight(), cPoint(5, 7));
     EXPECT_EQ(testedRect.position(), cPoint(1, 2)); // must not change position
-    EXPECT_EQ(testedRect.size(), cPoint(4, 5)); 
+    EXPECT_EQ(testedRect.size(), cPoint(4, 5));
 
     testedRect.bottomRight() += cPoint(1, 2);  // get + set
     EXPECT_EQ(testedRect.bottomRight(), cPoint(6, 9));
@@ -456,10 +582,8 @@ TEST(Rect, bottomRight_preserveSize)
     EXPECT_EQ(testedRect.size(), cPoint(3, 4)); // check that size is not changed
 }
 
-TEST(Rect, bottomLeft) 
+TEST(Rect, bottomLeft)  // topRight stays in place
 {
-    // topRight stays in place
-
     cRect2 testedRect(1, 2, 3, 4); // left, top, width, height
 
     EXPECT_EQ(testedRect.bottomLeft(), cPoint(1, 6)); // get
@@ -474,6 +598,68 @@ TEST(Rect, bottomLeft)
     EXPECT_EQ(testedRect.bottomLeft(), cPoint(3, 9));
     EXPECT_EQ(testedRect.position(), cPoint(3, 2));
     EXPECT_EQ(testedRect.size(), cPoint(1, 7));
+}
+
+TEST(Rect, bottomLeft_preserveSize)
+{
+    cRect2 testedRect(1, 2, 3, 4); // left, top, width, height
+
+    EXPECT_EQ(testedRect.bottomLeft(), cPoint(1, 6)); // get
+
+    testedRect.bottomLeft<cRect2::PreserveSize>() = cPoint(2, 7);  // set
+    EXPECT_EQ(testedRect.bottomLeft(), cPoint(2, 7));
+    EXPECT_EQ(testedRect.position(), cPoint(2, 7 - 4));
+    EXPECT_EQ(testedRect.size(), cPoint(3, 4));
+}
+
+TEST(Rect, topRight)  // bottomLeft stays in place
+{
+    cRect2 testedRect(1, 2, 3, 4); // left, top, width, height
+
+    EXPECT_EQ(testedRect.topRight(), cPoint(4, 2)); // get
+
+    testedRect.topRight() = cPoint(5, 3);  // set
+    EXPECT_EQ(testedRect.topRight(), cPoint(5, 3));
+    EXPECT_EQ(testedRect.position(), cPoint(1, 3));
+    EXPECT_EQ(testedRect.size(), cPoint(4, 3));
+    EXPECT_EQ(testedRect.bottomLeft(), cPoint(1, 6));
+}
+
+TEST(Rect, topRight_preserveSize)
+{
+    cRect2 testedRect(1, 2, 3, 4); // left, top, width, height
+
+    EXPECT_EQ(testedRect.topRight(), cPoint(4, 2)); // get
+
+    testedRect.topRight<cRect2::PreserveSize>() = cPoint(5, 3);  // set
+    EXPECT_EQ(testedRect.topRight(), cPoint(5, 3));
+    EXPECT_EQ(testedRect.position(), cPoint(5 - 3, 3));
+    EXPECT_EQ(testedRect.size(), cPoint(3, 4));
+}
+
+TEST(Rect, topLeft)
+{
+    cRect2 testedRect(1, 2, 3, 4); // left, top, width, height
+
+    EXPECT_EQ(testedRect.topLeft(), cPoint(1, 2)); // get
+
+    testedRect.topLeft() = cPoint(2, 3);  // basically it's a move with { 1, 1 }
+    EXPECT_EQ(testedRect.topLeft(), cPoint(2, 3));
+    EXPECT_EQ(testedRect.position(), cPoint(2, 3));
+    EXPECT_EQ(testedRect.size(), cPoint(2, 3));
+    EXPECT_EQ(testedRect.bottomRight(), cPoint(4, 6)); // did not change
+}
+
+TEST(Rect, topLeft_preserveSize)
+{
+    cRect2 testedRect(1, 2, 3, 4); // left, top, width, height
+
+    EXPECT_EQ(testedRect.topLeft(), cPoint(1, 2)); // get
+
+    testedRect.topLeft<cRect2::PreserveSize>() = cPoint(2, 3); // move with { 1, 1 }
+    EXPECT_EQ(testedRect.topLeft(), cPoint(2, 3));
+    EXPECT_EQ(testedRect.position(), cPoint(2, 3));
+    EXPECT_EQ(testedRect.size(), cPoint(3, 4));
 }
 
 } // namespace RectTests
