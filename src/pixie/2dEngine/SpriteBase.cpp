@@ -50,7 +50,7 @@ void cSpriteBase::SetPosition(cPoint Position)
 {
 	if(!CheckIfChangableProperty(Property_Position))
 		return;
-	mProperties.mRect.SetPosition(Position);
+	mProperties.mRect.position() = Position;
 	PropertiesSet(Property_Position);
 }
 
@@ -66,7 +66,7 @@ void cSpriteBase::SetSize(cPoint Size)
 {
 	if(!CheckIfChangableProperty(Property_Size))
 		return;
-	mProperties.mRect.SetSize(Size);
+	mProperties.mRect.size() = Size;
 	PropertiesSet(Property_Size);
 }
 
@@ -186,27 +186,27 @@ void cSpriteBase::SetWindow(cPixieWindow *Window)
 cRect cSpriteBase::GetRectForRendering() const
 {
 	cRect RectForRendering(mProperties.mRect);
-	RectForRendering.mLeft+=mProperties.mPositionOffset.x;
-	RectForRendering.mTop+=mProperties.mPositionOffset.y;
+	RectForRendering.left<cRect::PreserveSize>() += mProperties.mPositionOffset.x;
+	RectForRendering.top<cRect::PreserveSize>() += mProperties.mPositionOffset.y;
 	if(mWindow)
 	{
 		cRect WindowRect=mWindow->GetScreenRect();
-		RectForRendering.mLeft+=WindowRect.mLeft;
-		RectForRendering.mTop+=WindowRect.mTop;
+		RectForRendering.left<cRect::PreserveSize>() += WindowRect.left();
+		RectForRendering.top<cRect::PreserveSize>() += WindowRect.top();
 	}
 	return RectForRendering;
 }
 
 cPoint cSpriteBase::GetCenter() const
 {
-	return GetRect().GetCenter();
+	return GetRect().center();
 }
 
 cPoint cSpriteBase::GetScreenPosition() const
 {
 	cPixieWindow *Window=GetWindow();
 	if(Window)
-		return Window->GetScreenRect().GetPosition()+GetPosition();
+		return Window->GetScreenRect().position()+GetPosition();
 	else
 		return GetPosition();
 }
@@ -220,7 +220,7 @@ void cSpriteBase::SetCenter(cPoint Center)
 void cSpriteBase::SetValidRect(const cRect &ValidRect)
 {
 	mProperties.mValidRect=ValidRect;
-	if (ValidRect.mWidth >= 0 && ValidRect.mHeight >= 0 && mProperties.mClippingMode == eClippingMode::None) // backward compatibility
+	if (ValidRect.width() >= 0 && ValidRect.height() >= 0 && mProperties.mClippingMode == eClippingMode::None) // backward compatibility
 	{
 		mProperties.mClippingMode = eClippingMode::Parent;
 		PropertiesChanged(Property_ClippingMode);
@@ -236,12 +236,12 @@ void cSpriteBase::DisableClipping()
 
 cRect cSpriteBase::GetCenterAndHSize() const
 {
-	return { GetRect().GetCenter(), GetSize()/2 };
+	return { GetRect().center(), GetSize()/2 };
 }
 
 void cSpriteBase::SetCenterAndHSize(const cRect &Rect)
 {
-	SetRect(cRect::createAroundPoint(Rect.GetPosition(), Rect.GetSize()*2));
+	SetRect(cRect::aroundPoint(Rect.position(), Rect.size()*2));
 }
 
 void cSpriteBase::SetScreenPosition(cPoint Position)
@@ -250,7 +250,7 @@ void cSpriteBase::SetScreenPosition(cPoint Position)
 	if(!Window)
 		SetPosition(Position);
 	else
-		SetPosition(Position-Window->GetScreenRect().GetPosition());
+		SetPosition(Position-Window->GetScreenRect().position());
 }
 
 bool cSpriteBase::GetProperty(unsigned int PropertyFlags,OUT cPropertyValues &PropertyValues) const

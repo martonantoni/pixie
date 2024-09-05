@@ -93,7 +93,7 @@ void cVariableHeightStringListBoxItemHandler::UpdateItems()
 {
 	if(ASSERTFALSE(!mListBox))
 		return;
-	int MaxWidth=mListBox->GetItemsRect().Width();
+	int MaxWidth=mListBox->GetItemsRect().width();
 	int y=0;
 	for(auto &Item: mItems)
 	{

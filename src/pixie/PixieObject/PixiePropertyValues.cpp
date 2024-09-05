@@ -35,10 +35,10 @@ const cPixieObject::cPropertyValues &cPixieObject::cPropertyValues::operator=(co
 const cPixieObject::cPropertyValues &cPixieObject::cPropertyValues::operator=(const cRect &Rect)
 {
 	mPropertyCount=4;
-	mProperties[0]=Rect.mLeft;
-	mProperties[1]=Rect.mTop;
-	mProperties[2]=Rect.mWidth;
-	mProperties[3]=Rect.mHeight;
+	mProperties[0]=Rect.left();
+	mProperties[1]=Rect.top();
+	mProperties[2]=Rect.width();
+	mProperties[3]=Rect.height();
 	return *this;
 }
 

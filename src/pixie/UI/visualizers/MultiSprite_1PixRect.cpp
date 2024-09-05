@@ -26,10 +26,10 @@ cMultiSprite_1PixRect::cMultiSprite_1PixRect(const std::string &ColorNameBase, e
 void cMultiSprite_1PixRect::ArrangeSprites()
 {
 	cRect Rect=GetRect();
-	mSprites[Sprite_Top]->SetRect({ Rect.TopLeft(), {Rect.Width(), 1} });
-	mSprites[Sprite_Bottom]->SetRect({ Rect.BottomLeft(), { Rect.Width(), 1 } });
-	mSprites[Sprite_Left]->SetRect({ Rect.TopLeft()+cPoint{0,1}, { 1, Rect.Height()-2} });
-	mSprites[Sprite_Right]->SetRect({ Rect.TopRight()+cPoint { 0,1 }, { 1, Rect.Height()-2 } });
-	if(mOnlyBorders!=eOnlyBorder::Yes)
-		mSprites[Sprite_Center]->SetRect({ Rect.TopLeft()+cPoint{1,1},Rect.GetSize()-cPoint{2,2} });
+	mSprites[Sprite_Top]->SetRect({ Rect.topLeft(), {Rect.width(), 1} });
+	mSprites[Sprite_Bottom]->SetRect({ Rect.bottomLeft(), { Rect.width(), 1 } });
+	mSprites[Sprite_Left]->SetRect({ Rect.topLeft() + cPoint{0,1}, { 1, Rect.height() - 2} });
+	mSprites[Sprite_Right]->SetRect({ Rect.topRight() + cPoint { 0,1 }, { 1, Rect.height() - 2 } });
+	if (mOnlyBorders != eOnlyBorder::Yes)
+		mSprites[Sprite_Center]->SetRect({ Rect.topLeft() + cPoint{1,1},Rect.size() - cPoint{2,2} });
 }

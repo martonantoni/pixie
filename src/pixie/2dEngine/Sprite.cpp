@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
+
 void cSprite::SetTexture(tIntrusivePtr<cTexture> Texture)
 {
 	mTexture=std::move(Texture);
@@ -31,59 +32,40 @@ cSpriteRenderInfo cSprite::GetRenderInfo() const
 	}
 // clipping is enabled:
 	cRect OriginalRect = GetRect();
-	OriginalRect.Move(GetPositionOffset());
+	OriginalRect.position() += GetPositionOffset();
 	if (mWindow)
 	{
-		OriginalRect.Move(mWindow->GetScreenRect().GetPosition());
+		OriginalRect.position() += mWindow->GetScreenRect().position();
 	}
 
 	cRect validRect = mProperties.mValidRect;
 
-	//switch (mProperties.mClippingMode)
-	//{
-	//case eClippingMode::Screen:
-	//	if (mWindow)
-	//	{
-	//		validRect.Move(-mWindow->GetScreenRect().GetPosition());
-	//	}
-	//	break;
-	//case eClippingMode::ParentParent:
-	//	if (auto parentParent = mWindow->GetParentWindow())
-	//	{
-	//		validRect.Move(-parentParent->GetScreenRect().GetPosition());
-	//	}
-	//	break;
-	//}
-
 	if (mWindow && mProperties.mClippingMode == eClippingMode::Parent)
 	{
-		validRect.Move(mWindow->GetScreenRect().GetPosition());
+		validRect.position() += mWindow->GetScreenRect().position();
 	}
 	if (mWindow && mWindow->GetParentWindow() && mProperties.mClippingMode == eClippingMode::ParentParent)
 	{
-		validRect.Move(mWindow->GetParentWindow()->GetScreenRect().GetPosition());
+		validRect.position() += mWindow->GetParentWindow()->GetScreenRect().position();
 	}
-	if (validRect.IsPointInside(OriginalRect.TopLeft()) && validRect.IsPointInside(OriginalRect.BottomRight()))
+	if (validRect.isPointInside(OriginalRect.topLeft()) && validRect.isPointInside(OriginalRect.bottomRight()))
 		return { GetRectForRendering(), GetRotation(), mTexture.get(), mBlendingMode };
-	int Top = std::max(validRect.Top(), OriginalRect.Top());
-	int Left = std::max(validRect.Left(), OriginalRect.Left());
-	int Bottom = std::min(validRect.Bottom(), OriginalRect.Bottom());
-	int Right = std::min(validRect.Right(), OriginalRect.Right());
+	int Top = std::max(validRect.top(), OriginalRect.top());
+	int Left = std::max(validRect.left(), OriginalRect.left());
+	int Bottom = std::min(validRect.bottom(), OriginalRect.bottom());
+	int Right = std::min(validRect.right(), OriginalRect.right());
 	cRect RenderedRect{ Left, Top, Right - Left + 1, Bottom - Top + 1 };
-	if (RenderedRect.mWidth <= 0 || RenderedRect.mHeight <= 0)
+	if (RenderedRect.width() <= 0 || RenderedRect.height() <= 0)
 	{
 		return { RenderedRect, 0.0, nullptr, mBlendingMode };
 	}
 	cRect TextureRect = mTexture->GetTextureRect();
-	int ClippedTextureTop = TextureRect.Top() + (RenderedRect.Top() - OriginalRect.Top()) * TextureRect.mHeight / OriginalRect.mHeight;
-	int ClippedTextureLeft = TextureRect.Left() + (RenderedRect.Left() - OriginalRect.Left()) * TextureRect.mWidth / OriginalRect.mWidth;
-	int ClippedTextureBottom = TextureRect.Bottom() - (OriginalRect.Bottom() - RenderedRect.Bottom()) * TextureRect.mHeight / OriginalRect.mHeight;
-	int ClippedTextureRight = TextureRect.Right() - (OriginalRect.Right() - RenderedRect.Right()) * TextureRect.mWidth / OriginalRect.mWidth;
+	int ClippedTextureTop = TextureRect.top() + (RenderedRect.top() - OriginalRect.top()) * TextureRect.height() / OriginalRect.height();
+	int ClippedTextureLeft = TextureRect.left() + (RenderedRect.left() - OriginalRect.left()) * TextureRect.width() / OriginalRect.width();
+	int ClippedTextureBottom = TextureRect.bottom() - (OriginalRect.bottom() - RenderedRect.bottom()) * TextureRect.height() / OriginalRect.height();
+	int ClippedTextureRight = TextureRect.right() - (OriginalRect.right() - RenderedRect.right()) * TextureRect.width() / OriginalRect.width();
 	mClippedTexture = mTexture->CreateSubTexture(cRect{ ClippedTextureLeft, ClippedTextureTop, ClippedTextureRight - ClippedTextureLeft + 1, ClippedTextureBottom - ClippedTextureTop + 1 });
-	//if (mWindow)
-	//{
-	//	RenderedRect.Move(mWindow->GetScreenRect().GetPosition());
-	//}
+
 	return { RenderedRect, GetRotation(), mClippedTexture.get(), mBlendingMode };
 }
 

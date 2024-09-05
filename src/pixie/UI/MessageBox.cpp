@@ -18,7 +18,7 @@ void cMessageBox::Init(const cInitData &InitData)
 	cStandardWindow::cInitData WindowInitData;
 	WindowInitData.mParentWindow=&thePixieDesktop;
 	WindowInitData.mZOrder=10'000;
-	WindowInitData.mPlacement=thePixieDesktop.GetClientRect().GetAlignedRect({ 0,0,WindowWidth,TextVerticalEnd+110 }, eHorizontalAlign::Center, eVerticalAlign::Center);
+	WindowInitData.mPlacement = cRect::alignedRect(thePixieDesktop.GetClientRect(), { 0,0,WindowWidth,TextVerticalEnd + 110 }, eHorizontalAlign::Center, eVerticalAlign::Center);
 	WindowInitData.mFlags=cPixieWindow::Flag_IsModal;
 	mWindow.Init(WindowInitData);
 
@@ -48,22 +48,22 @@ void cMessageBox::Init(const cInitData &InitData)
 			if(FunctionToCall)
 				FunctionToCall();
 		}));
-		ButtonSumWidth+=Button->GetPlacement().Width();
+		ButtonSumWidth+=Button->GetPlacement().width();
 		mButtons.emplace_back(std::move(Button));
 	}
 	if(mButtons.size()>=2)
 	{
-		int ButtonGap=(WindowInitData.mPlacement.Width()-HorizontalBorder*2-ButtonSumWidth)/(int(mButtons.size())-1);
+		int ButtonGap=(WindowInitData.mPlacement.width()-HorizontalBorder*2-ButtonSumWidth)/(int(mButtons.size())-1);
 		int ButtonX=HorizontalBorder;
 		for(auto &Button: mButtons)
 		{
-			Button->SetPosition({ ButtonX, Button->GetPlacement().Top() });
-			ButtonX+=ButtonGap+Button->GetPlacement().Width();
+			Button->SetPosition({ ButtonX, Button->GetPlacement().top() });
+			ButtonX+=ButtonGap+Button->GetPlacement().width();
 		}
 	}
 	else
 	{
-		mButtons.front()->SetPosition({ (WindowInitData.mPlacement.Width()-ButtonSumWidth)/2,mButtons.front()->GetPlacement().Top() });
+		mButtons.front()->SetPosition({ (WindowInitData.mPlacement.width()-ButtonSumWidth)/2,mButtons.front()->GetPlacement().top() });
 	}
 }
 

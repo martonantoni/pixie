@@ -1,10 +1,10 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
 cTextureInfo::cTextureInfo(const cRect &Rect, cPoint SurfaceSize)
-	: mTop(Rect.Top()/(float)SurfaceSize.y)
-	, mLeft(Rect.Left()/(float)SurfaceSize.x)
-	, mBottom((1+Rect.Bottom()/*+0.5*/)/(float)SurfaceSize.y)
-	, mRight((1+Rect.Right()/*+0.5*/)/(float)SurfaceSize.x)
+	: mTop(Rect.top()/(float)SurfaceSize.y)
+	, mLeft(Rect.left()/(float)SurfaceSize.x)
+	, mBottom((1+Rect.bottom()/*+0.5*/)/(float)SurfaceSize.y)
+	, mRight((1+Rect.right()/*+0.5*/)/(float)SurfaceSize.x)
 	, mRect(Rect)
 {
 	mIsWholeSurface=mTop==0.0f&&mLeft==0.0f&&mBottom==1.0f&&mRight==1.0f;

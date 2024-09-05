@@ -24,7 +24,7 @@ cTextLinkHelper::cTextLinkHelper(const cInitData &InitData)
 		cRect BoundingRect=TextSprite.GetSubSprite(RenderInfo.mGroups[i].mFirstSpriteIndex)->GetRect();
 		for(size_t sprite_index=RenderInfo.mGroups[i].mFirstSpriteIndex+1; sprite_index<=RenderInfo.mGroups[i].mLastSpriteIndex; ++sprite_index)
 		{
-			BoundingRect.GrowToBound(TextSprite.GetSubSprite(sprite_index)->GetRect());
+			BoundingRect.growToBound(TextSprite.GetSubSprite(sprite_index)->GetRect());
 			LinkData.mSprites.emplace_back(TextSprite.GetSubSprite(sprite_index));
 		}
 		LinkData.mBoundingRect=BoundingRect;
@@ -39,7 +39,7 @@ cTextLinkHelper::cTextLinkHelper(const cInitData &InitData)
 		TargetInitData.mZOrder=200;
 		TargetInitData.mParentWindow=InitData.mWindow;
 		TargetInitData.mPlacement=BoundingRect;
-		TargetInitData.mPlacement.Move(InitData.mTextPosition);
+		TargetInitData.mPlacement.position() += InitData.mTextPosition;
 		LinkData.mTarget->Init(TargetInitData);
 
 		LinkData.mListeners.emplace_back(LinkData.mTarget->GetDispatcher(cMouseEventEmitterTarget::Event_MoveInside)->RegisterListener([i, this](auto &)
@@ -68,7 +68,7 @@ void cTextLinkHelper::NotifyHandler(size_t LinkIndex, eAction Action)
 	auto LinkRect=Link.mTarget->GetPlacement();
 	auto LinkTargetWindow=Link.mTarget->GetWindow();
 	if(ASSERTTRUE(LinkTargetWindow))
-		LinkRect.Move(LinkTargetWindow->GetScreenRect().GetPosition());
+		LinkRect.position() += LinkTargetWindow->GetScreenRect().position();
 	Link.mLinkHandler(Action, LinkRect);
 }
 
@@ -100,6 +100,6 @@ void cTextLinkHelper::SetTextPosition(cPoint Position)
 {
 	for(auto &Link: mLinks)
 	{
-		Link.mTarget->SetPosition(Position+Link.mBoundingRect.GetPosition());
+		Link.mTarget->SetPosition(Position+Link.mBoundingRect.position());
 	}
 }

@@ -228,7 +228,7 @@ cRect cObjectPlacementEditor::GetObjectRect(const cPixieObject &Object)
 	Object.GetProperty(cPixieObject::Property_PositionOffset, PositionOffsetValues);
 	Object.GetProperty(cPixieObject::Property_Size, SizeValues);
 	cRect Rect(PositionValues.ToPoint(), SizeValues.ToPoint());
-	Rect.Move(PositionOffsetValues.ToPoint());
+	Rect.position() += PositionOffsetValues.ToPoint();
 	return Rect;
 }
 
@@ -252,10 +252,10 @@ std::pair<cPixieObject *, cObjectPlacementEditor::eDragType> cObjectPlacementEdi
 	}
 	auto OverObject=OverObjectData->mObject;
 	mHoverObjectBorder=CreateBorderSprite(*OverObject);
-	cPoint RightBottom=mHoverObjectBorder->GetRect().BottomRight();
+	cPoint RightBottom=mHoverObjectBorder->GetRect().bottomRight();
 	cRect SizingGrabRect(RightBottom-cPoint { 10, 10 }, { 10, 10 });
 	eDragType DragType=eDragType::None;
-	if(OverObjectData->mResizable&&SizingGrabRect.IsPointInside(ScreenCoordinates))
+	if(OverObjectData->mResizable&&SizingGrabRect.isPointInside(ScreenCoordinates))
 	{
 		mCursorID=cMouseCursorServer::Get().SetCursor("ed_scale");
 		DragType=eDragType::Size;
@@ -280,7 +280,7 @@ void cObjectPlacementEditor::OnMouseMove(const cEvent& event)
     switch (mDragType)
     {
     case eDragType::None:
-        if (mEditorArea.IsPointInside(screenCoordinates))
+        if (mEditorArea.isPointInside(screenCoordinates))
             HandleHover(screenCoordinates);
         else
             ResetHover();
@@ -302,7 +302,7 @@ cObjectPlacementEditor::cObjectData *cObjectPlacementEditor::FindObject(cPoint S
 		auto Object=ObjectData->mObject;
 		if(ASSERTFALSE(!Object))
 			return false;
-		return GetObjectRect(*Object).IsPointInside(ScreenCoordinates);
+		return GetObjectRect(*Object).isPointInside(ScreenCoordinates);
 	});
 	return FoundObjectData?FoundObjectData->get():nullptr;
 }
@@ -310,7 +310,7 @@ cObjectPlacementEditor::cObjectData *cObjectPlacementEditor::FindObject(cPoint S
 void cObjectPlacementEditor::OnLeftButtonDown(const cEvent& event)
 {
     cPoint screenCoordinates = cMouseServer::point(event);
-	if(!mEditorArea.IsPointInside(screenCoordinates))
+	if(!mEditorArea.isPointInside(screenCoordinates))
 		return;
 	mSelectedObjectBorder.reset();
 	SetSelectedObject(nullptr);
@@ -350,7 +350,7 @@ void cObjectPlacementEditor::OnLeftButtonUp(const cEvent& event)
 {
 	mDragType=eDragType::None;
     cPoint screenCoordinates = cMouseServer::point(event);
-	if(!mEditorArea.IsPointInside(screenCoordinates))
+	if(!mEditorArea.isPointInside(screenCoordinates))
 		return;
 	auto ObjectData=FindObject(screenCoordinates);
 	SelectObject(ObjectData?ObjectData->mObject:nullptr);
@@ -408,5 +408,5 @@ void cObjectPlacementEditor::DisplayNotification(const std::string &Notification
 
 bool cObjectPlacementEditor::cMouseBlocker_Rect::IsInside_Overridable(cPoint WindowRelativePoint) const
 {
-	return mRect.IsPointInside(WindowRelativePoint);
+	return mRect.isPointInside(WindowRelativePoint);
 }

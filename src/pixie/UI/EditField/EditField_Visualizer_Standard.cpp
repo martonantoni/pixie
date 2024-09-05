@@ -20,11 +20,11 @@ void cStandardEditFieldVisualizer::Redraw()
 	bool UseClipping=GetVisualizable().GetUseClipping();
 	cRect Rect=GetPlacement();
 	cTextRenderer TextRenderer(mTextStyle);
-	TextRenderer.setMaxWidth(Rect.Width());
+	TextRenderer.setMaxWidth(Rect.width());
 	TextRenderer.setDefaultColor("editfield");
 	mTextSprite=std::make_unique<cSimpleMultiSprite>(TextRenderer.render(GetVisualizable().GetText()), cSimpleMultiSprite::eBasePosition::Zero);
 	mTextSprite->SetWindow(GetWindow());
-	mTextSprite->SetPosition(Rect.GetPosition());
+	mTextSprite->SetPosition(Rect.position());
 	mTextSprite->SetZOrder(mBaseZ);
 	mTextSprite->Show();
 
@@ -43,7 +43,7 @@ void cStandardEditFieldVisualizer::Redraw()
 		mCursorSprite->SetWindow(GetWindow());
 	}
 	int CursorPosition=GetVisualizable().GetCursorPosition();
-	mCursorSprite->SetPosition({ CursorPosition==0?Rect.Left():mTextSprite->GetSubSprite(CursorPosition-1)->GetRect().Right(), Rect.Top() });
+	mCursorSprite->SetPosition({ CursorPosition==0?Rect.left():mTextSprite->GetSubSprite(CursorPosition-1)->GetRect().right(), Rect.top() });
 
 	mCursorSprite->SetVisible(GetVisualizable().IsInFocus());
 }

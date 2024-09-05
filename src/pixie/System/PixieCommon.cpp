@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
+/*
 RECT cRect::ToRECT() const
 {
 	RECT Rect={ mLeft, mTop, Right(), Bottom() };
@@ -72,22 +73,4 @@ cRect cRect::GetWithModifiedSize(cPoint SizeOffset) const
 {
 	return createAroundPoint(GetCenter(), GetSize()+SizeOffset);
 }
-
-void cRect::GrowToBound(const cRect &RectToBound)
-{
-	if(mLeft>RectToBound.mLeft)
-	{
-		mWidth+=mLeft-RectToBound.mLeft;
-		mLeft=RectToBound.mLeft;
-	}
-	if(mTop>RectToBound.mTop)
-	{
-		mHeight+=mTop-RectToBound.mTop;
-		mTop=RectToBound.mTop;
-	}
-	if(Bottom()<RectToBound.Bottom())
-		SetBottom(RectToBound.Bottom());
-	if(Right()<RectToBound.Right())
-		SetRight(RectToBound.Right());
-}
-
+*/

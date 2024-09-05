@@ -252,6 +252,7 @@ constexpr bool NoneOfType()
 #include "Random.h"
 
 #include "Point.h"
+#include "rect.h"
 
 class cLogPerformance_Guard
 {

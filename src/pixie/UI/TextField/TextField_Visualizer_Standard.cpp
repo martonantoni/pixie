@@ -19,11 +19,11 @@ void cStandardTextFieldVisualizer::Redraw()
 	bool UseClipping=GetVisualizable().GetUseClipping();
 	cRect Rect=GetPlacement();
 	cTextRenderer TextRenderer(mTextStyle);
-	TextRenderer.setMaxWidth(Rect.Width());
+	TextRenderer.setMaxWidth(Rect.width());
 	TextRenderer.setDefaultColor("textfield");
 	mTextSprite=std::make_unique<cSimpleMultiSprite>(TextRenderer.render(GetVisualizable().GetText()), cSimpleMultiSprite::eBasePosition::Zero);
 	mTextSprite->SetWindow(GetWindow());
-	mTextSprite->SetPosition(Rect.GetPosition());
+	mTextSprite->SetPosition(Rect.position());
 	mTextSprite->SetZOrder(mBaseZ);
 	mTextSprite->Show();
 }

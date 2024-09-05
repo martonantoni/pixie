@@ -33,7 +33,7 @@ void cMultiSprite_Simple9Patch::ArrangeSprites()
 				cPoint MiddleSize(Size.x-mSprites[Sprite_Left]->GetSize().x-mSprites[Sprite_Right]->GetSize().x,
 					Size.y-mSprites[Sprite_Top]->GetSize().y-mSprites[Sprite_Bottom]->GetSize().y);
 				cRect MiddleRect(GetPosition(), MiddleSize);
-				MiddleRect.Move({ mSprites[Sprite_Left]->GetSize().x, mSprites[Sprite_Top]->GetSize().y });
+				MiddleRect.position() += { mSprites[Sprite_Left]->GetSize().x, mSprites[Sprite_Top]->GetSize().y };
 				mSprites[Sprite_Middle]->SetRect(MiddleRect);
 				break;
 			}

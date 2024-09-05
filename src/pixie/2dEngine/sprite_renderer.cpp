@@ -100,10 +100,10 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
         {
             D3V(mDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE));
             RECT rect;
-            rect.left = clippingRect.Left();
-            rect.right = clippingRect.Right();
-            rect.top = clippingRect.Top();
-            rect.bottom = clippingRect.Bottom();
+            rect.left = clippingRect.left();
+            rect.right = clippingRect.right();
+            rect.top = clippingRect.top();
+            rect.bottom = clippingRect.bottom();
             D3V(mDevice->SetScissorRect(&rect));
         }
         else
@@ -135,10 +135,10 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
 				D3V(mDevice->SetTexture(0, renderState.Texture));
 			}
 			++renderState.SpriteCount;
-			cFloatPoint TopLeft(RenderInfo.mRect.TopLeft());
-			cFloatPoint TopRight(RenderInfo.mRect.TopRight());
-			cFloatPoint BottomLeft(RenderInfo.mRect.BottomLeft());
-			cFloatPoint BottomRight(RenderInfo.mRect.BottomRight());
+			cFloatPoint TopLeft(RenderInfo.mRect.topLeft());
+			cFloatPoint TopRight(RenderInfo.mRect.topRight());
+			cFloatPoint BottomLeft(RenderInfo.mRect.bottomLeft());
+			cFloatPoint BottomRight(RenderInfo.mRect.bottomRight());
 			TopLeft += cFloatPoint(-0.5, -0.5);       // https://msdn.microsoft.com/en-us/library/windows/desktop/bb219690%28v=vs.85%29.aspx
 			TopRight += cFloatPoint(-0.5 + 1.0, -0.5);   // (Directly Mapping Texels to Pixels (Direct3D 9))
 			BottomLeft += cFloatPoint(-0.5, -0.5 + 1.0);
@@ -146,7 +146,7 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
 
 			if (RenderInfo.mRotation)
 			{
-				cFloatPoint Center(RenderInfo.mRect.GetCenter());
+				cFloatPoint Center(RenderInfo.mRect.center());
 				float Rad = RenderInfo.mRotation * 3.1415 / 180.0;
 				float s = sin(Rad);
 				float c = cos(Rad);

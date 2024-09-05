@@ -111,19 +111,19 @@ void cPixieWindow::RemoveMouseTarget(cMouseTarget *Target)
 void cPixieWindow::UpdateScreenRect(const cRect &ParentScreenRect)
 {
 	mScreenRect=mPlacement;
-	mScreenRect.Move(ParentScreenRect.GetPosition());
+	mScreenRect.position() += ParentScreenRect.position();
 	for(auto &SubWindow: mSubWindows)
 		SubWindow->UpdateScreenRect(mScreenRect);
 }
 
 cPoint cPixieWindow::WindowCoordinatesToScreenCoordinates(cPoint WindowRelativeCoords) const
 {
-	return GetScreenRect().GetPosition()+WindowRelativeCoords;
+	return GetScreenRect().position()+WindowRelativeCoords;
 }
 
 cPoint cPixieWindow::ScreenCoordinatesToWindowCoordinates(cPoint ScreenCoords) const
 {
-	return ScreenCoords-GetScreenRect().GetPosition();
+	return ScreenCoords-GetScreenRect().position();
 }
 
 void cPixieWindow::SetPlacement(const cRect &Rect)
@@ -136,24 +136,24 @@ void cPixieWindow::SetPlacement(const cRect &Rect)
 
 void cPixieWindow::setPosition(const cPoint& Position)
 {
-	SetPlacement({ Position, mPlacement.GetSize() });
+	SetPlacement({ Position, mPlacement.size() });
 }
 
 void cPixieWindow::setSize(const cPoint& Size)
 {
-    SetPlacement({ mPlacement.GetPosition(), Size });
+    SetPlacement({ mPlacement.position(), Size });
 }
 
 bool cPixieWindow::IsInside(cPoint WindowRelativeCoords) const
 {
-	return mPlacement.IsPointInside(WindowRelativeCoords); //todo: check visualizer! (this will be a virtual call)
+	return mPlacement.isPointInside(WindowRelativeCoords); //todo: check visualizer! (this will be a virtual call)
 }
 
 cPixieWindow::tGetAtResult<cMouseTarget> cPixieWindow::GetMouseTargetAt(cPoint Point) const
 {
 	for(auto &SubWindow: mSubWindows)
 	{
-		auto Result=SubWindow->GetMouseTargetAt(Point-SubWindow->GetPlacement().GetPosition());
+		auto Result=SubWindow->GetMouseTargetAt(Point-SubWindow->GetPlacement().position());
 		if(Result.mResult)
 			return Result;
  		if(SubWindow->mIsModal)
@@ -188,9 +188,9 @@ cPixieWindow::tGetAtResult<cPixieWindow> cPixieWindow::GetWindowAt(cPoint Point,
 	{
 		if(GetWindowRules==GetWindow_ClickRules&&SubWindow->mIsClickThrough)
 			continue;
-		if(SubWindow->GetPlacement().IsPointInside(Point))
+		if(SubWindow->GetPlacement().isPointInside(Point))
 		{
-			auto Result=SubWindow->GetWindowAt(Point-SubWindow->GetPlacement().GetPosition(), GetWindowRules);
+			auto Result=SubWindow->GetWindowAt(Point-SubWindow->GetPlacement().position(), GetWindowRules);
 			if(Result.mResult)
 				return Result;
 			return tGetAtResult<cPixieWindow>(SubWindow, Point);
@@ -224,7 +224,7 @@ void cPixieWindow::CheckOwnerlessSprites()
 	for(auto &Sprite: mSprites)
     {
 		auto rect = Sprite->GetRect();
-        area += rect.Width() * rect.Height();
+        area += rect.width() * rect.height();
     }
 }
 
@@ -246,14 +246,14 @@ std::pair<bool, cRect> cPixieWindow::getSpriteClipping() const
 	case eClipping::ClipToValidRect_WindowCoords:
 		{
 			cRect result = mValidRect;
-			result.Move(GetScreenRect().GetPosition());
+			result.position() += GetScreenRect().position();
 			return { true, result };
 		}
 	case eClipping::ClipToValidRect_ParentWindowCoords:
 		{
 			cRect result = mValidRect;
 			if (mParentWindow)
-				result.Move(mParentWindow->GetScreenRect().GetPosition());
+				result.position() += mParentWindow->GetScreenRect().position();
 			return { true, result };
         }
 	}
@@ -264,13 +264,13 @@ bool cPixieWindow::GetProperty(unsigned int PropertyFlags, OUT cPropertyValues &
 {
 	switch(PropertyFlags)
 	{
-	case Property_X: PropertyValues=mPlacement.mLeft; return true;
-	case Property_Y: PropertyValues=mPlacement.mTop; return true;
-	case Property_W: PropertyValues=mPlacement.mWidth; return true;
-	case Property_H: PropertyValues=mPlacement.mHeight; return true;
+	case Property_X: PropertyValues=mPlacement.left(); return true;
+	case Property_Y: PropertyValues=mPlacement.top(); return true;
+	case Property_W: PropertyValues=mPlacement.width(); return true;
+	case Property_H: PropertyValues=mPlacement.height(); return true;
 	case Property_ZOrder: PropertyValues=GetZOrder(); return true;
-	case Property_Position: PropertyValues=mPlacement.GetPosition(); return true;
-	case Property_Size: PropertyValues=mPlacement.GetSize(); return true;
+	case Property_Position: PropertyValues=mPlacement.position(); return true;
+	case Property_Size: PropertyValues=mPlacement.size(); return true;
 	case Property_Rect: PropertyValues=mPlacement; return true;
 	}
 	ASSERT(false);
@@ -283,13 +283,13 @@ bool cPixieWindow::SetProperty(unsigned int PropertyFlags, const cPropertyValues
 		return false;
 	switch(PropertyFlags)
 	{
-	case Property_X: SetPlacement({ Value.ToInt(), mPlacement.mTop, mPlacement.mWidth, mPlacement.mHeight }); return true;
-	case Property_Y: SetPlacement({ mPlacement.mLeft, Value.ToInt(), mPlacement.mWidth, mPlacement.mHeight }); return true;
-	case Property_W: SetPlacement({ mPlacement.mLeft, mPlacement.mTop, Value.ToInt(), mPlacement.mHeight }); return true;
-	case Property_H: SetPlacement({ mPlacement.mLeft, mPlacement.mTop, mPlacement.mWidth, Value.ToInt() }); return true;
+	case Property_X: SetPlacement({ Value.ToInt(), mPlacement.top(), mPlacement.width(), mPlacement.height() }); return true;
+	case Property_Y: SetPlacement({ mPlacement.left(), Value.ToInt(), mPlacement.width(), mPlacement.height() }); return true;
+	case Property_W: SetPlacement({ mPlacement.left(), mPlacement.top(), Value.ToInt(), mPlacement.height() }); return true;
+	case Property_H: SetPlacement({ mPlacement.left(), mPlacement.top(), mPlacement.width(), Value.ToInt() }); return true;
 		//	case Property_ZOrder: SetZOrder(Value.ToInt()); return true;
-	case Property_Position: SetPlacement({ Value.ToPoint(), mPlacement.GetSize() }); return true;
-	case Property_Size: SetPlacement({ mPlacement.GetPosition(), Value.ToPoint() }); return true;
+	case Property_Position: SetPlacement({ Value.ToPoint(), mPlacement.size() }); return true;
+	case Property_Size: SetPlacement({ mPlacement.position(), Value.ToPoint() }); return true;
 	case Property_Rect: SetPlacement(Value.ToRect()); return true;
 	}
 	ASSERT(false);
@@ -304,5 +304,5 @@ bool cPixieWindow::SetStringProperty(unsigned int PropertyFlags, const std::stri
 
 bool cMouseBlocker::IsInside_Overridable(cPoint WindowRelativePoint) const
 {
-	return GetWindow()->IsInside(WindowRelativePoint+GetWindow()->GetPlacement().GetPosition()); // window's placement is relative to its parent window
+	return GetWindow()->IsInside(WindowRelativePoint+GetWindow()->GetPlacement().position()); // window's placement is relative to its parent window
 }

@@ -67,9 +67,9 @@ cSimpleMultiSprite::cSimpleMultiSprite(std::vector<std::unique_ptr<cSpriteBase>>
         mProperties.mRect = mSprites.front()->GetRect();
         for (int i = 1, iend = mSprites.size(); i != iend; ++i)
         {
-            mProperties.mRect.GrowToBound(mSprites[i]->GetRect());
+            mProperties.mRect.growToBound(mSprites[i]->GetRect());
         }
-        mBasePos = basePosition == eBasePosition::AdjustedToBoundingBox ? mProperties.mRect.GetPosition() : cPoint { 0, 0 };
+        mBasePos = basePosition == eBasePosition::AdjustedToBoundingBox ? mProperties.mRect.position() : cPoint { 0, 0 };
     }
 }
 
@@ -153,49 +153,49 @@ void cMultiSpriteBase::PositionSprite(cSpriteBase &Sprite, cPoint Position, ePos
 
 void cMultiSpriteBase::StretchSpriteBetween(cSpriteBase &Sprite, const cRect &RectTopLeft, const cRect &RectBottomRight, eStretchInclusion StretchInclusion)
 {
-	ASSERT(RectTopLeft.GetSize()==RectBottomRight.GetSize());
+	ASSERT(RectTopLeft.size()==RectBottomRight.size());
 
- 	bool HasVerticalDiff=(RectBottomRight.Top()-RectTopLeft.Top())!=0;
- 	bool HasHorizontalDiff=(RectBottomRight.Left()-RectTopLeft.Left())!=0;
+ 	bool HasVerticalDiff=(RectBottomRight.top()-RectTopLeft.top())!=0;
+ 	bool HasHorizontalDiff=(RectBottomRight.left()-RectTopLeft.left())!=0;
 	switch(StretchInclusion)
 	{
 	case eStretchInclusion::ExcludeRects:
 		if(!HasVerticalDiff)
 		{
-			PositionSprite(Sprite, RectTopLeft.TopRight()+cPoint { 1,0 }, ePositioning::TopLeft);
-			Sprite.SetSize(RectBottomRight.Left()-RectTopLeft.Right()-1, Sprite.GetHeight());
+			PositionSprite(Sprite, RectTopLeft.topRight()+cPoint { 1,0 }, ePositioning::TopLeft);
+			Sprite.SetSize(RectBottomRight.left()-RectTopLeft.right()-1, Sprite.GetHeight());
 		}
 		else
 		{
 			if(!HasHorizontalDiff)
 			{
-				PositionSprite(Sprite, RectTopLeft.BottomLeft()+cPoint { 0,1 }, ePositioning::TopLeft);
-				Sprite.SetSize(Sprite.GetWidth(), RectBottomRight.Top()-RectTopLeft.Bottom()-1);
+				PositionSprite(Sprite, RectTopLeft.bottomLeft()+cPoint { 0,1 }, ePositioning::TopLeft);
+				Sprite.SetSize(Sprite.GetWidth(), RectBottomRight.top()-RectTopLeft.bottom()-1);
 			}
 			else
 			{
-				PositionSprite(Sprite, RectTopLeft.BottomLeft()+cPoint { 1,1 }, ePositioning::TopLeft);
-				Sprite.SetSize(RectBottomRight.Left()-RectTopLeft.Right()-1, RectBottomRight.Top()-RectTopLeft.Bottom()-1);
+				PositionSprite(Sprite, RectTopLeft.bottomLeft()+cPoint { 1,1 }, ePositioning::TopLeft);
+				Sprite.SetSize(RectBottomRight.left()-RectTopLeft.right()-1, RectBottomRight.top()-RectTopLeft.bottom()-1);
 			}
 		}
 		break;
 	case eStretchInclusion::IncludeRects:
 		if(!HasVerticalDiff)
 		{
-			PositionSprite(Sprite, RectTopLeft.TopLeft(), ePositioning::TopLeft);
-			Sprite.SetSize(RectBottomRight.Right()-RectTopLeft.Left(), Sprite.GetHeight());
+			PositionSprite(Sprite, RectTopLeft.topLeft(), ePositioning::TopLeft);
+			Sprite.SetSize(RectBottomRight.right()-RectTopLeft.left(), Sprite.GetHeight());
 		}
 		else
 		{
 			if(!HasHorizontalDiff)
 			{
-				PositionSprite(Sprite, RectTopLeft.TopLeft(), ePositioning::TopLeft);
-				Sprite.SetSize(Sprite.GetWidth(), RectBottomRight.Bottom()-RectTopLeft.Top());
+				PositionSprite(Sprite, RectTopLeft.topLeft(), ePositioning::TopLeft);
+				Sprite.SetSize(Sprite.GetWidth(), RectBottomRight.bottom()-RectTopLeft.top());
 			}
 			else
 			{
-				PositionSprite(Sprite, RectTopLeft.TopLeft(), ePositioning::TopLeft);
-				Sprite.SetSize(RectBottomRight.Right()-RectTopLeft.Left(), RectBottomRight.Bottom()-RectTopLeft.Top());
+				PositionSprite(Sprite, RectTopLeft.topLeft(), ePositioning::TopLeft);
+				Sprite.SetSize(RectBottomRight.right()-RectTopLeft.left(), RectBottomRight.bottom()-RectTopLeft.top());
 			}
 		}
 		break;
@@ -246,8 +246,8 @@ cRectBorderMultiSprite::cRectBorderMultiSprite(int borderWidth):
 void cRectBorderMultiSprite::ArrangeSprites()
 {
 	cRect rect = GetRect();
-	mSprites[spriteIndexes.top]->SetRect(cRect{ rect.Left(), rect.Top(), rect.Width(), mBorderWidth });
-	mSprites[spriteIndexes.bottom]->SetRect(cRect{ rect.Left(), rect.Bottom() - mBorderWidth, rect.Width(), mBorderWidth });
-	mSprites[spriteIndexes.left]->SetRect(cRect{ rect.Left(), rect.Top(), mBorderWidth, rect.Height() });
-	mSprites[spriteIndexes.right]->SetRect(cRect{ rect.Right() - mBorderWidth, rect.Top(), mBorderWidth, rect.Height() });
+	mSprites[spriteIndexes.top]->SetRect(cRect{ rect.left(), rect.top(), rect.width(), mBorderWidth });
+	mSprites[spriteIndexes.bottom]->SetRect(cRect{ rect.left(), rect.bottom() - mBorderWidth, rect.width(), mBorderWidth });
+	mSprites[spriteIndexes.left]->SetRect(cRect{ rect.left(), rect.top(), mBorderWidth, rect.height() });
+	mSprites[spriteIndexes.right]->SetRect(cRect{ rect.right() - mBorderWidth, rect.top(), mBorderWidth, rect.height() });
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+/*
+
 enum class eVerticalAlign { Top, Bottom, Center };
 enum class eHorizontalAlign { Left, Right, Center };
 
@@ -46,7 +48,7 @@ struct cRect
 	cPoint size() const { return cPoint(mWidth,mHeight); }
 	cRect Move(cPoint Offset) { mLeft += Offset.x; mTop += Offset.y; return *this; }
 	cRect Grow(cPoint Offset) { mWidth += Offset.x; mHeight += Offset.y; return *this; }
-	bool IsPointInside(cPoint Point) const;
+	bool isPointInside(cPoint Point) const;
 	bool hasOverlap(const cRect &Other) const;
 	bool operator==(const cRect &Other) const { return mLeft==Other.mLeft&&mTop==Other.mTop&&mWidth==Other.mWidth&&mHeight==Other.mHeight; }
 	cPoint GetCenter() const { return { mLeft+mWidth/2, mTop+mHeight/2 }; }
@@ -59,7 +61,7 @@ struct cRect
 	static constexpr cRect createAroundPoint(cPoint point, cPoint size) { return cRect(point - size / 2, size); }
 	template<cPoints T> static cRect CreateBoundingBox(const T &Points);
 	cRect GetWithModifiedSize(cPoint SizeOffset) const;
-	void GrowToBound(const cRect &RectToBound);
+	void growToBound(const cRect &RectToBound);
 };
 
 inline bool cRect::hasOverlap(const cRect& Other) const
@@ -67,7 +69,7 @@ inline bool cRect::hasOverlap(const cRect& Other) const
 	return mLeft < Other.Right() && Right() > Other.mLeft && mTop < Other.Bottom() && Bottom() > Other.mTop;
 }
 
-inline bool cRect::IsPointInside(cPoint Point) const
+inline bool cRect::isPointInside(cPoint Point) const
 { 
 	return Point.x >= mLeft && Point.x < mLeft + mWidth && Point.y >= mTop && Point.y < mTop + mHeight; 
 }
@@ -79,16 +81,16 @@ template<cPoints T> cRect cRect::CreateBoundingBox(const T& points)
 	cRect rect(points.front(), { 1,1 });
 	for (auto& point : points | std::views::drop(1))
 	{
-		if (point.x < rect.Left())
+		if (point.x < rect.left())
 		{
 			rect.mWidth += rect.mLeft - point.x;
 			rect.mLeft = point.x;
 		}
-		else if (point.x > rect.Right())
+		else if (point.x > rect.right())
 		{
-			rect.mWidth += point.x - rect.Right();
+			rect.mWidth += point.x - rect.right();
 		}
-		if (point.y < rect.Top())
+		if (point.y < rect.top())
 		{
 			rect.mHeight += rect.mTop - point.y;
 			rect.mTop = point.y;
@@ -99,4 +101,4 @@ template<cPoints T> cRect cRect::CreateBoundingBox(const T& points)
 		}
 	}
 	return rect;
-}
+}*/

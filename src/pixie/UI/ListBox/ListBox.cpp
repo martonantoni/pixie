@@ -149,7 +149,7 @@ void cListBox::OnMouseMove(cPoint ScreenCoords, bool IsInside)
 {
 	if(!IsEnabled())
 		return;
-	ScreenCoords-=GetWindow()->GetScreenRect().GetPosition();
+	ScreenCoords-=GetWindow()->GetScreenRect().position();
 	if(IsMouseTrackingActive())
 	{
 		mTopLeftPosition=mTopLeftPositionWhenGrabbed+mGrabScreenPosition-ScreenCoords;
@@ -160,7 +160,7 @@ void cListBox::OnMouseMove(cPoint ScreenCoords, bool IsInside)
 	auto OldHighlightedIndex=mHighlightedItemIndex;
 	if(IsInside)
 	{
-		mHighlightedItemIndex=mVisualizer->GetItemIndexAt(ScreenCoords-mVisualizer->GetItemsRect().GetPosition()+mTopLeftPosition);
+		mHighlightedItemIndex=mVisualizer->GetItemIndexAt(ScreenCoords-mVisualizer->GetItemsRect().position()+mTopLeftPosition);
 	}
 	else
 	{
@@ -174,7 +174,7 @@ void cListBox::OnLeftButtonDown(cPoint ScreenCoords, bool IsInside)
 {
 	if(!IsEnabled())
 		return;
-	ScreenCoords-=GetWindow()->GetScreenRect().GetPosition();
+	ScreenCoords-=GetWindow()->GetScreenRect().position();
 	if(IsInside)
 	{
 		mGrabScreenPosition=ScreenCoords;
@@ -182,7 +182,7 @@ void cListBox::OnLeftButtonDown(cPoint ScreenCoords, bool IsInside)
 		StartMouseTracking();
 		mDragSpeedCalculator.DragStart(mTopLeftPositionWhenGrabbed.y);
 		mDampenedMoveController.SetSpeed(0.0);
-		auto SelectedIndex=mVisualizer->GetItemIndexAt(ScreenCoords-mVisualizer->GetItemsRect().GetPosition()+mTopLeftPosition);
+		auto SelectedIndex=mVisualizer->GetItemIndexAt(ScreenCoords-mVisualizer->GetItemsRect().position()+mTopLeftPosition);
 		if(SelectedIndex!=npos&&SelectedIndex<mItemHandler->GetNumberOfItems())
 		{
 			SetSelectionIndex(SelectedIndex);

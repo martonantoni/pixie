@@ -16,7 +16,7 @@ void cUIStateManager::Init()
     mBackgroundSprite = std::make_unique<cSprite>();
     mBackgroundSprite->SetWindow(GetWindow());
     mBackgroundSprite->SetTexture(theTextureManager.GetTexture("ui_background"));
-    mBackgroundSprite->SetSize(GetWindow()->GetClientRect().GetSize());
+    mBackgroundSprite->SetSize(GetWindow()->GetClientRect().size());
     mBackgroundSprite->SetPosition(0, 0);
     mBackgroundSprite->SetZOrder(1);
     mBackgroundSprite->Show();

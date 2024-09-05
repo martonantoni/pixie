@@ -33,7 +33,7 @@ std::vector<std::unique_ptr<cSpriteBase>> cFont::CreateTextSprites(const UTF8::c
 std::vector<std::unique_ptr<cSpriteBase>> cFont::CreateTextSprites
 	(const UTF8::cDecodedString &Text, const cRect &Rect, eHorizontalAlign HorizontalAlign, eVerticalAlign VerticalAlign) const
 {
-	int y=Rect.mTop;
+	int y=Rect.top();
 	cTextMetrics TextMetrics=MeasureText(Text);
 	std::vector<std::unique_ptr<cSpriteBase>> TextSprites;
 	TextSprites.reserve(Text.size());
@@ -42,26 +42,26 @@ std::vector<std::unique_ptr<cSpriteBase>> cFont::CreateTextSprites
 	case eVerticalAlign::Top:
 		break;
 	case eVerticalAlign::Bottom:
-		y=Rect.Bottom()-TextMetrics.mBoundingSize.y;
+		y = Rect.bottom() - TextMetrics.mBoundingSize.y;
 		break;
 	case eVerticalAlign::Center:
-		y+=(Rect.mHeight-TextMetrics.mBoundingSize.y)/2;
+		y += (Rect.height() - TextMetrics.mBoundingSize.y) / 2;
 		break;
 	}
-	cPoint LetterPos(Rect.mLeft, y);
+	cPoint LetterPos(Rect.left(), y);
 	size_t i=0, iend=Text.size();
 	for(auto LineSize: TextMetrics.mLineSizes)
 	{
 		switch(HorizontalAlign)
 		{
 		case eHorizontalAlign::Left:
-			LetterPos.x=Rect.mLeft;
+			LetterPos.x = Rect.left();
 			break;
 		case eHorizontalAlign::Right:
-			LetterPos.x=Rect.Right()-LineSize.x;
+			LetterPos.x = Rect.right() - LineSize.x;
 			break;
 		case eHorizontalAlign::Center:
-			LetterPos.x+=(Rect.mWidth-LineSize.x)/2;
+			LetterPos.x += (Rect.width() - LineSize.x) / 2;
 			break;
 		}
 		for(; i<iend; ++i)
@@ -93,10 +93,10 @@ tIntrusivePtr<cTexture> cFont::CreateTexture(const UTF8::cDecodedString &Text) c
 	int RightMax=0, BottomMax=0;
 	for(auto &Sprite: Sprites)
 	{
-		int SpriteRight=Sprite->GetRect().Right();
+		int SpriteRight=Sprite->GetRect().right();
 		if(SpriteRight>RightMax)
 			RightMax=SpriteRight;
-		int SpriteBottom=Sprite->GetRect().Bottom();
+		int SpriteBottom=Sprite->GetRect().bottom();
 		if(SpriteBottom>BottomMax)
 			BottomMax=SpriteBottom;
 	}

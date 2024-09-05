@@ -20,20 +20,20 @@ bool cMouseTarget::IsInside(cPoint WindowRelativePoint) const
 	case eClippingMode::None:
 		break;
 	case eClippingMode::Parent:
-		if (!mValidRect.IsPointInside(WindowRelativePoint))
+		if (!mValidRect.isPointInside(WindowRelativePoint))
 			return false;
 		break;
 	case eClippingMode::ParentParent:
 	{
 		auto screenValidRect = mValidRect;
-		screenValidRect.Move(mWindow->GetParentWindow()->GetScreenRect().GetPosition());
+		screenValidRect.position() += mWindow->GetParentWindow()->GetScreenRect().position();
 		auto screenPoint = mWindow->WindowCoordinatesToScreenCoordinates(WindowRelativePoint);
-		if (!screenValidRect.IsPointInside(screenPoint))
+		if (!screenValidRect.isPointInside(screenPoint))
             return false;
 		break;
 	}
 	case eClippingMode::Screen:
-		if (!mValidRect.IsPointInside(mWindow->WindowCoordinatesToScreenCoordinates(WindowRelativePoint)))
+		if (!mValidRect.isPointInside(mWindow->WindowCoordinatesToScreenCoordinates(WindowRelativePoint)))
 			return false;
 		break;
 	}
@@ -41,7 +41,7 @@ bool cMouseTarget::IsInside(cPoint WindowRelativePoint) const
 	{
 		return IsInside_Overridable(WindowRelativePoint);
 	}
-	return mWindowRelativeBoundingBox.IsPointInside(WindowRelativePoint)&&IsInside_Overridable(WindowRelativePoint);
+	return mWindowRelativeBoundingBox.isPointInside(WindowRelativePoint)&&IsInside_Overridable(WindowRelativePoint);
 }
 
 void cMouseTarget::Init(const cInitData &InitData)
@@ -90,19 +90,19 @@ cRect cMouseTarget::GetScreenPlacement() const
 {
 	auto Rect=GetPlacement();
 	if(mWindow)
-		Rect.Move(mWindow->GetScreenRect().GetPosition());
+		Rect.position() += mWindow->GetScreenRect().position();
 	return Rect;
 }
 
 void cMouseTarget::SetPosition(cPoint Position)
 {
-	SetPlacement({ Position, mWindowRelativeBoundingBox.GetSize() });
+	SetPlacement({ Position, mWindowRelativeBoundingBox.size() });
 }
 
 void cMouseTarget::SetValidRect(const cRect &ValidRect)
 {
 	mValidRect = ValidRect;
-	if (ValidRect.mWidth >= 0 && ValidRect.mHeight >= 0 && mClippingMode == eClippingMode::None) // backward compatibility
+	if (ValidRect.width() >= 0 && ValidRect.height() >= 0 && mClippingMode == eClippingMode::None) // backward compatibility
 	{
 		mClippingMode = eClippingMode::Parent;
 		PropertiesSet(Property_ClippingMode);
@@ -120,7 +120,7 @@ cPoint cMouseTarget::ScreenCoordsToWindowRelativeCoords(cPoint ScreenCoords) con
 {
 	if(ASSERTFALSE(!mWindow))
 		return cPoint();
-	return ScreenCoords-mWindow->GetScreenRect().GetPosition();
+	return ScreenCoords-mWindow->GetScreenRect().position();
 }
 
 void cMouseTarget::StartMouseTracking()
@@ -144,13 +144,13 @@ bool cMouseTarget::GetProperty(unsigned int PropertyFlags, OUT cPropertyValues &
 {
 	switch(PropertyFlags)
 	{
-	case Property_X: PropertyValues=mWindowRelativeBoundingBox.mLeft; return true;
-	case Property_Y: PropertyValues=mWindowRelativeBoundingBox.mTop; return true;
-	case Property_W: PropertyValues=mWindowRelativeBoundingBox.mWidth; return true;
-	case Property_H: PropertyValues=mWindowRelativeBoundingBox.mHeight; return true;
+	case Property_X: PropertyValues=mWindowRelativeBoundingBox.left(); return true;
+	case Property_Y: PropertyValues=mWindowRelativeBoundingBox.top(); return true;
+	case Property_W: PropertyValues=mWindowRelativeBoundingBox.width(); return true;
+	case Property_H: PropertyValues=mWindowRelativeBoundingBox.height(); return true;
 	case Property_ZOrder: PropertyValues=GetZOrder(); return true;
-	case Property_Position: PropertyValues=mWindowRelativeBoundingBox.GetPosition(); return true;
-	case Property_Size: PropertyValues=mWindowRelativeBoundingBox.GetSize(); return true;
+	case Property_Position: PropertyValues=mWindowRelativeBoundingBox.position(); return true;
+	case Property_Size: PropertyValues=mWindowRelativeBoundingBox.size(); return true;
 	case Property_Rect: PropertyValues=mWindowRelativeBoundingBox; return true;
 	}
 	ASSERT(false);
@@ -163,13 +163,13 @@ bool cMouseTarget::SetProperty(unsigned int PropertyFlags, const cPropertyValues
 		return false;
 	switch(PropertyFlags)
 	{
-	case Property_X: SetPlacement({ Value.ToInt(), mWindowRelativeBoundingBox.mTop, mWindowRelativeBoundingBox.mWidth, mWindowRelativeBoundingBox.mHeight }); return true;
-	case Property_Y: SetPlacement({ mWindowRelativeBoundingBox.mLeft, Value.ToInt(), mWindowRelativeBoundingBox.mWidth, mWindowRelativeBoundingBox.mHeight }); return true;
-	case Property_W: SetPlacement({ mWindowRelativeBoundingBox.mLeft, mWindowRelativeBoundingBox.mTop, Value.ToInt(), mWindowRelativeBoundingBox.mHeight }); return true;
-	case Property_H: SetPlacement({ mWindowRelativeBoundingBox.mLeft, mWindowRelativeBoundingBox.mTop, mWindowRelativeBoundingBox.mWidth, Value.ToInt() }); return true;
+	case Property_X: SetPlacement({ Value.ToInt(), mWindowRelativeBoundingBox.top(), mWindowRelativeBoundingBox.width(), mWindowRelativeBoundingBox.height() }); return true;
+	case Property_Y: SetPlacement({ mWindowRelativeBoundingBox.left(), Value.ToInt(), mWindowRelativeBoundingBox.width(), mWindowRelativeBoundingBox.height() }); return true;
+	case Property_W: SetPlacement({ mWindowRelativeBoundingBox.left(), mWindowRelativeBoundingBox.top(), Value.ToInt(), mWindowRelativeBoundingBox.height() }); return true;
+	case Property_H: SetPlacement({ mWindowRelativeBoundingBox.left(), mWindowRelativeBoundingBox.top(), mWindowRelativeBoundingBox.width(), Value.ToInt() }); return true;
 //	case Property_ZOrder: SetZOrder(Value.ToInt()); return true;
-	case Property_Position: SetPlacement({ Value.ToPoint(), mWindowRelativeBoundingBox.GetSize() }); return true;
-	case Property_Size: SetPlacement({ mWindowRelativeBoundingBox.GetPosition(), Value.ToPoint() }); return true;
+	case Property_Position: SetPlacement({ Value.ToPoint(), mWindowRelativeBoundingBox.size() }); return true;
+	case Property_Size: SetPlacement({ mWindowRelativeBoundingBox.position(), Value.ToPoint() }); return true;
 	case Property_Rect: SetPlacement(Value.ToRect()); return true;
 	}
 	ASSERT(false);

@@ -28,8 +28,11 @@ void cTextSprite::HandleAlignment()
 {
 	if(mTexture)
 	{
-		cRect AlignedRect=cRect({ 0,0 }, GetSize()).GetAlignedRect({ {0,0}, mTexture->GetSize() }, mHorizontalAlign, mVeritcalAlign);
-		mProperties.mPositionOffset=AlignedRect.GetPosition();
+		cRect AlignedRect = cRect::alignedRect(
+			cRect{ {0,0}, GetSize() }, 
+			cRect{ {0,0}, mTexture->GetSize() },
+			mHorizontalAlign, mVeritcalAlign);
+		mProperties.mPositionOffset=AlignedRect.position();
 	}
 }
 
@@ -37,7 +40,7 @@ cSpriteRenderInfo cTextSprite::GetRenderInfo() const
 {
 	auto RenderInfo=cSprite::GetRenderInfo();
 	if(mTexture && !mIsResizable)
-		RenderInfo.mRect.SetSize(mTexture->GetSize());
+		RenderInfo.mRect.size() = mTexture->GetSize();
 	return RenderInfo;
 }
 

@@ -65,11 +65,11 @@ void tStandardPushButtonVisualizer<T>::CreateTextSprite()
 		cTextRenderer TextRenderer(mTextStyle);
 		TextRenderer.setDefaultColor(GetTextColor());
 		auto Placement=GetPlacement();
-		TextRenderer.setMaxWidth(Placement.Width());
+		TextRenderer.setMaxWidth(Placement.width());
 		mLastText=GetVisualizable().GetText();
 		mTextSprite_TR=std::make_unique<cSimpleMultiSprite>(TextRenderer.render(mLastText), cSimpleMultiSprite::eBasePosition::Zero);
 		mTextSprite_TR->SetWindow(mWindow);
-		auto VerticalAlignedPlacement=Placement.GetAlignedRect(mTextSprite_TR->GetRect(), eHorizontalAlign::Left, eVerticalAlign::Center);
+		auto VerticalAlignedPlacement = cRect::alignedRect(Placement, mTextSprite_TR->GetRect(), eHorizontalAlign::Left, eVerticalAlign::Center);
 		mTextSprite_TR->SetPlacement(VerticalAlignedPlacement);
 
 		if(UseClipping)

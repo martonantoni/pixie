@@ -38,21 +38,21 @@ std::unique_ptr<cSimpleMultiSprite> cTooltipDisplayer::CreateTooltipSprites(cons
 	cRect OuterRestriction=thePixieDesktop.GetClientRect();
 	auto CalcRight=[&OuterRestriction, BaseRect=Request.mBaseRegion, Size]()
 	{
-		if(BaseRect.Right()+Size.x<OuterRestriction.Right())
-			return BaseRect.Right();
+		if(BaseRect.right()+Size.x<OuterRestriction.right())
+			return BaseRect.right();
 		else
-			return BaseRect.Left()-Size.x;
+			return BaseRect.left()-Size.x;
 	};
 	auto CalcVertCenter=[&OuterRestriction, BaseRect=Request.mBaseRegion, Size]()
 	{
-		return std::max(BaseRect.GetCenter().y-Size.y/2, 0);
+		return std::max(BaseRect.center().y-Size.y/2, 0);
 	};
 	switch(Request.mPrefferedDirection)
 	{
 	case cTooltipRequest::eDirection::UpAndRight:
 		{
 			Position.x=CalcRight();
-			Position.y=std::max(Request.mBaseRegion.Top()-Size.y, 0);
+			Position.y=std::max(Request.mBaseRegion.top()-Size.y, 0);
 			break;
 		}
 	case cTooltipRequest::eDirection::Right:
@@ -63,10 +63,10 @@ std::unique_ptr<cSimpleMultiSprite> cTooltipDisplayer::CreateTooltipSprites(cons
 		}
 	case cTooltipRequest::eDirection::Left:
 		{
-			if(Request.mBaseRegion.Left()-Size.x>=0)
-				Position.x=Request.mBaseRegion.Left()-Size.x;
+			if(Request.mBaseRegion.left()-Size.x>=0)
+				Position.x=Request.mBaseRegion.left()-Size.x;
 			else
-				Position.x=Request.mBaseRegion.Right();
+				Position.x=Request.mBaseRegion.right();
 			Position.y=CalcVertCenter();
 			break;
 		}

@@ -42,14 +42,14 @@ public:
 	virtual bool GetFloatProperty(unsigned int PropertyFlags, OUT float &Value) const override;
 	virtual bool SetFloatProperty(unsigned int PropertyFlags, float Value) override;
 
-	int GetX() const { return mProperties.mRect.mLeft; }
-	int GetY() const { return mProperties.mRect.mTop; }
-	cPoint GetPosition() const { return mProperties.mRect.GetPosition(); }
+	int GetX() const { return mProperties.mRect.left(); }
+	int GetY() const { return mProperties.mRect.top(); }
+	cPoint GetPosition() const { return mProperties.mRect.position(); }
 	cPoint GetScreenPosition() const;
 	cPoint GetCenter() const;
-	int GetWidth() const { return mProperties.mRect.mWidth; }
-	int GetHeight() const { return mProperties.mRect.mHeight; }
-	cPoint GetSize() const { return mProperties.mRect.GetSize(); }
+	int GetWidth() const { return mProperties.mRect.width(); }
+	int GetHeight() const { return mProperties.mRect.height(); }
+	cPoint GetSize() const { return mProperties.mRect.size(); }
 	const cRect &GetRect() const { return mProperties.mRect; }
 	cRect GetCenterAndHSize() const;
 	cRect GetRectForRendering() const; // this one includes X and Y offset

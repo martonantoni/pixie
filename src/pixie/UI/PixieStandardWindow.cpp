@@ -29,7 +29,7 @@ void cStandardWindow::cDragHandler::OnMouseMove(cPoint ScreenCoords, bool IsInsi
 		cPoint Delta = ScreenCoords - mLastDragPos;
         mLastDragPos = ScreenCoords;
         cRect CurrentPlacement = GetWindow()->GetPlacement();
-        CurrentPlacement.Move(Delta);
+        CurrentPlacement.position() += Delta;
 		GetWindow()->SetPlacement(CurrentPlacement);
 	}
 }

@@ -74,7 +74,7 @@ public:
 	// Position & State:
 	const cRect &GetScreenRect() const { return mScreenRect; }
 	const cRect &GetPlacement() const { return mPlacement; } // relative to parent window
-	cRect GetClientRect() const { return cRect({ 0,0 }, mPlacement.GetSize()); }
+	cRect GetClientRect() const { return cRect({ 0,0 }, mPlacement.size()); }
 	void setPosition(const cPoint &Position);
 	void setSize(const cPoint &Size);
 	void SetPlacement(const cRect &Rect);

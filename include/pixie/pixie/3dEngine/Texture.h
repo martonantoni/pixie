@@ -45,8 +45,8 @@ public:
 	const cTextureInfo &GetTextureInfo() const { return mTextureInfo; }
 	int GetSurfaceWidth() const { return mSurfaceWidth; }   // the entire surface, might be bigger than the area the texture occupies
 	int GetSurfaceHeight() const { return mSurfaceHeight; }
-	int GetTextureWidth() const { return  mTextureInfo.mRect.GetSize().x; }
-	int GetTextureHeight() const { return mTextureInfo.mRect.GetSize().y; }
+	int GetTextureWidth() const { return  mTextureInfo.mRect.width(); }
+	int GetTextureHeight() const { return mTextureInfo.mRect.height(); }
 	cRect GetTextureRect() const { return mTextureInfo.mRect; }
 	cPoint GetSize() const { return { GetTextureWidth(),GetTextureHeight() }; }
 

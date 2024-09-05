@@ -26,7 +26,7 @@ void cVisualizer_Standard::Redraw()
 		mBorderSprite->Show();
 	}
 	cRect Placement=GetPlacement();
-	mBorderSprite->SetSize(Placement.mWidth, Placement.mHeight);
+	mBorderSprite->SetSize(Placement.width(), Placement.height());
 }
 
 cVisualizer_Standard::~cVisualizer_Standard()
