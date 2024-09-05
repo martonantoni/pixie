@@ -71,6 +71,6 @@ cRect cRect::GetAlignedRect(const cRect &RectToAlign, eHorizontalAlign Horizonta
 
 cRect cRect::GetWithModifiedSize(cPoint SizeOffset) const
 {
-	return createAroundPoint(GetCenter(), GetSize()+SizeOffset);
+	return createAroundPoint(center(), GetSize()+SizeOffset);
 }
 */

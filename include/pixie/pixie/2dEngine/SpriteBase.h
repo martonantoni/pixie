@@ -46,7 +46,7 @@ public:
 	int GetY() const { return mProperties.mRect.top(); }
 	cPoint GetPosition() const { return mProperties.mRect.position(); }
 	cPoint GetScreenPosition() const;
-	cPoint GetCenter() const;
+	cPoint center() const;
 	int GetWidth() const { return mProperties.mRect.width(); }
 	int GetHeight() const { return mProperties.mRect.height(); }
 	cPoint GetSize() const { return mProperties.mRect.size(); }

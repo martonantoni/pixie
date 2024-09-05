@@ -197,7 +197,7 @@ cRect cSpriteBase::GetRectForRendering() const
 	return RectForRendering;
 }
 
-cPoint cSpriteBase::GetCenter() const
+cPoint cSpriteBase::center() const
 {
 	return GetRect().center();
 }
@@ -273,7 +273,7 @@ bool cSpriteBase::GetProperty(unsigned int PropertyFlags,OUT cPropertyValues &Pr
 	case Property_Color: PropertyValues=GetColor(); return true;
 	case Property_Rect: PropertyValues=GetRect(); return true;
 	case Property_CenterAndHSize: PropertyValues=GetCenterAndHSize(); return true;
-	case Property_Center: PropertyValues=GetCenter(); return true;
+	case Property_Center: PropertyValues=center(); return true;
 	case Property_ValidRect: PropertyValues=GetValidRect(); return true;
 	}
 	ASSERT(false);

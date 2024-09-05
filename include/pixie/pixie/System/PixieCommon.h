@@ -51,7 +51,7 @@ struct cRect
 	bool isPointInside(cPoint Point) const;
 	bool hasOverlap(const cRect &Other) const;
 	bool operator==(const cRect &Other) const { return mLeft==Other.mLeft&&mTop==Other.mTop&&mWidth==Other.mWidth&&mHeight==Other.mHeight; }
-	cPoint GetCenter() const { return { mLeft+mWidth/2, mTop+mHeight/2 }; }
+	cPoint center() const { return { mLeft+mWidth/2, mTop+mHeight/2 }; }
 	cPoint TopLeft() const { return cPoint(mLeft, mTop); }
 	cPoint TopRight() const { return cPoint(Right(), mTop); }
 	cPoint BottomLeft() const { return cPoint(mLeft, Bottom()); }

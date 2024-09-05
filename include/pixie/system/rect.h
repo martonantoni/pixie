@@ -31,7 +31,12 @@ public:
     tProxy& operator/=(VALUE_TYPE value) { setter(mOwner, getter(mOwner) / value); return *this; }
     VALUE_TYPE operator+(VALUE_TYPE value) const { return getter(mOwner) + value; }
     VALUE_TYPE operator-(VALUE_TYPE value) const { return getter(mOwner) - value; }
-    VALUE_TYPE operator*(VALUE_TYPE value) const { return getter(mOwner) * value; }
+    
+    template<class T> 
+        requires std::convertible_to<decltype(std::declval<VALUE_TYPE>()* std::declval<T>()), VALUE_TYPE>
+    VALUE_TYPE operator*(T value) const { return getter(mOwner) * value; }
+
+   // VALUE_TYPE operator*(VALUE_TYPE value) const { return getter(mOwner) * value; }
     VALUE_TYPE operator/(VALUE_TYPE value) const { return getter(mOwner) / value; }
     bool operator==(VALUE_TYPE value) const { return getter(mOwner) == value; }
     bool operator!=(VALUE_TYPE value) const { return getter(mOwner) != value; }
@@ -46,11 +51,14 @@ public:
     constexpr cRect() : mTopLeft(0, 0), mSize(0, 0) {}
     constexpr cRect(int left, int top, int width, int height) : mTopLeft(left, top), mSize(width, height) {}
     constexpr cRect(cPoint position, cPoint size) : mTopLeft(position), mSize(size) {}
+    cRect(const cConfig& config) { fromConfig(config); }
 
     cPoint position() const { return mTopLeft; }
     cPoint& position() { return mTopLeft; }
     cPoint size() const { return mSize; }
     cPoint& size() { return mSize; }
+    cRect& grow(cPoint offset) { mSize += offset; return *this; }
+    cRect& move(cPoint offset) { mTopLeft += offset; return *this; }
 
     cPoint topLeft() const { return mTopLeft; }
     cPoint bottomRight() const { return mTopLeft + mSize; }
