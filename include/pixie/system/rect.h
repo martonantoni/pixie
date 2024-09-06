@@ -110,21 +110,21 @@ public:
 
 inline auto cRect::center()
 {
-    return tProxy < cRect, cPoint,
+    return tProxy<cRect, cPoint,
         [](auto& rect) { return rect.mTopLeft + rect.mSize / 2; },
         [](auto& rect, auto value) { rect.mTopLeft = value - rect.mSize / 2; } > (*this);
 }
 
 inline auto cRect::width()
 {
-    return tProxy < cRect, int,
+    return tProxy<cRect, int,
         [](auto& rect) { return rect.mSize.x; },
         [](auto& rect, auto value) { rect.mSize.x = value; } > (*this);
 }
 
 inline auto cRect::height()
 {
-    return tProxy < cRect, int,
+    return tProxy<cRect, int,
         [](auto& rect) { return rect.mSize.y; },
         [](auto& rect, auto value) { rect.mSize.y = value; } > (*this);
 }
@@ -134,13 +134,13 @@ template<class... Properties> auto cRect::bottomRight()
 {
     if constexpr (std::disjunction_v<std::is_same<Properties, PreserveSize>...>)
     {
-        return tProxy < cRect, cPoint,
+        return tProxy<cRect, cPoint,
             [](auto& rect) { return rect.mTopLeft + rect.mSize; },
             [](auto& rect, auto value) { rect.mTopLeft = value - rect.mSize; } > (*this);
     }
     else
     {
-        return tProxy < cRect, cPoint,
+        return tProxy<cRect, cPoint,
             [](auto& rect) { return rect.mTopLeft + rect.mSize; },
             [](auto& rect, auto value) { rect.mSize = value - rect.mTopLeft; } > (*this);
     }
@@ -150,13 +150,13 @@ template<class... Properties> auto cRect::bottomLeft()
 {
     if constexpr (std::disjunction_v<std::is_same<Properties, PreserveSize>...>)
     {
-        return tProxy < cRect, cPoint,
+        return tProxy<cRect, cPoint,
             [](auto& rect) { return rect.mTopLeft + cPoint(0, rect.mSize.y); },
             [](auto& rect, auto value) { rect.mTopLeft = value - cPoint(0, rect.mSize.y); } > (*this);
     }
     else
     {
-        return tProxy < cRect, cPoint,
+        return tProxy<cRect, cPoint,
             [](auto& rect) { return rect.mTopLeft + cPoint(0, rect.mSize.y); },
             [](auto& rect, auto value) // top right corner is fixed
             {
@@ -171,13 +171,13 @@ template<class... Properties> auto cRect::topRight()
 {
     if constexpr (std::disjunction_v<std::is_same<Properties, PreserveSize>...>)
     {
-        return tProxy < cRect, cPoint,
+        return tProxy<cRect, cPoint,
             [](auto& rect) { return rect.mTopLeft + cPoint(rect.mSize.x, 0); },
             [](auto& rect, auto value) { rect.mTopLeft = value - cPoint(rect.mSize.x, 0); } > (*this);
     }
     else
     {
-        return tProxy < cRect, cPoint,
+        return tProxy<cRect, cPoint,
             [](auto& rect) { return rect.mTopLeft + cPoint(rect.mSize.x, 0); },
             [](auto& rect, auto value) // bottom left corner is fixed
             {
@@ -192,13 +192,13 @@ template<class... Properties> auto cRect::topLeft()
 {
     if constexpr (std::disjunction_v<std::is_same<Properties, PreserveSize>...>)
     {
-        return tProxy < cRect, cPoint,
+        return tProxy<cRect, cPoint,
             [](auto& rect) { return rect.mTopLeft; },
             [](auto& rect, auto value) { rect.mTopLeft = value; } > (*this);
     }
     else
     {
-        return tProxy < cRect, cPoint,
+        return tProxy<cRect, cPoint,
             [](auto& rect) { return rect.mTopLeft; },
             [](auto& rect, auto value) { rect.mSize += rect.mTopLeft - value; rect.mTopLeft = value; } > (*this);
     }
@@ -209,13 +209,13 @@ template<class... Properties> auto cRect::left()
 {
     if constexpr (std::disjunction_v<std::is_same<Properties, PreserveSize>...>)
     {
-        return tProxy < cRect, int,
+        return tProxy<cRect, int,
             [](auto& rect) { return rect.mTopLeft.x; },
             [](auto& rect, auto value) { rect.mTopLeft.x = value; } > (*this);
     }
     else
     {
-        return tProxy < cRect, int,
+        return tProxy<cRect, int,
             [](auto& rect) { return rect.mTopLeft.x; },
             [](auto& rect, auto value) { rect.mSize.x += rect.mTopLeft.x - value; rect.mTopLeft.x = value; } > (*this);
     }
@@ -225,13 +225,13 @@ template<class... Properties> auto cRect::top()
 {
     if constexpr (std::disjunction_v<std::is_same<Properties, PreserveSize>...>)
     {
-        return tProxy < cRect, int,
+        return tProxy<cRect, int,
             [](auto& rect) { return rect.mTopLeft.y; },
             [](auto& rect, auto value) { rect.mTopLeft.y = value; } > (*this);
     }
     else
     {
-        return tProxy < cRect, int,
+        return tProxy<cRect, int,
             [](auto& rect) { return rect.mTopLeft.y; },
             [](auto& rect, auto value) { rect.mSize.y += rect.mTopLeft.y - value; rect.mTopLeft.y = value; } > (*this);
     }
@@ -241,13 +241,13 @@ template<class... Properties> auto cRect::right()
 {
     if constexpr (std::disjunction_v<std::is_same<Properties, PreserveSize>...>)
     {
-        return tProxy < cRect, int,
+        return tProxy<cRect, int,
             [](auto& rect) { return rect.mTopLeft.x + rect.mSize.x; },
             [](auto& rect, auto value) { rect.mTopLeft.x = value - rect.mSize.x; } > (*this);
     }
     else
     {
-        return tProxy < cRect, int,
+        return tProxy<cRect, int,
             [](auto& rect) { return rect.mTopLeft.x + rect.mSize.x; },
             [](auto& rect, auto value) { rect.mSize.x = value - rect.mTopLeft.x; } > (*this);
     }
@@ -257,13 +257,13 @@ template<class... Properties> auto cRect::bottom()
 {
     if constexpr (std::disjunction_v<std::is_same<Properties, PreserveSize>...>)
     {
-        return tProxy < cRect, int,
+        return tProxy<cRect, int,
             [](auto& rect) { return rect.mTopLeft.y + rect.mSize.y; },
             [](auto& rect, auto value) { rect.mTopLeft.y = value - rect.mSize.y; } > (*this);
     }
     else
     {
-        return tProxy < cRect, int,
+        return tProxy<cRect, int,
             [](auto& rect) { return rect.mTopLeft.y + rect.mSize.y; },
             [](auto& rect, auto value) { rect.mSize.y = value - rect.mTopLeft.y; } > (*this);
     }
