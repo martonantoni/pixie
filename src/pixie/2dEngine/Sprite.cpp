@@ -54,12 +54,12 @@ cSpriteRenderInfo cSprite::GetRenderInfo() const
 	int Left = std::max(validRect.left(), OriginalRect.left());
 	int Bottom = std::min(validRect.bottom(), OriginalRect.bottom());
 	int Right = std::min(validRect.right(), OriginalRect.right());
-	cRect RenderedRect{ Left, Top, Right - Left + 1, Bottom - Top + 1 };
+	const cRect RenderedRect{ Left, Top, Right - Left + 1, Bottom - Top + 1 };
 	if (RenderedRect.width() <= 0 || RenderedRect.height() <= 0)
 	{
 		return { RenderedRect, 0.0, nullptr, mBlendingMode };
 	}
-	cRect TextureRect = mTexture->GetTextureRect();
+	const cRect TextureRect = mTexture->GetTextureRect();
 	int ClippedTextureTop = TextureRect.top() + (RenderedRect.top() - OriginalRect.top()) * TextureRect.height() / OriginalRect.height();
 	int ClippedTextureLeft = TextureRect.left() + (RenderedRect.left() - OriginalRect.left()) * TextureRect.width() / OriginalRect.width();
 	int ClippedTextureBottom = TextureRect.bottom() - (OriginalRect.bottom() - RenderedRect.bottom()) * TextureRect.height() / OriginalRect.height();

@@ -90,7 +90,7 @@ void cSpriteRenderer::Rotate(cFloatPoint &Point, cFloatPoint Center, float s, fl
 
 void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderState)
 {
-	auto [useClipping, clippingRect] = window.getSpriteClipping();
+	const auto [useClipping, clippingRect] = window.getSpriteClipping();
 	if (useClipping != mUseClipping || (useClipping && clippingRect != mClippingRect))
 	{
 		FlushBuffer(renderState.batchVertices, renderState.NumberOfBatchedVertices, true);
@@ -113,8 +113,7 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
 	}
 	for (auto& sprite : window.mSprites) // smallest Z order first, those are the ones behind the others
 	{
-
-		cSpriteRenderInfo RenderInfo = sprite->GetRenderInfo();
+		const cSpriteRenderInfo RenderInfo = sprite->GetRenderInfo();
 		auto batchVertices = renderState.batchVertices;
 		auto& NumberOfBatchedVertices = renderState.NumberOfBatchedVertices;
 		float Z = 0.5f;

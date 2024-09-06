@@ -46,7 +46,7 @@ cRect cRect::alignedRect(const cRect& baseRect, const cRect& rectToAlign, eHoriz
 		result.left<PreserveSize>() = baseRect.left();
 		break;
 	case eHorizontalAlign::Right:
-		result.left<PreserveSize>() = baseRect.right() - rectToAlign.width();
+		result.left<PreserveSize>() = baseRect.right() - rectToAlign.width() + 1;
 		break;
 	case eHorizontalAlign::Center:
 		result.left<PreserveSize>() = baseRect.left() + (baseRect.width() - rectToAlign.width()) / 2;
@@ -58,7 +58,7 @@ cRect cRect::alignedRect(const cRect& baseRect, const cRect& rectToAlign, eHoriz
 		result.top<PreserveSize>() = baseRect.top();
 		break;
 	case eVerticalAlign::Bottom:
-		result.top<PreserveSize>() = baseRect.bottom() - rectToAlign.height();
+		result.top<PreserveSize>() = baseRect.bottom() - rectToAlign.height() + 1;
 		break;
 	case eVerticalAlign::Center:
 		result.top<PreserveSize>() = baseRect.top() + (baseRect.height() - rectToAlign.height()) / 2;
