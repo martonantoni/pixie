@@ -212,6 +212,7 @@ constexpr bool NoneOfType()
 #include "x64Common.h"
 #include "DebugAssert.h"
 #include "CommonInclude.h"
+#include "proxy.h"
 #include "utf8.h"
 #include "DefaultValue.h"
 #include "IntrusiveList.h"
