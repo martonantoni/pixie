@@ -29,15 +29,23 @@ public:
     tProxy& operator-=(VALUE_TYPE value) { setter(mOwner, getter(mOwner) - value); return *this; }
     tProxy& operator*=(VALUE_TYPE value) { setter(mOwner, getter(mOwner) * value); return *this; }
     tProxy& operator/=(VALUE_TYPE value) { setter(mOwner, getter(mOwner) / value); return *this; }
-    VALUE_TYPE operator+(VALUE_TYPE value) const { return getter(mOwner) + value; }
-    VALUE_TYPE operator-(VALUE_TYPE value) const { return getter(mOwner) - value; }
-    
+
+    template<class T>
+        requires std::convertible_to<decltype(std::declval<VALUE_TYPE>() + std::declval<T>()), VALUE_TYPE>
+    VALUE_TYPE operator+(T value) const { return getter(mOwner) + value; }
+
+    template<class T>
+        requires std::convertible_to<decltype(std::declval<VALUE_TYPE>() - std::declval<T>()), VALUE_TYPE>
+    VALUE_TYPE operator-(T value) const { return getter(mOwner) - value; }
+
     template<class T> 
-        requires std::convertible_to<decltype(std::declval<VALUE_TYPE>()* std::declval<T>()), VALUE_TYPE>
+        requires std::convertible_to<decltype(std::declval<VALUE_TYPE>() * std::declval<T>()), VALUE_TYPE>
     VALUE_TYPE operator*(T value) const { return getter(mOwner) * value; }
 
-   // VALUE_TYPE operator*(VALUE_TYPE value) const { return getter(mOwner) * value; }
-    VALUE_TYPE operator/(VALUE_TYPE value) const { return getter(mOwner) / value; }
+    template<class T>
+        requires std::convertible_to<decltype(std::declval<VALUE_TYPE>() / std::declval<T>()), VALUE_TYPE>
+    VALUE_TYPE operator/(T value) const { return getter(mOwner) / value; }
+
     bool operator==(VALUE_TYPE value) const { return getter(mOwner) == value; }
     bool operator!=(VALUE_TYPE value) const { return getter(mOwner) != value; }
     template<std::constructible_from<VALUE_TYPE> T> operator T() const { return getter(mOwner); }
