@@ -4,7 +4,6 @@
 #include <d3dx9.h>
 #include <math.h>
 
-#include "system/PixieCommon.h"
 #include "system/ColorInfo.h"
 #include "system/PixieEvents.h"
 #include "system/LogicServer.h"
