@@ -2,8 +2,8 @@
 
 #include "pixie/system/CommonInclude_System.h"
 
-const char* ProgramName = "Pixie Test";
-const char* VersionString = "0.3";
+const char* ProgramName = "Pixie / Lua support Test";
+const char* VersionString = "0.4";
 
 
 void storeTestVariables(cLuaValue& table)
@@ -410,7 +410,7 @@ TEST(lua_function_register, funcion_v_v)  // void(void)
     bool success = false;
     globalTable.registerFunction<void>("test"s, [&success]() ->void { success = true; });
     ASSERT_EQ(script->stackSize(), 0) << "after register";
-    auto returned = globalTable.callFunction("test"s);
+    auto returned = globalTable.get("test"s).call();
     ASSERT_TRUE(success);
     ASSERT_TRUE(returned.empty());
 
@@ -452,7 +452,7 @@ TEST(lua_function_register, function_v_iii)  // void(int,int,int)
             result = a + b + c;
         });
 
-    auto returned = globalTable.callFunction("test"s, 10, 11, 12);
+    auto returned = globalTable.get("test"s).call("test"s, 10, 11, 12);
     ASSERT_EQ(result, 33);
     ASSERT_TRUE(returned.empty());
 
@@ -474,7 +474,7 @@ TEST(lua_function_register, function_v_t)  // void(cLuaValue)
     cLuaValue parameterTable = script->createTable();
     parameterTable.set("a", 33);
     parameterTable.set("b", 44);
-    auto returned = globalTable.callFunction("test"s, std::move(parameterTable));
+    auto returned = globalTable.get("test"s).call(std::move(parameterTable));
     ASSERT_TRUE(returned.empty());
     ASSERT_EQ(result, 77);
 
@@ -493,7 +493,7 @@ TEST(lua_function_call, function_i_ii)
         "end");
     
     cLuaValue globalTable = script->globalTable();
-    auto returned = globalTable.callFunction("testedFunction"s, 10, 11);
+    auto returned = globalTable.get(""testedFunction"s).call(10, 11);
     ASSERT_EQ(returned.size(), 1u);
     ASSERT_EQ(returned.front().toInt(), 21);
 
@@ -565,7 +565,7 @@ TEST(lua_function_register, function_i_ii)
             return a + b;
         });
 
-    auto returned = globalTable.callFunction("testedFunction"s, 10, 11);
+    auto returned = globalTable.get("testedFunction"s).call(10, 11);
     ASSERT_EQ(returned.size(), 1u);
     ASSERT_EQ(returned.front().toInt(), 21);
 
@@ -724,9 +724,9 @@ TEST(lua_oop, callMemberFunction)
 
     auto globalTable = script->globalTable();
     auto myTable = *globalTable.get<cLuaValue>("my_table");
-    myTable.callFunction("increase", myTable, 2);
+    myTable.get("increase"s).call(myTable, 2);
     ASSERT_EQ(myTable.get<int>("a"), 3u);
-    myTable.callMemberFunction("increase", 123);
+    myTable.get("increase"s).callMember(123);
     ASSERT_EQ(myTable.get<int>("a"), 126u);
 }
 

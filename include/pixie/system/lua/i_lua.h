@@ -9,4 +9,4 @@ extern "C"
 
 
 #include "lua_script.h"
-#include "lua_table.h"
+#include "lua_value.h"

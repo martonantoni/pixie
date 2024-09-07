@@ -85,29 +85,6 @@ bool cLuaValue::isTable() const
     return false;
 }
 
-void cLuaValue::retrieveWithKey(lua_State* L, cKey key) // assumes the table is on top of the stack
-{
-    std::visit(
-        overloaded
-        {
-            [L](std::reference_wrapper<const std::string> key) 
-            { 
-                lua_pushstring(L, key.get().c_str()); 
-                lua_gettable(L, -2);
-            },
-            [L](const char* key)
-            {
-                lua_pushstring(L, key); 
-                lua_gettable(L, -2);
-            },
-            [L](int index) 
-            {
-                lua_rawgeti(L, -1, index);
-            } 
-        }, 
-        key);
-}
-
 void cLuaValue::copy_(const cLuaValue& src)
 {
     mScript = src.mScript;
