@@ -800,6 +800,7 @@ TEST(lua_oop, exception_from_cpp_function)
     ASSERT_EQ(script->stackSize(), 0);
 }
 
+
 // Main function to run the tests
 int main(int argc, char** argv)
 {

@@ -4,7 +4,7 @@ class cLuaValue final
 {
 public:
     enum class IsRecursive { Yes, No };
-    using cKey = std::variant<std::reference_wrapper<const std::string>, const char*, int>;
+    using cKey = std::variant<std::string_view, int, cLuaValue>;
     struct cFunctionMustExist {};
 private:
     std::shared_ptr<cLuaScript> mScript;
@@ -15,6 +15,7 @@ private:
     template<class T> static T pop(cLuaScript& script, lua_State* L);
     std::shared_ptr<cConfig> toConfig_topTable(lua_State* L, IsRecursive isRecursive) const;
     void copy_(const cLuaValue& src);
+    static void retrieveItem(lua_State* L, const cKey& key);
     class cStateWithSelfCleanup;
     cStateWithSelfCleanup retrieveSelf() const; // returns nullptr on error, self will be at -1 on stack if successful
 public:
@@ -29,10 +30,9 @@ public:
     cLuaValue subTable(const std::string& key) const; // creates a new table if it doesn't exist
     int arraySize() const; // returns the length of the array, returns 0 if the value is not an array
 // when the value is a table, accessing an element:
-    template<class T = cLuaValue> std::optional<T> tryGet(const std::string& key) const;
-    template<class T = cLuaValue, class D = T> T get(const std::string& key, D&& defaultValue) const;
-    template<class T = cLuaValue> T get(const std::string& key) const;
-    template<class T = cLuaValue> T get(int index) const; // array access. index >= 1
+    template<class T = cLuaValue> std::optional<T> tryGet(const cKey& key) const;
+    template<class T = cLuaValue, class D = T> T get(const cKey& key, D&& defaultValue) const;
+    template<class T = cLuaValue> T get(const cKey& key) const;
     template<class T> void set(const std::string& key, const T& value);
     template<class R, class... Args, class C> void registerFunction(const std::string& key, const C&& func);
     template<class T> bool isType(const std::string& key) const;
@@ -207,12 +207,11 @@ T cLuaValue::pop(cLuaScript& script, lua_State* L)
     return T{};
 }
 
-template<class T> std::optional<T> cLuaValue::tryGet(const std::string& key) const
+template<class T> std::optional<T> cLuaValue::tryGet(const cKey& key) const
 {
     if(auto L = retrieveSelf())
     {
-        lua_pushstring(L, key.c_str()); // Push the variable name onto the Lua stack
-        lua_gettable(L, -2); // Get the value from the table using the variable name
+        retrieveItem(L, key);
         if(lua_isnil(L, -1))
         {
             lua_pop(L, 1); // Pop the nil value
@@ -223,18 +222,17 @@ template<class T> std::optional<T> cLuaValue::tryGet(const std::string& key) con
     return {};
 }
 
-template<class T, class D> T cLuaValue::get(const std::string& key, D&& defaultValue) const
+template<class T, class D> T cLuaValue::get(const cKey& key, D&& defaultValue) const
 {
     std::optional<T> value = tryGet<T>(key);
     return value ? *value : std::forward<D>(defaultValue);
 }
 
-template<class T> T cLuaValue::get(const std::string& key) const
+template<class T> T cLuaValue::get(const cKey& key) const
 {
     if (auto L = retrieveSelf())
     {
-        lua_pushstring(L, key.c_str()); // Push the variable name onto the Lua stack
-        lua_gettable(L, -2); // Get the value from the table using the variable name
+        retrieveItem(L, key);
         if (lua_isnil(L, -1))
         {
             lua_pop(L, 1); // Pop the nil value
@@ -243,16 +241,6 @@ template<class T> T cLuaValue::get(const std::string& key) const
         return pop<T>(*mScript, L);
     }
     throw std::runtime_error("non-value");
-}
-
-template<class T> T cLuaValue::get(int index) const
-{
-    if (auto L = retrieveSelf())
-    {
-        lua_rawgeti(L, -1, index);
-        return pop<T>(*mScript, L);
-    }
-    return {};
 }
 
 template<class T>

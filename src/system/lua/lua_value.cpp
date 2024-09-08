@@ -45,6 +45,23 @@ cLuaValue::cStateWithSelfCleanup cLuaValue::retrieveSelf() const
     return L;
 }
 
+void cLuaValue::retrieveItem(lua_State* L, const cKey& key)
+{
+    std::visit(
+        [&](auto&& key)
+        {
+            if constexpr (std::is_same_v<std::decay_t<decltype(key)>, int>)
+            {
+                lua_rawgeti(L, -1, key);
+            }
+            else if constexpr (std::is_same_v<std::decay_t<decltype(key)>, std::string_view>)
+            {
+                lua_getfield(L, -1, key.data());
+            }
+        },
+        key);
+}
+
 bool cLuaValue::isNumber() const
 {
     if(auto L = retrieveSelf())
