@@ -35,10 +35,6 @@ public:
     template<class T = cLuaValue> T get(int index) const; // array access. index >= 1
     template<class T> void set(const std::string& key, const T& value);
     template<class R, class... Args, class C> void registerFunction(const std::string& key, const C&& func);
-    //template<class... Args> std::vector<cLuaValue> callFunction(const std::string& key, const Args&... args);
-    //template<class... Args> std::vector<cLuaValue> callFunction(const std::string& key, const cFunctionMustExist&, const Args&... args);
-    //template<class... Args> std::vector<cLuaValue> callMemberFunction(const std::string& key, const Args&... args);
-    //template<class... Args> std::vector<cLuaValue> callMemberFunction(const std::string& key, const cFunctionMustExist&, const Args&... args);
     template<class T> bool isType(const std::string& key) const;
     void remove(const std::string& key);
     bool has(const std::string& key) const;
