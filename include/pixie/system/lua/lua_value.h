@@ -29,8 +29,9 @@ public:
     cLuaValue subTable(const std::string& key) const; // creates a new table if it doesn't exist
     int arraySize() const; // returns the length of the array, returns 0 if the value is not an array
 // when the value is a table, accessing an element:
-    template<class T = cLuaValue> std::optional<T> get(const std::string& key) const;
-    template<class T = cLuaValue> T get(const std::string& key, const T& defaultValue) const;
+    template<class T = cLuaValue> std::optional<T> tryGet(const std::string& key) const;
+    template<class T = cLuaValue, class D = T> T get(const std::string& key, D&& defaultValue) const;
+    template<class T = cLuaValue> T get(const std::string& key) const;
     template<class T = cLuaValue> T get(int index) const; // array access. index >= 1
     template<class T> void set(const std::string& key, const T& value);
     template<class R, class... Args, class C> void registerFunction(const std::string& key, const C&& func);
@@ -55,6 +56,7 @@ public:
     bool isTable() const;
     template<class C> void visit(C&& callable) const;
     template<class... Args> std::vector<cLuaValue> call(const Args&... args);
+    template<class... Args> std::vector<cLuaValue> callMember(const std::string& functionName, const Args&... args);
 
     cLuaScript& script() { return *mScript; }
     const cLuaScript& script() const { return *mScript; }
@@ -209,7 +211,7 @@ T cLuaValue::pop(cLuaScript& script, lua_State* L)
     return T{};
 }
 
-template<class T> std::optional<T> cLuaValue::get(const std::string& key) const
+template<class T> std::optional<T> cLuaValue::tryGet(const std::string& key) const
 {
     if(auto L = retrieveSelf())
     {
@@ -225,10 +227,26 @@ template<class T> std::optional<T> cLuaValue::get(const std::string& key) const
     return {};
 }
 
-template<class T> T cLuaValue::get(const std::string& key, const T& defaultValue) const
+template<class T, class D> T cLuaValue::get(const std::string& key, D&& defaultValue) const
 {
-    std::optional<T> value = get<T>(key);
-    return value ? *value : defaultValue;
+    std::optional<T> value = tryGet<T>(key);
+    return value ? *value : std::forward<D>(defaultValue);
+}
+
+template<class T> T cLuaValue::get(const std::string& key) const
+{
+    if (auto L = retrieveSelf())
+    {
+        lua_pushstring(L, key.c_str()); // Push the variable name onto the Lua stack
+        lua_gettable(L, -2); // Get the value from the table using the variable name
+        if (lua_isnil(L, -1))
+        {
+            lua_pop(L, 1); // Pop the nil value
+            throw std::runtime_error("key not found");
+        }
+        return pop<T>(*mScript, L);
+    }
+    throw std::runtime_error("non-value");
 }
 
 template<class T> T cLuaValue::get(int index) const
@@ -281,15 +299,14 @@ template<class... Args> std::vector<cLuaValue> cLuaValue::call(const Args&... ar
 {
     if (!mScript || mReference == LUA_NOREF)
     {
-        return {};
+        throw std::runtime_error("not a valid lua object");
     }
     lua_State* L = mScript->state();
     int startSize = lua_gettop(L);
     lua_rawgeti(L, LUA_REGISTRYINDEX, mReference); // Retrieve the table from the registry
     if (!lua_isfunction(L, -1))
     {
-        // handle error
-        return {};
+        throw std::runtime_error("not a function");
     }
     int oldSize = lua_gettop(L);
     if constexpr (sizeof...(args) > 0)
@@ -317,53 +334,10 @@ template<class... Args> std::vector<cLuaValue> cLuaValue::call(const Args&... ar
     return returnValues;
 }
 
-//template<class... Args> std::vector<cLuaValue> cLuaValue::callFunction(const std::string& key, const Args&... args)
-//{
-//    if (!mScript || mReference == LUA_NOREF)
-//    {
-//        return {};
-//    }
-//    auto function = get<cLuaValue>(key);
-//    if(function.has_value())
-//    {
-//        return function->call(args...);
-//    }
-//    return {};
-//}
-//
-//template<class... Args> std::vector<cLuaValue> cLuaValue::callFunction(const std::string& key, const cFunctionMustExist&, const Args&... args)
-//{
-//    if (!mScript || mReference == LUA_NOREF)
-//    {
-//        return {};
-//    }
-//    cLuaValue function = *get<cLuaValue>(key); // results in an exception if the function doesn't exist
-//    return function.call(args...);
-//}
-//
-//template<class... Args> std::vector<cLuaValue> cLuaValue::callMemberFunction(const std::string& key, const Args&... args)
-//{
-//    if (!mScript || mReference == LUA_NOREF)
-//    {
-//        return {};
-//    }
-//    auto function = get<cLuaValue>(key);
-//    if(function.has_value())
-//    {
-//        return function->call(this, args...);
-//    }
-//    return {};
-//}
-//
-//template<class... Args> std::vector<cLuaValue> cLuaValue::callMemberFunction(const std::string& key, const cFunctionMustExist&, const Args&... args)
-//{
-//    if (!mScript || mReference == LUA_NOREF)
-//    {
-//        return {};
-//    }
-//    cLuaValue function = *get<cLuaValue>(key); // results in an exception if the function doesn't exist
-//    return function.call(this, args...);
-//}
+template<class... Args> std::vector<cLuaValue> cLuaValue::callMember(const std::string& functionName, const Args&... args)
+{
+    return get(functionName).call(*this, args...);
+}
 
 template<class R, class... Args, class C>
 void cLuaValue::registerFunction(const std::string& key, const C&& func)

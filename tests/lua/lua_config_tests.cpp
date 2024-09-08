@@ -108,13 +108,13 @@ TEST(config_to_lua_script, nested_tables)
 
     {
         cLuaValue globalTable = script->globalTable();
-        cLuaValue subTable1 = *globalTable.get<cLuaValue>("sub_table_1");
+        cLuaValue subTable1 = globalTable.get<cLuaValue>("sub_table_1");
         ASSERT_EQ(subTable1.get<int>("a"), 1);
         ASSERT_EQ(subTable1.get<int>("b"), 2);
         ASSERT_EQ(subTable1.get<std::string>("c"), "hello");
         ASSERT_EQ(subTable1.get<bool>("d"), true);
         ASSERT_EQ(subTable1.get<double>("e"), 3.14);
-        cLuaValue subTable11 = *subTable1.get<cLuaValue>("sub_table_11");
+        cLuaValue subTable11 = subTable1.get<cLuaValue>("sub_table_11");
         ASSERT_EQ(subTable11.get<int>("a"), 3);
         ASSERT_EQ(subTable11.get<int>("b"), 4);
         ASSERT_EQ(subTable11.get<std::string>("c"), "hi");
@@ -140,7 +140,7 @@ TEST(config_to_lua_script, array)
     script->executeString(scriptifiedConfig);
 
     cLuaValue globalTable = script->globalTable();
-    cLuaValue subTable = *globalTable.get<cLuaValue>("my_array");
+    cLuaValue subTable = globalTable.get<cLuaValue>("my_array");
     ASSERT_EQ(subTable.get<int>(1), 1);
     ASSERT_EQ(subTable.get<int>(2), 2);
     ASSERT_EQ(subTable.get<std::string>(3), "hello");
