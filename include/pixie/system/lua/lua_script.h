@@ -41,6 +41,7 @@ public:
     lua_State* state() { return L; }
     cLuaValue globalTable();
     cLuaValue createTable();
+    cLuaValue createValue();
 
     struct cUserDataBase
     {

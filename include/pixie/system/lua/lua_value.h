@@ -1,5 +1,11 @@
 #pragma once
 
+template<class T> concept cAssignableToLuaValue = 
+    std::is_same_v<std::decay_t<T>, int> ||
+    std::is_same_v<std::decay_t<T>, double> ||
+    std::convertible_to<std::decay_t<T>, std::string_view> ||
+    std::is_same_v<std::decay_t<T>, bool>;
+
 class cLuaValue final
 {
 public:
@@ -16,15 +22,18 @@ private:
     std::shared_ptr<cConfig> toConfig_topTable(lua_State* L, IsRecursive isRecursive) const;
     void copy_(const cLuaValue& src);
     static void retrieveItem(lua_State* L, const cKey& key);
+    static void pushKey(lua_State* L, const cKey& key);
     class cStateWithSelfCleanup;
     cStateWithSelfCleanup retrieveSelf() const; // returns nullptr on error, self will be at -1 on stack if successful
 public:
 
     cLuaValue() = default;
     cLuaValue(std::shared_ptr<cLuaScript> script, int reference, bool isGlobalTable);
+    cLuaValue(std::shared_ptr<cLuaScript> script): mScript(std::move(script)) {}
     cLuaValue(cLuaValue&& src);
     cLuaValue(const cLuaValue& src);
     ~cLuaValue();
+    template<cAssignableToLuaValue T> cLuaValue& operator=(T&& value);
     cLuaValue& operator=(cLuaValue&& src);
     cLuaValue& operator=(const cLuaValue& src);
     cLuaValue subTable(const std::string& key) const; // creates a new table if it doesn't exist
@@ -32,12 +41,12 @@ public:
 // when the value is a table, accessing an element:
     template<class T = cLuaValue> std::optional<T> tryGet(const cKey& key) const;
     template<class T = cLuaValue, class D = T> T get(const cKey& key, D&& defaultValue) const;
-    template<class T = cLuaValue> T get(const cKey& key) const;
-    template<class T> void set(const std::string& key, const T& value);
+    template<class T = cLuaValue> T get(const cKey& key) const;    
+    template<class T> void set(const cKey& key, const T& value);
     template<class R, class... Args, class C> void registerFunction(const std::string& key, const C&& func);
-    template<class T> bool isType(const std::string& key) const;
-    void remove(const std::string& key);
-    bool has(const std::string& key) const;
+    template<class T> bool isType(const cKey& key) const;
+    void remove(const cKey& key);
+    bool has(const cKey& key) const;
     template<class C> 
         requires std::is_invocable_v<C, const std::string&, const cLuaValue&> ||
                  std::is_invocable_v<C, const cLuaValue&>
@@ -52,7 +61,7 @@ public:
     bool isTable() const;
     template<class C> void visit(C&& callable) const;
     template<class... Args> std::vector<cLuaValue> call(const Args&... args);
-    template<class... Args> std::vector<cLuaValue> callMember(const std::string& functionName, const Args&... args);
+    template<class... Args> std::vector<cLuaValue> callMember(const cKey& functionKey, const Args&... args);
 
     cLuaScript& script() { return *mScript; }
     const cLuaScript& script() const { return *mScript; }
@@ -74,6 +83,7 @@ public:
     lua_State* operator->() { return mState; }
     operator lua_State* () { return mState; }
     operator bool() { return mState != nullptr; }
+    void release() { mState = nullptr; }
 };
 
 
@@ -91,9 +101,9 @@ template<class T> void cLuaValue::push(lua_State* L, const T& value)
     {
         lua_pushnumber(L, value);
     }
-    else if constexpr (std::is_same_v<T, std::string>)
+    else if constexpr (std::convertible_to<T, std::string_view>)
     {
-        lua_pushstring(L, value.c_str()); 
+        lua_pushstring(L, std::string_view(value).data()); 
     }   
     else if constexpr (std::is_same_v<T, cLuaValue>)
     {
@@ -117,13 +127,13 @@ template<class T, class... Ts> void cLuaValue::push(lua_State* L, const T& value
 }
 
 template<class T>
-void cLuaValue::set(const std::string& key, const T& value)
+void cLuaValue::set(const cKey& key, const T& value)
 {
     if(auto L = retrieveSelf())
     {
-        lua_pushstring(L, key.c_str()); // Push the variable name onto the Lua stack
+        pushKey(L, key);
         push(L, value);
-        lua_settable(L, -3); // Set the value in the table using the variable name
+        lua_settable(L, -3); // Table: -3, key: -2, value: -1, pops key and value
     }
 }
 
@@ -244,12 +254,11 @@ template<class T> T cLuaValue::get(const cKey& key) const
 }
 
 template<class T>
-bool cLuaValue::isType(const std::string& variableName) const
+bool cLuaValue::isType(const cKey& key) const
 {
     if (auto L = retrieveSelf())
     {
-        lua_pushstring(L, variableName.c_str()); // Push the variable name onto the Lua stack
-        lua_gettable(L, -2); // Get the value from the table using the variable name
+        retrieveItem(L, key);
         int type = lua_type(L, -1);
         bool result = false;
         if constexpr (std::is_same_v<T, int>)
@@ -318,9 +327,9 @@ template<class... Args> std::vector<cLuaValue> cLuaValue::call(const Args&... ar
     return returnValues;
 }
 
-template<class... Args> std::vector<cLuaValue> cLuaValue::callMember(const std::string& functionName, const Args&... args)
+template<class... Args> std::vector<cLuaValue> cLuaValue::callMember(const cKey& functionKey, const Args&... args)
 {
-    return get(functionName).call(*this, args...);
+    return get(functionKey).call(*this, args...);
 }
 
 template<class R, class... Args, class C>
@@ -424,4 +433,34 @@ void cLuaValue::forEach(const C& callable) const
             }
         }
     }
+}
+
+template<cAssignableToLuaValue T> cLuaValue& cLuaValue::operator=(T&& value)
+{
+    if(!mScript)
+    {
+        throw std::runtime_error("not a valid lua object");
+    }
+    if (mReference != LUA_NOREF)
+    {
+        luaL_unref(mScript->state(), LUA_REGISTRYINDEX, mReference);
+    }
+    if constexpr (std::is_same_v<std::decay_t<T>, int>)
+    {
+        lua_pushinteger(mScript->state(), value);
+    }
+    else if constexpr (std::is_same_v<std::decay_t<T>, bool>)
+    {
+        lua_pushboolean(mScript->state(), value);
+    }
+    else if constexpr (std::is_same_v<std::decay_t<T>, double>)
+    {
+        lua_pushnumber(mScript->state(), value);
+    }
+    else if constexpr (std::convertible_to<std::decay_t<T>, std::string_view>)
+    {
+        lua_pushstring(mScript->state(), std::string_view(value).data());
+    }
+    mReference = luaL_ref(mScript->state(), LUA_REGISTRYINDEX);
+    return *this;
 }

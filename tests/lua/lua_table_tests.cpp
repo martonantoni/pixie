@@ -11,7 +11,7 @@ void storeTestVariables(cLuaValue& table)
     table.set("twelve", 12);
     table.set("ten", 10);
     table.set("twelve_string", "12"s);
-    table.set("ten_string", "10"s);
+    table.set("ten_string", "10");
     table.set("twelve_and_half", 12.5);
     table.set("ten_and_half", 10.5);
 }
@@ -49,64 +49,8 @@ void verifyTestVariableTypes(const cLuaValue& table)
     ASSERT_TRUE(table.isType<int>("twelve"));
     ASSERT_FALSE(table.isType<std::string>("twelve"));
 }
-/*
-volatile int perf_test_sink;
 
-TEST(lua_table, perf)
-{
-    auto script = std::make_shared<cLuaScript>();
-    {
-        auto globalTable = script->globalTable();
-        globalTable.set<int>("alma"s, 1);
-    }
-    {
-        cPrintfPerformance_Guard perf("global_table_acc");
-        for (int i = 0; i < 1'000'000; ++i)
-        {
-            auto globalTable = script->globalTable();
-        }
-    }
-    {
-        cPrintfPerformance_Guard perf("table_get");
-        auto globalTable = script->globalTable();
-        for (int i = 0; i < 1'000'000; ++i)
-        {
-            perf_test_sink += globalTable.get<int>("alma"s);
-        }
-    }
-
-    {
-        cPrintfPerformance_Guard perf("global_table_acc_and_get");
-        for (int i = 0; i < 1'000'000; ++i)
-        {
-            auto globalTable = script->globalTable();
-            perf_test_sink += globalTable.get<int>("alma"s);
-        }
-    }
-
-
-    {
-        cPrintfPerformance_Guard perf("register_get");
-        auto globalTable = script->globalTable();
-        for (int i = 0; i < 1'000'000; ++i)
-        {
-            auto subValue = globalTable.subTable("alma"s);
-            perf_test_sink += subValue.toInt();
-        }
-    }
-    {
-        cPrintfPerformance_Guard perf("register_acc");
-        auto globalTable = script->globalTable();
-        auto subValue = globalTable.subTable("alma"s);
-        for (int i = 0; i < 1'000'000; ++i)
-        {
-            perf_test_sink += subValue.toInt();
-        }
-    }
-}
-*/
-
-TEST(lua_table, get_set_in_global_table)
+TEST(lua_value, get_set_in_global_table)
 {
     auto script = std::make_shared<cLuaScript>();
 
@@ -115,7 +59,68 @@ TEST(lua_table, get_set_in_global_table)
     verifyTestVariableValues(globalTable);
 // now if we retrieve it again, it should be still readable:
     verifyTestVariableValues(script->globalTable());
+    ASSERT_EQ(script->stackSize(), 0);
 }
+
+TEST(lua_value, assignment_operator_int)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    cLuaValue value = script->createValue();
+    value = 42;
+    ASSERT_TRUE(value.isNumber());
+    ASSERT_EQ(value.toInt(), 42);
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_value, assignment_operator_double)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    cLuaValue value = script->createValue();
+    value = 42.5;
+    ASSERT_TRUE(value.isNumber());
+    ASSERT_EQ(value.toDouble(), 42.5);
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_value, assignment_operator_string)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    cLuaValue value = script->createValue();
+    value = "hello"s;
+    ASSERT_TRUE(value.isString());
+    ASSERT_STREQ(value.toString().c_str(), "hello");
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_value, assignment_operator_cstring)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    cLuaValue value = script->createValue();
+    value = "hello";
+    ASSERT_TRUE(value.isString());
+    ASSERT_STREQ(value.toString().c_str(), "hello");
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_value, assignment_op_mix)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    cLuaValue value = script->createValue();
+    value = 42;
+    ASSERT_EQ(value.toInt(), 42);
+    value = 42.5;
+    ASSERT_EQ(value.toDouble(), 42.5);
+    value = "hello"s;
+    ASSERT_TRUE(value.isString());
+    ASSERT_STREQ(value.toString().c_str(), "hello");
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
 
 TEST(lua_value, toInt)
 {
@@ -321,6 +326,66 @@ TEST(lua_value, tryGet_valuePresent)
     ASSERT_EQ(script->stackSize(), 0);
 }
 
+TEST(lua_value, tryGet_int_key_fails)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    script->executeString("alma = 54\nkorte = \"hello\"");
+    cLuaValue globalTable = script->globalTable();
+    {
+        auto failedRetrievedValue = globalTable.tryGet(1);
+        ASSERT_FALSE(failedRetrievedValue.has_value());
+    }
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_value, tryGet_int_key_succeeds)
+{
+    auto script = std::make_shared<cLuaScript>();
+    script->executeString("my_array = { 2, 9, 13, \"hello\" }\n");
+    auto myTable = script->globalTable().get("my_array");
+    {
+        auto retrievedValue = myTable.tryGet(1);
+        ASSERT_TRUE(retrievedValue.has_value());
+        ASSERT_EQ(retrievedValue.value().toInt(), 2);
+    }
+    {
+        auto retrievedValue = myTable.tryGet(2);
+        ASSERT_TRUE(retrievedValue.has_value());
+        ASSERT_EQ(retrievedValue.value().toInt(), 9);
+    }
+    {
+        auto retrievedValue = myTable.tryGet(3);
+        ASSERT_TRUE(retrievedValue.has_value());
+        ASSERT_EQ(retrievedValue.value().toInt(), 13);
+    }
+    {
+        auto retrievedValue = myTable.tryGet(4);
+        ASSERT_TRUE(retrievedValue.has_value());
+        ASSERT_STREQ(retrievedValue.value().toString().c_str(), "hello");
+    }
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+
+TEST(lua_value, tryGet_luavalue_key)
+{
+    auto script = std::make_shared<cLuaScript>();
+    script->executeString("my_array = { 2, 9, 13, \"hello\" }\n");
+    auto keyValue = script->createValue();
+    keyValue = "my_array";
+    auto myTable = script->globalTable().tryGet(keyValue);
+    ASSERT_TRUE(myTable.has_value());
+    ASSERT_TRUE(myTable->isTable());
+    {
+        keyValue = 4;
+        auto retrievedValue = myTable->tryGet<cLuaValue>(keyValue);
+        ASSERT_TRUE(retrievedValue.has_value());
+        ASSERT_STREQ(retrievedValue.value().toString().c_str(), "hello");
+    }
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
 TEST(lua_value, arraySize)
 {
     auto script = std::make_shared<cLuaScript>();
@@ -343,13 +408,56 @@ TEST(lua_value, arraySize)
     ASSERT_EQ(script->stackSize(), 0);
 }
 
-TEST(lua_table, get_set_in_local_table)
+TEST(lua_table, get_set_in_local_table_with_string_key)
 {
     auto script = std::make_shared<cLuaScript>();
 
     cLuaValue localTable = script->createTable();
     storeTestVariables(localTable);
     verifyTestVariableValues(localTable);
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_table, get_set_in_local_table_with_int_key)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    cLuaValue localTable = script->createTable();
+    localTable.set(1, 12);
+    localTable.set(2, 10);
+    localTable.set(3, 12.5);
+    localTable.set(4, 10.5);
+    localTable.set(5, "12"s);
+    localTable.set(6, "10");
+    localTable.set(7, true);
+    
+    ASSERT_EQ(localTable.get<int>(1), 12);
+    ASSERT_EQ(localTable.get<int>(2), 10);
+    ASSERT_EQ(localTable.get<double>(3), 12.5);
+    ASSERT_EQ(localTable.get<double>(4), 10.5);
+    ASSERT_STREQ(localTable.get<std::string>(5).c_str(), "12");
+    ASSERT_STREQ(localTable.get<std::string>(6).c_str(), "10");
+    ASSERT_TRUE(localTable.get<bool>(7));
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_table, get_set_in_local_table_lua_val_key)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    cLuaValue localTable = script->createTable();
+    auto key = script->createValue();
+    key = "twelve";
+    localTable.set(key, 12);
+    key = 33;
+    localTable.set(key, 103.11);
+
+    key = "twelve";
+    ASSERT_EQ(localTable.get<int>(key), 12);
+    key = 33;
+    ASSERT_EQ(localTable.get<double>(key), 103.11);
 
     ASSERT_EQ(script->stackSize(), 0);
 }
@@ -387,6 +495,77 @@ TEST(lua_table, is_type)
     cLuaValue globalTable = script->globalTable();
     storeTestVariables(globalTable);
     verifyTestVariableTypes(script->globalTable());
+
+    script->executeString("my_array = { 2, 9, 13, \"hello\" }\n");
+    cLuaValue myArray = globalTable.get<cLuaValue>("my_array");
+    ASSERT_TRUE(myArray.isTable());
+    ASSERT_TRUE(myArray.isType<int>(1));
+    ASSERT_TRUE(myArray.isType<int>(2));
+    ASSERT_TRUE(myArray.isType<int>(3));
+    ASSERT_TRUE(myArray.isType<std::string>(4));
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_table, has)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    cLuaValue globalTable = script->globalTable();
+    storeTestVariables(globalTable);
+    ASSERT_TRUE(globalTable.has("twelve"));
+    ASSERT_TRUE(globalTable.has("ten"));
+    ASSERT_TRUE(globalTable.has("twelve_and_half"));
+    ASSERT_TRUE(globalTable.has("ten_and_half"));
+    ASSERT_FALSE(globalTable.has("not_existing"));
+
+// integer key:
+    script->executeString("my_array = { 2, 9, 13, \"hello\" }\n");
+    cLuaValue myArray = globalTable.get<cLuaValue>("my_array");
+    ASSERT_TRUE(myArray.has(1));
+    ASSERT_TRUE(myArray.has(2));
+    ASSERT_TRUE(myArray.has(3));
+    ASSERT_TRUE(myArray.has(4));
+    ASSERT_FALSE(myArray.has(5));
+
+    ASSERT_EQ(script->stackSize(), 0);
+
+}
+
+TEST(lua_table, remove)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    cLuaValue globalTable = script->globalTable();
+    storeTestVariables(globalTable);
+    ASSERT_TRUE(globalTable.has("twelve"));
+    globalTable.remove("twelve");
+    ASSERT_FALSE(globalTable.has("twelve"));
+
+// integer key:
+    script->executeString("my_array = { 2, 9, 13, \"hello\" }\n");
+    cLuaValue myArray = globalTable.get<cLuaValue>("my_array");
+    ASSERT_TRUE(myArray.isTable());
+    myArray.remove(3); // removes the 13
+    EXPECT_EQ(myArray.arraySize(), 3u);
+    EXPECT_TRUE(myArray.has(1));
+    EXPECT_TRUE(myArray.has(2));
+    EXPECT_TRUE(myArray.has(3)); // shifted
+    EXPECT_FALSE(myArray.has(4));
+    EXPECT_STREQ(myArray.get<std::string>(3).c_str(), "hello");
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_table, remove_from_array_fails)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    script->executeString("my_array = { 2, 9, 13, \"hello\" }\n");
+    cLuaValue myArray = script->globalTable().get("my_array");
+    ASSERT_EQ(myArray.arraySize(), 4u);
+    EXPECT_THROW(myArray.remove("no_such_key"), std::runtime_error);
+    ASSERT_EQ(myArray.arraySize(), 4u);
 
     ASSERT_EQ(script->stackSize(), 0);
 }
@@ -557,7 +736,7 @@ TEST(lua_value, call)
 
 TEST(lua_value, isFunction)
 {
-auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaScript>();
 
     script->executeString("function testedFunction(a, b) return a+b end");
     script->executeString("apple = 42");
@@ -808,3 +987,61 @@ int main(int argc, char** argv)
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
+
+
+/*
+volatile int perf_test_sink;
+
+TEST(lua_table, perf)
+{
+    auto script = std::make_shared<cLuaScript>();
+    {
+        auto globalTable = script->globalTable();
+        globalTable.set<int>("alma"s, 1);
+    }
+    {
+        cPrintfPerformance_Guard perf("global_table_acc");
+        for (int i = 0; i < 1'000'000; ++i)
+        {
+            auto globalTable = script->globalTable();
+        }
+    }
+    {
+        cPrintfPerformance_Guard perf("table_get");
+        auto globalTable = script->globalTable();
+        for (int i = 0; i < 1'000'000; ++i)
+        {
+            perf_test_sink += globalTable.get<int>("alma"s);
+        }
+    }
+
+    {
+        cPrintfPerformance_Guard perf("global_table_acc_and_get");
+        for (int i = 0; i < 1'000'000; ++i)
+        {
+            auto globalTable = script->globalTable();
+            perf_test_sink += globalTable.get<int>("alma"s);
+        }
+    }
+
+
+    {
+        cPrintfPerformance_Guard perf("register_get");
+        auto globalTable = script->globalTable();
+        for (int i = 0; i < 1'000'000; ++i)
+        {
+            auto subValue = globalTable.subTable("alma"s);
+            perf_test_sink += subValue.toInt();
+        }
+    }
+    {
+        cPrintfPerformance_Guard perf("register_acc");
+        auto globalTable = script->globalTable();
+        auto subValue = globalTable.subTable("alma"s);
+        for (int i = 0; i < 1'000'000; ++i)
+        {
+            perf_test_sink += subValue.toInt();
+        }
+    }
+}
+*/

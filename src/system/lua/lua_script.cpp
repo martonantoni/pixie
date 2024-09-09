@@ -177,6 +177,12 @@ cLuaValue cLuaScript::createTable()
     return cLuaValue{ shared_from_this(), luaL_ref(L, LUA_REGISTRYINDEX), true };
 }
 
+cLuaValue cLuaScript::createValue()
+{
+    return cLuaValue{ shared_from_this() };
+}
+
+
 int cLuaScript::stackSize() const
 {
     return lua_gettop(L);

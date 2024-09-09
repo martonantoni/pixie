@@ -15,10 +15,34 @@ cLuaValue::cLuaValue(cLuaValue&& src)
     src.mReference = LUA_NOREF;
 }
 
+cLuaValue::~cLuaValue()
+{
+    if (mScript && mReference != LUA_NOREF)
+    {
+        luaL_unref(mScript->state(), LUA_REGISTRYINDEX, mReference);
+    }
+}
+
+cLuaValue& cLuaValue::operator=(const cLuaValue& src)
+{
+    if (&src == this)
+    {
+        return *this;
+    }
+    cLuaValue toDiscard(std::move(*this));
+    if (!src.mScript || src.mReference == LUA_NOREF)
+    {
+        return *this;
+    }
+    copy_(src);
+    return *this;
+}
+
 cLuaValue& cLuaValue::operator=(cLuaValue&& src)
 {
     if (this == &src)
         return *this;
+    cLuaValue toDiscard(std::move(*this));
     mReference = src.mReference;
     src.mReference = LUA_NOREF;
     mScript = std::move(src.mScript);
@@ -58,9 +82,37 @@ void cLuaValue::retrieveItem(lua_State* L, const cKey& key)
             {
                 lua_getfield(L, -1, key.data());
             }
+            else // cLuaValue:
+            {
+                key.retrieveSelf().release();
+                lua_gettable(L, -2);
+            }
         },
         key);
 }
+
+void cLuaValue::pushKey(lua_State* L, const cKey& key)
+{
+    std::visit(
+        [&](auto&& key)
+        {
+            if constexpr (std::is_same_v<std::decay_t<decltype(key)>, int>)
+            {
+                lua_pushinteger(L, key);
+            }
+            else if constexpr (std::is_same_v<std::decay_t<decltype(key)>, std::string_view>)
+            {
+                lua_pushstring(L, key.data());
+            }  // cLuaValue:
+            else
+            {
+                key.retrieveSelf().release();
+            }
+        },
+        key);
+
+}
+
 
 bool cLuaValue::isNumber() const
 {
@@ -108,29 +160,6 @@ void cLuaValue::copy_(const cLuaValue& src)
     lua_State* L = mScript->state();
     lua_rawgeti(L, LUA_REGISTRYINDEX, src.mReference);
     mReference = luaL_ref(L, LUA_REGISTRYINDEX);
-}
-
-cLuaValue& cLuaValue::operator=(const cLuaValue& src)
-{
-    if (&src == this)
-    {
-        return *this;
-    }
-    cLuaValue toDiscard(std::move(*this));
-    if (!src.mScript || src.mReference == LUA_NOREF)
-    {
-        return *this;
-    }
-    copy_(src);
-    return *this;
-}
-
-cLuaValue::~cLuaValue()
-{
-    if (mScript && mReference != LUA_NOREF)
-    {
-        luaL_unref(mScript->state(), LUA_REGISTRYINDEX, mReference);
-    }
 }
 
 cLuaValue cLuaValue::subTable(const std::string& key) const
@@ -263,40 +292,60 @@ double cLuaValue::toDouble() const
 
 std::string cLuaValue::toString() const
 {
-    lua_State* L = mScript->state();
-    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference);
-
-    auto result = cLuaScript::valueToString(L, -1);
-    lua_pop(L, 1);
-    return result;
+    if (auto L = retrieveSelf())
+    {
+        auto result = cLuaScript::valueToString(L, -1);
+        return result;
+    }
+    return {};
 }
 
 int cLuaValue::arraySize() const
 {
-    lua_State* L = mScript->state();
-    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference);
-    auto result = lua_rawlen(L, -1);
-    lua_pop(L, 1);
-    return result;
+    if (auto L = retrieveSelf())
+    {
+        auto result = lua_rawlen(L, -1);
+        return result;
+    }
+    return 0;
 }
 
-bool cLuaValue::has(const std::string& key) const
+bool cLuaValue::has(const cKey& key) const
 {
-    lua_State* L = mScript->state();
-    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference);
-    lua_pushstring(L, key.c_str());
-    lua_gettable(L, -2);
-    bool result = !lua_isnil(L, -1);
-    lua_pop(L, 2);
-    return result;
+    if (auto L = retrieveSelf())
+    {
+        retrieveItem(L, key);
+        bool result = !lua_isnil(L, -1);
+        lua_pop(L, 1);
+        return result;
+    }
+    return false;
 }
 
-void cLuaValue::remove(const std::string& key)
+void cLuaValue::remove(const cKey& key)
 {
-    lua_State* L = mScript->state();
-    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference);
-    lua_pushstring(L, key.c_str());
-    lua_pushnil(L);
-    lua_settable(L, -3);
-    lua_pop(L, 1);
+    if (auto L = retrieveSelf())
+    {
+        if (lua_rawlen(L, -1) > 0)
+        {
+            // array, use table.remove
+            lua_getglobal(L, "table");
+            lua_getfield(L, -1, "remove");
+            lua_pushvalue(L, -3); // table to remove from
+            pushKey(L, key);
+            if (lua_pcall(L, 2, 0, 0) != LUA_OK)
+            {
+                const char* error = lua_tostring(L, -1);
+                lua_pop(L, 2); // global table + error message
+                throw std::runtime_error(std::format("table.remove failed: {}", error));
+            }
+            lua_pop(L, 1); // global table
+        }
+        else
+        {
+            pushKey(L, key);
+            lua_pushnil(L);
+            lua_settable(L, -3);
+        }
+    }
 }
