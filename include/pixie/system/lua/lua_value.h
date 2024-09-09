@@ -43,7 +43,7 @@ public:
     template<class T = cLuaValue, class D = T> T get(const cKey& key, D&& defaultValue) const;
     template<class T = cLuaValue> T get(const cKey& key) const;    
     template<class T> void set(const cKey& key, const T& value);
-    template<class R, class... Args, class C> void registerFunction(const std::string& key, const C&& func);
+    template<class R, class... Args, class C> void registerFunction(const cKey& key, const C&& func);
     template<class T> bool isType(const cKey& key) const;
     void remove(const cKey& key);
     bool has(const cKey& key) const;
@@ -311,7 +311,7 @@ template<class... Args> std::vector<cLuaValue> cLuaValue::call(const Args&... ar
     {
         const char* errorMessage = lua_tostring(L, -1);
         printf("Lua error: %s\n", errorMessage);
-        lua_pop(L, lua_gettop(L));
+        lua_pop(L, startSize - lua_gettop(L));
         ASSERT(false);
         return {};
         // Handle the error, such as logging or displaying the error message
@@ -323,7 +323,7 @@ template<class... Args> std::vector<cLuaValue> cLuaValue::call(const Args&... ar
     {
         returnValues.emplace_back(mScript, luaL_ref(L, LUA_REGISTRYINDEX), false);
     }
-    lua_pop(L, lua_gettop(L));
+    lua_pop(L, lua_gettop(L) - startSize);
     return returnValues;
 }
 
@@ -333,11 +333,15 @@ template<class... Args> std::vector<cLuaValue> cLuaValue::callMember(const cKey&
 }
 
 template<class R, class... Args, class C>
-void cLuaValue::registerFunction(const std::string& key, const C&& func)
+void cLuaValue::registerFunction(const cKey& key, const C&& func)
 {
     if (auto L = retrieveSelf())
     {
-        lua_pushstring(L, key.c_str()); // Push the variable name onto the Lua stack
+        if (!lua_istable(L, -1))
+        {
+            throw std::runtime_error("not a table");
+        }
+        pushKey(L, key);
 
         using FuncType = std::function<R(Args...)>;
 
@@ -391,6 +395,10 @@ void cLuaValue::registerFunction(const std::string& key, const C&& func)
         // the 1 means that the closure will have 1 upvalue
 
         lua_settable(L, -3); // Set the value in the table using the variable name
+    }
+    else
+    {
+        throw std::runtime_error("not a valid lua object");
     }
 }
 

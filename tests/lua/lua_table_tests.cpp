@@ -419,7 +419,7 @@ TEST(lua_table, get_set_in_local_table_with_string_key)
     ASSERT_EQ(script->stackSize(), 0);
 }
 
-TEST(lua_table, get_set_in_local_table_with_int_key)
+TEST(lua_table, get_set_in_local_array)
 {
     auto script = std::make_shared<cLuaScript>();
 
@@ -431,6 +431,8 @@ TEST(lua_table, get_set_in_local_table_with_int_key)
     localTable.set(5, "12"s);
     localTable.set(6, "10");
     localTable.set(7, true);
+
+    ASSERT_EQ(localTable.arraySize(), 7u);
     
     ASSERT_EQ(localTable.get<int>(1), 12);
     ASSERT_EQ(localTable.get<int>(2), 10);
@@ -676,6 +678,62 @@ TEST(lua_function_register, function_v_t)  // void(cLuaValue)
     ASSERT_EQ(result, 77);
 
     ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_function_register, trying_to_register_into_nontable)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    cLuaValue value = script->createValue();
+
+    auto callRegister = [&]()
+    {
+        value.registerFunction<void>("test"s, []() {});
+    };
+
+    EXPECT_THROW(callRegister(), std::runtime_error);
+
+    value = 42;
+
+    EXPECT_THROW(callRegister(), std::runtime_error);
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_function_register, array_of_functions)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    cLuaValue globalTable = script->globalTable();
+
+    auto testedArray = script->createTable();
+
+    testedArray.registerFunction<int, int, int>(1,
+        [](int a, int b) -> int
+        {
+            return a + b;
+        });
+    testedArray.registerFunction<int, int, int>(2,
+        [](int a, int b) -> int
+        {
+            return a - b;
+        });
+
+    auto addFunction = testedArray.get(1);
+    auto subtractFunction = testedArray.get(2);
+
+    ASSERT_EQ(testedArray.arraySize(), 2u);
+
+    auto returned = addFunction.call(10, 11);
+    ASSERT_EQ(returned.size(), 1u);
+    ASSERT_EQ(returned.front().toInt(), 21);
+
+    returned = subtractFunction.call(10, 11);
+    ASSERT_EQ(returned.size(), 1u);
+    ASSERT_EQ(returned.front().toInt(), -1);
+
+    ASSERT_EQ(script->stackSize(), 0);
+
 }
 
 TEST(lua_function_call, function_i_ii)

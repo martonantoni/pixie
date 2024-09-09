@@ -110,7 +110,6 @@ void cLuaValue::pushKey(lua_State* L, const cKey& key)
             }
         },
         key);
-
 }
 
 
@@ -263,39 +262,36 @@ std::shared_ptr<cConfig> cLuaValue::toConfig_topTable(lua_State* L, IsRecursive 
 
 std::shared_ptr<cConfig> cLuaValue::toConfig(IsRecursive isRecursive) const
 {
-    lua_State* L = mScript->state();
-    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference);
-    auto config = toConfig_topTable(L, isRecursive);
-    lua_pop(L, 1);
-    return config;
+    if (auto L = retrieveSelf())
+    {
+        return toConfig_topTable(L, isRecursive);
+    }
+    return {};
 }
 
 int cLuaValue::toInt() const
 {
-    lua_State* L = mScript->state();
-    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference);
-
-    auto result = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-    return result;
+    if (auto L = retrieveSelf())
+    {
+        return lua_tointeger(L, -1);
+    }
+    return 0;
 }
 
 double cLuaValue::toDouble() const
 {
-    lua_State* L = mScript->state();
-    lua_rawgeti(L, LUA_REGISTRYINDEX, mReference);
-
-    auto result = lua_tonumber(L, -1);
-    lua_pop(L, 1);
-    return result;
+    if (auto L = retrieveSelf())
+    {
+        return lua_tonumber(L, -1);
+    }
+    return 0.0;
 }
 
 std::string cLuaValue::toString() const
 {
     if (auto L = retrieveSelf())
     {
-        auto result = cLuaScript::valueToString(L, -1);
-        return result;
+        return cLuaScript::valueToString(L, -1);
     }
     return {};
 }
@@ -304,8 +300,7 @@ int cLuaValue::arraySize() const
 {
     if (auto L = retrieveSelf())
     {
-        auto result = lua_rawlen(L, -1);
-        return result;
+        return lua_rawlen(L, -1);
     }
     return 0;
 }
@@ -316,7 +311,7 @@ bool cLuaValue::has(const cKey& key) const
     {
         retrieveItem(L, key);
         bool result = !lua_isnil(L, -1);
-        lua_pop(L, 1);
+        lua_pop(L, 1); // pop the item
         return result;
     }
     return false;
