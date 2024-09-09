@@ -1073,6 +1073,29 @@ TEST(lua_oop, exception_from_cpp_function)
 int main(int argc, char** argv)
 {
     cLuaScript::staticInit();
+
+
+    auto script = std::make_shared<cLuaScript>();
+    script->executeString(R"script(
+        function sum(a, b)
+            return a + b
+        end
+
+        function say_hello(year)
+            return "hello", "world", year
+        end )script");
+
+    std::cout << script->globalTable().get("sum").call<int>(1, 2) << "\n"; // prints out 3
+
+    auto say_hello = script->globalTable().get("say_hello");
+    auto [word_1, word_2, year] = say_hello.call<std::string, std::string, int>(2024);
+    std::cout << word_1 << " " << word_2 << " " << year << "\n"; // prints out hello world 2024
+
+    auto retValues = say_hello.call<cLuaValue::ReturnVector>(2024);
+    std::cout << retValues.size() << "\n"; // prints out 3
+    for (auto value : retValues)
+        std::cout << value.toString() << " "; // int value can be converted to string, so this works
+
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

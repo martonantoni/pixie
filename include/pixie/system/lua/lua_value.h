@@ -353,7 +353,8 @@ template<class... ReturnTs, class... Args> auto cLuaValue::call(const Args&... a
     }
 }
 
-template<class... ReturnTs, class... Args> auto cLuaValue::callMember(const cKey& functionKey, const Args&... args)
+template<class... ReturnTs, class... Args>
+auto cLuaValue::callMember(const cKey& functionKey, const Args&... args)
 {
     return get(functionKey).call<ReturnTs...>(*this, args...);
 }
