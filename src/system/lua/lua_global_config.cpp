@@ -4,11 +4,11 @@
 
 // std::shared_ptr<cConfig> theGlobalConfig;
 // 
-// void registerGlobalPixieLuaFunctions(cLuaValue globalTable);
+// void registerGlobalPixieLuaFunctions(cLuaObject globalTable);
 
 // cLuaGlobalConfigLoader::cLuaGlobalConfigLoader()
 // {
-//     auto script = std::make_shared<cLuaScript>();
+//     auto script = std::make_shared<cLuaState>();
 // 
 //     registerGlobalPixieLuaFunctions(script->globalTable());
 // 

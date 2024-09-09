@@ -5,7 +5,7 @@
 
 std::shared_ptr<cConfig> theGlobalConfig;
 
-void registerGlobalPixieLuaFunctions(cLuaValue globalTable);
+void registerGlobalPixieLuaFunctions(cLuaObject globalTable);
 
 void cStartupController::Start_MainThread()
 {
@@ -31,9 +31,9 @@ void cStartupController::Start_MainThread()
 
 void cStartupController::continueStartup()
 {
-    cLuaScript::staticInit();
+    cLuaState::staticInit();
 
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
     registerGlobalPixieLuaFunctions(script->globalTable());
     script->executeFile(mConfig.mainLuaConfigPath.empty() ? "MainConfig.lua" : mConfig.mainLuaConfigPath.c_str());
     theGlobalConfig = script->globalTable().toConfig();

@@ -7,14 +7,14 @@ extern "C"
 #include <lualib.h>
 }
 
-class cLuaValue;
+class cLuaObject;
 
 struct cLuaException
 {
     int mLine = 0;
 };
 
-class cLuaScript: public std::enable_shared_from_this<cLuaScript>
+class cLuaState: public std::enable_shared_from_this<cLuaState>
 {
     lua_State* L;
     bool mIsOwningState = true;
@@ -23,25 +23,25 @@ class cLuaScript: public std::enable_shared_from_this<cLuaScript>
     static std::vector<std::string> globalTableInternalElements;
     static int panicHandler(lua_State* L);
 public:
-    cLuaScript();
-    cLuaScript(lua_State* l);
-    cLuaScript(cLuaScript&& src);
-    cLuaScript& operator=(cLuaScript&& src);
-    cLuaScript(const cLuaScript&) = delete;
-    cLuaScript& operator=(const cLuaScript&) = delete;
-    virtual ~cLuaScript();
+    cLuaState();
+    cLuaState(lua_State* l);
+    cLuaState(cLuaState&& src);
+    cLuaState& operator=(cLuaState&& src);
+    cLuaState(const cLuaState&) = delete;
+    cLuaState& operator=(const cLuaState&) = delete;
+    virtual ~cLuaState();
     void executeFile(const cPath& scriptPath);
     void executeString(const std::string& script);
-    std::shared_ptr<cLuaScript> shareSelf() { return shared_from_this(); }
+    std::shared_ptr<cLuaState> shareSelf() { return shared_from_this(); }
     static void staticInit();
     static std::string valueToString(lua_State* L, int index);
     static bool isGlobalInternalElement(const std::string& key);
     static std::string configToScript(const cConfig& config, const std::string& ident = std::string());
 
     lua_State* state() { return L; }
-    cLuaValue globalTable();
-    cLuaValue createTable();
-    cLuaValue createValue();
+    cLuaObject globalTable();
+    cLuaObject createTable();
+    cLuaObject createValue();
 
     struct cUserDataBase
     {

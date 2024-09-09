@@ -8,7 +8,7 @@ namespace lua_config_tests
 
 TEST(config_from_lua, simple_table)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
     script->executeString(
         "a = 1\n"
         "b = 2\n"
@@ -16,7 +16,7 @@ TEST(config_from_lua, simple_table)
         "d = true\n"
         "e = 3.14\n");
 
-    cLuaValue globalTable = script->globalTable();
+    cLuaObject globalTable = script->globalTable();
     auto config = globalTable.toConfig();
     ASSERT_EQ(config->get<int>("a", 0), 1);
     ASSERT_EQ(config->get<int>("b", 0), 2);
@@ -27,12 +27,12 @@ TEST(config_from_lua, simple_table)
 
 TEST(config_from_lua, nested_table)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
     script->executeString(
         "sub_table_1 = { sub_table_11 = { a = 1, c = 2, d = \"hello\", e = true, f = 3.14 } }\n"
         "sub_table_2 = { sub_table_21 = { a = 3, c = 4, d = \"hi\", e = false, f = 6.28 } }\n");
 
-    cLuaValue globalTable = script->globalTable();
+    cLuaObject globalTable = script->globalTable();
     auto config = globalTable.toConfig();
     ASSERT_EQ(config->get<int>("sub_table_1.sub_table_11.a"), 1);
     ASSERT_EQ(config->get<int>("sub_table_1.sub_table_11.c"), 2);
@@ -46,11 +46,11 @@ TEST(config_from_lua, nested_table)
 
 TEST(config_from_lua, array)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
     script->executeString(
         "array = { 1, 2, 3, 4, 5 }\n");
 
-    cLuaValue globalTable = script->globalTable();
+    cLuaObject globalTable = script->globalTable();
     auto config = globalTable.toConfig();
     auto testedConfig = config->getSubConfig("array");
     ASSERT_TRUE(testedConfig->isArray());
@@ -70,12 +70,12 @@ TEST(config_to_lua_script, simple_table)
     config.set("d", true);
     config.set("e", 3.14);
 
-    auto scriptifiedConfig = cLuaScript::configToScript(config);
+    auto scriptifiedConfig = cLuaState::configToScript(config);
     //printf("%s\n", scriptifiedConfig.c_str());
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
     script->executeString(scriptifiedConfig);
 
-    cLuaValue globalTable = script->globalTable();
+    cLuaObject globalTable = script->globalTable();
     ASSERT_EQ(globalTable.get<int>("a"), 1);
     ASSERT_EQ(globalTable.get<int>("b"), 2);
     ASSERT_EQ(globalTable.get<std::string>("c"), "hello");
@@ -101,20 +101,20 @@ TEST(config_to_lua_script, nested_tables)
         subTable11->set("e", 6.28);
     }
 
-    auto scriptifiedConfig = cLuaScript::configToScript(config);
+    auto scriptifiedConfig = cLuaState::configToScript(config);
     //printf("%s\n", scriptifiedConfig.c_str());
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
     script->executeString(scriptifiedConfig);
 
     {
-        cLuaValue globalTable = script->globalTable();
-        cLuaValue subTable1 = globalTable.get<cLuaValue>("sub_table_1");
+        cLuaObject globalTable = script->globalTable();
+        cLuaObject subTable1 = globalTable.get<cLuaObject>("sub_table_1");
         ASSERT_EQ(subTable1.get<int>("a"), 1);
         ASSERT_EQ(subTable1.get<int>("b"), 2);
         ASSERT_EQ(subTable1.get<std::string>("c"), "hello");
         ASSERT_EQ(subTable1.get<bool>("d"), true);
         ASSERT_EQ(subTable1.get<double>("e"), 3.14);
-        cLuaValue subTable11 = subTable1.get<cLuaValue>("sub_table_11");
+        cLuaObject subTable11 = subTable1.get<cLuaObject>("sub_table_11");
         ASSERT_EQ(subTable11.get<int>("a"), 3);
         ASSERT_EQ(subTable11.get<int>("b"), 4);
         ASSERT_EQ(subTable11.get<std::string>("c"), "hi");
@@ -134,13 +134,13 @@ TEST(config_to_lua_script, array)
     subConfig->push(true);
     subConfig->push(3.14);
 
-    auto scriptifiedConfig = cLuaScript::configToScript(config);
+    auto scriptifiedConfig = cLuaState::configToScript(config);
     //printf("%s\n", scriptifiedConfig.c_str());
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
     script->executeString(scriptifiedConfig);
 
-    cLuaValue globalTable = script->globalTable();
-    cLuaValue subTable = globalTable.get<cLuaValue>("my_array");
+    cLuaObject globalTable = script->globalTable();
+    cLuaObject subTable = globalTable.get<cLuaObject>("my_array");
     ASSERT_EQ(subTable.get<int>(1), 1);
     ASSERT_EQ(subTable.get<int>(2), 2);
     ASSERT_EQ(subTable.get<std::string>(3), "hello");
@@ -158,7 +158,7 @@ TEST(config_to_lua_script, array_on_global_is_error)
     config.push(true);
     config.push(3.14);
 
-    ASSERT_THROW(cLuaScript::configToScript(config), std::runtime_error);
+    ASSERT_THROW(cLuaState::configToScript(config), std::runtime_error);
 }
 
 } // namespace lua_config_tests

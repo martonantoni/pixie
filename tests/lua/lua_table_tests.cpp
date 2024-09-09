@@ -6,7 +6,7 @@ const char* ProgramName = "Pixie / Lua support Test";
 const char* VersionString = "0.4";
 
 
-void storeTestVariables(cLuaValue& table)
+void storeTestVariables(cLuaObject& table)
 {
     table.set("twelve", 12);
     table.set("ten", 10);
@@ -16,7 +16,7 @@ void storeTestVariables(cLuaValue& table)
     table.set("ten_and_half", 10.5);
 }
 
-void verifyTestVariableValues(const cLuaValue& table)
+void verifyTestVariableValues(const cLuaObject& table)
 {
     {
         auto value = table.get<int>("twelve");
@@ -44,7 +44,7 @@ void verifyTestVariableValues(const cLuaValue& table)
     }
 }
 
-void verifyTestVariableTypes(const cLuaValue& table)
+void verifyTestVariableTypes(const cLuaObject& table)
 {
     ASSERT_TRUE(table.isType<int>("twelve"));
     ASSERT_FALSE(table.isType<std::string>("twelve"));
@@ -52,9 +52,9 @@ void verifyTestVariableTypes(const cLuaValue& table)
 
 TEST(lua_value, get_set_in_global_table)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
-    cLuaValue globalTable = script->globalTable();
+    cLuaObject globalTable = script->globalTable();
     storeTestVariables(globalTable);
     verifyTestVariableValues(globalTable);
 // now if we retrieve it again, it should be still readable:
@@ -64,9 +64,9 @@ TEST(lua_value, get_set_in_global_table)
 
 TEST(lua_value, assignment_operator_int)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
-    cLuaValue value = script->createValue();
+    cLuaObject value = script->createValue();
     value = 42;
     ASSERT_TRUE(value.isNumber());
     ASSERT_EQ(value.toInt(), 42);
@@ -75,9 +75,9 @@ TEST(lua_value, assignment_operator_int)
 
 TEST(lua_value, assignment_operator_double)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
-    cLuaValue value = script->createValue();
+    cLuaObject value = script->createValue();
     value = 42.5;
     ASSERT_TRUE(value.isNumber());
     ASSERT_EQ(value.toDouble(), 42.5);
@@ -86,9 +86,9 @@ TEST(lua_value, assignment_operator_double)
 
 TEST(lua_value, assignment_operator_string)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
-    cLuaValue value = script->createValue();
+    cLuaObject value = script->createValue();
     value = "hello"s;
     ASSERT_TRUE(value.isString());
     ASSERT_STREQ(value.toString().c_str(), "hello");
@@ -97,9 +97,9 @@ TEST(lua_value, assignment_operator_string)
 
 TEST(lua_value, assignment_operator_cstring)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
-    cLuaValue value = script->createValue();
+    cLuaObject value = script->createValue();
     value = "hello";
     ASSERT_TRUE(value.isString());
     ASSERT_STREQ(value.toString().c_str(), "hello");
@@ -108,9 +108,9 @@ TEST(lua_value, assignment_operator_cstring)
 
 TEST(lua_value, assignment_op_mix)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
-    cLuaValue value = script->createValue();
+    cLuaObject value = script->createValue();
     value = 42;
     ASSERT_EQ(value.toInt(), 42);
     value = 42.5;
@@ -124,13 +124,13 @@ TEST(lua_value, assignment_op_mix)
 
 TEST(lua_value, toInt)
 {
-    auto script = std::make_shared<cLuaScript>();
-    cLuaValue globalTable = script->globalTable();
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
 
     storeTestVariables(globalTable);
-    cLuaValue intValue = globalTable.get<cLuaValue>("twelve");
+    cLuaObject intValue = globalTable.get<cLuaObject>("twelve");
     ASSERT_EQ(intValue.toInt(), 12);
-    cLuaValue stringValue = globalTable.get<cLuaValue>("ten_string");
+    cLuaObject stringValue = globalTable.get<cLuaObject>("ten_string");
     ASSERT_EQ(stringValue.toInt(), 10);
 
     ASSERT_EQ(script->stackSize(), 0);
@@ -138,13 +138,13 @@ TEST(lua_value, toInt)
 
 TEST(lua_value, toDouble)
 {
-    auto script = std::make_shared<cLuaScript>();
-    cLuaValue globalTable = script->globalTable();
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
 
     storeTestVariables(globalTable);
-    cLuaValue intValue = globalTable.get<cLuaValue>("twelve");
+    cLuaObject intValue = globalTable.get<cLuaObject>("twelve");
     ASSERT_EQ(intValue.toDouble(), 12.0);
-    cLuaValue stringValue = globalTable.get<cLuaValue>("ten_string");
+    cLuaObject stringValue = globalTable.get<cLuaObject>("ten_string");
     ASSERT_EQ(stringValue.toDouble(), 10.0);
 
     ASSERT_EQ(script->stackSize(), 0);
@@ -152,15 +152,15 @@ TEST(lua_value, toDouble)
 
 TEST(lua_value, isString)
 {
-    auto script = std::make_shared<cLuaScript>();
-    cLuaValue globalTable = script->globalTable();
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
 
     storeTestVariables(globalTable);
-    cLuaValue intValue = globalTable.get<cLuaValue>("twelve");
+    cLuaObject intValue = globalTable.get<cLuaObject>("twelve");
     EXPECT_FALSE(intValue.isString());
-    cLuaValue floatValue = globalTable.get<cLuaValue>("twelve_and_half");
+    cLuaObject floatValue = globalTable.get<cLuaObject>("twelve_and_half");
     EXPECT_FALSE(floatValue.isString());
-    cLuaValue stringValue = globalTable.get<cLuaValue>("ten_string");
+    cLuaObject stringValue = globalTable.get<cLuaObject>("ten_string");
     EXPECT_TRUE(stringValue.isString());
 
     ASSERT_EQ(script->stackSize(), 0);
@@ -168,15 +168,15 @@ TEST(lua_value, isString)
 
 TEST(lua_value, isNumber)
 {
-    auto script = std::make_shared<cLuaScript>();
-    cLuaValue globalTable = script->globalTable();
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
 
     storeTestVariables(globalTable);
-    cLuaValue intValue = globalTable.get<cLuaValue>("twelve");
+    cLuaObject intValue = globalTable.get<cLuaObject>("twelve");
     EXPECT_TRUE(intValue.isNumber());
-    cLuaValue floatValue = globalTable.get<cLuaValue>("twelve_and_half");
+    cLuaObject floatValue = globalTable.get<cLuaObject>("twelve_and_half");
     EXPECT_TRUE(floatValue.isNumber());
-    cLuaValue stringValue = globalTable.get<cLuaValue>("ten_string");
+    cLuaObject stringValue = globalTable.get<cLuaObject>("ten_string");
     EXPECT_FALSE(stringValue.isNumber());
 
     ASSERT_EQ(script->stackSize(), 0);
@@ -184,13 +184,13 @@ TEST(lua_value, isNumber)
 
 TEST(lua_value, toStringIntegers)
 {
-    auto script = std::make_shared<cLuaScript>();
-    cLuaValue globalTable = script->globalTable();
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
 
     storeTestVariables(globalTable);
-    cLuaValue intValue = globalTable.get<cLuaValue>("twelve");
+    cLuaObject intValue = globalTable.get<cLuaObject>("twelve");
     ASSERT_STREQ(intValue.toString().c_str(), "12");
-    cLuaValue stringValue = globalTable.get<cLuaValue>("ten_string");
+    cLuaObject stringValue = globalTable.get<cLuaObject>("ten_string");
     ASSERT_STREQ(stringValue.toString().c_str(), "10");
 
     ASSERT_EQ(script->stackSize(), 0);
@@ -198,12 +198,12 @@ TEST(lua_value, toStringIntegers)
 
 TEST(lua_value, toStringMixed)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
     script->executeString("my_array = { 2, 9/3, 0.5*2, 13.5, \"hello\" }\n");
     {
-        cLuaValue globalTable = script->globalTable();
+        cLuaObject globalTable = script->globalTable();
         std::string result;
-        globalTable.get<cLuaValue>("my_array").forEach(
+        globalTable.get<cLuaObject>("my_array").forEach(
             [&result](const auto& value)
             {
                 result += value.toString() + " ";
@@ -216,12 +216,12 @@ TEST(lua_value, toStringMixed)
 
 TEST(lua_value, visit_single_variable)
 {
-    auto script = std::make_shared<cLuaScript>();
-    cLuaValue globalTable = script->globalTable();
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
     storeTestVariables(globalTable);
 
-    std::variant<std::monostate, int, double, std::string, cLuaValue> extractedValue;
-    cLuaValue intValue = globalTable.get<cLuaValue>("twelve");
+    std::variant<std::monostate, int, double, std::string, cLuaObject> extractedValue;
+    cLuaObject intValue = globalTable.get<cLuaObject>("twelve");
     intValue.visit([&extractedValue](const auto& value)
         {
             extractedValue = value;
@@ -229,7 +229,7 @@ TEST(lua_value, visit_single_variable)
     ASSERT_TRUE(std::holds_alternative<int>(extractedValue));
     ASSERT_EQ(std::get<int>(extractedValue), 12);
 
-    cLuaValue floatValue = globalTable.get<cLuaValue>("twelve_and_half");
+    cLuaObject floatValue = globalTable.get<cLuaObject>("twelve_and_half");
     floatValue.visit([&extractedValue](const auto& value)
         {
             extractedValue = value;
@@ -237,7 +237,7 @@ TEST(lua_value, visit_single_variable)
     ASSERT_TRUE(std::holds_alternative<double>(extractedValue));
     ASSERT_EQ(std::get<double>(extractedValue), 12.5);
 
-    cLuaValue stringValue = globalTable.get<cLuaValue>("ten_string");
+    cLuaObject stringValue = globalTable.get<cLuaObject>("ten_string");
     stringValue.visit([&extractedValue](const auto& value)
         {
             extractedValue = value;
@@ -250,20 +250,20 @@ TEST(lua_value, visit_single_variable)
 
 TEST(lua_value, visit_table_value)
 {
-    auto script = std::make_shared<cLuaScript>();
-    cLuaValue globalTable = script->globalTable();
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
     storeTestVariables(globalTable);
 
-    cLuaValue subTable = globalTable.subTable("mySubTable");
+    cLuaObject subTable = globalTable.subTable("mySubTable");
     storeTestVariables(subTable);
 
-    std::variant<std::monostate, int, double, std::string, cLuaValue> extractedValue;
+    std::variant<std::monostate, int, double, std::string, cLuaObject> extractedValue;
     subTable.visit([&extractedValue](const auto& value)
         {
             extractedValue = value;
         });
-    ASSERT_TRUE(std::holds_alternative<cLuaValue>(extractedValue));
-    auto extractedSubTable = std::get<cLuaValue>(extractedValue);
+    ASSERT_TRUE(std::holds_alternative<cLuaObject>(extractedValue));
+    auto extractedSubTable = std::get<cLuaObject>(extractedValue);
     verifyTestVariableValues(extractedSubTable);
 
     ASSERT_EQ(script->stackSize(), 0);
@@ -271,10 +271,10 @@ TEST(lua_value, visit_table_value)
 
 TEST(lua_value, array_get)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
     script->executeString("my_array = { 2, 9, 13, \"hello\" }");
-    cLuaValue globalTable = script->globalTable();
-    cLuaValue testedArray = globalTable.get<cLuaValue>("my_array");
+    cLuaObject globalTable = script->globalTable();
+    cLuaObject testedArray = globalTable.get<cLuaObject>("my_array");
 
     int element_1 = testedArray.get<int>(1);
     ASSERT_EQ(element_1, 2);
@@ -290,9 +290,9 @@ TEST(lua_value, array_get)
 
 TEST(lua_value, tryGet_valueNotPresent)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
     script->executeString("alma = 54\nkorte = \"hello\"");
-    cLuaValue globalTable = script->globalTable();
+    cLuaObject globalTable = script->globalTable();
     {
         auto failedRetrievedValue = globalTable.tryGet<int>("citrom");
         ASSERT_FALSE(failedRetrievedValue.has_value());
@@ -302,7 +302,7 @@ TEST(lua_value, tryGet_valueNotPresent)
         ASSERT_FALSE(failedRetrievedValue.has_value());
     }
     {
-        auto failedRetrievedValue = globalTable.tryGet<cLuaValue>("citrom");
+        auto failedRetrievedValue = globalTable.tryGet<cLuaObject>("citrom");
         ASSERT_FALSE(failedRetrievedValue.has_value());
     }
     ASSERT_EQ(script->stackSize(), 0);
@@ -310,9 +310,9 @@ TEST(lua_value, tryGet_valueNotPresent)
 
 TEST(lua_value, tryGet_valuePresent)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
     script->executeString("alma = 54\nkorte = \"hello\"");
-    cLuaValue globalTable = script->globalTable();
+    cLuaObject globalTable = script->globalTable();
     {
         auto retrievedValue = globalTable.tryGet<int>("alma");
         ASSERT_TRUE(retrievedValue.has_value());
@@ -328,10 +328,10 @@ TEST(lua_value, tryGet_valuePresent)
 
 TEST(lua_value, tryGet_int_key_fails)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
     script->executeString("alma = 54\nkorte = \"hello\"");
-    cLuaValue globalTable = script->globalTable();
+    cLuaObject globalTable = script->globalTable();
     {
         auto failedRetrievedValue = globalTable.tryGet(1);
         ASSERT_FALSE(failedRetrievedValue.has_value());
@@ -341,7 +341,7 @@ TEST(lua_value, tryGet_int_key_fails)
 
 TEST(lua_value, tryGet_int_key_succeeds)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
     script->executeString("my_array = { 2, 9, 13, \"hello\" }\n");
     auto myTable = script->globalTable().get("my_array");
     {
@@ -370,7 +370,7 @@ TEST(lua_value, tryGet_int_key_succeeds)
 
 TEST(lua_value, tryGet_luavalue_key)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
     script->executeString("my_array = { 2, 9, 13, \"hello\" }\n");
     auto keyValue = script->createValue();
     keyValue = "my_array";
@@ -379,7 +379,7 @@ TEST(lua_value, tryGet_luavalue_key)
     ASSERT_TRUE(myTable->isTable());
     {
         keyValue = 4;
-        auto retrievedValue = myTable->tryGet<cLuaValue>(keyValue);
+        auto retrievedValue = myTable->tryGet<cLuaObject>(keyValue);
         ASSERT_TRUE(retrievedValue.has_value());
         ASSERT_STREQ(retrievedValue.value().toString().c_str(), "hello");
     }
@@ -388,17 +388,17 @@ TEST(lua_value, tryGet_luavalue_key)
 
 TEST(lua_value, arraySize)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
     script->executeString(
         "my_array = { 2, 9, 13, \"hello\" }\n"
         "my_table = { a = 1, b = 2, c = 3 }\n"
         "my_empty_table = {}\n"
         "my_value = 42\n");
-    cLuaValue globalTable = script->globalTable();
-    cLuaValue testedArray = globalTable.get<cLuaValue>("my_array");
-    cLuaValue testedTable = globalTable.get<cLuaValue>("my_table");
-    cLuaValue testedEmptyTable = globalTable.get<cLuaValue>("my_empty_table");
-    cLuaValue testedValue = globalTable.get<cLuaValue>("my_value");
+    cLuaObject globalTable = script->globalTable();
+    cLuaObject testedArray = globalTable.get<cLuaObject>("my_array");
+    cLuaObject testedTable = globalTable.get<cLuaObject>("my_table");
+    cLuaObject testedEmptyTable = globalTable.get<cLuaObject>("my_empty_table");
+    cLuaObject testedValue = globalTable.get<cLuaObject>("my_value");
 
     ASSERT_EQ(testedArray.arraySize(), 4u);
     ASSERT_EQ(testedTable.arraySize(), 0u);
@@ -410,9 +410,9 @@ TEST(lua_value, arraySize)
 
 TEST(lua_table, get_set_in_local_table_with_string_key)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
-    cLuaValue localTable = script->createTable();
+    cLuaObject localTable = script->createTable();
     storeTestVariables(localTable);
     verifyTestVariableValues(localTable);
 
@@ -421,9 +421,9 @@ TEST(lua_table, get_set_in_local_table_with_string_key)
 
 TEST(lua_table, get_set_in_local_array)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
-    cLuaValue localTable = script->createTable();
+    cLuaObject localTable = script->createTable();
     localTable.set(1, 12);
     localTable.set(2, 10);
     localTable.set(3, 12.5);
@@ -447,9 +447,9 @@ TEST(lua_table, get_set_in_local_array)
 
 TEST(lua_table, get_set_in_local_table_lua_val_key)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
-    cLuaValue localTable = script->createTable();
+    cLuaObject localTable = script->createTable();
     auto key = script->createValue();
     key = "twelve";
     localTable.set(key, 12);
@@ -466,12 +466,12 @@ TEST(lua_table, get_set_in_local_table_lua_val_key)
 
 TEST(lua_table, copy_table_obj)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
-    cLuaValue localTable = script->createTable();
+    cLuaObject localTable = script->createTable();
     storeTestVariables(localTable);
     verifyTestVariableValues(localTable);
-    cLuaValue copyOfTableObj = localTable;
+    cLuaObject copyOfTableObj = localTable;
     verifyTestVariableValues(copyOfTableObj);
 
     ASSERT_EQ(script->stackSize(), 0);
@@ -479,12 +479,12 @@ TEST(lua_table, copy_table_obj)
 
 TEST(lua_table, move_table_obj)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
-    cLuaValue localTable = script->createTable();
+    cLuaObject localTable = script->createTable();
     storeTestVariables(localTable);
     verifyTestVariableValues(localTable);
-    cLuaValue movedTableObj = std::move(localTable);
+    cLuaObject movedTableObj = std::move(localTable);
     verifyTestVariableValues(movedTableObj);
 
     ASSERT_EQ(script->stackSize(), 0);
@@ -492,14 +492,14 @@ TEST(lua_table, move_table_obj)
 
 TEST(lua_table, is_type)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
-    cLuaValue globalTable = script->globalTable();
+    cLuaObject globalTable = script->globalTable();
     storeTestVariables(globalTable);
     verifyTestVariableTypes(script->globalTable());
 
     script->executeString("my_array = { 2, 9, 13, \"hello\" }\n");
-    cLuaValue myArray = globalTable.get<cLuaValue>("my_array");
+    cLuaObject myArray = globalTable.get<cLuaObject>("my_array");
     ASSERT_TRUE(myArray.isTable());
     ASSERT_TRUE(myArray.isType<int>(1));
     ASSERT_TRUE(myArray.isType<int>(2));
@@ -511,9 +511,9 @@ TEST(lua_table, is_type)
 
 TEST(lua_table, has)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
-    cLuaValue globalTable = script->globalTable();
+    cLuaObject globalTable = script->globalTable();
     storeTestVariables(globalTable);
     ASSERT_TRUE(globalTable.has("twelve"));
     ASSERT_TRUE(globalTable.has("ten"));
@@ -523,7 +523,7 @@ TEST(lua_table, has)
 
 // integer key:
     script->executeString("my_array = { 2, 9, 13, \"hello\" }\n");
-    cLuaValue myArray = globalTable.get<cLuaValue>("my_array");
+    cLuaObject myArray = globalTable.get<cLuaObject>("my_array");
     ASSERT_TRUE(myArray.has(1));
     ASSERT_TRUE(myArray.has(2));
     ASSERT_TRUE(myArray.has(3));
@@ -536,9 +536,9 @@ TEST(lua_table, has)
 
 TEST(lua_table, remove)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
-    cLuaValue globalTable = script->globalTable();
+    cLuaObject globalTable = script->globalTable();
     storeTestVariables(globalTable);
     ASSERT_TRUE(globalTable.has("twelve"));
     globalTable.remove("twelve");
@@ -546,7 +546,7 @@ TEST(lua_table, remove)
 
 // integer key:
     script->executeString("my_array = { 2, 9, 13, \"hello\" }\n");
-    cLuaValue myArray = globalTable.get<cLuaValue>("my_array");
+    cLuaObject myArray = globalTable.get<cLuaObject>("my_array");
     ASSERT_TRUE(myArray.isTable());
     myArray.remove(3); // removes the 13
     EXPECT_EQ(myArray.arraySize(), 3u);
@@ -561,10 +561,10 @@ TEST(lua_table, remove)
 
 TEST(lua_table, remove_from_array_fails)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
     script->executeString("my_array = { 2, 9, 13, \"hello\" }\n");
-    cLuaValue myArray = script->globalTable().get("my_array");
+    cLuaObject myArray = script->globalTable().get("my_array");
     ASSERT_EQ(myArray.arraySize(), 4u);
     EXPECT_THROW(myArray.remove("no_such_key"), std::runtime_error);
     ASSERT_EQ(myArray.arraySize(), 4u);
@@ -574,10 +574,10 @@ TEST(lua_table, remove_from_array_fails)
 
 TEST(lua_table, create_sub_tables)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
-    cLuaValue globalTable = script->globalTable();
-    cLuaValue subTable = globalTable.subTable("mySubTable");
+    cLuaObject globalTable = script->globalTable();
+    cLuaObject subTable = globalTable.subTable("mySubTable");
     storeTestVariables(subTable);
     verifyTestVariableValues(subTable);
     verifyTestVariableValues(script->globalTable().subTable("mySubTable"));
@@ -587,15 +587,15 @@ TEST(lua_table, create_sub_tables)
 
 TEST(lua_table, sub_table_access_with_get)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
-    cLuaValue globalTable = script->globalTable();
-    cLuaValue subTable = globalTable.subTable("mySubTable");
+    cLuaObject globalTable = script->globalTable();
+    cLuaObject subTable = globalTable.subTable("mySubTable");
     storeTestVariables(subTable);
 
-    ASSERT_TRUE(globalTable.isType<cLuaValue>("mySubTable"s));
+    ASSERT_TRUE(globalTable.isType<cLuaObject>("mySubTable"s));
 
-    cLuaValue subTable2 = globalTable.get<cLuaValue>("mySubTable"s);
+    cLuaObject subTable2 = globalTable.get<cLuaObject>("mySubTable"s);
     verifyTestVariableValues(subTable2);
 
     ASSERT_EQ(script->stackSize(), 0);
@@ -603,9 +603,9 @@ TEST(lua_table, sub_table_access_with_get)
 
 TEST(lua_function_register, funcion_v_v)  // void(void)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
-    cLuaValue globalTable = script->globalTable();
+    cLuaObject globalTable = script->globalTable();
     bool success = false;
     globalTable.registerFunction<void>("test"s, [&success]() ->void { success = true; });
     ASSERT_EQ(script->stackSize(), 0) << "after register";
@@ -619,9 +619,9 @@ TEST(lua_function_remove, funcion_v_v)  // void(void)
 {
     bool wasDestroyed = false;
     {
-        auto script = std::make_shared<cLuaScript>();
+        auto script = std::make_shared<cLuaState>();
 
-        cLuaValue globalTable = script->globalTable();
+        cLuaObject globalTable = script->globalTable();
         struct cDestructorChecker
         {
             cDestructorChecker(bool& wasDestroyed) : mWasDestroyed(wasDestroyed) {}
@@ -640,9 +640,9 @@ TEST(lua_function_remove, funcion_v_v)  // void(void)
 
 TEST(lua_function_register, function_v_iii)  // void(int,int,int)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
-    cLuaValue globalTable = script->globalTable();
+    cLuaObject globalTable = script->globalTable();
     int result = 0;
     globalTable.registerFunction<void, int, int, int>("test"s,
         [&result](int a, int b, int c)
@@ -656,19 +656,19 @@ TEST(lua_function_register, function_v_iii)  // void(int,int,int)
     ASSERT_EQ(script->stackSize(), 0);
 }
 
-TEST(lua_function_register, function_v_t)  // void(cLuaValue)
+TEST(lua_function_register, function_v_t)  // void(cLuaObject)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
-    cLuaValue globalTable = script->globalTable();
+    cLuaObject globalTable = script->globalTable();
     int result = 0;
-    globalTable.registerFunction<void, cLuaValue>("test"s,
-        [&result](cLuaValue t)
+    globalTable.registerFunction<void, cLuaObject>("test"s,
+        [&result](cLuaObject t)
         {
             result = t.get<int>("a") + t.get<int>("b");
         });
 
-    cLuaValue parameterTable = script->createTable();
+    cLuaObject parameterTable = script->createTable();
     parameterTable.set("a", 33);
     parameterTable.set("b", 44);
     globalTable.get("test"s).call(std::move(parameterTable));
@@ -679,9 +679,9 @@ TEST(lua_function_register, function_v_t)  // void(cLuaValue)
 
 TEST(lua_function_register, trying_to_register_into_nontable)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
-    cLuaValue value = script->createValue();
+    cLuaObject value = script->createValue();
 
     auto callRegister = [&]()
     {
@@ -699,9 +699,9 @@ TEST(lua_function_register, trying_to_register_into_nontable)
 
 TEST(lua_function_register, array_of_functions)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
-    cLuaValue globalTable = script->globalTable();
+    cLuaObject globalTable = script->globalTable();
 
     auto testedArray = script->createTable();
 
@@ -733,7 +733,7 @@ TEST(lua_function_register, array_of_functions)
 
 TEST(lua_function_call, function_i_ii)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
     script->executeString(
         "function otherFunction(a, b) return a+b end\n"
@@ -742,7 +742,7 @@ TEST(lua_function_call, function_i_ii)
         "return x\n"
         "end");
     
-    cLuaValue globalTable = script->globalTable();
+    cLuaObject globalTable = script->globalTable();
     int returned = globalTable.get("testedFunction"s).call<int>(10, 11);
     ASSERT_EQ(returned, 21);
 
@@ -751,14 +751,14 @@ TEST(lua_function_call, function_i_ii)
 
 TEST(lua_function_call, function_ssii_i)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
     script->executeString(
         "function testedFunction(a, b)\n"
         "   return \"hello\", \"world\", a+b, a-b\n"
         "end");
 
-    cLuaValue globalTable = script->globalTable();
+    cLuaObject globalTable = script->globalTable();
     auto [hello, world, sum, diff] = globalTable.get("testedFunction"s).call<std::string, std::string, int, int>(10, 11);
 
     ASSERT_STREQ(hello.c_str(), "hello");
@@ -772,15 +772,15 @@ TEST(lua_function_call, function_ssii_i)
 
 TEST(lua_function_call, returning_vector)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
     script->executeString(
         "function testedFunction()\n"
         "   return 1, 2, 3, 4\n"
         "end");
 
-    cLuaValue globalTable = script->globalTable();
-    auto returned = globalTable.get("testedFunction"s).call<cLuaValue::ReturnVector>();
+    cLuaObject globalTable = script->globalTable();
+    auto returned = globalTable.get("testedFunction"s).call<cLuaObject::ReturnVector>();
     ASSERT_EQ(returned.size(), 4u);
     ASSERT_EQ(returned[0].toInt(), 1);
     ASSERT_EQ(returned[1].toInt(), 2);
@@ -792,9 +792,9 @@ TEST(lua_function_call, returning_vector)
 
 TEST(lua_value, c_to_lua_back_to_c)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
-    cLuaValue globalTable = script->globalTable();
+    cLuaObject globalTable = script->globalTable();
     globalTable.registerFunction<int, int, int>("test"s,
         [](int a, int b) -> int
         {
@@ -805,7 +805,7 @@ TEST(lua_value, c_to_lua_back_to_c)
         "  testedFunction = function(self, a, b) return test(a, b) end\n"
         "}\n");
 
-    auto myTable = globalTable.get<cLuaValue>("my_table"s);
+    auto myTable = globalTable.get<cLuaObject>("my_table"s);
     auto returned = myTable.callMember<int>("testedFunction"s, 10, 11);
     ASSERT_EQ(returned, 110);
     ASSERT_EQ(script->stackSize(), 0);
@@ -813,12 +813,12 @@ TEST(lua_value, c_to_lua_back_to_c)
 
 TEST(lua_value, call)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
     script->executeString("function testedFunction(a, b) return a+b end");
 
-    cLuaValue globalTable = script->globalTable();
-    cLuaValue testedFunction = globalTable.get<cLuaValue>("testedFunction");
+    cLuaObject globalTable = script->globalTable();
+    cLuaObject testedFunction = globalTable.get<cLuaObject>("testedFunction");
     auto returned = testedFunction.call<int>(10, 11);
     ASSERT_EQ(returned, 21);
 
@@ -827,15 +827,15 @@ TEST(lua_value, call)
 
 TEST(lua_value, isFunction)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
     script->executeString("function testedFunction(a, b) return a+b end");
     script->executeString("apple = 42");
 
-    cLuaValue globalTable = script->globalTable();
-    cLuaValue testedFunction = globalTable.get<cLuaValue>("testedFunction");
+    cLuaObject globalTable = script->globalTable();
+    cLuaObject testedFunction = globalTable.get<cLuaObject>("testedFunction");
     ASSERT_TRUE(testedFunction.isFunction());
-    cLuaValue apple = globalTable.get<cLuaValue>("apple");
+    cLuaObject apple = globalTable.get<cLuaObject>("apple");
     ASSERT_FALSE(apple.isFunction());
 
     ASSERT_EQ(script->stackSize(), 0);
@@ -844,8 +844,8 @@ TEST(lua_value, isFunction)
 
 TEST(lua_function_register, function_i_ii)
 {
-    auto script = std::make_shared<cLuaScript>();
-    cLuaValue globalTable = script->globalTable();
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
 
     globalTable.registerFunction<int, int, int>("testedFunction"s,
         [](int a, int b)
@@ -859,11 +859,11 @@ TEST(lua_function_register, function_i_ii)
     ASSERT_EQ(script->stackSize(), 0);
 }
 
-void setupConfigTestVariables(cLuaScript& script)
+void setupConfigTestVariables(cLuaState& script)
 {
-    cLuaValue globalTable = script.globalTable();
+    cLuaObject globalTable = script.globalTable();
     storeTestVariables(globalTable);
-    cLuaValue subTable = globalTable.subTable("mySubTable");
+    cLuaObject subTable = globalTable.subTable("mySubTable");
     storeTestVariables(subTable);
 }
 
@@ -898,20 +898,20 @@ void verifyConfigSingleLevel(const cConfig& config)
 
 TEST(lua_table, toConfig_nonrecursive)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
     setupConfigTestVariables(*script);
-    auto config = script->globalTable().toConfig(cLuaValue::IsRecursive::No);
+    auto config = script->globalTable().toConfig(cLuaObject::IsRecursive::No);
     verifyConfigSingleLevel(*config);
     ASSERT_EQ(script->stackSize(), 0);
 }
 
 TEST(lua_table, toConfig_recursive)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
     setupConfigTestVariables(*script);
-    auto config = script->globalTable().toConfig(cLuaValue::IsRecursive::Yes);
+    auto config = script->globalTable().toConfig(cLuaObject::IsRecursive::Yes);
     verifyConfigSingleLevel(*config);
     auto subConfig = config->getSubConfig("mySubTable");
     ASSERT_TRUE(subConfig);
@@ -921,12 +921,12 @@ TEST(lua_table, toConfig_recursive)
 
 TEST(lua_table, forEach)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
     setupConfigTestVariables(*script);
     auto globalTable = script->globalTable();
-    std::unordered_map<std::string, cLuaValue> extractedValues;
-    globalTable.forEach([&extractedValues](const std::string& key, const cLuaValue& value)
+    std::unordered_map<std::string, cLuaObject> extractedValues;
+    globalTable.forEach([&extractedValues](const std::string& key, const cLuaObject& value)
         {
             extractedValues[key] = value;
         });
@@ -945,7 +945,7 @@ TEST(lua_table, forEach)
 
 TEST(lua_execute, simple_execute)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
     script->executeString(
         "apple = 42\n"
@@ -953,7 +953,7 @@ TEST(lua_execute, simple_execute)
 
     auto globalTable = script->globalTable();
     ASSERT_EQ(globalTable.get<int>("apple"), 42);
-    auto subTable = globalTable.get<cLuaValue>("my_table");
+    auto subTable = globalTable.get<cLuaObject>("my_table");
     ASSERT_EQ(subTable.get<int>("apple"), 22);
     ASSERT_EQ(subTable.get<int>("pear"), 33);
     ASSERT_EQ(script->stackSize(), 0);
@@ -961,7 +961,7 @@ TEST(lua_execute, simple_execute)
 
 TEST(lua_execute, c_function_i_ii)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
     auto globalTable = script->globalTable();
 
     globalTable.registerFunction<int, int, int>("test"s,
@@ -977,13 +977,13 @@ TEST(lua_execute, c_function_i_ii)
 
 TEST(lua_execute, c_function_t_t)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
     auto globalTable = script->globalTable();
 
-    globalTable.registerFunction<cLuaValue, cLuaValue>("test"s,
-        [](cLuaValue sourceTable)
+    globalTable.registerFunction<cLuaObject, cLuaObject>("test"s,
+        [](cLuaObject sourceTable)
         {
-            auto resultTable = sourceTable.script().createTable();
+            auto resultTable = sourceTable.state().createTable();
             resultTable.set<int>("a", sourceTable.get<int>("a") + 11);
             resultTable.set<int>("b", sourceTable.get<int>("b") + 22);
             return resultTable;
@@ -991,7 +991,7 @@ TEST(lua_execute, c_function_t_t)
 
     script->executeString("result = test({ a = 7, b = 8})");
 
-    auto result = globalTable.get<cLuaValue>("result");
+    auto result = globalTable.get<cLuaObject>("result");
 
     ASSERT_EQ(result.get<int>("a"), 18);
     ASSERT_EQ(result.get<int>("b"), 30);
@@ -1000,7 +1000,7 @@ TEST(lua_execute, c_function_t_t)
 
 TEST(lua_oop, callMemberFunction)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
 
     script->executeString(
         "my_table = "
@@ -1010,7 +1010,7 @@ TEST(lua_oop, callMemberFunction)
         "}");
 
     auto globalTable = script->globalTable();
-    auto myTable = globalTable.get<cLuaValue>("my_table");
+    auto myTable = globalTable.get<cLuaObject>("my_table");
     myTable.get("increase"s).call(myTable, 2);
     ASSERT_EQ(myTable.get<int>("a"), 3);
     myTable.callMember("increase"s, 123);
@@ -1019,7 +1019,7 @@ TEST(lua_oop, callMemberFunction)
 
 TEST(lua_oop, exception_from_cpp_function)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
     auto globalTable = script->globalTable();
 
     globalTable.registerFunction<int, int, int>("test"s,
@@ -1045,8 +1045,8 @@ TEST(lua_oop, exception_from_cpp_function)
     ASSERT_EQ(globalTable.get<int>("result"), 3);
     ASSERT_EQ(script->stackSize(), 0);
 
-    globalTable.registerFunction<int, cLuaValue, cLuaValue>("test2"s,
-        [](cLuaValue r, cLuaValue l) -> int
+    globalTable.registerFunction<int, cLuaObject, cLuaObject>("test2"s,
+        [](cLuaObject r, cLuaObject l) -> int
         {
             if(r.toInt() == l.toInt())
                 throw std::string("exception from C++");
@@ -1072,10 +1072,10 @@ TEST(lua_oop, exception_from_cpp_function)
 // Main function to run the tests
 int main(int argc, char** argv)
 {
-    cLuaScript::staticInit();
+    cLuaState::staticInit();
 
 
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
     script->executeString(R"script(
         function sum(a, b)
             return a + b
@@ -1091,7 +1091,7 @@ int main(int argc, char** argv)
     auto [word_1, word_2, year] = say_hello.call<std::string, std::string, int>(2024);
     std::cout << word_1 << " " << word_2 << " " << year << "\n"; // prints out hello world 2024
 
-    auto retValues = say_hello.call<cLuaValue::ReturnVector>(2024);
+    auto retValues = say_hello.call<cLuaObject::ReturnVector>(2024);
     std::cout << retValues.size() << "\n"; // prints out 3
     for (auto value : retValues)
         std::cout << value.toString() << " "; // int value can be converted to string, so this works
@@ -1106,7 +1106,7 @@ volatile int perf_test_sink;
 
 TEST(lua_table, perf)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
     {
         auto globalTable = script->globalTable();
         globalTable.set<int>("alma"s, 1);

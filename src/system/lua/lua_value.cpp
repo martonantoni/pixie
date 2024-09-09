@@ -1,36 +1,36 @@
 #include "StdAfx.h"
 
 
-cLuaValue::cLuaValue(std::shared_ptr<cLuaScript> script, int reference, bool isGlobalTable)
-    : mScript(std::move(script))
+cLuaObject::cLuaObject(std::shared_ptr<cLuaState> state, int reference, bool isGlobalTable)
+    : mState(std::move(state))
     , mReference(reference)
     , mIsGlobalTable(isGlobalTable)
 {
 }
 
-cLuaValue::cLuaValue(cLuaValue&& src)
-    : mScript(std::move(src.mScript))
+cLuaObject::cLuaObject(cLuaObject&& src)
+    : mState(std::move(src.mState))
     , mReference(src.mReference)
 {
     src.mReference = LUA_NOREF;
 }
 
-cLuaValue::~cLuaValue()
+cLuaObject::~cLuaObject()
 {
-    if (mScript && mReference != LUA_NOREF)
+    if (mState && mReference != LUA_NOREF)
     {
-        luaL_unref(mScript->state(), LUA_REGISTRYINDEX, mReference);
+        luaL_unref(mState->state(), LUA_REGISTRYINDEX, mReference);
     }
 }
 
-cLuaValue& cLuaValue::operator=(const cLuaValue& src)
+cLuaObject& cLuaObject::operator=(const cLuaObject& src)
 {
     if (&src == this)
     {
         return *this;
     }
-    cLuaValue toDiscard(std::move(*this));
-    if (!src.mScript || src.mReference == LUA_NOREF)
+    cLuaObject toDiscard(std::move(*this));
+    if (!src.mState || src.mReference == LUA_NOREF)
     {
         return *this;
     }
@@ -38,38 +38,38 @@ cLuaValue& cLuaValue::operator=(const cLuaValue& src)
     return *this;
 }
 
-cLuaValue& cLuaValue::operator=(cLuaValue&& src)
+cLuaObject& cLuaObject::operator=(cLuaObject&& src)
 {
     if (this == &src)
         return *this;
-    cLuaValue toDiscard(std::move(*this));
+    cLuaObject toDiscard(std::move(*this));
     mReference = src.mReference;
     src.mReference = LUA_NOREF;
-    mScript = std::move(src.mScript);
+    mState = std::move(src.mState);
     return *this;
 }
 
-cLuaValue::cLuaValue(const cLuaValue& src)
+cLuaObject::cLuaObject(const cLuaObject& src)
 {
-    if (!src.mScript || src.mReference == LUA_NOREF)
+    if (!src.mState || src.mReference == LUA_NOREF)
     {
         return;
     }
     copy_(src);
 }
 
-cLuaValue::cStateWithSelfCleanup cLuaValue::retrieveSelf() const
+cLuaObject::cStateWithSelfCleanup cLuaObject::retrieveSelf() const
 {
-    if (!mScript || mReference == LUA_NOREF)
+    if (!mState || mReference == LUA_NOREF)
     {
         return {};
     }
-    lua_State* L = mScript->state();
+    lua_State* L = mState->state();
     lua_rawgeti(L, LUA_REGISTRYINDEX, mReference);
     return L;
 }
 
-void cLuaValue::retrieveItem(lua_State* L, const cKey& key)
+void cLuaObject::retrieveItem(lua_State* L, const cKey& key)
 {
     std::visit(
         [&](auto&& key)
@@ -82,7 +82,7 @@ void cLuaValue::retrieveItem(lua_State* L, const cKey& key)
             {
                 lua_getfield(L, -1, key.data());
             }
-            else // cLuaValue:
+            else // cLuaObject:
             {
                 key.retrieveSelf().release();
                 lua_gettable(L, -2);
@@ -91,7 +91,7 @@ void cLuaValue::retrieveItem(lua_State* L, const cKey& key)
         key);
 }
 
-void cLuaValue::pushKey(lua_State* L, const cKey& key)
+void cLuaObject::pushKey(lua_State* L, const cKey& key)
 {
     std::visit(
         [&](auto&& key)
@@ -103,7 +103,7 @@ void cLuaValue::pushKey(lua_State* L, const cKey& key)
             else if constexpr (std::is_same_v<std::decay_t<decltype(key)>, std::string_view>)
             {
                 lua_pushstring(L, key.data());
-            }  // cLuaValue:
+            }  // cLuaObject:
             else
             {
                 key.retrieveSelf().release();
@@ -113,7 +113,7 @@ void cLuaValue::pushKey(lua_State* L, const cKey& key)
 }
 
 
-bool cLuaValue::isNumber() const
+bool cLuaObject::isNumber() const
 {
     if(auto L = retrieveSelf())
     {
@@ -123,7 +123,7 @@ bool cLuaValue::isNumber() const
     return false;
 }
 
-bool cLuaValue::isString() const
+bool cLuaObject::isString() const
 {
     if(auto L = retrieveSelf())
     {
@@ -133,7 +133,7 @@ bool cLuaValue::isString() const
     return false;
 }
 
-bool cLuaValue::isFunction() const
+bool cLuaObject::isFunction() const
 {
     if(auto L = retrieveSelf())
     {
@@ -143,7 +143,7 @@ bool cLuaValue::isFunction() const
     return false;
 }
 
-bool cLuaValue::isTable() const
+bool cLuaObject::isTable() const
 {
     if(auto L = retrieveSelf())
     {
@@ -153,15 +153,15 @@ bool cLuaValue::isTable() const
     return false;
 }
 
-void cLuaValue::copy_(const cLuaValue& src)
+void cLuaObject::copy_(const cLuaObject& src)
 {
-    mScript = src.mScript;
-    lua_State* L = mScript->state();
+    mState = src.mState;
+    lua_State* L = mState->state();
     lua_rawgeti(L, LUA_REGISTRYINDEX, src.mReference);
     mReference = luaL_ref(L, LUA_REGISTRYINDEX);
 }
 
-cLuaValue cLuaValue::subTable(const std::string& key) const
+cLuaObject cLuaObject::subTable(const std::string& key) const
 {
     if (auto L = retrieveSelf())
     {
@@ -176,12 +176,12 @@ cLuaValue cLuaValue::subTable(const std::string& key) const
             lua_settable(L, -4); // pops key and value 
         }
         int reference = luaL_ref(L, LUA_REGISTRYINDEX); // pops the sub-table
-        return cLuaValue{ mScript, reference, false };
+        return cLuaObject{ mState, reference, false };
     }
     return {};
 }
 
-std::string cLuaScript::valueToString(lua_State* L, int index)
+std::string cLuaState::valueToString(lua_State* L, int index)
 {
     if (lua_type(L, index) == LUA_TSTRING)
     {
@@ -204,7 +204,7 @@ std::string cLuaScript::valueToString(lua_State* L, int index)
     return convertedString;
 }
 
-std::shared_ptr<cConfig> cLuaValue::toConfig_topTable(lua_State* L, IsRecursive isRecursive) const
+std::shared_ptr<cConfig> cLuaObject::toConfig_topTable(lua_State* L, IsRecursive isRecursive) const
 {
     if (!lua_istable(L, -1))
     {
@@ -224,8 +224,8 @@ std::shared_ptr<cConfig> cLuaValue::toConfig_topTable(lua_State* L, IsRecursive 
         }
         else
         {
-            key = cLuaScript::valueToString(L, -2);
-            skip = mIsGlobalTable && cLuaScript::isGlobalInternalElement(std::get<std::string>(key));
+            key = cLuaState::valueToString(L, -2);
+            skip = mIsGlobalTable && cLuaState::isGlobalInternalElement(std::get<std::string>(key));
         }
         if (!skip)
         {
@@ -260,7 +260,7 @@ std::shared_ptr<cConfig> cLuaValue::toConfig_topTable(lua_State* L, IsRecursive 
     return config;
 }
 
-std::shared_ptr<cConfig> cLuaValue::toConfig(IsRecursive isRecursive) const
+std::shared_ptr<cConfig> cLuaObject::toConfig(IsRecursive isRecursive) const
 {
     if (auto L = retrieveSelf())
     {
@@ -269,7 +269,7 @@ std::shared_ptr<cConfig> cLuaValue::toConfig(IsRecursive isRecursive) const
     return {};
 }
 
-int cLuaValue::toInt() const
+int cLuaObject::toInt() const
 {
     if (auto L = retrieveSelf())
     {
@@ -278,7 +278,7 @@ int cLuaValue::toInt() const
     return 0;
 }
 
-double cLuaValue::toDouble() const
+double cLuaObject::toDouble() const
 {
     if (auto L = retrieveSelf())
     {
@@ -287,16 +287,16 @@ double cLuaValue::toDouble() const
     return 0.0;
 }
 
-std::string cLuaValue::toString() const
+std::string cLuaObject::toString() const
 {
     if (auto L = retrieveSelf())
     {
-        return cLuaScript::valueToString(L, -1);
+        return cLuaState::valueToString(L, -1);
     }
     return {};
 }
 
-int cLuaValue::arraySize() const
+int cLuaObject::arraySize() const
 {
     if (auto L = retrieveSelf())
     {
@@ -305,7 +305,7 @@ int cLuaValue::arraySize() const
     return 0;
 }
 
-bool cLuaValue::has(const cKey& key) const
+bool cLuaObject::has(const cKey& key) const
 {
     if (auto L = retrieveSelf())
     {
@@ -317,7 +317,7 @@ bool cLuaValue::has(const cKey& key) const
     return false;
 }
 
-void cLuaValue::remove(const cKey& key)
+void cLuaObject::remove(const cKey& key)
 {
     if (auto L = retrieveSelf())
     {

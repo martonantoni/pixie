@@ -65,7 +65,7 @@ const char* VersionString = "1.0";
 // Main function to run the tests
 int main(int argc, char** argv)
 {
-    cLuaScript::staticInit();
+    cLuaState::staticInit();
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

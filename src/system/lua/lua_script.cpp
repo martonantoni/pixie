@@ -1,11 +1,11 @@
 #include "StdAfx.h"
 
-const char* cLuaScript::userDataMetaTableName = "destructed_user_data";
-std::vector<std::string> cLuaScript::globalTableInternalElements;
+const char* cLuaState::userDataMetaTableName = "destructed_user_data";
+std::vector<std::string> cLuaState::globalTableInternalElements;
 
-void cLuaScript::staticInit()
+void cLuaState::staticInit()
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
     auto L = script->L;
     lua_pushglobaltable(L);
     lua_pushnil(L);
@@ -20,12 +20,12 @@ void cLuaScript::staticInit()
     std::sort(ALL(globalTableInternalElements));
 }
 
-bool cLuaScript::isGlobalInternalElement(const std::string& key)
+bool cLuaState::isGlobalInternalElement(const std::string& key)
 {
     return std::binary_search(ALL(globalTableInternalElements), key);
 }
 
-void cLuaScript::dumpStack(lua_State* L)
+void cLuaState::dumpStack(lua_State* L)
 {
     printf("\n---- STACK START ----\n");
     int top = lua_gettop(L);
@@ -78,14 +78,14 @@ void cLuaScript::dumpStack(lua_State* L)
     fflush(stdout);
 }
 
-int cLuaScript::panicHandler(lua_State* L) 
+int cLuaState::panicHandler(lua_State* L) 
 {
     const char* errorMessage = lua_tostring(L, -1); // Get the error message from the Lua stack
     printf("LUA PANIC: %s\n", errorMessage); // Print the error message
     return 0; // Return 0 to exit the application
 }
 
-cLuaScript::cLuaScript()
+cLuaState::cLuaState()
 {
     L = luaL_newstate();
     luaL_openlibs(L);
@@ -103,30 +103,30 @@ cLuaScript::cLuaScript()
     lua_pop(L, 1);
 }
 
-cLuaScript::cLuaScript(lua_State* l)
+cLuaState::cLuaState(lua_State* l)
     : L(l)
     , mIsOwningState(false)
 {
 }
 
-cLuaScript::cLuaScript(cLuaScript&& src)
+cLuaState::cLuaState(cLuaState&& src)
     : L(src.L)
     , mIsOwningState(src.mIsOwningState)
 {
     src.L = nullptr;
 }
 
-cLuaScript& cLuaScript::operator=(cLuaScript&& src)
+cLuaState& cLuaState::operator=(cLuaState&& src)
 {
     if (&src == this)
         return *this;
-    cLuaScript toDiscard(std::move(*this));
+    cLuaState toDiscard(std::move(*this));
     std::swap(src.L, L);
     mIsOwningState = src.mIsOwningState;
     return *this;
 }
 
-cLuaScript::~cLuaScript()
+cLuaState::~cLuaState()
 {
     if (mIsOwningState && L)
     {
@@ -135,7 +135,7 @@ cLuaScript::~cLuaScript()
     }
 }
 
-void cLuaScript::executeFile(const cPath& scriptPath)
+void cLuaState::executeFile(const cPath& scriptPath)
 {
     if (luaL_dofile(L, scriptPath.c_str()))
     {
@@ -147,7 +147,7 @@ void cLuaScript::executeFile(const cPath& scriptPath)
     }
 }
 
-void cLuaScript::executeString(const std::string& script)
+void cLuaState::executeString(const std::string& script)
 {
     if (luaL_dostring(L, script.c_str())) 
     {
@@ -158,51 +158,51 @@ void cLuaScript::executeString(const std::string& script)
     }
 }
 
-int cLuaScript::gcUserData(lua_State* L)
+int cLuaState::gcUserData(lua_State* L)
 {
     cUserDataBase* obj = static_cast<cUserDataBase*>(lua_touserdata(L, 1));
     obj->~cUserDataBase();
     return 0;
 }
 
-cLuaValue cLuaScript::globalTable()
+cLuaObject cLuaState::globalTable()
 {
     lua_pushglobaltable(L);
-    return cLuaValue{ shared_from_this(), luaL_ref(L, LUA_REGISTRYINDEX), true };
+    return cLuaObject{ shared_from_this(), luaL_ref(L, LUA_REGISTRYINDEX), true };
 }
 
-cLuaValue cLuaScript::createTable()
+cLuaObject cLuaState::createTable()
 {
     lua_newtable(L);
-    return cLuaValue{ shared_from_this(), luaL_ref(L, LUA_REGISTRYINDEX), true };
+    return cLuaObject{ shared_from_this(), luaL_ref(L, LUA_REGISTRYINDEX), true };
 }
 
-cLuaValue cLuaScript::createValue()
+cLuaObject cLuaState::createValue()
 {
-    return cLuaValue{ shared_from_this() };
+    return cLuaObject{ shared_from_this() };
 }
 
 
-int cLuaScript::stackSize() const
+int cLuaState::stackSize() const
 {
     return lua_gettop(L);
 }
 
-std::shared_ptr<cConfig> cLuaScript::stringToConfig(const std::string& scriptText)
+std::shared_ptr<cConfig> cLuaState::stringToConfig(const std::string& scriptText)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
     script->executeString(scriptText);
     return script->globalTable().toConfig();
 }
 
-std::shared_ptr<cConfig> cLuaScript::fileToConfig(const cPath& scriptPath)
+std::shared_ptr<cConfig> cLuaState::fileToConfig(const cPath& scriptPath)
 {
-    auto script = std::make_shared<cLuaScript>();
+    auto script = std::make_shared<cLuaState>();
     script->executeFile(scriptPath);
     return script->globalTable().toConfig();
 }
 
-void cLuaScript::error(lua_State* L, const std::string& message)
+void cLuaState::error(lua_State* L, const std::string& message)
 {
     lua_Debug ar;
     lua_getstack(L, 1, &ar);
@@ -213,7 +213,7 @@ void cLuaScript::error(lua_State* L, const std::string& message)
     throw std::runtime_error(errorMessage);
 }
 
-std::string cLuaScript::configToScript(const cConfig& config, const std::string& ident)
+std::string cLuaState::configToScript(const cConfig& config, const std::string& ident)
 {
     if (ident.empty() && config.isArray())
     {
