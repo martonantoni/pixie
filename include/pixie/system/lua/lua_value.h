@@ -60,8 +60,9 @@ public:
     bool isFunction() const;
     bool isTable() const;
     template<class C> void visit(C&& callable) const;
-    template<class... Args> std::vector<cLuaValue> call(const Args&... args);
-    template<class... Args> std::vector<cLuaValue> callMember(const cKey& functionKey, const Args&... args);
+    struct ReturnVector {};
+    template<class... ReturnTs, class... Args> auto call(const Args&... args);
+    template<class... ReturnTs, class... Args> auto callMember(const cKey& functionKey, const Args&... args);
 
     cLuaScript& script() { return *mScript; }
     const cLuaScript& script() const { return *mScript; }
@@ -288,7 +289,7 @@ bool cLuaValue::isType(const cKey& key) const
     return false;
 }
 
-template<class... Args> std::vector<cLuaValue> cLuaValue::call(const Args&... args)
+template<class... ReturnTs, class... Args> auto cLuaValue::call(const Args&... args)
 {
     if (!mScript || mReference == LUA_NOREF)
     {
@@ -310,26 +311,51 @@ template<class... Args> std::vector<cLuaValue> cLuaValue::call(const Args&... ar
     if (status != 0) 
     {
         const char* errorMessage = lua_tostring(L, -1);
-        printf("Lua error: %s\n", errorMessage);
         lua_pop(L, startSize - lua_gettop(L));
-        ASSERT(false);
-        return {};
-        // Handle the error, such as logging or displaying the error message
-        // ...
+        throw std::runtime_error(std::format("lua error: {}", errorMessage));
     }
-    std::vector<cLuaValue> returnValues;
-    returnValues.reserve(lua_gettop(L));
-    for (int i = lua_gettop(L); i >= 1; --i) // at the bottom of the stack, our table is.
+    if constexpr (sizeof...(ReturnTs) == 0)
     {
-        returnValues.emplace_back(mScript, luaL_ref(L, LUA_REGISTRYINDEX), false);
+        lua_pop(L, lua_gettop(L) - startSize);
+        return;
     }
-    lua_pop(L, lua_gettop(L) - startSize);
-    return returnValues;
+    else if constexpr (sizeof...(ReturnTs) == 1)
+    {
+        using FirstType = std::tuple_element_t<0, std::tuple<ReturnTs...>>;
+        if constexpr (std::is_same_v<FirstType, void>)
+        {
+            lua_pop(L, lua_gettop(L) - startSize);
+            return;
+        }
+        else if constexpr(std::is_same_v<FirstType, ReturnVector>)
+        {
+            std::vector<cLuaValue> returnValues;
+            auto numberOfReturnValues = lua_gettop(L);
+            returnValues.resize(numberOfReturnValues);
+            for (int i = lua_gettop(L); i >= 1; --i) // at the bottom of the stack, our table is.
+            {
+                returnValues[i - 1] = cLuaValue(mScript, luaL_ref(L, LUA_REGISTRYINDEX), false);
+            }
+            lua_pop(L, lua_gettop(L) - startSize);
+            return returnValues;
+        }
+        else
+        {
+            auto returnValue = pop<FirstType>(*mScript, L);
+            lua_pop(L, lua_gettop(L) - startSize);
+            return returnValue;
+        }
+    }
+    else
+    {
+        auto returnValues = std::make_tuple(pop<ReturnTs>(*mScript, L)...);
+        return returnValues;
+    }
 }
 
-template<class... Args> std::vector<cLuaValue> cLuaValue::callMember(const cKey& functionKey, const Args&... args)
+template<class... ReturnTs, class... Args> auto cLuaValue::callMember(const cKey& functionKey, const Args&... args)
 {
-    return get(functionKey).call(*this, args...);
+    return get(functionKey).call<ReturnTs...>(*this, args...);
 }
 
 template<class R, class... Args, class C>

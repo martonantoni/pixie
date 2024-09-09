@@ -609,9 +609,8 @@ TEST(lua_function_register, funcion_v_v)  // void(void)
     bool success = false;
     globalTable.registerFunction<void>("test"s, [&success]() ->void { success = true; });
     ASSERT_EQ(script->stackSize(), 0) << "after register";
-    auto returned = globalTable.get("test"s).call();
+    globalTable.get("test"s).call();
     ASSERT_TRUE(success);
-    ASSERT_TRUE(returned.empty());
 
     ASSERT_EQ(script->stackSize(), 0) << "after call";
 }
@@ -651,9 +650,8 @@ TEST(lua_function_register, function_v_iii)  // void(int,int,int)
             result = a + b + c;
         });
 
-    auto returned = globalTable.get("test"s).call("test"s, 10, 11, 12);
+    globalTable.get("test"s).call("test"s, 10, 11, 12);
     ASSERT_EQ(result, 33);
-    ASSERT_TRUE(returned.empty());
 
     ASSERT_EQ(script->stackSize(), 0);
 }
@@ -673,8 +671,7 @@ TEST(lua_function_register, function_v_t)  // void(cLuaValue)
     cLuaValue parameterTable = script->createTable();
     parameterTable.set("a", 33);
     parameterTable.set("b", 44);
-    auto returned = globalTable.get("test"s).call(std::move(parameterTable));
-    ASSERT_TRUE(returned.empty());
+    globalTable.get("test"s).call(std::move(parameterTable));
     ASSERT_EQ(result, 77);
 
     ASSERT_EQ(script->stackSize(), 0);
@@ -724,13 +721,11 @@ TEST(lua_function_register, array_of_functions)
 
     ASSERT_EQ(testedArray.arraySize(), 2u);
 
-    auto returned = addFunction.call(10, 11);
-    ASSERT_EQ(returned.size(), 1u);
-    ASSERT_EQ(returned.front().toInt(), 21);
+    auto returned = addFunction.call<int>(10, 11);
+    ASSERT_EQ(returned, 21);
 
-    returned = subtractFunction.call(10, 11);
-    ASSERT_EQ(returned.size(), 1u);
-    ASSERT_EQ(returned.front().toInt(), -1);
+    returned = subtractFunction.call<int>(10, 11);
+    ASSERT_EQ(returned, -1);
 
     ASSERT_EQ(script->stackSize(), 0);
 
@@ -748,9 +743,49 @@ TEST(lua_function_call, function_i_ii)
         "end");
     
     cLuaValue globalTable = script->globalTable();
-    auto returned = globalTable.get("testedFunction"s).call(10, 11);
-    ASSERT_EQ(returned.size(), 1u);
-    ASSERT_EQ(returned.front().toInt(), 21);
+    int returned = globalTable.get("testedFunction"s).call<int>(10, 11);
+    ASSERT_EQ(returned, 21);
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_function_call, function_ssii_i)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    script->executeString(
+        "function testedFunction(a, b)\n"
+        "   return \"hello\", \"world\", a+b, a-b\n"
+        "end");
+
+    cLuaValue globalTable = script->globalTable();
+    auto [hello, world, sum, diff] = globalTable.get("testedFunction"s).call<std::string, std::string, int, int>(10, 11);
+
+    ASSERT_STREQ(hello.c_str(), "hello");
+    ASSERT_STREQ(world.c_str(), "world");
+    ASSERT_EQ(sum, 21);
+    ASSERT_EQ(diff, -1);
+    
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_function_call, returning_vector)
+{
+    auto script = std::make_shared<cLuaScript>();
+
+    script->executeString(
+        "function testedFunction()\n"
+        "   return 1, 2, 3, 4\n"
+        "end");
+
+    cLuaValue globalTable = script->globalTable();
+    auto returned = globalTable.get("testedFunction"s).call<cLuaValue::ReturnVector>();
+    ASSERT_EQ(returned.size(), 4u);
+    ASSERT_EQ(returned[0].toInt(), 1);
+    ASSERT_EQ(returned[1].toInt(), 2);
+    ASSERT_EQ(returned[2].toInt(), 3);
+    ASSERT_EQ(returned[3].toInt(), 4);
 
     ASSERT_EQ(script->stackSize(), 0);
 }
@@ -771,9 +806,8 @@ TEST(lua_value, c_to_lua_back_to_c)
         "}\n");
 
     auto myTable = globalTable.get<cLuaValue>("my_table"s);
-    auto returned = myTable.callMember("testedFunction"s, 10, 11);
-    ASSERT_EQ(returned.size(), 1u);
-    ASSERT_EQ(returned.front().toInt(), 110);
+    auto returned = myTable.callMember<int>("testedFunction"s, 10, 11);
+    ASSERT_EQ(returned, 110);
     ASSERT_EQ(script->stackSize(), 0);
 }
 
@@ -785,9 +819,8 @@ TEST(lua_value, call)
 
     cLuaValue globalTable = script->globalTable();
     cLuaValue testedFunction = globalTable.get<cLuaValue>("testedFunction");
-    auto returned = testedFunction.call(10, 11);
-    ASSERT_EQ(returned.size(), 1u);
-    ASSERT_EQ(returned.front().toInt(), 21);
+    auto returned = testedFunction.call<int>(10, 11);
+    ASSERT_EQ(returned, 21);
 
     ASSERT_EQ(script->stackSize(), 0);
 }
@@ -820,9 +853,8 @@ TEST(lua_function_register, function_i_ii)
             return a + b;
         });
 
-    auto returned = globalTable.get("testedFunction"s).call(10, 11);
-    ASSERT_EQ(returned.size(), 1u);
-    ASSERT_EQ(returned.front().toInt(), 21);
+    auto returned = globalTable.get("testedFunction"s).call<int>(10, 11);
+    ASSERT_EQ(returned, 21);
 
     ASSERT_EQ(script->stackSize(), 0);
 }
@@ -1036,7 +1068,6 @@ TEST(lua_oop, exception_from_cpp_function)
     ASSERT_EQ(globalTable.get<int>("result"), 11);
     ASSERT_EQ(script->stackSize(), 0);
 }
-
 
 // Main function to run the tests
 int main(int argc, char** argv)
