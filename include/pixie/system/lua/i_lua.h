@@ -8,5 +8,5 @@ extern "C"
 }
 
 
-#include "lua_script.h"
-#include "lua_value.h"
+#include "lua_state.h"
+#include "lua_object.h"
