@@ -20,8 +20,11 @@ class cLuaState: public std::enable_shared_from_this<cLuaState>
     bool mIsOwningState = true;
     static int gcUserData(lua_State* L);
     static const char* userDataMetaTableName;
-    static std::vector<std::string> globalTableInternalElements;
+    inline static std::vector<std::string> globalTableInternalElements;
     static int panicHandler(lua_State* L);
+    inline static std::once_flag mStaticInitFlag{};
+    static void staticInit();
+    static lua_State* createLuaState();
 public:
     cLuaState();
     cLuaState(lua_State* l);
@@ -30,10 +33,9 @@ public:
     cLuaState(const cLuaState&) = delete;
     cLuaState& operator=(const cLuaState&) = delete;
     virtual ~cLuaState();
-    void executeFile(const cPath& scriptPath);
+    void executeFile(const std::filesystem::path& scriptPath);
     void executeString(const std::string& script);
     std::shared_ptr<cLuaState> shareSelf() { return shared_from_this(); }
-    static void staticInit();
     static std::string valueToString(lua_State* L, int index);
     static bool isGlobalInternalElement(const std::string& key);
     static std::string configToScript(const cConfig& config, const std::string& ident = std::string());
@@ -59,7 +61,7 @@ public:
 
 // shortcuts for creating config from lua script:
     static std::shared_ptr<cConfig> stringToConfig(const std::string& scriptText);
-    static std::shared_ptr<cConfig> fileToConfig(const cPath& scriptPath);
+    static std::shared_ptr<cConfig> fileToConfig(const std::filesystem::path& scriptPath);
 
 // debug functions:
     int stackSize() const;

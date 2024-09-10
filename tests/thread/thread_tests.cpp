@@ -20,7 +20,6 @@ TEST(threads, wait_callback)
 // Main function to run the tests
 int main(int argc, char** argv)
 {
-    cLuaState::staticInit();
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

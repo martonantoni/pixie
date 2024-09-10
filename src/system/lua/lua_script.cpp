@@ -1,12 +1,10 @@
 #include "StdAfx.h"
 
 const char* cLuaState::userDataMetaTableName = "destructed_user_data";
-std::vector<std::string> cLuaState::globalTableInternalElements;
 
 void cLuaState::staticInit()
 {
-    auto script = std::make_shared<cLuaState>();
-    auto L = script->L;
+    auto L = createLuaState();
     lua_pushglobaltable(L);
     lua_pushnil(L);
     while (lua_next(L, -2) != 0)
@@ -85,9 +83,9 @@ int cLuaState::panicHandler(lua_State* L)
     return 0; // Return 0 to exit the application
 }
 
-cLuaState::cLuaState()
+lua_State* cLuaState::createLuaState()
 {
-    L = luaL_newstate();
+    auto L = luaL_newstate();
     luaL_openlibs(L);
     lua_atpanic(L, panicHandler);
 
@@ -101,12 +99,21 @@ cLuaState::cLuaState()
     lua_pushcfunction(L, gcUserData);
     lua_setfield(L, -2, "__gc");
     lua_pop(L, 1);
+
+    return L;
+}
+
+cLuaState::cLuaState()
+{
+    std::call_once(mStaticInitFlag, staticInit);
+    L = createLuaState();
 }
 
 cLuaState::cLuaState(lua_State* l)
     : L(l)
     , mIsOwningState(false)
 {
+    std::call_once(mStaticInitFlag, staticInit);
 }
 
 cLuaState::cLuaState(cLuaState&& src)
@@ -135,9 +142,10 @@ cLuaState::~cLuaState()
     }
 }
 
-void cLuaState::executeFile(const cPath& scriptPath)
+void cLuaState::executeFile(const std::filesystem::path& scriptPath)
 {
-    if (luaL_dofile(L, scriptPath.c_str()))
+    if (luaL_dofile(L, scriptPath.string().c_str()
+    ))
     {
         const char* errorMessage = lua_tostring(L, -1);
         printf("LUA executeFile error: %s\n", errorMessage);
@@ -195,7 +203,7 @@ std::shared_ptr<cConfig> cLuaState::stringToConfig(const std::string& scriptText
     return script->globalTable().toConfig();
 }
 
-std::shared_ptr<cConfig> cLuaState::fileToConfig(const cPath& scriptPath)
+std::shared_ptr<cConfig> cLuaState::fileToConfig(const std::filesystem::path& scriptPath)
 {
     auto script = std::make_shared<cLuaState>();
     script->executeFile(scriptPath);

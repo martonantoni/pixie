@@ -1072,11 +1072,8 @@ TEST(lua_oop, exception_from_cpp_function)
 // Main function to run the tests
 int main(int argc, char** argv)
 {
-    cLuaState::staticInit();
-
-
-    auto script = std::make_shared<cLuaState>();
-    script->executeString(R"script(
+    auto state = std::make_shared<cLuaState>();
+    state->executeString(R"script(
         function sum(a, b)
             return a + b
         end
@@ -1085,9 +1082,9 @@ int main(int argc, char** argv)
             return "hello", "world", year
         end )script");
 
-    std::cout << script->globalTable().get("sum").call<int>(1, 2) << "\n"; // prints out 3
+    std::cout << state->globalTable().get("sum").call<int>(1, 2) << "\n"; // prints out 3
 
-    auto say_hello = script->globalTable().get("say_hello");
+    auto say_hello = state->globalTable().get("say_hello");
     auto [word_1, word_2, year] = say_hello.call<std::string, std::string, int>(2024);
     std::cout << word_1 << " " << word_2 << " " << year << "\n"; // prints out hello world 2024
 

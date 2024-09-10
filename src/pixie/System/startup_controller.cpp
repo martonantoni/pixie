@@ -31,12 +31,10 @@ void cStartupController::Start_MainThread()
 
 void cStartupController::continueStartup()
 {
-    cLuaState::staticInit();
-
-    auto script = std::make_shared<cLuaState>();
-    registerGlobalPixieLuaFunctions(script->globalTable());
-    script->executeFile(mConfig.mainLuaConfigPath.empty() ? "MainConfig.lua" : mConfig.mainLuaConfigPath.c_str());
-    theGlobalConfig = script->globalTable().toConfig();
+    auto luaState = std::make_shared<cLuaState>();
+    registerGlobalPixieLuaFunctions(luaState->globalTable());
+    luaState->executeFile(mConfig.mainLuaConfigPath.empty() ? "MainConfig.lua" : mConfig.mainLuaConfigPath.c_str());
+    theGlobalConfig = luaState->globalTable().toConfig();
 
 
     auto InstanceName = theGlobalConfig->get<std::string>("instance_name", std::string());
