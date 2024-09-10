@@ -607,7 +607,7 @@ TEST(lua_function_register, funcion_v_v)  // void(void)
 
     cLuaObject globalTable = script->globalTable();
     bool success = false;
-    globalTable.registerFunction<void>("test"s, [&success]() ->void { success = true; });
+    globalTable.registerFunction("test"s, [&success]() ->void { success = true; });
     ASSERT_EQ(script->stackSize(), 0) << "after register";
     globalTable.get("test"s).call();
     ASSERT_TRUE(success);
@@ -628,7 +628,7 @@ TEST(lua_function_remove, funcion_v_v)  // void(void)
             ~cDestructorChecker() { mWasDestroyed = true; }
             bool& mWasDestroyed;
         };
-        globalTable.registerFunction<void>("test"s,
+        globalTable.registerFunction("test"s,
             [destructorChecker = std::make_shared<cDestructorChecker>(wasDestroyed)]() {});
         ASSERT_EQ(script->stackSize(), 0) << "after register";
         globalTable.remove("test"s);
@@ -644,7 +644,7 @@ TEST(lua_function_register, function_v_iii)  // void(int,int,int)
 
     cLuaObject globalTable = script->globalTable();
     int result = 0;
-    globalTable.registerFunction<void, int, int, int>("test"s,
+    globalTable.registerFunction<int, int, int>("test"s,
         [&result](int a, int b, int c)
         {
             result = a + b + c;
@@ -662,7 +662,7 @@ TEST(lua_function_register, function_v_t)  // void(cLuaObject)
 
     cLuaObject globalTable = script->globalTable();
     int result = 0;
-    globalTable.registerFunction<void, cLuaObject>("test"s,
+    globalTable.registerFunction<cLuaObject>("test"s,
         [&result](cLuaObject t)
         {
             result = t.get<int>("a") + t.get<int>("b");
@@ -685,7 +685,7 @@ TEST(lua_function_register, trying_to_register_into_nontable)
 
     auto callRegister = [&]()
     {
-        value.registerFunction<void>("test"s, []() {});
+        value.registerFunction("test"s, []() {});
     };
 
     EXPECT_THROW(callRegister(), std::runtime_error);
@@ -705,12 +705,12 @@ TEST(lua_function_register, array_of_functions)
 
     auto testedArray = script->createTable();
 
-    testedArray.registerFunction<int, int, int>(1,
+    testedArray.registerFunction<int, int>(1,
         [](int a, int b) -> int
         {
             return a + b;
         });
-    testedArray.registerFunction<int, int, int>(2,
+    testedArray.registerFunction<int, int>(2,
         [](int a, int b) -> int
         {
             return a - b;
@@ -795,7 +795,7 @@ TEST(lua_object, c_to_lua_back_to_c)
     auto script = std::make_shared<cLuaState>();
 
     cLuaObject globalTable = script->globalTable();
-    globalTable.registerFunction<int, int, int>("test"s,
+    globalTable.registerFunction<int, int>("test"s,
         [](int a, int b) -> int
         {
             return a * b;
@@ -847,7 +847,7 @@ TEST(lua_function_register, function_i_ii)
     auto script = std::make_shared<cLuaState>();
     cLuaObject globalTable = script->globalTable();
 
-    globalTable.registerFunction<int, int, int>("testedFunction"s,
+    globalTable.registerFunction<int, int>("testedFunction"s,
         [](int a, int b)
         {
             return a + b;
@@ -964,7 +964,7 @@ TEST(lua_execute, c_function_i_ii)
     auto script = std::make_shared<cLuaState>();
     auto globalTable = script->globalTable();
 
-    globalTable.registerFunction<int, int, int>("test"s,
+    globalTable.registerFunction<int, int>("test"s,
         [](int r, int l)
         {
             return r + l;
@@ -980,7 +980,7 @@ TEST(lua_execute, c_function_t_t)
     auto script = std::make_shared<cLuaState>();
     auto globalTable = script->globalTable();
 
-    globalTable.registerFunction<cLuaObject, cLuaObject>("test"s,
+    globalTable.registerFunction<cLuaObject>("test"s,
         [](cLuaObject sourceTable)
         {
             auto resultTable = sourceTable.state().createTable();
@@ -1022,7 +1022,7 @@ TEST(lua_oop, exception_from_cpp_function)
     auto script = std::make_shared<cLuaState>();
     auto globalTable = script->globalTable();
 
-    globalTable.registerFunction<int, int, int>("test"s,
+    globalTable.registerFunction<int, int>("test"s,
         [](int r, int l) -> int
         {
             if(r==l)
@@ -1045,7 +1045,7 @@ TEST(lua_oop, exception_from_cpp_function)
     ASSERT_EQ(globalTable.get<int>("result"), 3);
     ASSERT_EQ(script->stackSize(), 0);
 
-    globalTable.registerFunction<int, cLuaObject, cLuaObject>("test2"s,
+    globalTable.registerFunction<cLuaObject, cLuaObject>("test2"s,
         [](cLuaObject r, cLuaObject l) -> int
         {
             if(r.toInt() == l.toInt())
@@ -1116,13 +1116,13 @@ void wikiExamples() // making sure they compile without error
     {
         auto state = std::make_shared<cLuaState>();
         auto globalTable = state->globalTable();
-        globalTable.registerFunction<void, int>("print_int", [](int value) { std::cout << value << "\n"; });
+        globalTable.registerFunction<int>("print_int", [](int value) { std::cout << value << "\n"; });
         state->executeString("print_int(42)");
 
-        globalTable.registerFunction<int, int, int>("sum", [](int a, int b) { return a + b; });
+        globalTable.registerFunction<int, int>("sum", [](int a, int b) { return a + b; });
         state->executeString("print_int(sum(1, 2))");
 
-        globalTable.registerFunction<int>("counter", [counter = 0]() mutable { return ++counter; });
+        globalTable.registerFunction("counter", [counter = 0]() mutable { return ++counter; });
         state->executeString("print_int(counter())\n"
                              "print_int(counter())\n"
                              "print_int(counter())\n");

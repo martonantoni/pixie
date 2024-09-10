@@ -50,7 +50,7 @@ REGISTER_LUA_FUNCTION(LUA_Bridge_Rect, Rect);
 
 void registerGlobalPixieLuaFunctions(cLuaObject globalTable)
 {
-	globalTable.registerFunction<int, int, int, int>("RGB",
+	globalTable.registerFunction<int, int, int>("RGB",
 		[](int red, int green, int blue) -> int
 		{
             ASSERT(red >= 0 && red <= 255);
@@ -58,7 +58,7 @@ void registerGlobalPixieLuaFunctions(cLuaObject globalTable)
             ASSERT(blue >= 0 && blue <= 255);
             return D3DCOLOR_ARGB(0xff, red, green, blue);
 		});
-    globalTable.registerFunction<int, int, int, int, int>("ARGB",
+    globalTable.registerFunction<int, int, int, int>("ARGB",
         [](int alpha, int red, int green, int blue) -> int
         {
             ASSERT(alpha >= 0 && alpha <= 255);
@@ -67,17 +67,17 @@ void registerGlobalPixieLuaFunctions(cLuaObject globalTable)
             ASSERT(blue >= 0 && blue <= 255);
             return D3DCOLOR_ARGB(alpha, red, green, blue);
         });
-	globalTable.registerFunction<int, cLuaObject>("XEnd",
+	globalTable.registerFunction<cLuaObject>("XEnd",
 		[](cLuaObject object) -> int
 		{
 			return object.get<int>("x") + object.get<int>("w");
 		});
-    globalTable.registerFunction<int, cLuaObject>("YEnd",
+    globalTable.registerFunction<cLuaObject>("YEnd",
         [](cLuaObject object) -> int
         {
             return object.get<int>("y") + object.get<int>("h");
         });
-	globalTable.registerFunction<cLuaObject, cLuaState&, int, int, int, int>("Rect",
+	globalTable.registerFunction<cLuaState&, int, int, int, int>("Rect",
 		[](cLuaState& script, int x, int y, int w, int h) -> cLuaObject
 		{
 			cLuaObject rectTable = script.createTable();

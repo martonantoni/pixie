@@ -59,7 +59,8 @@ public:
     template<cLuaRetrievable T = cLuaObject, class D = T> T get(const cKey& key, D&& defaultValue) const;
     template<cLuaRetrievable T = cLuaObject> T get(const cKey& key) const;
     template<cLuaAssignable T> void set(const cKey& key, const T& value);
-    template<cLuaAssignable R, cLuaRetrievable... Args, class C> void registerFunction(const cKey& key, const C& func);
+    template<cLuaRetrievable... Args, class C> requires cLuaAssignable<std::invoke_result_t<C, Args...>>
+    void registerFunction(const cKey& key, const C& func);
     void remove(const cKey& key);
     bool has(const cKey& key) const;
     template<class C> 
@@ -67,7 +68,7 @@ public:
                  std::is_invocable_v<C, const cLuaObject&>
     void forEach(const C& callable) const; 
 // operating on the value itself:
-    template<class T> bool isType() const;
+    template<cLuaRetrievable T> bool isType() const;
     int toInt() const;
     double toDouble() const;
     bool isNumber() const;
@@ -269,7 +270,7 @@ template<cLuaRetrievable T> T cLuaObject::get(const cKey& key) const
     throw std::runtime_error("non-value");
 }
 
-template<class T>
+template<cLuaRetrievable T>
 bool cLuaObject::isType() const
 {
     if (auto L = retrieveSelf())
@@ -370,9 +371,10 @@ auto cLuaObject::callMember(const cKey& functionKey, const Args&... args)
     return get(functionKey).call<ReturnTs...>(*this, args...);
 }
 
-template<cLuaAssignable R, cLuaRetrievable... Args, class C>
+template<cLuaRetrievable... Args, class C> requires cLuaAssignable<std::invoke_result_t<C, Args...>>
 void cLuaObject::registerFunction(const cKey& key, const C& func)
 {
+    using R = std::invoke_result_t<C, Args...>;
     if (auto L = retrieveSelf())
     {
         if (!lua_istable(L, -1))
