@@ -2,6 +2,7 @@
 
 template<class T> concept cLuaAssignable = 
     std::is_same_v<std::decay_t<T>, cLuaObject> ||
+    std::is_same_v<T, void> ||
     std::is_same_v<T, int> ||
     std::is_same_v<T, double> ||
     std::convertible_to<T, std::string_view> ||
@@ -12,7 +13,14 @@ template<class T> concept cLuaRetrievable =
     std::is_same_v<T, int> ||
     std::is_same_v<T, double> ||
     std::is_same_v<T, std::string> ||
-    std::is_same_v<T, bool>;
+    std::is_same_v<T, bool> ||
+    std::is_same_v<T, cLuaState&>;  // <--- only used for registerFunction
+
+struct cLuaReturnVector {};
+
+template<class T> concept cLuaReturnable =
+    std::is_same_v<T, cLuaReturnVector> ||
+    cLuaRetrievable<T>;
 
 class cLuaObject final
 {
@@ -47,11 +55,11 @@ public:
     cLuaObject subTable(const std::string& key) const; // creates a new table if it doesn't exist
     int arraySize() const; // returns the length of the array, returns 0 if the value is not an array
 // when the value is a table, accessing an element:
-    template<class T = cLuaObject> std::optional<T> tryGet(const cKey& key) const;
-    template<class T = cLuaObject, class D = T> T get(const cKey& key, D&& defaultValue) const;
-    template<class T = cLuaObject> T get(const cKey& key) const;    
-    template<class T> void set(const cKey& key, const T& value);
-    template<class R, class... Args, class C> void registerFunction(const cKey& key, const C& func);
+    template<cLuaRetrievable T = cLuaObject> std::optional<T> tryGet(const cKey& key) const;
+    template<cLuaRetrievable T = cLuaObject, class D = T> T get(const cKey& key, D&& defaultValue) const;
+    template<cLuaRetrievable T = cLuaObject> T get(const cKey& key) const;
+    template<cLuaAssignable T> void set(const cKey& key, const T& value);
+    template<cLuaAssignable R, cLuaRetrievable... Args, class C> void registerFunction(const cKey& key, const C& func);
     void remove(const cKey& key);
     bool has(const cKey& key) const;
     template<class C> 
@@ -68,9 +76,8 @@ public:
     bool isFunction() const;
     bool isTable() const;
     template<class C> void visit(const C& callable) const;
-    struct ReturnVector {};
-    template<class... ReturnTs, cLuaAssignable... Args> auto call(const Args&... args);
-    template<class... ReturnTs, cLuaAssignable... Args> auto callMember(const cKey& functionKey, const Args&... args);
+    template<cLuaReturnable... ReturnTs, cLuaAssignable... Args> auto call(const Args&... args);
+    template<cLuaReturnable... ReturnTs, cLuaAssignable... Args> auto callMember(const cKey& functionKey, const Args&... args);
 
     cLuaState& state() { return *mState; }
     const cLuaState& state() const { return *mState; }
@@ -135,7 +142,7 @@ template<class T, class... Ts> void cLuaObject::push(lua_State* L, const T& valu
     push(L, values...);
 }
 
-template<class T>
+template<cLuaAssignable T>
 void cLuaObject::set(const cKey& key, const T& value)
 {
     if(auto L = retrieveSelf())
@@ -226,7 +233,7 @@ T cLuaObject::pop(cLuaState& state, lua_State* L)
     return T{};
 }
 
-template<class T> std::optional<T> cLuaObject::tryGet(const cKey& key) const
+template<cLuaRetrievable T> std::optional<T> cLuaObject::tryGet(const cKey& key) const
 {
     if(auto L = retrieveSelf())
     {
@@ -241,13 +248,13 @@ template<class T> std::optional<T> cLuaObject::tryGet(const cKey& key) const
     return {};
 }
 
-template<class T, class D> T cLuaObject::get(const cKey& key, D&& defaultValue) const
+template<cLuaRetrievable T, class D> T cLuaObject::get(const cKey& key, D&& defaultValue) const
 {
     std::optional<T> value = tryGet<T>(key);
     return value ? *value : std::forward<D>(defaultValue);
 }
 
-template<class T> T cLuaObject::get(const cKey& key) const
+template<cLuaRetrievable T> T cLuaObject::get(const cKey& key) const
 {
     if (auto L = retrieveSelf())
     {
@@ -293,7 +300,7 @@ bool cLuaObject::isType() const
     return false;
 }
 
-template<class... ReturnTs, cLuaAssignable... Args> auto cLuaObject::call(const Args&... args)
+template<cLuaReturnable... ReturnTs, cLuaAssignable... Args> auto cLuaObject::call(const Args&... args)
 {
     if (!mState || mReference == LUA_NOREF)
     {
@@ -331,7 +338,7 @@ template<class... ReturnTs, cLuaAssignable... Args> auto cLuaObject::call(const 
             lua_pop(L, lua_gettop(L) - startSize);
             return;
         }
-        else if constexpr(std::is_same_v<FirstType, ReturnVector>)
+        else if constexpr(std::is_same_v<FirstType, cLuaReturnVector>)
         {
             std::vector<cLuaObject> returnValues;
             auto numberOfReturnValues = lua_gettop(L);
@@ -357,13 +364,13 @@ template<class... ReturnTs, cLuaAssignable... Args> auto cLuaObject::call(const 
     }
 }
 
-template<class... ReturnTs, cLuaAssignable... Args>
+template<cLuaReturnable... ReturnTs, cLuaAssignable... Args>
 auto cLuaObject::callMember(const cKey& functionKey, const Args&... args)
 {
     return get(functionKey).call<ReturnTs...>(*this, args...);
 }
 
-template<class R, class... Args, class C>
+template<cLuaAssignable R, cLuaRetrievable... Args, class C>
 void cLuaObject::registerFunction(const cKey& key, const C& func)
 {
     if (auto L = retrieveSelf())
