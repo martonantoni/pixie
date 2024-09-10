@@ -48,19 +48,19 @@ void cLuaState::dumpStack(lua_State* L)
         {
             printf("table:\n");
             lua_pushnil(L);
-            while (lua_next(L, i) != 0) {
+            while (lua_next(L, i) != 0)
+            {
                 // At this point, the key is at index -2 and the value is at index -1 on the stack
 
                 // Check if the key is the first one
-                if (lua_type(L, -2) == LUA_TSTRING || lua_type(L, -2) == LUA_TNUMBER) {
+                if (lua_type(L, -2) == LUA_TSTRING || lua_type(L, -2) == LUA_TNUMBER) 
+                {
                     const char* key = lua_tostring(L, -2); // Get the key as a string
                     const char* value = lua_tostring(L, -1); // Get the value as a string
 
                     // Print the key-value pair
-                    printf("key-value pair: %s = %s\n", key, value);
-
+                    printf("  %s = %s\n", key, value);
                 }
-
                 // Pop the value, but keep the key for the next iteration
                 lua_pop(L, 1);
             }
@@ -246,32 +246,23 @@ std::string cLuaState::configToScript(const cConfig& config, const std::string& 
             if constexpr (std::is_same_v<decltype(value), int>)
             {
                 std::get<1>(elements.back()) = std::to_string(value);
-//                script += std::to_string(value) + newLine;
             }
             else if constexpr (std::is_same_v<decltype(value), double>)
             {
                 std::get<1>(elements.back()) = std::to_string(value);
-//                script += std::to_string(value) + newLine;
             }
             else if constexpr (std::is_same_v<decltype(value), bool>)
             {
                 std::get<1>(elements.back()) = value ? "true" : "false";
-//                script += (value ? "true" : "false") + newLine;
             }
             else if constexpr (std::is_same_v<decltype(value), std::string>)
             {
                 std::get<1>(elements.back()) = "\""s + value + "\"";
-//                script += "\"" + value + "\"" + newLine;
             }
             else if constexpr (std::is_same_v<decltype(value), std::shared_ptr<cConfig>>)
             {
                 std::get<1>(elements.back()) = configToScript(*value, ident + "  ");
                 std::get<2>(elements.back()) = true;
-
-
-                //script += "\n"s + ident + "{\n"s;
-                //script += configToScript(*value, ident + "  ");
-                //script += ident + "}" + newLine;
             }
         });
     std::ranges::stable_sort(elements, [](const auto& a, const auto& b) { return std::get<0>(a) < std::get<0>(b); });
