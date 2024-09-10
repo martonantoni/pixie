@@ -23,32 +23,6 @@ cLuaObject::~cLuaObject()
     }
 }
 
-cLuaObject& cLuaObject::operator=(const cLuaObject& src)
-{
-    if (&src == this)
-    {
-        return *this;
-    }
-    cLuaObject toDiscard(std::move(*this));
-    if (!src.mState || src.mReference == LUA_NOREF)
-    {
-        return *this;
-    }
-    copy_(src);
-    return *this;
-}
-
-cLuaObject& cLuaObject::operator=(cLuaObject&& src)
-{
-    if (this == &src)
-        return *this;
-    cLuaObject toDiscard(std::move(*this));
-    mReference = src.mReference;
-    src.mReference = LUA_NOREF;
-    mState = std::move(src.mState);
-    return *this;
-}
-
 cLuaObject::cLuaObject(const cLuaObject& src)
 {
     if (!src.mState || src.mReference == LUA_NOREF)

@@ -1,10 +1,18 @@
 #pragma once
 
-template<class T> concept cAssignableToLuaValue = 
-    std::is_same_v<std::decay_t<T>, int> ||
-    std::is_same_v<std::decay_t<T>, double> ||
-    std::convertible_to<std::decay_t<T>, std::string_view> ||
-    std::is_same_v<std::decay_t<T>, bool>;
+template<class T> concept cLuaAssignable = 
+    std::is_same_v<std::decay_t<T>, cLuaObject> ||
+    std::is_same_v<T, int> ||
+    std::is_same_v<T, double> ||
+    std::convertible_to<T, std::string_view> ||
+    std::is_same_v<T, bool>;
+
+template<class T> concept cLuaRetrievable =
+    std::is_same_v<T, cLuaObject> ||
+    std::is_same_v<T, int> ||
+    std::is_same_v<T, double> ||
+    std::is_same_v<T, std::string> ||
+    std::is_same_v<T, bool>;
 
 class cLuaObject final
 {
@@ -33,9 +41,9 @@ public:
     cLuaObject(cLuaObject&& src);
     cLuaObject(const cLuaObject& src);
     ~cLuaObject();
-    template<cAssignableToLuaValue T> cLuaObject& operator=(T&& value);
-    cLuaObject& operator=(cLuaObject&& src);
-    cLuaObject& operator=(const cLuaObject& src);
+    template<cLuaAssignable T> cLuaObject& operator=(T&& value);
+    cLuaObject& operator=(cLuaObject&& src) { return operator=<cLuaObject&&>(std::move(src)); }
+    cLuaObject& operator=(const cLuaObject& src) { return operator=<const cLuaObject&>(src); }
     cLuaObject subTable(const std::string& key) const; // creates a new table if it doesn't exist
     int arraySize() const; // returns the length of the array, returns 0 if the value is not an array
 // when the value is a table, accessing an element:
@@ -61,8 +69,8 @@ public:
     bool isTable() const;
     template<class C> void visit(const C& callable) const;
     struct ReturnVector {};
-    template<class... ReturnTs, class... Args> auto call(const Args&... args);
-    template<class... ReturnTs, class... Args> auto callMember(const cKey& functionKey, const Args&... args);
+    template<class... ReturnTs, cLuaAssignable... Args> auto call(const Args&... args);
+    template<class... ReturnTs, cLuaAssignable... Args> auto callMember(const cKey& functionKey, const Args&... args);
 
     cLuaState& state() { return *mState; }
     const cLuaState& state() const { return *mState; }
@@ -285,7 +293,7 @@ bool cLuaObject::isType() const
     return false;
 }
 
-template<class... ReturnTs, class... Args> auto cLuaObject::call(const Args&... args)
+template<class... ReturnTs, cLuaAssignable... Args> auto cLuaObject::call(const Args&... args)
 {
     if (!mState || mReference == LUA_NOREF)
     {
@@ -349,7 +357,7 @@ template<class... ReturnTs, class... Args> auto cLuaObject::call(const Args&... 
     }
 }
 
-template<class... ReturnTs, class... Args>
+template<class... ReturnTs, cLuaAssignable... Args>
 auto cLuaObject::callMember(const cKey& functionKey, const Args&... args)
 {
     return get(functionKey).call<ReturnTs...>(*this, args...);
@@ -466,32 +474,57 @@ void cLuaObject::forEach(const C& callable) const
     }
 }
 
-template<cAssignableToLuaValue T> cLuaObject& cLuaObject::operator=(T&& value)
+template<cLuaAssignable T> cLuaObject& cLuaObject::operator=(T&& value)
 {
-    if(!mState)
+    if constexpr (std::is_same_v<std::decay_t<T>, cLuaObject>)
     {
-        throw std::runtime_error("not a valid lua object");
+        if (&value == this)
+        {
+            return *this;
+        }
+        if (mReference != LUA_NOREF)
+        {
+            luaL_unref(mState->state(), LUA_REGISTRYINDEX, mReference);
+        }
+        mReference = value.mReference;
+        if constexpr (std::is_rvalue_reference_v<T>)
+        {
+            value.mReference = LUA_NOREF;
+            mState = std::move(value.mState);
+        }
+        else
+        {
+            copy_(value);
+        }
+        mIsGlobalTable = value.mIsGlobalTable;
     }
-    if (mReference != LUA_NOREF)
+    else
     {
-        luaL_unref(mState->state(), LUA_REGISTRYINDEX, mReference);
+        if (!mState)
+        {
+            throw std::runtime_error("not a valid lua object");
+        }
+        if (mReference != LUA_NOREF)
+        {
+            luaL_unref(mState->state(), LUA_REGISTRYINDEX, mReference);
+        }
+        if constexpr (std::is_same_v<std::decay_t<T>, int>)
+        {
+            lua_pushinteger(mState->state(), value);
+        }
+        else if constexpr (std::is_same_v<std::decay_t<T>, bool>)
+        {
+            lua_pushboolean(mState->state(), value);
+        }
+        else if constexpr (std::is_same_v<std::decay_t<T>, double>)
+        {
+            lua_pushnumber(mState->state(), value);
+        }
+        else if constexpr (std::convertible_to<std::decay_t<T>, std::string_view>)
+        {
+            lua_pushstring(mState->state(), std::string_view(value).data());
+        }
+        mReference = luaL_ref(mState->state(), LUA_REGISTRYINDEX);
     }
-    if constexpr (std::is_same_v<std::decay_t<T>, int>)
-    {
-        lua_pushinteger(mState->state(), value);
-    }
-    else if constexpr (std::is_same_v<std::decay_t<T>, bool>)
-    {
-        lua_pushboolean(mState->state(), value);
-    }
-    else if constexpr (std::is_same_v<std::decay_t<T>, double>)
-    {
-        lua_pushnumber(mState->state(), value);
-    }
-    else if constexpr (std::convertible_to<std::decay_t<T>, std::string_view>)
-    {
-        lua_pushstring(mState->state(), std::string_view(value).data());
-    }
-    mReference = luaL_ref(mState->state(), LUA_REGISTRYINDEX);
     return *this;
 }
