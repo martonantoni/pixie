@@ -27,6 +27,7 @@ public:
 	const char *c_str() const { return mPath.c_str(); }
 	cPath operator+(const cPath &Path) const;
 	bool empty() const { return mPath.empty(); }
+	operator std::filesystem::path() const;
 
 	static std::vector<cPath> GetAllFilePath(const cPath &Folder, const std::string &Filter);
 };

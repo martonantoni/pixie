@@ -43,8 +43,7 @@ public:
     template<class T = cLuaObject, class D = T> T get(const cKey& key, D&& defaultValue) const;
     template<class T = cLuaObject> T get(const cKey& key) const;    
     template<class T> void set(const cKey& key, const T& value);
-    template<class R, class... Args, class C> void registerFunction(const cKey& key, const C&& func);
-    template<class T> bool isType(const cKey& key) const;
+    template<class R, class... Args, class C> void registerFunction(const cKey& key, const C& func);
     void remove(const cKey& key);
     bool has(const cKey& key) const;
     template<class C> 
@@ -52,6 +51,7 @@ public:
                  std::is_invocable_v<C, const cLuaObject&>
     void forEach(const C& callable) const; 
 // operating on the value itself:
+    template<class T> bool isType() const;
     int toInt() const;
     double toDouble() const;
     bool isNumber() const;
@@ -59,7 +59,7 @@ public:
     std::string toString() const;
     bool isFunction() const;
     bool isTable() const;
-    template<class C> void visit(C&& callable) const;
+    template<class C> void visit(const C& callable) const;
     struct ReturnVector {};
     template<class... ReturnTs, class... Args> auto call(const Args&... args);
     template<class... ReturnTs, class... Args> auto callMember(const cKey& functionKey, const Args&... args);
@@ -138,7 +138,7 @@ void cLuaObject::set(const cKey& key, const T& value)
     }
 }
 
-template<class C> void cLuaObject::visit(C&& callable) const
+template<class C> void cLuaObject::visit(const C& callable) const
 {
     if(auto L = retrieveSelf())
     {
@@ -255,36 +255,32 @@ template<class T> T cLuaObject::get(const cKey& key) const
 }
 
 template<class T>
-bool cLuaObject::isType(const cKey& key) const
+bool cLuaObject::isType() const
 {
     if (auto L = retrieveSelf())
     {
-        retrieveItem(L, key);
         int type = lua_type(L, -1);
         bool result = false;
         if constexpr (std::is_same_v<T, int>)
         {
-            result = type == LUA_TNUMBER && lua_isinteger(L, -1);
+            return type == LUA_TNUMBER && lua_isinteger(L, -1);
         }
         else if constexpr (std::is_same_v<T, double>)
         {
-            result = type == LUA_TNUMBER;
+            return type == LUA_TNUMBER;
         }
         else if constexpr (std::is_same_v<T, std::string>)
         {
-            result = type == LUA_TSTRING && lua_isstring(L, -1);
+            return type == LUA_TSTRING && lua_isstring(L, -1);
         }
         else if constexpr (std::is_same_v<T, cLuaObject>)
         {
-            result = type == LUA_TTABLE;
+            return type == LUA_TTABLE;
         }
         else if constexpr (std::is_same_v<T, bool>)
         {
-            result = type == LUA_TBOOLEAN;
+            return type == LUA_TBOOLEAN;
         }
-
-        lua_pop(L, 1); // Pop the value (table will be automatically popped when the function returns)
-        return result;
     }
     return false;
 }
@@ -360,7 +356,7 @@ auto cLuaObject::callMember(const cKey& functionKey, const Args&... args)
 }
 
 template<class R, class... Args, class C>
-void cLuaObject::registerFunction(const cKey& key, const C&& func)
+void cLuaObject::registerFunction(const cKey& key, const C& func)
 {
     if (auto L = retrieveSelf())
     {

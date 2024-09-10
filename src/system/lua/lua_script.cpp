@@ -185,7 +185,7 @@ cLuaObject cLuaState::createTable()
     return cLuaObject{ shared_from_this(), luaL_ref(L, LUA_REGISTRYINDEX), true };
 }
 
-cLuaObject cLuaState::createValue()
+cLuaObject cLuaState::createObject()
 {
     return cLuaObject{ shared_from_this() };
 }

@@ -67,3 +67,8 @@ std::vector<cPath> cPath::GetAllFilePath(const cPath &Folder, const std::string 
 	}
 	return Result;
 }
+
+cPath::operator std::filesystem::path() const
+{
+	return { c_str() };
+}
