@@ -5,6 +5,29 @@
 const char* ProgramName = "Pixie / Lua support Test";
 const char* VersionString = "0.4";
 
+//cCallableSignature<decltype(&C::operator())>
+
+template<class C> void testFunc(const C& func) requires cCallableSignature<C>::available
+{
+    func(12);
+}
+
+template<class R, class... Args, class C> void testFunc(const C& func)
+{
+    func(55);
+}
+
+void foo(int a)
+{
+    printf("func %d\n", a);
+}
+
+void test()
+{
+    testFunc<void, int>(&foo);
+    testFunc([](int a) { printf("lambda %d\n", a); });
+}
+
 
 void storeTestVariables(cLuaObject& table)
 {
@@ -644,7 +667,7 @@ TEST(lua_function_register, function_v_iii)  // void(int,int,int)
 
     cLuaObject globalTable = script->globalTable();
     int result = 0;
-    globalTable.registerFunction<int, int, int>("test"s,
+    globalTable.registerFunction("test"s,
         [&result](int a, int b, int c)
         {
             result = a + b + c;
@@ -662,7 +685,7 @@ TEST(lua_function_register, function_v_t)  // void(cLuaObject)
 
     cLuaObject globalTable = script->globalTable();
     int result = 0;
-    globalTable.registerFunction<cLuaObject>("test"s,
+    globalTable.registerFunction("test"s,
         [&result](cLuaObject t)
         {
             result = t.get<int>("a") + t.get<int>("b");
@@ -705,12 +728,12 @@ TEST(lua_function_register, array_of_functions)
 
     auto testedArray = script->createTable();
 
-    testedArray.registerFunction<int, int>(1,
+    testedArray.registerFunction(1,
         [](int a, int b) -> int
         {
             return a + b;
         });
-    testedArray.registerFunction<int, int>(2,
+    testedArray.registerFunction(2,
         [](int a, int b) -> int
         {
             return a - b;
@@ -795,7 +818,7 @@ TEST(lua_object, c_to_lua_back_to_c)
     auto script = std::make_shared<cLuaState>();
 
     cLuaObject globalTable = script->globalTable();
-    globalTable.registerFunction<int, int>("test"s,
+    globalTable.registerFunction("test"s,
         [](int a, int b) -> int
         {
             return a * b;
@@ -847,7 +870,7 @@ TEST(lua_function_register, function_i_ii)
     auto script = std::make_shared<cLuaState>();
     cLuaObject globalTable = script->globalTable();
 
-    globalTable.registerFunction<int, int>("testedFunction"s,
+    globalTable.registerFunction("testedFunction"s,
         [](int a, int b)
         {
             return a + b;
@@ -964,7 +987,7 @@ TEST(lua_execute, c_function_i_ii)
     auto script = std::make_shared<cLuaState>();
     auto globalTable = script->globalTable();
 
-    globalTable.registerFunction<int, int>("test"s,
+    globalTable.registerFunction("test"s,
         [](int r, int l)
         {
             return r + l;
@@ -980,7 +1003,7 @@ TEST(lua_execute, c_function_t_t)
     auto script = std::make_shared<cLuaState>();
     auto globalTable = script->globalTable();
 
-    globalTable.registerFunction<cLuaObject>("test"s,
+    globalTable.registerFunction("test"s,
         [](cLuaObject sourceTable)
         {
             auto resultTable = sourceTable.state().createTable();
@@ -1022,7 +1045,7 @@ TEST(lua_oop, exception_from_cpp_function)
     auto script = std::make_shared<cLuaState>();
     auto globalTable = script->globalTable();
 
-    globalTable.registerFunction<int, int>("test"s,
+    globalTable.registerFunction("test"s,
         [](int r, int l) -> int
         {
             if(r==l)
@@ -1045,7 +1068,7 @@ TEST(lua_oop, exception_from_cpp_function)
     ASSERT_EQ(globalTable.get<int>("result"), 3);
     ASSERT_EQ(script->stackSize(), 0);
 
-    globalTable.registerFunction<cLuaObject, cLuaObject>("test2"s,
+    globalTable.registerFunction("test2"s,
         [](cLuaObject r, cLuaObject l) -> int
         {
             if(r.toInt() == l.toInt())
@@ -1116,10 +1139,10 @@ void wikiExamples() // making sure they compile without error
     {
         auto state = std::make_shared<cLuaState>();
         auto globalTable = state->globalTable();
-        globalTable.registerFunction<int>("print_int", [](int value) { std::cout << value << "\n"; });
+        globalTable.registerFunction("print_int", [](int value) { std::cout << value << "\n"; });
         state->executeString("print_int(42)");
 
-        globalTable.registerFunction<int, int>("sum", [](int a, int b) { return a + b; });
+        globalTable.registerFunction("sum", [](int a, int b) { return a + b; });
         state->executeString("print_int(sum(1, 2))");
 
         globalTable.registerFunction("counter", [counter = 0]() mutable { return ++counter; });
@@ -1188,6 +1211,7 @@ void wikiExamples() // making sure they compile without error
 // Main function to run the tests
 int main(int argc, char** argv)
 {
+    test();
     wikiExamples();
 
     ::testing::InitGoogleTest(&argc, argv);

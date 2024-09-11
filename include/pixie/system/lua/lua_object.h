@@ -59,7 +59,7 @@ public:
     template<cLuaRetrievable T = cLuaObject, class D = T> T get(const cKey& key, D&& defaultValue) const;
     template<cLuaRetrievable T = cLuaObject> T get(const cKey& key) const;
     template<cLuaAssignable T> void set(const cKey& key, const T& value);
-    template<cLuaRetrievable... Args, class C> requires cLuaAssignable<std::invoke_result_t<C, Args...>>
+    template<class C> requires cCallableSignature<C>::available
     void registerFunction(const cKey& key, const C& func);
     void remove(const cKey& key);
     bool has(const cKey& key) const;
@@ -371,76 +371,76 @@ auto cLuaObject::callMember(const cKey& functionKey, const Args&... args)
     return get(functionKey).call<ReturnTs...>(*this, args...);
 }
 
-template<cLuaRetrievable... Args, class C> requires cLuaAssignable<std::invoke_result_t<C, Args...>>
-void cLuaObject::registerFunction(const cKey& key, const C& func)
-{
-    using R = std::invoke_result_t<C, Args...>;
-    if (auto L = retrieveSelf())
-    {
-        if (!lua_istable(L, -1))
-        {
-            throw std::runtime_error("not a table");
-        }
-        pushKey(L, key);
-
-        using FuncType = std::function<R(Args...)>;
-
-        struct cCallableHolder : public cLuaState::cUserDataBase
-        {
-            C mCallable;
-            cLuaState& mState;
-            cCallableHolder(cLuaState& state, const C& callable)
-                : mCallable(callable)
-                , mState(state) {}
-            virtual ~cCallableHolder() = default;
-        };
-        cCallableHolder* holder = mState->pushNewUserData<cCallableHolder>(*mState, func);
-
-        // Create a C function wrapper that calls the callable object
-        lua_CFunction cFunction = [](lua_State* L) -> int
-            {
-                cCallableHolder* holder = static_cast<cCallableHolder*>(lua_touserdata(L, lua_upvalueindex(1)));
-
-                if constexpr (sizeof...(Args) > 0)
-                {
-                    auto arguments = std::make_tuple(pop<std::remove_reference<Args>::type>(holder->mState, L)...);
-                    if constexpr (std::is_same_v<R, void>)
-                    {
-                        std::apply(holder->mCallable, arguments);
-                        return 0;
-                    }
-                    else
-                    {
-                        auto result = std::apply(holder->mCallable, arguments);
-                        push(L, result);
-                        return 1;
-                    }
-                }
-                else
-                {
-                    if constexpr (std::is_same_v<R, void>)
-                    {
-                        (holder->mCallable)();
-                        return 0;
-                    }
-                    else
-                    {
-                        auto result = (holder->mCallable)();
-                        push(L, result);
-                        return 1;
-                    }
-                }
-            };
-        lua_pushcclosure(L, cFunction, 1); // the closure will have the mState as an upvalue
-        // the 1 means that the closure will have 1 upvalue
-
-        lua_settable(L, -3); // Set the value in the table using the variable name
-    }
-    else
-    {
-        throw std::runtime_error("not a valid lua object");
-    }
-}
+//template<cLuaRetrievable... Args, class C> requires cLuaAssignable<std::invoke_result_t<C, Args...>>
+//void cLuaObject::registerFunction(const cKey& key, const C& func)
+//{
+//    using R = std::invoke_result_t<C, Args...>;
+//    if (auto L = retrieveSelf())
+//    {
+//        if (!lua_istable(L, -1))
+//        {
+//            throw std::runtime_error("not a table");
+//        }
+//        pushKey(L, key);
+//
+//        using FuncType = std::function<R(Args...)>;
+//
+//        struct cCallableHolder : public cLuaState::cUserDataBase
+//        {
+//            C mCallable;
+//            cLuaState& mState;
+//            cCallableHolder(cLuaState& state, const C& callable)
+//                : mCallable(callable)
+//                , mState(state) {}
+//            virtual ~cCallableHolder() = default;
+//        };
+//        cCallableHolder* holder = mState->pushNewUserData<cCallableHolder>(*mState, func);
+//
+//        // Create a C function wrapper that calls the callable object
+//        lua_CFunction cFunction = [](lua_State* L) -> int
+//            {
+//                cCallableHolder* holder = static_cast<cCallableHolder*>(lua_touserdata(L, lua_upvalueindex(1)));
+//
+//                if constexpr (sizeof...(Args) > 0)
+//                {
+//                    auto arguments = std::make_tuple(pop<std::remove_reference<Args>::type>(holder->mState, L)...);
+//                    if constexpr (std::is_same_v<R, void>)
+//                    {
+//                        std::apply(holder->mCallable, arguments);
+//                        return 0;
+//                    }
+//                    else
+//                    {
+//                        auto result = std::apply(holder->mCallable, arguments);
+//                        push(L, result);
+//                        return 1;
+//                    }
+//                }
+//                else
+//                {
+//                    if constexpr (std::is_same_v<R, void>)
+//                    {
+//                        (holder->mCallable)();
+//                        return 0;
+//                    }
+//                    else
+//                    {
+//                        auto result = (holder->mCallable)();
+//                        push(L, result);
+//                        return 1;
+//                    }
+//                }
+//            };
+//        lua_pushcclosure(L, cFunction, 1); // the closure will have the mState as an upvalue
+//        // the 1 means that the closure will have 1 upvalue
+//
+//        lua_settable(L, -3); // Set the value in the table using the variable name
+//    }
+//    else
+//    {
+//        throw std::runtime_error("not a valid lua object");
+//    }
+//}
 
 template<class C> 
     requires std::is_invocable_v<C, const std::string&, const cLuaObject&> ||
@@ -536,4 +536,81 @@ template<cLuaAssignable T> cLuaObject& cLuaObject::operator=(T&& value)
         mReference = luaL_ref(mState->state(), LUA_REGISTRYINDEX);
     }
     return *this;
+}
+
+template<class C> requires cCallableSignature<C>::available
+void cLuaObject::registerFunction(const cKey& key, const C& func)
+{
+    using Signature = cCallableSignature<C>;
+    using R = Signature::ReturnType;
+    if (auto L = retrieveSelf())
+    {
+        if (!lua_istable(L, -1))
+        {
+            throw std::runtime_error("not a table");
+        }
+        pushKey(L, key);
+
+        //  using FuncType = std::function<R(Args...)>;
+
+        struct cCallableHolder : public cLuaState::cUserDataBase
+        {
+            C mCallable;
+            cLuaState& mState;
+            cCallableHolder(cLuaState& state, const C& callable)
+                : mCallable(callable)
+                , mState(state) {}
+            virtual ~cCallableHolder() = default;
+        };
+        cCallableHolder* holder = mState->pushNewUserData<cCallableHolder>(*mState, func);
+
+        // Create a C function wrapper that calls the callable object
+        lua_CFunction cFunction = [](lua_State* L) -> int
+            {
+                cCallableHolder* holder = static_cast<cCallableHolder*>(lua_touserdata(L, lua_upvalueindex(1)));
+
+                if constexpr (Signature::numberOfArguments > 0)
+                {
+                    using ARGS = Signature::Arguments;
+                    auto arguments = [&]<size_t... Indices>(std::index_sequence<Indices...>)
+                    {
+                        return std::make_tuple(pop<std::tuple_element_t<Indices, ARGS>>(holder->mState, L)...);
+                    }(std::make_index_sequence<std::tuple_size_v<ARGS>>{});
+
+                    if constexpr (std::is_same_v<R, void>)
+                    {
+                        std::apply(holder->mCallable, arguments);
+                        return 0;
+                    }
+                    else
+                    {
+                        auto result = std::apply(holder->mCallable, arguments);
+                        push(L, result);
+                        return 1;
+                    }
+                }
+                else
+                {
+                    if constexpr (std::is_same_v<R, void>)
+                    {
+                        (holder->mCallable)();
+                        return 0;
+                    }
+                    else
+                    {
+                        auto result = (holder->mCallable)();
+                        push(L, result);
+                        return 1;
+                    }
+                }
+            };
+        lua_pushcclosure(L, cFunction, 1); // the closure will have the mState as an upvalue
+        // the 1 means that the closure will have 1 upvalue
+
+        lua_settable(L, -3); // Set the value in the table using the variable name
+    }
+    else
+    {
+        throw std::runtime_error("not a valid lua object");
+    }
 }
