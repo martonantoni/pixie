@@ -3,31 +3,7 @@
 #include "pixie/system/CommonInclude_System.h"
 
 const char* ProgramName = "Pixie / Lua support Test";
-const char* VersionString = "0.4";
-
-//cCallableSignature<decltype(&C::operator())>
-
-template<class C> void testFunc(const C& func) requires cCallableSignature<C>::available
-{
-    func(12);
-}
-
-template<class R, class... Args, class C> void testFunc(const C& func)
-{
-    func(55);
-}
-
-void foo(int a)
-{
-    printf("func %d\n", a);
-}
-
-void test()
-{
-    testFunc<void, int>(&foo);
-    testFunc([](int a) { printf("lambda %d\n", a); });
-}
-
+const char* VersionString = "1.0";
 
 void storeTestVariables(cLuaObject& table)
 {
@@ -1211,7 +1187,6 @@ void wikiExamples() // making sure they compile without error
 // Main function to run the tests
 int main(int argc, char** argv)
 {
-    test();
     wikiExamples();
 
     ::testing::InitGoogleTest(&argc, argv);

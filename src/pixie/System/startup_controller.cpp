@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 #include "pixie/system/ConsoleCreator.h"
-#include "pixie/system/lua/lua_global_config.h"
 #include <filesystem>
 
 std::shared_ptr<cConfig> theGlobalConfig;
