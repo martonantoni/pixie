@@ -477,7 +477,6 @@ template<class C> requires cCallableSignature<C>::available
 void cLuaObject::registerFunction(const cKey& key, const C& func)
 {
     using Signature = cCallableSignature<C>;
-    using R = Signature::ReturnType;
     if (auto L = retrieveSelf())
     {
         if (!lua_istable(L, -1))
@@ -509,7 +508,7 @@ void cLuaObject::registerFunction(const cKey& key, const C& func)
                         return std::make_tuple(pop<std::decay_t<std::tuple_element_t<Indices, ARGS>>>(holder->mState, L)...);
                     }(std::make_index_sequence<std::tuple_size_v<ARGS>>{});
 
-                    if constexpr (std::is_same_v<R, void>)
+                    if constexpr (std::is_same_v<typename Signature::ReturnType, void>)
                     {
                         std::apply([&](auto&&... args) 
                             { 
@@ -529,7 +528,7 @@ void cLuaObject::registerFunction(const cKey& key, const C& func)
                 }
                 else
                 {
-                    if constexpr (std::is_same_v<R, void>)
+                    if constexpr (std::is_same_v<typename Signature::ReturnType, void>)
                     {
                         (holder->mCallable)();
                         return 0;
