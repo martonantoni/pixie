@@ -14,7 +14,7 @@ template<class T> concept cLuaRetrievable =
     std::is_same_v<T, double> ||
     std::is_same_v<T, std::string> ||
     std::is_same_v<T, bool> ||
-    std::is_same_v<T, cLuaState&>;  // <--- only used for registerFunction
+    std::is_same_v<T, cLuaState>;  // <--- only used for registerFunction
 
 struct cLuaReturnVector {};
 
