@@ -486,8 +486,6 @@ void cLuaObject::registerFunction(const cKey& key, const C& func)
         }
         pushKey(L, key);
 
-        //  using FuncType = std::function<R(Args...)>;
-
         struct cCallableHolder : public cLuaState::cUserDataBase
         {
             C mCallable;
@@ -499,7 +497,6 @@ void cLuaObject::registerFunction(const cKey& key, const C& func)
         };
         cCallableHolder* holder = mState->pushNewUserData<cCallableHolder>(*mState, func);
 
-        // Create a C function wrapper that calls the callable object
         lua_CFunction cFunction = [](lua_State* L) -> int
             {
                 cCallableHolder* holder = static_cast<cCallableHolder*>(lua_touserdata(L, lua_upvalueindex(1)));
@@ -546,7 +543,7 @@ void cLuaObject::registerFunction(const cKey& key, const C& func)
                 }
             };
         lua_pushcclosure(L, cFunction, 1); // the closure will have the mState as an upvalue
-        // the 1 means that the closure will have 1 upvalue
+                                           // the 1 means that the closure will have 1 upvalue
 
         lua_settable(L, -3); // Set the value in the table using the variable name
     }
