@@ -197,41 +197,47 @@ T cLuaObject::pop(cLuaState& state, lua_State* L)
     {
         return cLuaObject(state.shareSelf(), luaL_ref(L, LUA_REGISTRYINDEX), false);
     }
-    FINALLY([&]() { lua_pop(L, 1); });
-    if constexpr (std::is_same_v<T, int>)
+    else
     {
-        if (lua_isinteger(L, -1))
+        FINALLY([&]() { lua_pop(L, 1); });
+        if constexpr (std::is_same_v<T, int>)
         {
-            return static_cast<T>(lua_tointeger(L, -1));
+            if (lua_isinteger(L, -1))
+            {
+                return static_cast<T>(lua_tointeger(L, -1));
+            }
         }
-    }
-    else if constexpr (std::is_same_v<T, double>)
-    {
-        if (lua_isnumber(L, -1))
+        else if constexpr (std::is_same_v<T, double>)
         {
-            return static_cast<T>(lua_tonumber(L, -1));
+            if (lua_isnumber(L, -1))
+            {
+                return static_cast<T>(lua_tonumber(L, -1));
+            }
         }
-    }
-    else if constexpr (std::is_same_v<T, std::string>)
-    {
-        if (lua_isstring(L, -1))
+        else if constexpr (std::is_same_v<T, std::string>)
         {
-            return static_cast<T>(lua_tostring(L, -1));
+            if (lua_isstring(L, -1))
+            {
+                return std::string(lua_tostring(L, -1));
+            }
         }
-    }
-    else if constexpr (std::is_same_v<T, cLuaState>)
-    {
-        return cLuaState(L);
-    }
-    else if constexpr (std::is_same_v<T, bool>)
-    {
-        if (lua_isboolean(L, -1))
+        else if constexpr (std::is_same_v<T, cLuaState>)
         {
-            return lua_toboolean(L, -1) != 0;
+            return cLuaState(L);
+        }
+        else if constexpr (std::is_same_v<T, bool>)
+        {
+            if (lua_isboolean(L, -1))
+            {
+                return lua_toboolean(L, -1) != 0;
+            }
+        }
+        else
+        {
+            static_assert(false);
         }
     }
     cLuaState::error(L, "pop: type mismatch");
-    return T{};
 }
 
 template<cLuaRetrievable T> std::optional<T> cLuaObject::tryGet(const cKey& key) const
@@ -371,77 +377,6 @@ auto cLuaObject::callMember(const cKey& functionKey, const Args&... args)
     return get(functionKey).call<ReturnTs...>(*this, args...);
 }
 
-//template<cLuaRetrievable... Args, class C> requires cLuaAssignable<std::invoke_result_t<C, Args...>>
-//void cLuaObject::registerFunction(const cKey& key, const C& func)
-//{
-//    using R = std::invoke_result_t<C, Args...>;
-//    if (auto L = retrieveSelf())
-//    {
-//        if (!lua_istable(L, -1))
-//        {
-//            throw std::runtime_error("not a table");
-//        }
-//        pushKey(L, key);
-//
-//        using FuncType = std::function<R(Args...)>;
-//
-//        struct cCallableHolder : public cLuaState::cUserDataBase
-//        {
-//            C mCallable;
-//            cLuaState& mState;
-//            cCallableHolder(cLuaState& state, const C& callable)
-//                : mCallable(callable)
-//                , mState(state) {}
-//            virtual ~cCallableHolder() = default;
-//        };
-//        cCallableHolder* holder = mState->pushNewUserData<cCallableHolder>(*mState, func);
-//
-//        // Create a C function wrapper that calls the callable object
-//        lua_CFunction cFunction = [](lua_State* L) -> int
-//            {
-//                cCallableHolder* holder = static_cast<cCallableHolder*>(lua_touserdata(L, lua_upvalueindex(1)));
-//
-//                if constexpr (sizeof...(Args) > 0)
-//                {
-//                    auto arguments = std::make_tuple(pop<std::remove_reference<Args>::type>(holder->mState, L)...);
-//                    if constexpr (std::is_same_v<R, void>)
-//                    {
-//                        std::apply(holder->mCallable, arguments);
-//                        return 0;
-//                    }
-//                    else
-//                    {
-//                        auto result = std::apply(holder->mCallable, arguments);
-//                        push(L, result);
-//                        return 1;
-//                    }
-//                }
-//                else
-//                {
-//                    if constexpr (std::is_same_v<R, void>)
-//                    {
-//                        (holder->mCallable)();
-//                        return 0;
-//                    }
-//                    else
-//                    {
-//                        auto result = (holder->mCallable)();
-//                        push(L, result);
-//                        return 1;
-//                    }
-//                }
-//            };
-//        lua_pushcclosure(L, cFunction, 1); // the closure will have the mState as an upvalue
-//        // the 1 means that the closure will have 1 upvalue
-//
-//        lua_settable(L, -3); // Set the value in the table using the variable name
-//    }
-//    else
-//    {
-//        throw std::runtime_error("not a valid lua object");
-//    }
-//}
-
 template<class C> 
     requires std::is_invocable_v<C, const std::string&, const cLuaObject&> ||
              std::is_invocable_v<C, const cLuaObject&>
@@ -572,19 +507,25 @@ void cLuaObject::registerFunction(const cKey& key, const C& func)
                 if constexpr (Signature::numberOfArguments > 0)
                 {
                     using ARGS = Signature::Arguments;
-                    auto arguments = [&]<size_t... Indices>(std::index_sequence<Indices...>)
+                    ARGS arguments = [&]<size_t... Indices>(std::index_sequence<Indices...>)
                     {
-                        return std::make_tuple(pop<std::tuple_element_t<Indices, ARGS>>(holder->mState, L)...);
+                        return std::make_tuple(pop<std::decay_t<std::tuple_element_t<Indices, ARGS>>>(holder->mState, L)...);
                     }(std::make_index_sequence<std::tuple_size_v<ARGS>>{});
 
                     if constexpr (std::is_same_v<R, void>)
                     {
-                        std::apply(holder->mCallable, arguments);
+                        std::apply([&](auto&&... args) 
+                            { 
+                                holder->mCallable(std::move(args)...); 
+                            }, arguments);
                         return 0;
                     }
                     else
                     {
-                        auto result = std::apply(holder->mCallable, arguments);
+                        auto result = std::apply([&](auto&&... args) 
+                            { 
+                                return holder->mCallable(std::move(args)...); 
+                            }, arguments);
                         push(L, result);
                         return 1;
                     }

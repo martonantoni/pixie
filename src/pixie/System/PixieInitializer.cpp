@@ -77,16 +77,16 @@ void registerGlobalPixieLuaFunctions(cLuaObject globalTable)
         {
             return object.get<int>("y") + object.get<int>("h");
         });
-	//globalTable.registerFunction("Rect",
-	//	[](cLuaState script, int x, int y, int w, int h) -> cLuaObject
-	//	{
-	//		cLuaObject rectTable = script.createTable();
-	//		rectTable.set("x", x);
-	//		rectTable.set("y", y);
-	//		rectTable.set("w", w);
-	//		rectTable.set("h", h);
-	//		return rectTable;
-	//	});
+	globalTable.registerFunction("Rect",
+		[](cLuaState script, int x, int y, int w, int h) -> cLuaObject
+		{
+			cLuaObject rectTable = script.createTable();
+			rectTable.set("x", x);
+			rectTable.set("y", y);
+			rectTable.set("w", w);
+			rectTable.set("h", h);
+			return rectTable;
+		});
 
 
 	globalTable.state().executeString(
