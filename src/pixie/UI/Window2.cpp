@@ -134,6 +134,11 @@ void cPixieWindow::SetPlacement(const cRect &Rect)
 	mEventDispatchers.PostEvent(Event_PlacementChanged);
 }
 
+void cPixieWindow::SetValidRect(const cRect& ValidRect)
+{
+	mValidRect = ValidRect;
+}
+
 void cPixieWindow::setPosition(const cPoint& Position)
 {
 	SetPlacement({ Position, mPlacement.size() });

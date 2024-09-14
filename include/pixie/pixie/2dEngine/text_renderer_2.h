@@ -114,6 +114,8 @@ class cTextRenderer2
     int getNextTabStop(int x) const;
 public:
     void init(const cTextRenderer2Config& config, const cTextRenderer2Target& target);
+    void setTarget(const cTextRenderer2Target& target);
+    void setTargetWidth(int width);
 
 
     cTextRenderer2BlockResult render(const cTextRenderer2Block& block);

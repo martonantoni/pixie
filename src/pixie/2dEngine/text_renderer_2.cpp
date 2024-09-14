@@ -11,6 +11,16 @@ void cTextRenderer2::init(const cTextRenderer2Config& config, const cTextRendere
     mTarget = target;
 }
 
+void cTextRenderer2::setTarget(const cTextRenderer2Target& target)
+{
+    mTarget = target;
+}
+
+void cTextRenderer2::setTargetWidth(int width)
+{
+    mTarget.mWidth = width;
+}
+
 std::pair<const cFont&, const cColor&>  cTextRenderer2::determineFont(const cTextRenderer2Block& block, const cTextRenderer2Span& span) const
 {
     auto& color = span.mIsLink ? mConfig.mColors.mLinkRegular : mConfig.mColors.mDefaultColor;
