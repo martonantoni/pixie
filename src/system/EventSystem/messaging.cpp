@@ -32,31 +32,62 @@ void cMessageCenter::dispatch()
 
 void cMessageCenter::post(const std::string& endpointID)
 {
-    auto& dispatcher = mDispatchers[endpointID];
-    if (!dispatcher)
-        dispatcher = std::make_unique<cVoidDispatcher>();
+    auto& endPoint = mEndPoints[endpointID];
+    if (!endPoint)
+    {
+        endPoint = std::make_unique<cEndPoint>();
+        endPoint->mMessageType.emplace(typeid(void));
+        endPoint->mVoidDispatcher = std::make_unique<cVoidDispatcher>();
+    }
     else
     {
-        if (dispatcher->messageType() != typeid(void))
-            throw std::runtime_error("Wrong message type");
+        // for posting the message type has to match even if it is void
+        if (endPoint->mMessageType.has_value())
+        {
+            if (*endPoint->mMessageType != typeid(void))
+                throw std::runtime_error("Wrong message type");
+        }
+        else
+            endPoint->mMessageType.emplace(typeid(void));
     }
     ++mLastPostedMessageIndex;
-    mEventsWriting.emplace_back(std::monostate(), dispatcher.get());
+    mEventsWriting.emplace_back(std::monostate(), endPoint.get());
     if (mNeedDispatchProcessor)
         mNeedDispatchProcessor();
 }
 
 void cMessageCenter::send(const std::string& endpointID)
 {
-    auto& dispatcher = mDispatchers[endpointID];
-    if (!dispatcher)
-        return;
-    if (dispatcher->messageType() != typeid(void))
-        throw std::runtime_error("Wrong message type");
-    dispatcher->dispatch(std::monostate(), mDirectMessageIndex);
+    auto& endPoint = mEndPoints[endpointID];
+    if (!endPoint)
+    {
+        endPoint = std::make_unique<cEndPoint>();
+        endPoint->mMessageType.emplace(typeid(void));
+        endPoint->mVoidDispatcher = std::make_unique<cVoidDispatcher>();
+    }
+    else
+    {
+        // for posting the message type has to match even if it is void
+        if (endPoint->mMessageType.has_value())
+        {
+            if (*endPoint->mMessageType != typeid(void))
+                throw std::runtime_error("Wrong message type");
+        }
+        else
+            endPoint->mMessageType.emplace(typeid(void));
+    }
+    endPoint->dispatch(std::monostate(), mDirectMessageIndex);
 }
  
 void cMessageCenter::setNeedDispatchProcessor(std::function<void()> needDispatchProcessor)
 {
     mNeedDispatchProcessor = needDispatchProcessor;
+}
+
+void cMessageCenter::cEndPoint::dispatch(const std::any& messageData, int messageIndex)
+{
+    if (mDispatcher)
+        mDispatcher->dispatch(messageData, messageIndex);
+    if (mVoidDispatcher)
+        mVoidDispatcher->dispatch(messageData, messageIndex);
 }

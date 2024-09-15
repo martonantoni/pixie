@@ -8,16 +8,14 @@ class cMessageCenter final
     static constexpr int mDirectMessageIndex = -1;
     class cDispatcher
     {
-        std::type_index mMessageType;
     public:
-        cDispatcher(const std::type_index& messageType) : mMessageType(messageType) {}
+        cDispatcher() = default;
         virtual ~cDispatcher() = default;
         virtual void dispatch(const std::any& messageData, int messageIndex) = 0;
-        const std::type_index& messageType() const { return mMessageType; }
     };
     template<class T> struct tDispatcher : public cDispatcher
     {
-        tDispatcher() : cDispatcher(typeid(T)) {}
+        tDispatcher() = default;
         using cFunctions = std::variant<std::monostate, std::function<void(const T&)>, std::function<void(T)>, std::function<void()>>;
         struct cListener
         {
@@ -30,7 +28,7 @@ class cMessageCenter final
     };
     template<> struct tDispatcher<void> : public cDispatcher
     {
-        tDispatcher() : cDispatcher(typeid(void)) {}
+        tDispatcher() = default;
         using cFunction = std::function<void()>;
         struct cListener
         {
@@ -43,11 +41,20 @@ class cMessageCenter final
         tRegisteredObjects<cListener> mListeners;
     };
     using cVoidDispatcher = tDispatcher<void>;
-    std::unordered_map<std::string, std::unique_ptr<cDispatcher>> mDispatchers;
+    struct cUnknownMessageType {};
+    struct cEndPoint
+    {
+        std::optional<std::type_index> mMessageType;
+        std::unique_ptr<cDispatcher> mDispatcher;
+        std::unique_ptr<cVoidDispatcher> mVoidDispatcher;
+        void dispatch(const std::any& messageData, int messageIndex);
+    };
+    using cDispatchers = std::unordered_map<std::string, std::unique_ptr<cEndPoint>>;
+    cDispatchers mEndPoints;
     struct cEvent
     {
         std::any mMessageData;
-        cDispatcher* mDispatcher;
+        cEndPoint* mDispatcher;
     };
     std::vector<cEvent> mEventsWriting;
     std::vector<cEvent> mEventsReading;
@@ -111,40 +118,87 @@ void cMessageCenter::tDispatcher<T>::dispatch(const std::any& messageData, int m
 
 template<class T> void cMessageCenter::post(const std::string& endpointID, T&& messageData)
 {
-    auto& dispatcher = mDispatchers[endpointID];
-    if (!dispatcher)
-        dispatcher = std::make_unique<tDispatcher<std::decay_t<T>>>();
+    auto& endPoint = mEndPoints[endpointID];
+    if (!endPoint)
+    {
+        endPoint = std::make_unique<cEndPoint>();
+        endPoint->mMessageType.emplace(typeid(std::decay_t<T>));
+        endPoint->mDispatcher = std::make_unique<tDispatcher<std::decay_t<T>>>();
+    }
     else
     {
-        if (dispatcher->messageType() != typeid(std::decay_t<T>))
-            throw std::runtime_error("Wrong message type");
+        // for posting the message type has to match even if it is void
+        if (endPoint->mMessageType.has_value())
+        {
+            if (*endPoint->mMessageType != typeid(std::decay_t<T>))
+                throw std::runtime_error("Wrong message type");
+        }
+        else
+        {
+            endPoint->mMessageType.emplace(typeid(std::decay_t<T>));
+        }
     }
     ++mLastPostedMessageIndex;
-    mEventsWriting.emplace_back(std::forward<T>(messageData), dispatcher.get());
+    mEventsWriting.emplace_back(std::forward<T>(messageData), endPoint.get());
     if(mNeedDispatchProcessor)
         mNeedDispatchProcessor();
 }
 
 template<class T> void cMessageCenter::send(const std::string& endpointID, T&& messageData)
 {
-    auto& dispatcher = mDispatchers[endpointID];
-    if (!dispatcher)
-        return; // no listeners
-    if (dispatcher->messageType() != typeid(std::decay_t<T>))
-        throw std::runtime_error("Wrong message type");
-    dispatcher->dispatch(std::forward<T>(messageData), mDirectMessageIndex);
+    auto& endPoint = mEndPoints[endpointID];
+    if (!endPoint)
+    {
+        endPoint = std::make_unique<cEndPoint>();
+        endPoint->mMessageType.emplace(typeid(std::decay_t<T>));
+        endPoint->mDispatcher = std::make_unique<tDispatcher<std::decay_t<T>>>();
+    }
+    else
+    {
+        // for posting the message type has to match even if it is void
+        if (endPoint->mMessageType.has_value())
+        {
+            if (*endPoint->mMessageType != typeid(std::decay_t<T>))
+                throw std::runtime_error("Wrong message type");
+        }
+        else
+        {
+            endPoint->mMessageType.emplace(typeid(std::decay_t<T>));
+        }
+    }
+    endPoint->dispatch(std::forward<T>(messageData), mDirectMessageIndex);
 }
 
 template<class T, class C> requires cMessageListener<C, T>
     cRegisteredID cMessageCenter::registerListener(const std::string& endpointID, const C& listener)
 {
-    auto& dispatcher = mDispatchers[endpointID];
-    if (!dispatcher)
-        dispatcher = std::make_unique<tDispatcher<T>>();
-    auto dispatcherT = dynamic_cast<tDispatcher<T>*>(dispatcher.get());
-    if (!dispatcherT)
-        throw std::runtime_error("Wrong message type");
-    return dispatcherT->mListeners.Register(tDispatcher<T>::cListener(listener, mLastPostedMessageIndex));
+    auto& endPoint = mEndPoints[endpointID];
+    if (!endPoint)
+    {
+        endPoint = std::make_unique<cEndPoint>();
+    }
+    if constexpr (std::is_same_v<T, void>)
+    {
+        if (!endPoint->mVoidDispatcher)
+            endPoint->mVoidDispatcher = std::make_unique<tDispatcher<void>>();
+        return endPoint->mVoidDispatcher->mListeners.Register(tDispatcher<void>::cListener(listener, mLastPostedMessageIndex));
+    }
+    else
+    {
+        if (!endPoint->mMessageType.has_value())
+        {
+            endPoint->mMessageType = typeid(std::decay_t<T>);
+        }
+        else
+        {
+            if (*endPoint->mMessageType != typeid(std::decay_t<T>))
+                throw std::runtime_error("Wrong message type");
+        }
+        if (!endPoint->mDispatcher)
+            endPoint->mDispatcher = std::make_unique<tDispatcher<std::decay_t<T>>>();
+        auto dispatcherT = dynamic_cast<tDispatcher<std::decay_t<T>>*>(endPoint->mDispatcher.get());
+        return dispatcherT->mListeners.Register(tDispatcher<std::decay_t<T>>::cListener(listener, mLastPostedMessageIndex));
+    }
 }
 
 extern cMessageCenter theMessageCenter;
