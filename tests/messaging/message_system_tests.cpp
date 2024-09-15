@@ -83,7 +83,7 @@ TEST(message_system, listening_with_void)
 {
     cMessageCenter messageCenter;
     int numberOfMessagesReceived = 0;
-    auto listenerID = messageCenter.registerListener<int>(
+    auto listenerID = messageCenter.registerListener(
         "test",
         [&]()
         {

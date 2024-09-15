@@ -66,7 +66,7 @@ public:
     template<class T> void send(const std::string& endpointID, T&& messageData);
     void post(const std::string& endpointID);
     void send(const std::string& endpointID);
-    template<class T, class C> requires cMessageListener<C, T>
+    template<class T = void, class C> requires cMessageListener<C, T>
         [[nodiscard]] cRegisteredID registerListener(const std::string& endpointID, const C& listener);
     void dispatch();
     void setNeedDispatchProcessor(std::function<void()> needDispatchProcessor);
