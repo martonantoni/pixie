@@ -173,6 +173,7 @@ template<class T, class C> requires cMessageListener<C, T>
     cRegisteredID cMessageCenter::registerListener(const std::string& endpointID, const C& listener)
 {
     auto& endPoint = mEndPoints[endpointID];
+    int messageFilter = mEventsReading.empty() ? mLastPostedMessageIndex : mDispatchedMessageIndex;
     if (!endPoint)
     {
         endPoint = std::make_unique<cEndPoint>();
@@ -181,7 +182,7 @@ template<class T, class C> requires cMessageListener<C, T>
     {
         if (!endPoint->mVoidDispatcher)
             endPoint->mVoidDispatcher = std::make_unique<tDispatcher<void>>();
-        return endPoint->mVoidDispatcher->mListeners.Register(tDispatcher<void>::cListener(listener, mLastPostedMessageIndex));
+        return endPoint->mVoidDispatcher->mListeners.Register(tDispatcher<void>::cListener(listener, messageFilter));
     }
     else
     {
@@ -197,7 +198,7 @@ template<class T, class C> requires cMessageListener<C, T>
         if (!endPoint->mDispatcher)
             endPoint->mDispatcher = std::make_unique<tDispatcher<std::decay_t<T>>>();
         auto dispatcherT = dynamic_cast<tDispatcher<std::decay_t<T>>*>(endPoint->mDispatcher.get());
-        return dispatcherT->mListeners.Register(tDispatcher<std::decay_t<T>>::cListener(listener, mLastPostedMessageIndex));
+        return dispatcherT->mListeners.Register(tDispatcher<std::decay_t<T>>::cListener(listener, messageFilter));
     }
 }
 

@@ -79,6 +79,30 @@ TEST(message_system, post_before_listener_added_is_not_delivered)
     EXPECT_EQ(numberOfMessagesReceived, 1);
 }
 
+TEST(message_system, registering_from_listeners_gets_later_messages_delivered)
+{
+    cMessageCenter messageCenter;
+
+    cRegisteredID secondListenerID;
+    auto firstListenerID = messageCenter.registerListener<int>(
+        "test.a.b.c",
+        [&](int message)
+        {
+            secondListenerID = messageCenter.registerListener<int>(
+                "test.d.e.f",
+                [&](int message)
+                {
+                    EXPECT_EQ(message, 3);
+                });
+        });
+
+    messageCenter.post("test.d.e.f", 1);  // must not get delivered
+    messageCenter.post("test.a.b.c", 2);  // delivered, listener registers another listener
+    messageCenter.post("test.d.e.f", 3);  // must get delivered
+
+    messageCenter.dispatch();
+}
+
 TEST(message_system, listening_with_void)
 {
     cMessageCenter messageCenter;
