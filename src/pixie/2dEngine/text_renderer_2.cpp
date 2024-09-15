@@ -51,16 +51,20 @@ std::pair<const cFont&, const cColor&>  cTextRenderer2::determineFont(const cTex
     return { *mConfig.mFonts.mRegular, color };
 }
 
-int cTextRenderer2::getNextTabStop(int x) const
+int cTextRenderer2::getNextTabStop(int x, int tabWidthOverride) const
 {
-    for (int tabStop : mTarget.mTabStops)
+    if (tabWidthOverride != -1)
     {
-        if (tabStop > x)
+        for (int tabStop : mTarget.mTabStops)
         {
-            return tabStop;
+            if (tabStop > x)
+            {
+                return tabStop;
+            }
         }
     }
-    int tabWidth = mConfig.mTabWidth * mConfig.mFonts.mRegular->letterData(' ').advance();
+    int tabWidthInSpaces = tabWidthOverride != -1 ? tabWidthOverride : mConfig.mTabWidth;
+    int tabWidth = tabWidthInSpaces * mConfig.mFonts.mRegular->letterData(' ').advance();
     return x + tabWidth - x % tabWidth;
 }
 
@@ -235,7 +239,7 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
         x = word.mEndX = x + word.width();            
         if (word.separator == '\t')
         {
-            x = getNextTabStop(x);
+            x = getNextTabStop(x, block.mTabWidth);
         }
         else if (word.separator == ' ')
         {
@@ -468,6 +472,16 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
                 if (block.mHeadingLevel == 1)
                 {
                     block.mAlign = cTextRenderer2Block::eAlign::Center; // the top heading is centered by default
+                }
+                continue; // ignore rest of the word
+            }
+            if(word.starts_with("@t") && word.size() >= 3)
+            {
+                pushSpan();
+                block.mTabWidth = word[2] - '0';
+                if (word.size() >= 4)
+                {
+                    block.mTabWidth = block.mTabWidth * 10 + word[3] - '0';
                 }
                 continue; // ignore rest of the word
             }

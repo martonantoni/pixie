@@ -57,6 +57,7 @@ struct cTextRenderer2Block
         std::string mType;
     } mCodeBlock;
     int mHeadingLevel = -1; // -1 means not a heading
+    int mTabWidth = -1; // -1 means not set (use config)
 };
 
 struct cTextRenderer2BlockResult
@@ -111,7 +112,7 @@ class cTextRenderer2
         int lineFirstWordIndex,
         int lineLastWordIndex,
         int lineYOffset) const;
-    int getNextTabStop(int x) const;
+    int getNextTabStop(int x, int tabWidthOverride) const;
 public:
     void init(const cTextRenderer2Config& config, const cTextRenderer2Target& target);
     void setTarget(const cTextRenderer2Target& target);
@@ -129,6 +130,7 @@ public:
     @< paragraph left aligned, @<+ default align: left aligned
     @> paragraph right aligned, @>+ default align: right aligned
     @= paragraph justified, @=+ default align: justified
+    @txx override tab width for paragraph, xx: number of spaces
     @h1 @| centered heading 1
     alma **bold text** korte __italic text__ barack
     alma [[link text]] korte [[link_id:link text]] barack
