@@ -17,8 +17,6 @@ public:
     // init flags:
     constexpr static int Flag_ClickThrough = 1;
     constexpr static int Flag_IsModal = 2;  // this is within its parentwindow
-	constexpr static int Flag_ClipSpritesToValidRect = 4;
-	constexpr static int Flag_ClipSpritesToScreenRect = 4;
 private:
 	static const cEventDispatchers::cDispatcherRangeInfo mDispatcherRangeInfo;
 	cEventDispatchers mEventDispatchers;
