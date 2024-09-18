@@ -7,6 +7,7 @@ struct cSignatureExtractor<R(C::*)(Args...)>
 {
     using ReturnType = R;
     using Arguments = std::tuple<Args...>;
+    using DecayedArguments = std::tuple<std::decay_t<Args>...>;
     static constexpr size_t numberOfArguments = sizeof...(Args);
     static constexpr bool isConst = false;
     static constexpr bool available = true;
@@ -17,6 +18,7 @@ struct cSignatureExtractor<R(C::*)(Args...) const>
 {
     using ReturnType = R;
     using Arguments = std::tuple<Args...>;
+    using DecayedArguments = std::tuple<std::decay_t<Args>...>;
     static constexpr size_t numberOfArguments = sizeof...(Args);
     static constexpr bool isConst = true;
     static constexpr bool available = true;
@@ -27,6 +29,7 @@ struct cSignatureExtractor<R(*)(Args...)>
 {
     using ReturnType = R;
     using Arguments = std::tuple<Args...>;
+    using DecayedArguments = std::tuple<std::decay_t<Args>...>;
     static constexpr size_t numberOfArguments = sizeof...(Args);
     static constexpr bool available = true;
 };

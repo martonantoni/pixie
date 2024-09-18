@@ -858,6 +858,43 @@ TEST(lua_function_register, function_i_ii)
     ASSERT_EQ(script->stackSize(), 0);
 }
 
+TEST(lua_function_register, function_v_cs)
+{
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
+
+    std::string result;
+    globalTable.registerFunction("testedFunction"s,
+        [&result](const std::string& s)
+        {
+            result = s;
+        });
+
+    globalTable.get("testedFunction"s).call("hello"s);
+    ASSERT_STREQ(result.c_str(), "hello");
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_function_register, function_v_s)
+{
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
+
+    std::string result;
+    globalTable.registerFunction("testedFunction"s,
+        [&result](std::string s)
+        {
+            result = s;
+        });
+
+    globalTable.get("testedFunction"s).call("hello"s);
+    ASSERT_STREQ(result.c_str(), "hello");
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+
 void setupConfigTestVariables(cLuaState& script)
 {
     cLuaObject globalTable = script.globalTable();

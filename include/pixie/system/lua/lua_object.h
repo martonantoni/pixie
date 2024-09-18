@@ -502,10 +502,10 @@ void cLuaObject::registerFunction(const cKey& key, const C& func)
 
                 if constexpr (Signature::numberOfArguments > 0)
                 {
-                    using ARGS = Signature::Arguments;
+                    using ARGS = Signature::DecayedArguments;
                     ARGS arguments = [&]<size_t... Indices>(std::index_sequence<Indices...>)
                     {
-                        return std::make_tuple(pop<std::decay_t<std::tuple_element_t<Indices, ARGS>>>(holder->mState, L)...);
+                        return std::make_tuple(pop<std::tuple_element_t<Indices, ARGS>>(holder->mState, L)...);
                     }(std::make_index_sequence<std::tuple_size_v<ARGS>>{});
 
                     if constexpr (std::is_same_v<typename Signature::ReturnType, void>)
