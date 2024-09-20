@@ -74,10 +74,16 @@ struct cTextRenderer2BlockResult
     std::vector<cLinkInfo> mLinks;
 };
 
+using cTextColorSelector = std::variant<
+    std::monostate,
+    std::function<std::optional<cColor>(const cTextRenderer2Span&)>, 
+    std::function<std::optional<cColor>(const cTextRenderer2Span&, std::string_view)>>;
+
 class cTextRenderer2
 {
     cTextRenderer2Config mConfig;
     cTextRenderer2Target mTarget;
+    cTextColorSelector mColorSelector;
     struct cWord final
     {
         int mFirstSpriteIndex;
@@ -101,7 +107,7 @@ class cTextRenderer2
         void overridePrefixSize(int size);
     };
     std::vector<cWord> mWords;
-    std::pair<const cFont&, const cColor&> determineFont(const cTextRenderer2Block& block, const cTextRenderer2Span& span) const;
+    std::pair<const cFont&, cColor> determineFont(const cTextRenderer2Block& block, const cTextRenderer2Span& span) const;
     using eAlign = cTextRenderer2Block::eAlign;
     using cSpan = cTextRenderer2Span;
     using cBlock = cTextRenderer2Block;
@@ -118,6 +124,11 @@ public:
     void setTarget(const cTextRenderer2Target& target);
     void setTargetWidth(int width);
 
+    template<class T> void setColorSelector(T&& colorSelector) requires std::constructible_from<cTextColorSelector, T>
+    {
+        // Used during the render call
+        mColorSelector = std::forward<T>(colorSelector);
+    }
 
     cTextRenderer2BlockResult render(const cTextRenderer2Block& block);
 

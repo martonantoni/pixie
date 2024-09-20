@@ -21,7 +21,7 @@ void cTextRenderer2::setTargetWidth(int width)
     mTarget.mWidth = width;
 }
 
-std::pair<const cFont&, const cColor&>  cTextRenderer2::determineFont(const cTextRenderer2Block& block, const cTextRenderer2Span& span) const
+std::pair<const cFont&, cColor>  cTextRenderer2::determineFont(const cTextRenderer2Block& block, const cTextRenderer2Span& span) const
 {
     auto& color = span.mIsLink ? mConfig.mColors.mLinkRegular : mConfig.mColors.mDefaultColor;
     if (block.mIsCodeBlock || span.mIsMonospace)
@@ -171,6 +171,10 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
     for (auto& span : block.mSpans)
     {
         auto [font, color] = determineFont(block, span);
+        if (mColorSelector.index() == 1)
+        {
+            color = std::get<1>(mColorSelector)(span).value_or(color);
+        }
         int spaceWidth = font.letterData(' ').advance();
         auto addText = [&](std::string_view text)
             {
@@ -191,6 +195,10 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
                     cPoint position(0, 0);
                     while (!textWord.empty())
                     {
+                        if(mColorSelector.index() == 2)
+                        {
+                            color = std::get<2>(mColorSelector)(span, textWord).value_or(color);
+                        }
                         wchar_t decodedChar = UTF8::popCharacter(textWord);
                         auto& letterData = font.letterData(decodedChar);
                         auto sprite = std::make_unique<cSprite>();
