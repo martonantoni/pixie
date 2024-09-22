@@ -199,6 +199,10 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
                         {
                             color = std::get<2>(mColorSelector)(span, textWord).value_or(color);
                         }
+                        else if(mColorSelector.index() == 3)
+                        {
+                            color = std::get<3>(mColorSelector)(textWord).value_or(color);
+                        }
                         wchar_t decodedChar = UTF8::popCharacter(textWord);
                         auto& letterData = font.letterData(decodedChar);
                         auto sprite = std::make_unique<cSprite>();

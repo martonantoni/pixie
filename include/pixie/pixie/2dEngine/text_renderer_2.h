@@ -77,7 +77,8 @@ struct cTextRenderer2BlockResult
 using cTextColorSelector = std::variant<
     std::monostate,
     std::function<std::optional<cColor>(const cTextRenderer2Span&)>, 
-    std::function<std::optional<cColor>(const cTextRenderer2Span&, std::string_view)>>;
+    std::function<std::optional<cColor>(const cTextRenderer2Span&, std::string_view)>,
+    std::function<std::optional<cColor>(std::string_view)>>;
 
 class cTextRenderer2
 {
