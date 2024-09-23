@@ -192,16 +192,20 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
                     word.mHeight = font.height();
                     word.mAscender = font.ascender();
                     word.mSpaceWidth = spaceWidth;
+                    if (mColorSelector.index() == 2)
+                    {
+                        color = std::get<2>(mColorSelector)(span, textWord).value_or(color);
+                    }
+                    else if (mColorSelector.index() == 3)
+                    {
+                        color = std::get<3>(mColorSelector)(textWord).value_or(color);
+                    }
                     cPoint position(0, 0);
                     while (!textWord.empty())
-                    {
-                        if(mColorSelector.index() == 2)
+                    {                        
+                        if(size_t characterIndex = textWord.data() - span.mText.data(); characterIndex < span.mColors.size())
                         {
-                            color = std::get<2>(mColorSelector)(span, textWord).value_or(color);
-                        }
-                        else if(mColorSelector.index() == 3)
-                        {
-                            color = std::get<3>(mColorSelector)(textWord).value_or(color);
+                            color = span.mColors[characterIndex];
                         }
                         wchar_t decodedChar = UTF8::popCharacter(textWord);
                         auto& letterData = font.letterData(decodedChar);
