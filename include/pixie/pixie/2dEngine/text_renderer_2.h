@@ -35,7 +35,7 @@ struct cTextRenderer2Target
 struct cTextRenderer2Span
 {
     std::string_view mText;
-    std::span<cColor> mColors; // for each character in mText, if empty, use the default color
+    std::span<const cColor> mColors; // for each character in mText, if empty, use the default color
     char mSeparator = 0;
     bool mIsBold = false;
     bool mIsItalic = false;
