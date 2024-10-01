@@ -9,6 +9,7 @@ class cPixieDesktop: public cPixieWindow
 	cRegisteredIDList mMouseEventListeners;
 	tRegisteredObjects<cMouseTarget *> mMouseTrackers;
 	cMouseTarget *mLastMoveTarget=nullptr;
+	std::vector<cPixieWindow *> mOwnerlessWindows;
 	bool mMouseEventShiftState = false;
 	bool mMouseEventCtrlState = false;
 	bool mMouseEventAltState = false;
@@ -27,6 +28,10 @@ public:
 	bool mouseEventShiftState() const { return mMouseEventShiftState; } 
 	bool mouseEventCtrlState() const { return mMouseEventCtrlState; }
 	bool mouseEventAltState() const { return mMouseEventAltState; }
+
+	void addOwnerlessWindow(cPixieWindow* window) { mOwnerlessWindows.push_back(window); }
+	void removeOwnerlessWindow(cPixieWindow* window) { std::erase(mOwnerlessWindows, window); }
+	auto ownerlessWindows() const { return mOwnerlessWindows; }
 };
 
 extern cPixieDesktop thePixieDesktop;

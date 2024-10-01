@@ -109,6 +109,11 @@ void cDevice::RenderingLoop()
 	if(mMainRenderer)
 		mMainRenderer->Render();
 
+	for (auto& window : thePixieDesktop.ownerlessWindows())
+	{
+		window->CheckOwnerlessSprites();
+	}
+
 	StopOnError(mDevice->EndScene());
 
 	//Show the results

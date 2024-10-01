@@ -10,8 +10,11 @@ extern bool g_IsExitActive;
 
 cPixieWindow::~cPixieWindow()
 {
+	if(!mParentWindow && this != &thePixieDesktop)
+		thePixieDesktop.removeOwnerlessWindow(this);
 	if(!g_IsExitActive) //todo fix this with ProgramDirector, and properly killing objects
 	{
+		MainLog->Log("number of sprites: %d", mSprites.size());
 		while(!mSprites.empty())
 			mSprites.back()->SetWindow(nullptr);
 		while(!mMouseTargets.empty())
@@ -86,11 +89,15 @@ void cPixieWindow::RemoveSubWindow(cPixieWindow *SubWindow)
 
 void cPixieWindow::SetParentWindow(cPixieWindow *ParentWindow)
 {
-	if(mParentWindow)
+	if (mParentWindow)
 		mParentWindow->RemoveSubWindow(this);
+	else
+		thePixieDesktop.removeOwnerlessWindow(this);
 	mParentWindow=ParentWindow;
 	if(mParentWindow)
 		mParentWindow->AddSubWindow(this);
+	else
+		thePixieDesktop.addOwnerlessWindow(this);
 	mEventDispatchers.PostEvent(Event_ParentWindowChanged);
 }
 
