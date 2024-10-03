@@ -10,7 +10,7 @@ extern bool g_IsExitActive;
 
 cPixieWindow::~cPixieWindow()
 {
-	if(!mParentWindow && this != &thePixieDesktop)
+	if(!mParentWindow && !g_IsExitActive)
 		thePixieDesktop.removeOwnerlessWindow(this);
 	if(!g_IsExitActive) //todo fix this with ProgramDirector, and properly killing objects
 	{

@@ -19,7 +19,7 @@ public:
 	typedef tPixieSimpleInitData<cPixieWindow> cInitData;
 	void Init(const cInitData &InitData);
 	cPixieDesktop();
-	~cPixieDesktop()=default;
+	~cPixieDesktop();
 	cPixieWindow &GetTopLayer() { return mTopLayer; }
 	cRegisteredID RegisterMouseTracker(cMouseTarget *MouseTarget);
 	void MouseTargetRemoved(cMouseTarget *MouseTarget);

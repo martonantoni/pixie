@@ -8,6 +8,13 @@ cPixieDesktop::cPixieDesktop()
 {
 }
 
+extern bool g_IsExitActive;
+
+cPixieDesktop::~cPixieDesktop()
+{
+	g_IsExitActive = true;
+}
+
 void cPixieDesktop::Init(const cInitData &InitData)
 {
 	if(ASSERTFALSE(mRenderer.get()))
