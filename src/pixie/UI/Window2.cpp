@@ -14,7 +14,6 @@ cPixieWindow::~cPixieWindow()
 		thePixieDesktop.removeOwnerlessWindow(this);
 	if(!g_IsExitActive) //todo fix this with ProgramDirector, and properly killing objects
 	{
-		MainLog->Log("number of sprites: %d", mSprites.size());
 		while(!mSprites.empty())
 			mSprites.back()->SetWindow(nullptr);
 		while(!mMouseTargets.empty())
