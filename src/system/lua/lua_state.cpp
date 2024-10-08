@@ -257,7 +257,22 @@ std::string cLuaState::configToScript(const cConfig& config, const std::string& 
             }
             else if constexpr (std::is_same_v<decltype(value), std::string>)
             {
-                std::get<1>(elements.back()) = "\""s + value + "\"";
+                // escape '\'-s, replace `\` with `\\`:
+                size_t pos = 0;
+                std::string result;
+                while (pos < value.size())
+                {
+                    auto nextPos = value.find_first_of("\\", pos);
+                    if (nextPos == std::string::npos)
+                    {
+                        result += value.substr(pos);
+                        break;
+                    }
+                    result += value.substr(pos, nextPos - pos);
+                    result += "\\\\";
+                    pos = nextPos + 1;
+                }
+                std::get<1>(elements.back()) = "\""s + result + "\"";
             }
             else if constexpr (std::is_same_v<decltype(value), std::shared_ptr<cConfig>>)
             {
