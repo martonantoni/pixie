@@ -33,6 +33,13 @@ void cFocusHandler::removeFocusable(cFocusable* focusable)
 		mFocusedItem = nullptr;
 }
 
+void cFocusHandler::clearFocus()
+{
+    if (mFocusedItem)
+        mFocusedItem->onLostFocus();
+    mFocusedItem = nullptr;
+}
+
 void cFocusHandler::setFocusedItem(cFocusable* focusable)
 {
 	if (mFocusedItem == focusable)

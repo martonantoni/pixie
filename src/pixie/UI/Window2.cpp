@@ -49,6 +49,10 @@ void cPixieWindow::Init(const cInitData &InitData)
 	else
 		mIsClickThrough=true;
 	mIsModal=InitData.mFlags&Flag_IsModal;
+	if (mIsModal)
+	{
+		theFocusHandler.clearFocus();
+	}
 	mValidRect = InitData.mValidRect;
 	mSpriteClipping = InitData.mClippingMode;
 	SetPlacement(InitData.mPlacement); // uses mEventDispatchers & mParentWindow

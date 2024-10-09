@@ -18,6 +18,7 @@ public:
 	void addFocusable(cFocusable* focusable);
 	void removeFocusable(cFocusable* focusable);
 	void setFocusedItem(cFocusable* focusable);
+	void clearFocus();
 	cFocusable* focusedItem() const { return mFocusedItem; }
 };
 
