@@ -11,4 +11,5 @@ struct cTimerRequest
 	int mFlags = 0;
 	cTimerRequest(DWORD Interval,int Flags=0): mInterval(Interval), mFlags(Flags) {}
 	cTimerRequest(): mFlags(0) {}
+	static cTimerRequest once(DWORD Interval) { return cTimerRequest(Interval,OnlyOnce); }
 };
