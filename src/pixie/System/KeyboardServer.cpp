@@ -53,6 +53,7 @@ cKeyboardServer::cKeyboardServer()
 {
 	cPrimaryWindow &PrimaryWindow=cPrimaryWindow::Get();
 	mListenerIDs.push_back(PrimaryWindow.AddMessageHandler(WM_KEYDOWN, [this](auto wp, auto lp) { return OnKeyDown(wp, lp); }));
+	mListenerIDs.push_back(PrimaryWindow.AddMessageHandler(WM_SYSKEYDOWN, [this](auto wp, auto lp) { return OnKeyDown(wp, lp); }));
     mListenerIDs.push_back(PrimaryWindow.AddMessageHandler(WM_CHAR, [this](auto wp, auto lp) { return OnCharacter(wp, lp); }));
 
 	mEventDispatchers.Init(cEventDispatcher::GetGlobalDispatcher("pixie.keyboard",  cEventDispatcher::CanCreate));
@@ -75,10 +76,14 @@ uint32_t cKeyboardServer::keyUpDownEventData(WPARAM wParam)
 
 cWindowsMessageResult cKeyboardServer::OnKeyDown(WPARAM wParam, LPARAM lParam)
 {
+	printf("OnKeyDown\n");
 	auto eventData = keyUpDownEventData(wParam);
 	mEventDispatchers.PostEvent(Keyboard_KeyDown_Any, cEvent(mEventDataHolder.StoreData(eventData)));
-	if(wParam<=255&&!mDispatcherRangeInfo.mEventNames[wParam+1].empty())
-		mEventDispatchers.PostEvent(Keyboard_KeyDown_First+wParam, cEvent(mEventDataHolder.StoreData(eventData)));
+	if (wParam <= 255 && !mDispatcherRangeInfo.mEventNames[wParam + 1].empty())
+	{
+		mEventDispatchers.PostEvent(Keyboard_KeyDown_First + wParam, cEvent(mEventDataHolder.StoreData(eventData)));
+		return cWindowsMessageResult(0);
+	}
 	return cWindowsMessageResult();
 }
 
