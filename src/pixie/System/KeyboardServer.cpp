@@ -76,7 +76,6 @@ uint32_t cKeyboardServer::keyUpDownEventData(WPARAM wParam)
 
 cWindowsMessageResult cKeyboardServer::OnKeyDown(WPARAM wParam, LPARAM lParam)
 {
-	printf("OnKeyDown\n");
 	auto eventData = keyUpDownEventData(wParam);
 	mEventDispatchers.PostEvent(Keyboard_KeyDown_Any, cEvent(mEventDataHolder.StoreData(eventData)));
 	if (wParam <= 255 && !mDispatcherRangeInfo.mEventNames[wParam + 1].empty())
