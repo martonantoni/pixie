@@ -1034,6 +1034,28 @@ TEST(lua_execute, c_function_t_t)
     ASSERT_EQ(script->stackSize(), 0);
 }
 
+TEST(lua_execute, c_function_modifying_parameter_table)
+{
+    auto script = std::make_shared<cLuaState>();
+    auto globalTable = script->globalTable();
+
+    globalTable.registerFunction("test"s,
+        [](cLuaObject sourceTable)
+        {
+            sourceTable.set<int>("a", sourceTable.get<int>("a") + 11);
+            sourceTable.set<int>("b", sourceTable.get<int>("b") + 22);
+        });
+
+    script->executeString("my_table = { a = 7, b = 8}\n"
+                          "test(my_table)");
+
+    auto result = globalTable.get<cLuaObject>("my_table");
+
+    ASSERT_EQ(result.get<int>("a"), 18);
+    ASSERT_EQ(result.get<int>("b"), 30);
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
 TEST(lua_oop, callMemberFunction)
 {
     auto script = std::make_shared<cLuaState>();
