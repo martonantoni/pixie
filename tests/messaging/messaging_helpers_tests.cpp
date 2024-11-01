@@ -32,11 +32,11 @@ TEST(message_system_helpers, prefix_taker_function)
     static_assert(std::is_same_v<tPrefixTakerFunction<0, T>, std::function<void()>>);
 }
 
-TEST(message_system_helpers, message_dispatchers_type)
+TEST(message_system_helpers, message_listeners_type)
 {
     using T = std::tuple<int, double, std::string, char>;
 
-    static_assert(std::is_same_v<tMessageDispatchers<T>, std::variant<
+    static_assert(std::is_same_v<tMessageListeners<T>, std::variant<
         std::function<void()>,
         std::function<void(int)>,
         std::function<void(int, double)>,

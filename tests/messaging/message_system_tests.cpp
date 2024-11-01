@@ -26,13 +26,13 @@ namespace MessageSystemTests
 //    decltype(tPrefixTakerFunctionHelper<N>(std::declval<Tuple>()));
 //
 //template<size_t... N, typename  Tuple>
-//auto tMessageDispatchersHelper(std::index_sequence<N...>, const Tuple&)
+//auto tMessageListenersHelper(std::index_sequence<N...>, const Tuple&)
 //{
 //    return std::variant<tPrefixTakerFunction<N, Tuple>...>{};
 //}
 //
-//template<class Tuple> using tMessageDispatchers = 
-//    decltype(tMessageDispatchersHelper(std::make_index_sequence<std::tuple_size_v<Tuple> + 1>{}, std::declval<Tuple>()));
+//template<class Tuple> using tMessageListeners = 
+//    decltype(tMessageListenersHelper(std::make_index_sequence<std::tuple_size_v<Tuple> + 1>{}, std::declval<Tuple>()));
 
 //TEST(message_system, tuple_prefix)
 //{
@@ -64,7 +64,7 @@ namespace MessageSystemTests
 //{
 //    using T = std::tuple<int, double, std::string, char>;
 //
-//    static_assert(std::is_same_v<tMessageDispatchers<T>, std::variant<
+//    static_assert(std::is_same_v<tMessageListeners<T>, std::variant<
 //        std::function<void()>,
 //        std::function<void(int)>,
 //        std::function<void(int, double)>,

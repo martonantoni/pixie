@@ -25,13 +25,13 @@ template<size_t N, typename Tuple> using tPrefixTakerFunction =
     decltype(tPrefixTakerFunctionHelper<N>(std::declval<Tuple>()));
 
 template<size_t... N, typename Tuple>
-auto tMessageDispatchersHelper(std::index_sequence<N...>, const Tuple&)
+auto tMessageListenersHelper(std::index_sequence<N...>, const Tuple&)
 {
     return std::variant<tPrefixTakerFunction<N, Tuple>...>{};
 }
 
-template<class Tuple> using tMessageDispatchers =
-    decltype(tMessageDispatchersHelper(std::make_index_sequence<std::tuple_size_v<Tuple> + 1>{}, std::declval<Tuple>()));
+template<class Tuple> using tMessageListeners =
+    decltype(tMessageListenersHelper(std::make_index_sequence<std::tuple_size_v<Tuple> + 1>{}, std::declval<Tuple>()));
 
 
 }
