@@ -6,4 +6,5 @@
 #include "EventDispatchers.h"
 #include "TextLogToEvent.h"
 
+#include "messaging_helpers.h"
 #include "messaging.h"

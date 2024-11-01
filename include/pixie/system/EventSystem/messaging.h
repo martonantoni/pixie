@@ -3,6 +3,8 @@
 template<class C, class T> concept cMessageListener = 
     std::is_invocable_r_v<void, C, T> || std::is_invocable_r_v<void, C, const T&> || std::is_invocable_r_v<void, C>;
 
+//template<
+
 class cMessageCenter final
 {
     static constexpr int mDirectMessageIndex = -1;
@@ -62,16 +64,18 @@ class cMessageCenter final
     int mDispatchedMessageIndex = 0;
     std::function<void()> mNeedDispatchProcessor;
 public:
-    template<class T> void post(const std::string& endpointID, T&& messageData);
+    template<class... Ts> void post(const std::string& endpointID, Ts&&... messageData);
     template<class T> void send(const std::string& endpointID, T&& messageData);
     void post(const std::string& endpointID);
     void send(const std::string& endpointID);
     template<class T = void, class C> requires cMessageListener<C, T>
         [[nodiscard]] cRegisteredID registerListener(const std::string& endpointID, const C& listener);
+    template<class C> requires cCallableSignature<C>::available [[nodiscard]] 
+        cRegisteredID registerListener2(const std::string& endpointID, const C& listener);
     void dispatch();
     void setNeedDispatchProcessor(std::function<void()> needDispatchProcessor);
 };
-
+ 
 
 template<class T> template<class C> 
 cMessageCenter::tDispatcher<T>::cListener::cListener(const C& callable, int eventFilter)
@@ -116,8 +120,10 @@ void cMessageCenter::tDispatcher<T>::dispatch(const std::any& messageData, int m
         });
 }
 
-template<class T> void cMessageCenter::post(const std::string& endpointID, T&& messageData)
+//template<class T> void cMessageCenter::post(const std::string& endpointID, T&& messageData)
+template<class... Ts> void cMessageCenter::post(const std::string& endpointID, Ts&&... messageData)
 {
+    using T = std::tuple<Ts...>;
     auto& endPoint = mEndPoints[endpointID];
     if (!endPoint)
     {
@@ -139,7 +145,7 @@ template<class T> void cMessageCenter::post(const std::string& endpointID, T&& m
         }
     }
     ++mLastPostedMessageIndex;
-    mEventsWriting.emplace_back(std::forward<T>(messageData), endPoint.get());
+    mEventsWriting.emplace_back(T(std::forward<Ts>(messageData)...), endPoint.get());
     if(mNeedDispatchProcessor)
         mNeedDispatchProcessor();
 }
@@ -201,6 +207,14 @@ template<class T, class C> requires cMessageListener<C, T>
         return dispatcherT->mListeners.Register(tDispatcher<std::decay_t<T>>::cListener(listener, messageFilter));
     }
 }
+
+template<class C> requires cCallableSignature<C>::available
+    cRegisteredID cMessageCenter::registerListener2(const std::string& endpointID, const C& listener)
+{
+    using T = typename std::tuple_element_t<0, typename cCallableSignature<C>::DecayedArguments>;
+    return registerListener<T>(endpointID, listener);
+}
+
 
 extern cMessageCenter theMessageCenter;
 

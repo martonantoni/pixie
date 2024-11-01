@@ -4,12 +4,87 @@
 namespace MessageSystemTests
 {
 
+//template<size_t... N, typename  Tuple>
+//auto tTuplePrefixHelper(std::index_sequence<N...>, const Tuple&)
+//{
+//    return std::tuple<std::tuple_element_t<N, Tuple>...>{};
+//}
+//
+//template<size_t N, typename Tuple> using tTuplePrefix = 
+//    decltype(tTuplePrefixHelper(std::make_index_sequence<N>{}, std::declval<Tuple>()));
+//
+//template<size_t N, typename  Tuple>
+//auto tPrefixTakerFunctionHelper(const Tuple& tuple)
+//{
+//    return []<size_t... I>(std::index_sequence<I...>)
+//    {
+//        return std::function<void(std::tuple_element_t<I, Tuple>...)>{};
+//    }(std::make_index_sequence<N>{});
+//}
+//
+//template<size_t N, typename  Tuple> using tPrefixTakerFunction =
+//    decltype(tPrefixTakerFunctionHelper<N>(std::declval<Tuple>()));
+//
+//template<size_t... N, typename  Tuple>
+//auto tMessageDispatchersHelper(std::index_sequence<N...>, const Tuple&)
+//{
+//    return std::variant<tPrefixTakerFunction<N, Tuple>...>{};
+//}
+//
+//template<class Tuple> using tMessageDispatchers = 
+//    decltype(tMessageDispatchersHelper(std::make_index_sequence<std::tuple_size_v<Tuple> + 1>{}, std::declval<Tuple>()));
+
+//TEST(message_system, tuple_prefix)
+//{
+//    using T = std::tuple<int, double, std::string, char>;
+//
+//    static_assert(std::is_same_v<tTuplePrefix<1, T>, std::tuple<int>>);
+//    static_assert(std::is_same_v<tTuplePrefix<2, T>, std::tuple<int, double>>);
+//    static_assert(std::is_same_v<tTuplePrefix<3, T>, std::tuple<int, double, std::string>>);
+//    static_assert(std::is_same_v<tTuplePrefix<4, T>, std::tuple<int, double, std::string, char>>);
+//
+//    // 0 must be empty tuple:
+//    static_assert(std::is_same_v<tTuplePrefix<0, T>, std::tuple<>>);
+//}
+//
+//TEST(message_system, prefix_taker_function)
+//{
+//    using T = std::tuple<int, double, std::string, char>;
+//
+//    static_assert(std::is_same_v<tPrefixTakerFunction<1, T>, std::function<void(int)>>);
+//    static_assert(std::is_same_v<tPrefixTakerFunction<2, T>, std::function<void(int, double)>>);
+//    static_assert(std::is_same_v<tPrefixTakerFunction<3, T>, std::function<void(int, double, std::string)>>);
+//    static_assert(std::is_same_v<tPrefixTakerFunction<4, T>, std::function<void(int, double, std::string, char)>>);
+//
+//    // 0 must be empty function:
+//    static_assert(std::is_same_v<tPrefixTakerFunction<0, T>, std::function<void()>>);
+//}
+//
+//TEST(message_system, message_dispatchers_type)
+//{
+//    using T = std::tuple<int, double, std::string, char>;
+//
+//    static_assert(std::is_same_v<tMessageDispatchers<T>, std::variant<
+//        std::function<void()>,
+//        std::function<void(int)>,
+//        std::function<void(int, double)>,
+//        std::function<void(int, double, std::string)>,
+//        std::function<void(int, double, std::string, char)>>>);
+//}
+
+
+template<class TUP> struct tDispatcher
+{
+    //    using cFunctions = std::variant
+};
+
+
 TEST(message_system, single_listen_post_receive)
 {
     cMessageCenter messageCenter;
 
     int numberOfMessagesReceived = 0;
-    auto listenerID = messageCenter.registerListener<std::string>(
+    auto listenerID = messageCenter.registerListener2(
         "test.a.b.c", 
         [&](const std::string& message) 
         {
