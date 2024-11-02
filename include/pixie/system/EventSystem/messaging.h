@@ -66,11 +66,9 @@ class cMessageCenter final
     std::function<void()> mNeedDispatchProcessor;
 public:
     template<class... Ts> void post(const std::string& endpointID, Ts&&... messageData);
-    template<class T> void send(const std::string& endpointID, T&& messageData);
+    template<class... Ts> void send(const std::string& endpointID, Ts&&... messageData);
     void post(const std::string& endpointID);
     void send(const std::string& endpointID);
-    //template<class T = void, class C> requires cMessageListener<C, T>
-    //    [[nodiscard]] cRegisteredID registerListener(const std::string& endpointID, const C& listener);
     template<class C> requires cCallableSignature<C>::available [[nodiscard]] 
         cRegisteredID registerListener(const std::string& endpointID, const C& listener);
     void dispatch();
@@ -136,9 +134,10 @@ template<class... Ts> void cMessageCenter::post(const std::string& endpointID, T
         // for posting the message type has to match even if it is void
         if (endPoint->mMessageType.has_value())
         {
-            //std::cout << "trying with type: " << typeid(std::decay_t<T>).name() << std::endl;
             if (*endPoint->mMessageType != typeid(T))
+            {
                 throw std::runtime_error("Wrong message type");
+            }
         }
         else
         {
@@ -151,29 +150,30 @@ template<class... Ts> void cMessageCenter::post(const std::string& endpointID, T
         mNeedDispatchProcessor();
 }
 
-template<class T> void cMessageCenter::send(const std::string& endpointID, T&& messageData)
+template<class... Ts> void cMessageCenter::send(const std::string& endpointID, Ts&&... messageData)
 {
+    using T = std::tuple<std::decay_t<Ts>...>;
     auto& endPoint = mEndPoints[endpointID];
     if (!endPoint)
     {
         endPoint = std::make_unique<cEndPoint>();
-        endPoint->mMessageType.emplace(typeid(std::decay_t<T>));
-        endPoint->mDispatcher = std::make_unique<tDispatcher<std::decay_t<T>>>();
+        endPoint->mMessageType.emplace(typeid(T));
+        endPoint->mDispatcher = std::make_unique<tDispatcher<T>>();
     }
     else
     {
         // for posting the message type has to match even if it is void
         if (endPoint->mMessageType.has_value())
         {
-            if (*endPoint->mMessageType != typeid(std::decay_t<T>))
+            if (*endPoint->mMessageType != typeid(T))
                 throw std::runtime_error("Wrong message type");
         }
         else
         {
-            endPoint->mMessageType.emplace(typeid(std::decay_t<T>));
+            endPoint->mMessageType.emplace(typeid(T));
         }
     }
-    endPoint->dispatch(std::forward<T>(messageData), mDirectMessageIndex);
+    endPoint->dispatch(std::make_tuple(std::forward<Ts>(messageData)...), mDirectMessageIndex);
 }
 
 //template<class T, class C> requires cMessageListener<C, T>
@@ -224,13 +224,9 @@ class cMessageListeners final
 {
     cRegisteredIDList mListeners;
 public:
-    template<class T, class C> void listen(const std::string& endpointID, C&& callback)
+    template<class C> void listen(const std::string& endpointID, const C& callback)
     {
-        mListeners.emplace_back(theMessageCenter.registerListener<T>(endpointID, std::forward<C>(callback)));
-    }
-    template<class C> void listen(const std::string& endpointID, C&& callback)
-    {
-        mListeners.emplace_back(theMessageCenter.registerListener<void>(endpointID, std::forward<C>(callback)));
+        mListeners.emplace_back(theMessageCenter.registerListener(endpointID, callback));
     }
     void clear()
     {
