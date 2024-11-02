@@ -4,87 +4,12 @@
 namespace MessageSystemTests
 {
 
-//template<size_t... N, typename  Tuple>
-//auto tTuplePrefixHelper(std::index_sequence<N...>, const Tuple&)
-//{
-//    return std::tuple<std::tuple_element_t<N, Tuple>...>{};
-//}
-//
-//template<size_t N, typename Tuple> using tTuplePrefix = 
-//    decltype(tTuplePrefixHelper(std::make_index_sequence<N>{}, std::declval<Tuple>()));
-//
-//template<size_t N, typename  Tuple>
-//auto tPrefixTakerFunctionHelper(const Tuple& tuple)
-//{
-//    return []<size_t... I>(std::index_sequence<I...>)
-//    {
-//        return std::function<void(std::tuple_element_t<I, Tuple>...)>{};
-//    }(std::make_index_sequence<N>{});
-//}
-//
-//template<size_t N, typename  Tuple> using tPrefixTakerFunction =
-//    decltype(tPrefixTakerFunctionHelper<N>(std::declval<Tuple>()));
-//
-//template<size_t... N, typename  Tuple>
-//auto tMessageListenersHelper(std::index_sequence<N...>, const Tuple&)
-//{
-//    return std::variant<tPrefixTakerFunction<N, Tuple>...>{};
-//}
-//
-//template<class Tuple> using tMessageListeners = 
-//    decltype(tMessageListenersHelper(std::make_index_sequence<std::tuple_size_v<Tuple> + 1>{}, std::declval<Tuple>()));
-
-//TEST(message_system, tuple_prefix)
-//{
-//    using T = std::tuple<int, double, std::string, char>;
-//
-//    static_assert(std::is_same_v<tTuplePrefix<1, T>, std::tuple<int>>);
-//    static_assert(std::is_same_v<tTuplePrefix<2, T>, std::tuple<int, double>>);
-//    static_assert(std::is_same_v<tTuplePrefix<3, T>, std::tuple<int, double, std::string>>);
-//    static_assert(std::is_same_v<tTuplePrefix<4, T>, std::tuple<int, double, std::string, char>>);
-//
-//    // 0 must be empty tuple:
-//    static_assert(std::is_same_v<tTuplePrefix<0, T>, std::tuple<>>);
-//}
-//
-//TEST(message_system, prefix_taker_function)
-//{
-//    using T = std::tuple<int, double, std::string, char>;
-//
-//    static_assert(std::is_same_v<tPrefixTakerFunction<1, T>, std::function<void(int)>>);
-//    static_assert(std::is_same_v<tPrefixTakerFunction<2, T>, std::function<void(int, double)>>);
-//    static_assert(std::is_same_v<tPrefixTakerFunction<3, T>, std::function<void(int, double, std::string)>>);
-//    static_assert(std::is_same_v<tPrefixTakerFunction<4, T>, std::function<void(int, double, std::string, char)>>);
-//
-//    // 0 must be empty function:
-//    static_assert(std::is_same_v<tPrefixTakerFunction<0, T>, std::function<void()>>);
-//}
-//
-//TEST(message_system, message_dispatchers_type)
-//{
-//    using T = std::tuple<int, double, std::string, char>;
-//
-//    static_assert(std::is_same_v<tMessageListeners<T>, std::variant<
-//        std::function<void()>,
-//        std::function<void(int)>,
-//        std::function<void(int, double)>,
-//        std::function<void(int, double, std::string)>,
-//        std::function<void(int, double, std::string, char)>>>);
-//}
-
-
-template<class TUP> struct tDispatcher
-{
-    //    using cFunctions = std::variant
-};
-
-
 TEST(message_system, single_listen_post_receive)
 {
     cMessageCenter messageCenter;
 
     int numberOfMessagesReceived = 0;
-    auto listenerID = messageCenter.registerListener2(
+    auto listenerID = messageCenter.registerListener(
         "test.a.b.c", 
         [&](const std::string& message) 
         {
@@ -99,10 +24,54 @@ TEST(message_system, single_listen_post_receive)
     EXPECT_EQ(numberOfMessagesReceived, 1);
 }
 
+TEST(message_system, multi_param_all_listening)
+{
+    cMessageCenter messageCenter;
+
+    int numberOfMessagesReceived = 0;
+    auto listenerID = messageCenter.registerListener(
+        "test.a.b.c",
+        [&](int a, const std::string& b, int c)
+        {
+            EXPECT_EQ(a, 1);
+            EXPECT_STREQ(b.c_str(), "alma");
+            EXPECT_EQ(c, 3);
+            ++numberOfMessagesReceived;
+        });
+
+    messageCenter.post("test.a.b.c", 1, "alma"s, 3);
+
+    messageCenter.dispatch();
+
+    EXPECT_EQ(numberOfMessagesReceived, 1);
+}
+
+TEST(message_system, multi_param_partial_listening)
+{
+    cMessageCenter messageCenter;
+
+    int numberOfMessagesReceived = 0;
+    auto listenerID = messageCenter.registerListener(
+        "test.a.b.c",
+        [&](int a, const std::string& b)
+        {
+            EXPECT_EQ(a, 1);
+            EXPECT_STREQ(b.c_str(), "alma");
+            ++numberOfMessagesReceived;
+        });
+
+    messageCenter.post("test.a.b.c", 1, "alma"s, 3);
+
+    messageCenter.dispatch();
+
+    EXPECT_EQ(numberOfMessagesReceived, 1);
+
+}
+
 TEST(message_system, wrong_post_type)
 {
     cMessageCenter messageCenter;
-    auto listenerID = messageCenter.registerListener<std::string>(
+    auto listenerID = messageCenter.registerListener(
         "test.a.b.c",
         [&](const std::string& message)
         {
@@ -117,18 +86,18 @@ TEST(message_system, wrong_listen_type)
 {
     cMessageCenter messageCenter;
     messageCenter.post("test.a.b.c", "hello world"s);
-    ASSERT_THROW(auto listenerID = messageCenter.registerListener<int>(
+    ASSERT_THROW(auto listenerID = messageCenter.registerListener(
         "test.a.b.c",
         [&](int message)
         {
         }), std::runtime_error);
 
-    auto listenerID = messageCenter.registerListener<std::string>(
+    auto listenerID = messageCenter.registerListener(
         "test",
         [&](const std::string& message)
         {
         });
-    ASSERT_THROW(auto listenerID = messageCenter.registerListener<int>(
+    ASSERT_THROW(auto listenerID = messageCenter.registerListener(
         "test",
         [&](int message)
         {
@@ -140,7 +109,7 @@ TEST(message_system, post_before_listener_added_is_not_delivered)
     cMessageCenter messageCenter;
     messageCenter.post("test.a.b.c", 1);
     int numberOfMessagesReceived = 0;
-    auto listenerID = messageCenter.registerListener<int>(
+    auto listenerID = messageCenter.registerListener(
         "test.a.b.c",
         [&](int message)
         {
@@ -159,11 +128,11 @@ TEST(message_system, registering_from_listeners_gets_later_messages_delivered)
     cMessageCenter messageCenter;
 
     cRegisteredID secondListenerID;
-    auto firstListenerID = messageCenter.registerListener<int>(
+    auto firstListenerID = messageCenter.registerListener(
         "test.a.b.c",
         [&](int message)
         {
-            secondListenerID = messageCenter.registerListener<int>(
+            secondListenerID = messageCenter.registerListener(
                 "test.d.e.f",
                 [&](int message)
                 {
@@ -201,7 +170,7 @@ TEST(message_system, void_end_points)
 {
     cMessageCenter messageCenter;
     int numberOfMessagesReceived = 0;
-    auto listenerID = messageCenter.registerListener<void>(
+    auto listenerID = messageCenter.registerListener(
         "test",
         [&]()
         {
@@ -220,19 +189,19 @@ TEST(message_system, order_kept_with_different_endpoints)
 {
     cMessageCenter messageCenter;
     std::vector<int> messagesReceived;
-    auto listenerID1 = messageCenter.registerListener<int>(
+    auto listenerID1 = messageCenter.registerListener(
         "test1",
         [&](int message)
         {
             messagesReceived.push_back(message);
         });
-    auto listenerID2 = messageCenter.registerListener<int>(
+    auto listenerID2 = messageCenter.registerListener(
         "test2",
         [&](int message)
         {
             messagesReceived.push_back(message);
         });
-    auto listenerID3 = messageCenter.registerListener<int>(
+    auto listenerID3 = messageCenter.registerListener(
         "test3",
         [&](int message)
         {
@@ -247,7 +216,7 @@ TEST(message_system, order_kept_with_different_endpoints)
 
     messageCenter.dispatch();
 
-    EXPECT_EQ(messagesReceived.size(), 6);
+    ASSERT_EQ(messagesReceived.size(), 6);
     for(int i=1;i<=6;++i)
     {
         EXPECT_EQ(messagesReceived[i-1], i);
@@ -259,7 +228,7 @@ TEST(message_system, unregister)
 {
     cMessageCenter messageCenter;
     int numberOfMessagesReceived = 0;
-    auto listenerID = messageCenter.registerListener<int>(
+    auto listenerID = messageCenter.registerListener(
         "test",
         [&](int message)
         {
@@ -291,7 +260,7 @@ TEST(message_system, unregister_in_handler)
     int numberOfMessagesReceived = 0;
     cRegisteredID listenerID;
     std::vector<int> messagesReceived;
-    listenerID = messageCenter.registerListener<int>(
+    listenerID = messageCenter.registerListener(
         "test",
         [&](int message)
         {
@@ -309,7 +278,7 @@ TEST(message_system, unregister_in_handler)
 
     messageCenter.dispatch();
 
-    EXPECT_EQ(numberOfMessagesReceived, 3);
+    ASSERT_EQ(numberOfMessagesReceived, 3);
     for(int i=1;i<=3;++i)
     {
         EXPECT_EQ(messagesReceived[i-1], i);
@@ -323,7 +292,7 @@ TEST(message_system, unregister_in_handler_many_listeners)
     std::array<std::vector<int>,10> messagesReceived;
     for (int i = 0; i < 10; ++i)
     {
-        listenerIDs.push_back(messageCenter.registerListener<int>(
+        listenerIDs.push_back(messageCenter.registerListener(
             "test",
             [i, numberOfMessagesReceived = 0, &listenerIDs, &messagesReceived](int message) mutable
             {
@@ -363,7 +332,7 @@ TEST(message_system, not_leaking_messages)
         ~cTestMessage() { --mMessageCount; }
         cTestMessage(const cTestMessage& src): mMessageCount(src.mMessageCount) { ++mMessageCount; }
     };
-    auto listenerID = messageCenter.registerListener<cTestMessage>(
+    auto listenerID = messageCenter.registerListener(
         "test",
         [&](const cTestMessage&)
         {
@@ -385,7 +354,7 @@ TEST(message_system, message_sent_from_listener)
 {
     cMessageCenter messageCenter;
     int numberOfMessagesReceived = 0;
-    auto listenerID = messageCenter.registerListener<int>(
+    auto listenerID = messageCenter.registerListener(
         "test",
         [&](int message)
         {

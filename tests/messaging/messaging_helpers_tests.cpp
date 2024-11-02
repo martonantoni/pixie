@@ -44,5 +44,56 @@ TEST(message_system_helpers, message_listeners_type)
         std::function<void(int, double, std::string, char)>>>);
 }
 
+//void test_function()
+//{
+//
+//}
+
+template<typename Tuple>
+class tMessageDispatcher
+{
+public:
+    void dispatch(const Messaging::tMessageListeners<Tuple>& listeners, const Tuple& message)
+    {
+        std::visit(
+            [&message](auto&& listener) 
+            { 
+                [&]<size_t... I>(std::index_sequence<I...>)
+                {
+                    ([&]<size_t J>()
+                    {
+                        if constexpr (std::is_same_v<std::decay_t<decltype(listener)>, tPrefixTakerFunction<J, Tuple>>)
+                        {
+                            [&]<size_t... K>(std::index_sequence<K...>)
+                            {
+                                listener(std::get<K>(message)...);
+                            }(std::make_index_sequence<J>());
+                        }
+                    }.template operator()<I>(), ...);
+                }(std::make_index_sequence<std::tuple_size_v<Tuple>>());
+            }, listeners);
+    };
+};
+
+TEST(message_system_helpers, dispatcher)
+{
+    tMessageListeners<std::tuple<int, double, std::string, char>> listeners;
+
+    listeners = [](int a, double d) { std::cout << a << " " << d << std::endl; };
+
+    tMessageDispatcher<std::tuple<int, double, std::string, char>> dispatcher;
+
+    dispatcher.dispatch(listeners, std::tuple<int, double, std::string, char>{1, 2.0, "hello"s, 'c'});
+
+    listeners = [](int a, double d, const std::string& t) { std::cout << a << " " << d << " " << t << std::endl; };
+
+    dispatcher.dispatch(listeners, std::tuple<int, double, std::string, char>{1, 2.0, "hello"s, 'c'});
+
+    listeners = []() { std::cout << "empty" << std::endl; };
+
+    dispatcher.dispatch(listeners, std::tuple<int, double, std::string, char>{1, 2.0, "hello"s, 'c'});
+}
+
+// std::any ----->  std::tuple<int, double, std::string, char>
 
 } // namespace MessageSystemHelpersTests

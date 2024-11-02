@@ -5,9 +5,8 @@ namespace Messaging
 
 template<size_t... N, typename Tuple>
 auto tTuplePrefixHelper(std::index_sequence<N...>, const Tuple&)
-{
-    return std::tuple<std::tuple_element_t<N, Tuple>...>{};
-}
+    -> std::tuple<std::tuple_element_t<N, Tuple>...>;
+
 
 template<size_t N, typename Tuple> using tTuplePrefix =
     decltype(tTuplePrefixHelper(std::make_index_sequence<N>{}, std::declval<Tuple>()));
@@ -26,12 +25,18 @@ template<size_t N, typename Tuple> using tPrefixTakerFunction =
 
 template<size_t... N, typename Tuple>
 auto tMessageListenersHelper(std::index_sequence<N...>, const Tuple&)
-{
-    return std::variant<tPrefixTakerFunction<N, Tuple>...>{};
-}
+    -> std::variant<tPrefixTakerFunction<N, Tuple>...>;
 
 template<class Tuple> using tMessageListeners =
     decltype(tMessageListenersHelper(std::make_index_sequence<std::tuple_size_v<Tuple> + 1>{}, std::declval<Tuple>()));
 
+template<typename Callable, typename Variant> struct tIsMessageListenerHelper;
+
+template<typename Callable, typename... Ts>
+struct tIsMessageListenerHelper<Callable, std::variant<Ts...>> :
+    public std::disjunction<std::is_same<Callable, Ts>...> {};
+
+template<typename Callable, typename Tuple> constexpr bool tIsMessageListener = 
+    tIsMessageListenerHelper<Callable, tMessageListeners<Tuple>>::value;
 
 }

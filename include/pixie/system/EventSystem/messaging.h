@@ -1,9 +1,8 @@
 #pragma once
 
+
 template<class C, class T> concept cMessageListener = 
     std::is_invocable_r_v<void, C, T> || std::is_invocable_r_v<void, C, const T&> || std::is_invocable_r_v<void, C>;
-
-//template<
 
 class cMessageCenter final
 {
@@ -18,7 +17,9 @@ class cMessageCenter final
     template<class T> struct tDispatcher : public cDispatcher
     {
         tDispatcher() = default;
-        using cFunctions = std::variant<std::monostate, std::function<void(const T&)>, std::function<void(T)>, std::function<void()>>;
+
+        using cFunctions = Messaging::tMessageListeners<T>;
+
         struct cListener
         {
             cFunctions mFunction;
@@ -68,10 +69,10 @@ public:
     template<class T> void send(const std::string& endpointID, T&& messageData);
     void post(const std::string& endpointID);
     void send(const std::string& endpointID);
-    template<class T = void, class C> requires cMessageListener<C, T>
-        [[nodiscard]] cRegisteredID registerListener(const std::string& endpointID, const C& listener);
+    //template<class T = void, class C> requires cMessageListener<C, T>
+    //    [[nodiscard]] cRegisteredID registerListener(const std::string& endpointID, const C& listener);
     template<class C> requires cCallableSignature<C>::available [[nodiscard]] 
-        cRegisteredID registerListener2(const std::string& endpointID, const C& listener);
+        cRegisteredID registerListener(const std::string& endpointID, const C& listener);
     void dispatch();
     void setNeedDispatchProcessor(std::function<void()> needDispatchProcessor);
 };
@@ -81,18 +82,7 @@ template<class T> template<class C>
 cMessageCenter::tDispatcher<T>::cListener::cListener(const C& callable, int eventFilter)
     : mEventFilter(eventFilter)
 {
-    if constexpr (std::is_same_v<C, std::function<void(const T&)>>)
-        mFunction = callable;
-    else if constexpr (std::is_same_v<C, std::function<void(T)>>)
-        mFunction = callable;
-    else if constexpr (std::is_same_v<C, std::function<void()>>)
-        mFunction = callable;
-    else if constexpr (std::is_invocable_r_v<void, C, T>)
-        mFunction = std::function<void(T)>(callable);
-    else if constexpr (std::is_invocable_r_v<void, C, const T&>)
-        mFunction = std::function<void(const T&)>(callable);
-    else if constexpr (std::is_invocable_r_v<void, C>)
-        mFunction = std::function<void()>(callable);
+    mFunction = callable;
 }
 
 template<class T>
@@ -106,16 +96,26 @@ void cMessageCenter::tDispatcher<T>::dispatch(const std::any& messageData, int m
                 if(messageIndex != mDirectMessageIndex)
                     listener.mEventFilter = messageIndex;
                 std::visit(
-                    [&messageDataT](auto& function)
+                    [&messageDataT](auto&& listener)
                     {
-                        if constexpr (std::is_same_v<std::decay_t<decltype(function)>, std::function<void(const T&)>>)
-                            function(messageDataT);
-                        else if constexpr (std::is_same_v<std::decay_t<decltype(function)>, std::function<void(T)>> && std::is_copy_constructible_v<T>)
-                            function(messageDataT);
-                        else if constexpr (std::is_same_v<std::decay_t<decltype(function)>, std::function<void()>>)
-                            function();
-                    },
-                    listener.mFunction);
+                        [&]<size_t... I>(std::index_sequence<I...>)
+                        {
+                            ([&]<size_t J>()
+                            {
+                                if constexpr (std::is_same_v<std::decay_t<decltype(listener)>, Messaging::tPrefixTakerFunction<J, T>>)
+                                {
+                                    [&] <size_t... K>(std::index_sequence<K...>)
+                                    {
+                                        if (!listener)
+                                        {
+                                            return;
+                                        }
+                                        listener(std::get<K>(messageDataT)...);
+                                    }(std::make_index_sequence<J>());
+                                }
+                            }.template operator()<I>(), ...);
+                        }(std::make_index_sequence<std::tuple_size_v<T> + 1>());
+                    }, listener.mFunction);
             }
         });
 }
@@ -123,29 +123,30 @@ void cMessageCenter::tDispatcher<T>::dispatch(const std::any& messageData, int m
 //template<class T> void cMessageCenter::post(const std::string& endpointID, T&& messageData)
 template<class... Ts> void cMessageCenter::post(const std::string& endpointID, Ts&&... messageData)
 {
-    using T = std::tuple<Ts...>;
+    using T = std::tuple<std::decay_t<Ts>...>;
     auto& endPoint = mEndPoints[endpointID];
     if (!endPoint)
     {
         endPoint = std::make_unique<cEndPoint>();
-        endPoint->mMessageType.emplace(typeid(std::decay_t<T>));
-        endPoint->mDispatcher = std::make_unique<tDispatcher<std::decay_t<T>>>();
+        endPoint->mMessageType.emplace(typeid(T));
+        endPoint->mDispatcher = std::make_unique<tDispatcher<T>>();
     }
     else
     {
         // for posting the message type has to match even if it is void
         if (endPoint->mMessageType.has_value())
         {
-            if (*endPoint->mMessageType != typeid(std::decay_t<T>))
+            //std::cout << "trying with type: " << typeid(std::decay_t<T>).name() << std::endl;
+            if (*endPoint->mMessageType != typeid(T))
                 throw std::runtime_error("Wrong message type");
         }
         else
         {
-            endPoint->mMessageType.emplace(typeid(std::decay_t<T>));
+            endPoint->mMessageType.emplace(typeid(T));
         }
     }
     ++mLastPostedMessageIndex;
-    mEventsWriting.emplace_back(T(std::forward<Ts>(messageData)...), endPoint.get());
+    mEventsWriting.emplace_back(std::make_tuple(std::forward<Ts>(messageData)...), endPoint.get());
     if(mNeedDispatchProcessor)
         mNeedDispatchProcessor();
 }
@@ -175,16 +176,23 @@ template<class T> void cMessageCenter::send(const std::string& endpointID, T&& m
     endPoint->dispatch(std::forward<T>(messageData), mDirectMessageIndex);
 }
 
-template<class T, class C> requires cMessageListener<C, T>
+//template<class T, class C> requires cMessageListener<C, T>
+//    cRegisteredID cMessageCenter::registerListener(const std::string& endpointID, const C& listener)
+//{
+//}
+
+template<class C> requires cCallableSignature<C>::available
     cRegisteredID cMessageCenter::registerListener(const std::string& endpointID, const C& listener)
 {
+    using T = typename cCallableSignature<C>::DecayedArguments;
+
     auto& endPoint = mEndPoints[endpointID];
     int messageFilter = mEventsReading.empty() ? mLastPostedMessageIndex : mDispatchedMessageIndex;
     if (!endPoint)
     {
         endPoint = std::make_unique<cEndPoint>();
     }
-    if constexpr (std::is_same_v<T, void>)
+    if constexpr (std::tuple_size_v<T> == 0)
     {
         if (!endPoint->mVoidDispatcher)
             endPoint->mVoidDispatcher = std::make_unique<tDispatcher<void>>();
@@ -194,25 +202,19 @@ template<class T, class C> requires cMessageListener<C, T>
     {
         if (!endPoint->mMessageType.has_value())
         {
-            endPoint->mMessageType = typeid(std::decay_t<T>);
+            endPoint->mMessageType = typeid(T);
+            //std::cout << "registering with type: " << endPoint->mMessageType->name() << std::endl;
         }
         else
         {
-            if (*endPoint->mMessageType != typeid(std::decay_t<T>))
+            if (*endPoint->mMessageType != typeid(T))
                 throw std::runtime_error("Wrong message type");
         }
         if (!endPoint->mDispatcher)
-            endPoint->mDispatcher = std::make_unique<tDispatcher<std::decay_t<T>>>();
-        auto dispatcherT = dynamic_cast<tDispatcher<std::decay_t<T>>*>(endPoint->mDispatcher.get());
-        return dispatcherT->mListeners.Register(tDispatcher<std::decay_t<T>>::cListener(listener, messageFilter));
+            endPoint->mDispatcher = std::make_unique<tDispatcher<T>>();
+        auto dispatcherT = dynamic_cast<tDispatcher<T>*>(endPoint->mDispatcher.get());
+        return dispatcherT->mListeners.Register(tDispatcher<T>::cListener(listener, messageFilter));
     }
-}
-
-template<class C> requires cCallableSignature<C>::available
-    cRegisteredID cMessageCenter::registerListener2(const std::string& endpointID, const C& listener)
-{
-    using T = typename std::tuple_element_t<0, typename cCallableSignature<C>::DecayedArguments>;
-    return registerListener<T>(endpointID, listener);
 }
 
 
