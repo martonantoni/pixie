@@ -215,6 +215,7 @@ constexpr bool NoneOfType()
 
 #include "callable_signature.h"
 #include "proxy.h"
+#include "tuple_prefix.h"
 
 #include "utf8.h"
 #include "DefaultValue.h"

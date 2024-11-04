@@ -18,11 +18,11 @@ class cMessageCenter final
     {
         tDispatcher() = default;
 
-        using cFunctions = Messaging::tMessageListeners<T>;
+        using cFunction = Messaging::tPrefixTakerFunction<std::tuple_size_v<T>, T>;
 
         struct cListener
         {
-            cFunctions mFunction;
+            cFunction mFunction;
             int mEventFilter = -1;
             template<class C> cListener(const C& callable, int eventFilter);
         };
@@ -93,32 +93,11 @@ void cMessageCenter::tDispatcher<T>::dispatch(const std::any& messageData, int m
             {
                 if(messageIndex != mDirectMessageIndex)
                     listener.mEventFilter = messageIndex;
-                std::visit(
-                    [&messageDataT](auto&& listener)
-                    {
-                        [&]<size_t... I>(std::index_sequence<I...>)
-                        {
-                            ([&]<size_t J>()
-                            {
-                                if constexpr (std::is_same_v<std::decay_t<decltype(listener)>, Messaging::tPrefixTakerFunction<J, T>>)
-                                {
-                                    [&] <size_t... K>(std::index_sequence<K...>)
-                                    {
-                                        if (!listener)
-                                        {
-                                            return;
-                                        }
-                                        listener(std::get<K>(messageDataT)...);
-                                    }(std::make_index_sequence<J>());
-                                }
-                            }.template operator()<I>(), ...);
-                        }(std::make_index_sequence<std::tuple_size_v<T> + 1>());
-                    }, listener.mFunction);
+                std::apply(listener.mFunction, messageDataT);
             }
         });
 }
 
-//template<class T> void cMessageCenter::post(const std::string& endpointID, T&& messageData)
 template<class... Ts> void cMessageCenter::post(const std::string& endpointID, Ts&&... messageData)
 {
     using T = std::tuple<std::decay_t<Ts>...>;
@@ -176,11 +155,6 @@ template<class... Ts> void cMessageCenter::send(const std::string& endpointID, T
     endPoint->dispatch(std::make_tuple(std::forward<Ts>(messageData)...), mDirectMessageIndex);
 }
 
-//template<class T, class C> requires cMessageListener<C, T>
-//    cRegisteredID cMessageCenter::registerListener(const std::string& endpointID, const C& listener)
-//{
-//}
-
 template<class C> requires cCallableSignature<C>::available
     cRegisteredID cMessageCenter::registerListener(const std::string& endpointID, const C& listener)
 {
@@ -203,7 +177,6 @@ template<class C> requires cCallableSignature<C>::available
         if (!endPoint->mMessageType.has_value())
         {
             endPoint->mMessageType = typeid(T);
-            //std::cout << "registering with type: " << endPoint->mMessageType->name() << std::endl;
         }
         else
         {
@@ -216,7 +189,6 @@ template<class C> requires cCallableSignature<C>::available
         return dispatcherT->mListeners.Register(tDispatcher<T>::cListener(listener, messageFilter));
     }
 }
-
 
 extern cMessageCenter theMessageCenter;
 
