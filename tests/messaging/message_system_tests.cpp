@@ -46,27 +46,29 @@ TEST(message_system, multi_param_all_listening)
     EXPECT_EQ(numberOfMessagesReceived, 1);
 }
 
-TEST(message_system, multi_param_partial_listening)
-{
-    cMessageCenter messageCenter;
+// TODO: make this into an error test case
 
-    int numberOfMessagesReceived = 0;
-    auto listenerID = messageCenter.registerListener(
-        "test.a.b.c",
-        [&](int a, const std::string& b)
-        {
-            EXPECT_EQ(a, 1);
-            EXPECT_STREQ(b.c_str(), "alma");
-            ++numberOfMessagesReceived;
-        });
-
-    messageCenter.post("test.a.b.c", 1, "alma"s, 3);
-
-    messageCenter.dispatch();
-
-    EXPECT_EQ(numberOfMessagesReceived, 1);
-
-}
+//TEST(message_system, multi_param_partial_listening)
+//{
+//    cMessageCenter messageCenter;
+//
+//    int numberOfMessagesReceived = 0;
+//    auto listenerID = messageCenter.registerListener(
+//        "test.a.b.c",
+//        [&](int a, const std::string& b)
+//        {
+//            EXPECT_EQ(a, 1);
+//            EXPECT_STREQ(b.c_str(), "alma");
+//            ++numberOfMessagesReceived;
+//        });
+//
+//    messageCenter.post("test.a.b.c", 1, "alma"s, 3);
+//
+//    messageCenter.dispatch();
+//
+//    EXPECT_EQ(numberOfMessagesReceived, 1);
+//
+//}
 
 TEST(message_system, wrong_post_type)
 {

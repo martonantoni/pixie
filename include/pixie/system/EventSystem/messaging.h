@@ -18,7 +18,7 @@ class cMessageCenter final
     {
         tDispatcher() = default;
 
-        using cFunction = Messaging::tPrefixTakerFunction<std::tuple_size_v<T>, T>;
+        using cFunction = tTupleTakerFunction<T>;
 
         struct cListener
         {
