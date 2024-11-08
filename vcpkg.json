@@ -1,7 +1,10 @@
 {
   "dependencies": [
     {
-      "name": "directxtk"
+        "name": "directxtk"
+    },
+    {
+        "name": "freetype"
     }
   ],
   "builtin-baseline": "6046e48163a26252f7a8f4aa036cbdd9eb793c20"
