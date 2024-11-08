@@ -13,7 +13,7 @@ foreach(subdir ${subdirectories})
 		file(GLOB_RECURSE test_sources ${subdir}/*.cpp)
 		add_executable(${subdir_name}_tests ${test_sources})
 		# Link your project's source files
-		target_link_libraries(${subdir_name}_tests PRIVATE Pixie CONAN_PKG::gtest)
+		target_link_libraries(${subdir_name}_tests PRIVATE Pixie GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main)
 		add_test(NAME ${subdir_name} COMMAND ${subdir_name}_tests)
 	endif()
 endforeach()

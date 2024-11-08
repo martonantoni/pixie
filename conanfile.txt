@@ -1,7 +1,0 @@
-[requires]
-freetype/2.13.0
-fmt/10.0.0
-lua/5.4.4
-
-[generators]
-cmake_find_package
