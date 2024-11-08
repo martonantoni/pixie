@@ -73,6 +73,7 @@ void cStartupController::start()
 
 int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+    printf("Pixie System initialization....\n");
     //    gInstance = hInstance;
 //    SetProcessDPIAware();
   //  SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_UNAWARE);
