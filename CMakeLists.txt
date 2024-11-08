@@ -1,4 +1,17 @@
 cmake_minimum_required(VERSION 3.20)
+
+
+set(VCPKG_INSTALL_PATH "${CMAKE_CURRENT_LIST_DIR}/vcpkg_installed/x64-windows/share")
+if (NOT EXISTS "${VCPKG_INSTALL_PATH}")
+    message(FATAL_ERROR
+        "The 'vcpkg_installed' folder was not found in the project directory. "
+        "Please run 'vcpkg install' in the project folder to install the required packages."
+    )
+endif()
+list(APPEND CMAKE_PREFIX_PATH "${VCPKG_INSTALL_PATH}")
+
+find_package(directxtk CONFIG REQUIRED)
+
 set(CMAKE_SYSTEM_NAME Windows)
 set(CMAKE_FIND_LIBRARY_PREFIXES "")
 set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib")
