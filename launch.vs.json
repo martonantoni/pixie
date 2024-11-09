@@ -7,7 +7,7 @@
       "project": "CMakeLists.txt",
       "projectTarget": "SandBox.exe (bin\\SandBox.exe)",
       "name": "SandBox.exe (bin\\SandBox.exe)",
-      "currentDir": "${workspaceRoot}/SandBox/_target_"
+      "currentDir": "${workspaceRoot}/_target_"
     },
     {
       "type": "default",
