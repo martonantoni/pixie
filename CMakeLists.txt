@@ -24,7 +24,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /FC")  # full path in error messages
 set(DIRECTX_INCLUDE_PATH "c:/Program Files (x86)/Microsoft DirectX SDK (June 2010)/Include")
 set(DIRECTX_LIB_PATH "c:/Program Files (x86)/Microsoft DirectX SDK (June 2010)/Lib/x64")
 
-find_package(directxtk CONFIG REQUIRED)
+# find_package(directxtk CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(Lua REQUIRED)
 enable_testing()
@@ -51,7 +51,9 @@ target_include_directories(Pixie
 	PRIVATE
 		${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-target_link_libraries(Pixie PUBLIC Microsoft::DirectXTK Freetype::Freetype fmt::fmt lua d3d9.lib d3dx9.lib)
+		# todo: add to link libs: Microsoft::DirectXTK
+
+target_link_libraries(Pixie PUBLIC  Freetype::Freetype fmt::fmt lua d3d9.lib d3dx9.lib)
 	
 link_directories(${DIRECTX_LIB_PATH})
 
