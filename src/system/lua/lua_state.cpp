@@ -144,8 +144,7 @@ cLuaState::~cLuaState()
 
 void cLuaState::executeFile(const std::filesystem::path& scriptPath)
 {
-    if (luaL_dofile(L, scriptPath.string().c_str()
-    ))
+    if (luaL_dofile(L, scriptPath.string().c_str()))
     {
         const char* errorMessage = lua_tostring(L, -1);
         printf("LUA executeFile error: %s\n", errorMessage);
