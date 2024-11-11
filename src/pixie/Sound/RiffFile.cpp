@@ -20,7 +20,6 @@ cRiffFile::cRiffFile(const cPath& path)
         uint64_t bytesRead = mFile.Read(reinterpret_cast<char*>(&recordHeader), sizeof(recordHeader));
         if (!bytesRead)
             break;
-        MainLog->Log("Found chunk: %.4s", (const char*)&recordHeader.signature);
         mRecords.emplace_back();
         mRecords.back().mLength = recordHeader.length;
         mRecords.back().mSignature = ntohl(recordHeader.signature);
