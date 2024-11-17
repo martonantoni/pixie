@@ -317,7 +317,18 @@ bool cPixieWindow::SetStringProperty(unsigned int PropertyFlags, const std::stri
 	return false;
 }
 
+bool cPixieWindow::isOnDesktop() const
+{
+    for (cPixieWindow* window = mParentWindow; window; window = window->mParentWindow)
+    {
+        if (window == &thePixieDesktop)
+            return true;
+    }
+    return false;    
+}
+
 bool cMouseBlocker::IsInside_Overridable(cPoint WindowRelativePoint) const
 {
 	return GetWindow()->IsInside(WindowRelativePoint+GetWindow()->GetPlacement().position()); // window's placement is relative to its parent window
 }
+

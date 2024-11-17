@@ -100,6 +100,7 @@ public:
 	tGetAtResult<cPixieWindow> GetWindowAt(cPoint WindowRelativeCoordinates, eGetWindowRules GetWindowRules) const; // recursive, returned window might be sub-sub-sub-...window
 	void SetParentWindow(cPixieWindow *ParentWindow);
 	cPixieWindow *GetParentWindow() { return mParentWindow; }
+	bool isOnDesktop() const; // is it reachable from the desktop?
 // MouseTargets:
 private:
 	void AddMouseTarget(cMouseTarget *Target);
