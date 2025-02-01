@@ -10,7 +10,6 @@ const cEventDispatchers::cDispatcherRangeInfo cMouseServer::mDispatcherRangeInfo
 
 
 cMouseServer::cMouseServer()
-	: mMousePosition(0, 0)
 {
 	cPrimaryWindow &PrimaryWindow=cPrimaryWindow::Get();
 	mListenerIDs.push_back(PrimaryWindow.AddMessageHandler(WM_MOUSEMOVE, [this](auto wp, auto lp) { return OnMouseMove(wp, lp); }));

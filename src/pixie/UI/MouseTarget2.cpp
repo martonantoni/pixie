@@ -79,9 +79,10 @@ void cMouseTarget::SetPlacement(const cRect &Rect)
 	PropertiesSet(Property_Rect);
 	if(mWindow)
 	{
-		bool IsInside=thePixieDesktop.GetMouseTargetAt(cMouseServer::Get().GetMousePosition()).mResult==this;
+		auto mousePos = cMouseServer::Get().GetMousePosition();
+		bool IsInside=thePixieDesktop.GetMouseTargetAt(mousePos).mResult==this;
 		if(IsInside||IsMouseTrackingActive())
-			OnMouseMove(cMouseServer::Get().GetMousePosition(), IsInside);
+			OnMouseMove(mousePos, IsInside);
 	}
 	mEventDispatchers.PostEvent(Event_PlacementChanged);
 }

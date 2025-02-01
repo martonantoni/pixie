@@ -31,7 +31,7 @@ private:
 	enum { DefaultOrder = 100 };
 	cRegisteredIDList mListenerIDs;
 private:
-	cPoint mMousePosition;
+    cPoint mMousePosition = { -1, -1 };
 	void PostEvent(eMouseEvent Event);
 	cWindowsMessageResult OnMouseMove(WPARAM wParam, LPARAM lParam);
 	cWindowsMessageResult OnLButtonDown(WPARAM wParam, LPARAM lParam);
