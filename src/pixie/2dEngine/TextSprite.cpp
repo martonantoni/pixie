@@ -32,7 +32,7 @@ void cTextSprite::HandleAlignment()
 			cRect{ {0,0}, GetSize() }, 
 			cRect{ {0,0}, mTexture->GetSize() },
 			mHorizontalAlign, mVeritcalAlign);
-		mProperties.mPositionOffset=AlignedRect.position();
+		mPositionOffset=AlignedRect.position();
 	}
 }
 

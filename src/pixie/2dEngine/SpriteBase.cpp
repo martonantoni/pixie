@@ -46,29 +46,6 @@ c2DRenderable::eDestroyZombieResult c2DRenderable::DestroyZombie()
 	return eDestroyZombieResult::StillAlive;
 }
 
-void c2DRenderable::SetPosition(cPoint Position)
-{
-	if(!CheckIfChangableProperty(Property_Position))
-		return;
-	mProperties.mRect.position() = Position;
-	PropertiesSet(Property_Position);
-}
-
-void c2DRenderable::SetRect(const cRect &Rect)
-{
-	if(!CheckIfChangableProperty(Property_Rect))
-		return;
-	mProperties.mRect=Rect;
-	PropertiesSet(Property_Rect);
-}
-
-void c2DRenderable::SetSize(cPoint Size)
-{
-	if(!CheckIfChangableProperty(Property_Size))
-		return;
-	mProperties.mRect.size() = Size;
-	PropertiesSet(Property_Size);
-}
 
 void c2DRenderable::SetRotation(float Rotation)
 {
@@ -80,14 +57,6 @@ void c2DRenderable::SetRotation(float Rotation)
 // 		Rotation=360+(Rotation%360);
 	mProperties.mRotation=Rotation;
 	PropertiesSet(Property_Rotation);
-}
-
-void c2DRenderable::SetPositionOffset(const cPoint &PositionOffset)
-{
-	if(!CheckIfChangableProperty(Property_PositionOffset))
-		return;
-	mProperties.mPositionOffset=PositionOffset;
-	PropertiesSet(Property_PositionOffset);
 }
 
 void c2DRenderable::SetRGBColor(cColor Color)
@@ -183,40 +152,6 @@ void c2DRenderable::SetWindow(cPixieWindow *Window)
 	PropertiesChanged(Property_Window);
 }
 
-cRect c2DRenderable::GetRectForRendering() const
-{
-	cRect RectForRendering(mProperties.mRect);
-	RectForRendering.left<cRect::PreserveSize>() += mProperties.mPositionOffset.x;
-	RectForRendering.top<cRect::PreserveSize>() += mProperties.mPositionOffset.y;
-	if(mWindow)
-	{
-		cRect WindowRect=mWindow->GetScreenRect();
-		RectForRendering.left<cRect::PreserveSize>() += WindowRect.left();
-		RectForRendering.top<cRect::PreserveSize>() += WindowRect.top();
-	}
-	return RectForRendering;
-}
-
-cPoint c2DRenderable::center() const
-{
-	return GetRect().center();
-}
-
-cPoint c2DRenderable::GetScreenPosition() const
-{
-	cPixieWindow *Window=GetWindow();
-	if(Window)
-		return Window->GetScreenRect().position()+GetPosition();
-	else
-		return GetPosition();
-}
-
-void c2DRenderable::SetCenter(cPoint Center)
-{
-	cPoint Size=GetSize();
-	SetPosition({ Center.x-Size.x/2, Center.y-Size.y/2 });
-}
-
 void c2DRenderable::SetValidRect(const cRect &ValidRect)
 {
 	mProperties.mValidRect=ValidRect;
@@ -234,46 +169,14 @@ void c2DRenderable::DisableClipping()
 	PropertiesChanged(Property_ClippingMode);
 }
 
-cRect c2DRenderable::GetCenterAndHSize() const
-{
-	return { GetRect().center(), GetSize()/2 };
-}
-
-void c2DRenderable::SetCenterAndHSize(const cRect &Rect)
-{
-	SetRect(cRect::aroundPoint(Rect.position(), Rect.size()*2));
-}
-
-void c2DRenderable::SetScreenPosition(cPoint Position)
-{
-	cPixieWindow *Window=GetWindow();
-	if(!Window)
-		SetPosition(Position);
-	else
-		SetPosition(Position-Window->GetScreenRect().position());
-}
-
 bool c2DRenderable::GetProperty(unsigned int PropertyFlags,OUT cPropertyValues &PropertyValues) const
 {
 	switch(PropertyFlags)
 	{
-	case Property_X: PropertyValues=GetX(); return true;
-	case Property_Y: PropertyValues=GetY(); return true;
-	case Property_W: PropertyValues=GetWidth(); return true;
-	case Property_H: PropertyValues=GetHeight(); return true;
 	case Property_Rotation: PropertyValues=GetRotation(); return true;
-// 	case Property_XOffset: PropertyValues=GetPositionOffset().x; return true;
-// 	case Property_YOffset: PropertyValues=GetPositionOffset().y; return true;
 	case Property_ZOrder: PropertyValues=GetZOrder(); return true;
 	case Property_Alpha: PropertyValues=GetAlpha(); return true;
-	case Property_Position: PropertyValues=GetPosition(); return true;
-	case Property_ScreenPosition: PropertyValues=GetScreenPosition(); return true;
-	case Property_PositionOffset: PropertyValues=GetPositionOffset(); return true;
-	case Property_Size: PropertyValues=GetSize(); return true;
 	case Property_Color: PropertyValues=GetColor(); return true;
-	case Property_Rect: PropertyValues=GetRect(); return true;
-	case Property_CenterAndHSize: PropertyValues=GetCenterAndHSize(); return true;
-	case Property_Center: PropertyValues=center(); return true;
 	case Property_ValidRect: PropertyValues=GetValidRect(); return true;
 	}
 	ASSERT(false);
@@ -286,23 +189,10 @@ bool c2DRenderable::SetProperty(unsigned int PropertyFlags,const cPropertyValues
 		return false;
 	switch(PropertyFlags)
 	{
-	case Property_X: SetPosition(Value.ToInt(),GetY()); return true;
-	case Property_Y: SetPosition(GetX(),Value.ToInt()); return true;
-	case Property_W: SetSize(Value.ToInt(),GetHeight()); return true;
-	case Property_H: SetSize(GetWidth(),Value.ToInt()); return true;
 	case Property_Rotation: SetRotation(Value.ToInt()); return true;
-// 	case Property_XOffset: SetPositionOffset(Value.ToInt(), GetPositionOffset().y); return true;
-// 	case Property_YOffset: SetPositionOffset(GetPositionOffset().x, Value.ToInt()); return true;
 	case Property_ZOrder: SetZOrder(Value.ToInt()); return true;
 	case Property_Alpha: SetAlpha(Value.ToInt()); return true;
-	case Property_Position: SetPosition(Value.ToPoint()); return true;
-	case Property_ScreenPosition: SetScreenPosition(Value.ToPoint()); return true;
-	case Property_PositionOffset: SetPositionOffset(Value.ToPoint()); return true;
-	case Property_CenterAndHSize: SetCenterAndHSize(Value.ToRect()); return true;
-	case Property_Center: SetCenter(Value.ToPoint()); return true;
-	case Property_Size: SetSize(Value.ToPoint()); return true;
 	case Property_Color: SetRGBColor(Value.ToRGBColor()); return true;
-	case Property_Rect: SetRect(Value.ToRect()); return true;
 	case Property_ValidRect: SetValidRect(Value.ToRect()); return true;
 	}
 	ASSERT(false);
@@ -356,4 +246,131 @@ void c2DRenderable::setClippingMode(eClippingMode ClippingMode)
 {
     mProperties.mClippingMode = ClippingMode;
 	PropertiesChanged(Property_ClippingMode);
+}
+
+bool cSpriteBase::GetProperty(unsigned int PropertyFlags, OUT cPropertyValues& PropertyValues) const
+{
+	switch (PropertyFlags)
+	{
+	case Property_X: PropertyValues = GetX(); return true;
+	case Property_Y: PropertyValues = GetY(); return true;
+	case Property_W: PropertyValues = GetWidth(); return true;
+	case Property_H: PropertyValues = GetHeight(); return true;
+	case Property_Position: PropertyValues = GetPosition(); return true;
+	case Property_ScreenPosition: PropertyValues = GetScreenPosition(); return true;
+	case Property_PositionOffset: PropertyValues = GetPositionOffset(); return true;
+	case Property_Size: PropertyValues = GetSize(); return true;
+	case Property_Rect: PropertyValues = GetRect(); return true;
+	case Property_CenterAndHSize: PropertyValues = GetCenterAndHSize(); return true;
+	case Property_Center: PropertyValues = center(); return true;
+	}
+    return c2DRenderable::GetProperty(PropertyFlags, PropertyValues);
+}
+
+bool cSpriteBase::SetProperty(unsigned int PropertyFlags, const cPropertyValues& Value)
+{
+	if (!CheckIfChangableProperty(PropertyFlags))
+		return false;
+	switch (PropertyFlags)
+	{
+	case Property_X: SetPosition(Value.ToInt(), GetY()); return true;
+	case Property_Y: SetPosition(GetX(), Value.ToInt()); return true;
+	case Property_W: SetSize(Value.ToInt(), GetHeight()); return true;
+	case Property_H: SetSize(GetWidth(), Value.ToInt()); return true;
+	case Property_Rotation: SetRotation(Value.ToInt()); return true;
+	case Property_Position: SetPosition(Value.ToPoint()); return true;
+	case Property_ScreenPosition: SetScreenPosition(Value.ToPoint()); return true;
+	case Property_PositionOffset: SetPositionOffset(Value.ToPoint()); return true;
+	case Property_CenterAndHSize: SetCenterAndHSize(Value.ToRect()); return true;
+	case Property_Center: SetCenter(Value.ToPoint()); return true;
+	case Property_Size: SetSize(Value.ToPoint()); return true;
+	case Property_Rect: SetRect(Value.ToRect()); return true;
+	case Property_ValidRect: SetValidRect(Value.ToRect()); return true;
+	}
+    return c2DRenderable::SetProperty(PropertyFlags, Value);
+}
+
+void cSpriteBase::SetPosition(cPoint Position)
+{
+	if (!CheckIfChangableProperty(Property_Position))
+		return;
+	mRect.position() = Position;
+	PropertiesSet(Property_Position);
+}
+
+void cSpriteBase::SetRect(const cRect& Rect)
+{
+	if (!CheckIfChangableProperty(Property_Rect))
+		return;
+	mRect = Rect;
+	PropertiesSet(Property_Rect);
+}
+
+void cSpriteBase::SetSize(cPoint Size)
+{
+	if (!CheckIfChangableProperty(Property_Size))
+		return;
+	mRect.size() = Size;
+	PropertiesSet(Property_Size);
+}
+
+cPoint cSpriteBase::center() const
+{
+	return GetRect().center();
+}
+
+cPoint cSpriteBase::GetScreenPosition() const
+{
+	cPixieWindow* Window = GetWindow();
+	if (Window)
+		return Window->GetScreenRect().position() + GetPosition();
+	else
+		return GetPosition();
+}
+
+void cSpriteBase::SetCenter(cPoint Center)
+{
+	cPoint Size = GetSize();
+	SetPosition({ Center.x - Size.x / 2, Center.y - Size.y / 2 });
+}
+
+cRect cSpriteBase::GetCenterAndHSize() const
+{
+	return { GetRect().center(), GetSize() / 2 };
+}
+
+void cSpriteBase::SetCenterAndHSize(const cRect& Rect)
+{
+	SetRect(cRect::aroundPoint(Rect.position(), Rect.size() * 2));
+}
+
+void cSpriteBase::SetScreenPosition(cPoint Position)
+{
+	cPixieWindow* Window = GetWindow();
+	if (!Window)
+		SetPosition(Position);
+	else
+		SetPosition(Position - Window->GetScreenRect().position());
+}
+
+cRect cSpriteBase::GetRectForRendering() const
+{
+	cRect RectForRendering(mRect);
+	RectForRendering.left<cRect::PreserveSize>() += mPositionOffset.x;
+	RectForRendering.top<cRect::PreserveSize>() += mPositionOffset.y;
+	if (mWindow)
+	{
+		cRect WindowRect = mWindow->GetScreenRect();
+		RectForRendering.left<cRect::PreserveSize>() += WindowRect.left();
+		RectForRendering.top<cRect::PreserveSize>() += WindowRect.top();
+	}
+	return RectForRendering;
+}
+
+void cSpriteBase::SetPositionOffset(const cPoint& PositionOffset)
+{
+	if (!CheckIfChangableProperty(Property_PositionOffset))
+		return;
+	mPositionOffset = PositionOffset;
+	PropertiesSet(Property_PositionOffset);
 }

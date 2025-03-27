@@ -235,12 +235,6 @@ void cPixieWindow::CheckOwnerlessSprites()
 		if(!WasKill)
 			break;
 	}
-	int area = 0;
-	for(auto &Sprite: mSprites)
-    {
-		auto rect = Sprite->GetRect();
-        area += rect.width() * rect.height();
-    }
 }
 
 std::pair<bool, cRect> cPixieWindow::getSpriteClipping() const

@@ -19,7 +19,7 @@ void cMultiSpriteBase::PropertiesChanged(unsigned int Properties)
 	}
 	if(Properties&Property_PositionOffset)
 	{
-		ForEachSprite([PositionOffset=mProperties.mPositionOffset](cSpriteBase &Sprite) { Sprite.SetPositionOffset(PositionOffset); });
+		ForEachSprite([PositionOffset=mPositionOffset](cSpriteBase &Sprite) { Sprite.SetPositionOffset(PositionOffset); });
 	}
 	if(Properties&Property_Color)
 	{
@@ -64,12 +64,12 @@ cSimpleMultiSprite::cSimpleMultiSprite(std::vector<std::unique_ptr<cSpriteBase>>
 	mSprites=std::move(Sprites);
     if (!mSprites.empty())
     {
-        mProperties.mRect = mSprites.front()->GetRect();
+        mRect = mSprites.front()->GetRect();
         for (int i = 1, iend = mSprites.size(); i != iend; ++i)
         {
-            mProperties.mRect.growToBound(mSprites[i]->GetRect());
+            mRect.growToBound(mSprites[i]->GetRect());
         }
-        mBasePos = basePosition == eBasePosition::AdjustedToBoundingBox ? mProperties.mRect.position() : cPoint { 0, 0 };
+        mBasePos = basePosition == eBasePosition::AdjustedToBoundingBox ? mRect.position() : cPoint { 0, 0 };
     }
 }
 
