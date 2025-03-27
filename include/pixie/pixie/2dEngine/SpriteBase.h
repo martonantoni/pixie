@@ -9,7 +9,7 @@ enum class ePixieObjectAnimationDoneReason;
 class cSpriteBase: public cPixieObject
 {
 public:
-	struct cRenderInfo;
+//	struct cRenderInfo;
 private:
 	bool mIsOwned=true; // later cSpriteBase might be refcounted
 	int mDebugID=0;

@@ -22,8 +22,9 @@ public:
 		static constexpr int BottomLeft = 2;
 		static constexpr int BottomRight = 3;
 	};
+	using cCornerColors = std::array<cColor, 4>;
 private:
-	cColor mCornerColors[4];
+	cCornerColors mCornerColors;
 	bool mPerCornerMode;
 	bool CheckPerCornerUsage(unsigned int PositionFlags);
 public:
@@ -32,6 +33,7 @@ public:
 	void SetRGBColor_ByPosition(unsigned int PositionFlags,unsigned int Color);
 	void SetARGBColor_ByPosition(unsigned int PositionFlags,unsigned int Color);
 	void SetAlpha_ByPosition(unsigned int PositionFlags,unsigned int Alpha);
+	cCornerColors cornerColors() const;
 	const cColor &GetColor_ByPosition(unsigned int PositionFlag) const;
 	const cColor &GetColor_ByCorner(int cornerIndex) const;
 	const cSpriteColor &operator=(const cColor &ColorInfo) { mColor=GetARGBColor(); mPerCornerMode=false; return *this; }

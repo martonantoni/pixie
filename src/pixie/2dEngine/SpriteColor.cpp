@@ -58,6 +58,20 @@ void cSpriteColor::SetAlpha(unsigned int Alpha)
 		cColor::SetAlpha(Alpha);
 }
 
+cSpriteColor::cCornerColors cSpriteColor::cornerColors() const
+{
+    if (!mPerCornerMode)
+    {
+        cCornerColors Result;
+        Result[0] = Result[1] = Result[2] = Result[3] = *this;
+        return Result;
+    }
+	else
+	{
+		return mCornerColors;
+	}
+}
+
 const cColor &cSpriteColor::GetColor_ByPosition(unsigned int PositionFlags) const
 {
 	ASSERT(PositionFlags>4); // probably used Corner_ enums instead of flags

@@ -1,8 +1,11 @@
 #pragma once
 
+#include "pixie/pixie/2dEngine/SpriteColor.h"
+
 struct cSpriteRenderInfo
 {
 	cRect mRect;
+    cSpriteColor::cCornerColors mCornerColors;
 	const cTexture *mTexture=nullptr;
 	enum eBlendingMode
 	{

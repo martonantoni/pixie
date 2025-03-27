@@ -26,9 +26,15 @@ void cSprite::SetBlendingMode(cSpriteRenderInfo::eBlendingMode BlendingFlags)
 
 cSpriteRenderInfo cSprite::GetRenderInfo() const
 {
+    cSpriteRenderInfo renderInfo;
+	renderInfo.mCornerColors = mProperties.mColor.cornerColors();
+	renderInfo.mRotation = GetRotation();
+    renderInfo.mBlendingMode = mBlendingMode;
 	if(mProperties.mClippingMode == eClippingMode::None)
 	{
-		return { GetRectForRendering(), GetRotation(), mTexture.get(), mBlendingMode };
+        renderInfo.mRect = GetRectForRendering();
+        renderInfo.mTexture = mTexture.get();
+        return renderInfo;
 	}
 // clipping is enabled:
 	cRect OriginalRect = GetRect();
@@ -66,7 +72,9 @@ cSpriteRenderInfo cSprite::GetRenderInfo() const
 	int ClippedTextureRight = TextureRect.right() - (OriginalRect.right() - RenderedRect.right()) * TextureRect.width() / OriginalRect.width();
 	mClippedTexture = mTexture->CreateSubTexture(cRect{ ClippedTextureLeft, ClippedTextureTop, ClippedTextureRight - ClippedTextureLeft + 1, ClippedTextureBottom - ClippedTextureTop + 1 });
 
-	return { RenderedRect, GetRotation(), mClippedTexture.get(), mBlendingMode };
+    renderInfo.mRect = RenderedRect;
+    renderInfo.mTexture = mClippedTexture.get();
+    return renderInfo;
 }
 
 bool cSprite::SetStringProperty(unsigned int PropertyFlags, const std::string &Value)
