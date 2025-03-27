@@ -157,28 +157,28 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
 
 			//Setup vertices in buffer
 
-			batchVertices[NumberOfBatchedVertices].color = sprite->GetSpriteColor().GetColor_ByCorner(cSpriteColor::Corner_TopLeft).GetARGBColor();
+			batchVertices[NumberOfBatchedVertices].color = sprite->GetSpriteColor().GetColor_ByCorner(cSpriteColor::CornerPosition::TopLeft).GetARGBColor();
 			batchVertices[NumberOfBatchedVertices].x = TopLeft.x;
 			batchVertices[NumberOfBatchedVertices].y = TopLeft.y;
 			batchVertices[NumberOfBatchedVertices].z = Z;
 			batchVertices[NumberOfBatchedVertices].u = RenderInfo.mTexture->GetTextureInfo().mLeft;
 			batchVertices[NumberOfBatchedVertices].v = RenderInfo.mTexture->GetTextureInfo().mTop;
 
-			batchVertices[NumberOfBatchedVertices + 1].color = sprite->GetSpriteColor().GetColor_ByCorner(cSpriteColor::Corner_TopRight).GetARGBColor();
+			batchVertices[NumberOfBatchedVertices + 1].color = sprite->GetSpriteColor().GetColor_ByCorner(cSpriteColor::CornerPosition::TopRight).GetARGBColor();
 			batchVertices[NumberOfBatchedVertices + 1].x = TopRight.x;
 			batchVertices[NumberOfBatchedVertices + 1].y = TopRight.y;
 			batchVertices[NumberOfBatchedVertices + 1].z = Z;
 			batchVertices[NumberOfBatchedVertices + 1].u = RenderInfo.mTexture->GetTextureInfo().mRight;
 			batchVertices[NumberOfBatchedVertices + 1].v = RenderInfo.mTexture->GetTextureInfo().mTop;
 
-			batchVertices[NumberOfBatchedVertices + 2].color = sprite->GetSpriteColor().GetColor_ByCorner(cSpriteColor::Corner_BottomRight).GetARGBColor();
+			batchVertices[NumberOfBatchedVertices + 2].color = sprite->GetSpriteColor().GetColor_ByCorner(cSpriteColor::CornerPosition::BottomRight).GetARGBColor();
 			batchVertices[NumberOfBatchedVertices + 2].x = BottomRight.x;
 			batchVertices[NumberOfBatchedVertices + 2].y = BottomRight.y;
 			batchVertices[NumberOfBatchedVertices + 2].z = Z;
 			batchVertices[NumberOfBatchedVertices + 2].u = RenderInfo.mTexture->GetTextureInfo().mRight;
 			batchVertices[NumberOfBatchedVertices + 2].v = RenderInfo.mTexture->GetTextureInfo().mBottom;
 
-			batchVertices[NumberOfBatchedVertices + 3].color = sprite->GetSpriteColor().GetColor_ByCorner(cSpriteColor::Corner_BottomLeft).GetARGBColor();
+			batchVertices[NumberOfBatchedVertices + 3].color = sprite->GetSpriteColor().GetColor_ByCorner(cSpriteColor::CornerPosition::BottomLeft).GetARGBColor();
 			batchVertices[NumberOfBatchedVertices + 3].x = BottomLeft.x;
 			batchVertices[NumberOfBatchedVertices + 3].y = BottomLeft.y;
 			batchVertices[NumberOfBatchedVertices + 3].z = Z;

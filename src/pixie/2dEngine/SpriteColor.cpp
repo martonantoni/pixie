@@ -15,9 +15,9 @@ bool cSpriteColor::CheckPerCornerUsage(unsigned int PositionFlags)
 	return true;
 }
 
-const cColor &cSpriteColor::GetColor_ByCorner(eCornerPosition Corner) const
+const cColor &cSpriteColor::GetColor_ByCorner(int cornerIndex) const
 {
-	return mPerCornerMode?mCornerColors[Corner]:*this;
+	return mPerCornerMode?mCornerColors[cornerIndex]:*this;
 }
 
 #define SPRITE_COLOR_SET_FUNCTION_BODY(ColorFunctionToCall) \
@@ -26,10 +26,10 @@ const cColor &cSpriteColor::GetColor_ByCorner(eCornerPosition Corner) const
 		ColorFunctionToCall; \
 		return; \
 	} \
-	if(PositionFlags&TopLeft) mCornerColors[Corner_TopLeft].ColorFunctionToCall; \
-	if(PositionFlags&TopRight) mCornerColors[Corner_TopRight].ColorFunctionToCall; \
-	if(PositionFlags&BottomLeft) mCornerColors[Corner_BottomLeft].ColorFunctionToCall; \
-	if(PositionFlags&BottomRight) mCornerColors[Corner_BottomRight].ColorFunctionToCall; 
+	if(PositionFlags&TopLeft) mCornerColors[CornerPosition::TopLeft].ColorFunctionToCall; \
+	if(PositionFlags&TopRight) mCornerColors[CornerPosition::TopRight].ColorFunctionToCall; \
+	if(PositionFlags&BottomLeft) mCornerColors[CornerPosition::BottomLeft].ColorFunctionToCall; \
+	if(PositionFlags&BottomRight) mCornerColors[CornerPosition::BottomRight].ColorFunctionToCall; 
 
 
 void cSpriteColor::SetRGBColor_ByPosition(unsigned int PositionFlags,unsigned int Color)
@@ -63,10 +63,10 @@ const cColor &cSpriteColor::GetColor_ByPosition(unsigned int PositionFlags) cons
 	ASSERT(PositionFlags>4); // probably used Corner_ enums instead of flags
 	if(!mPerCornerMode)
 		return *this;
-	if(PositionFlags&TopLeft) return mCornerColors[Corner_TopLeft];
-	if(PositionFlags&TopRight) return mCornerColors[Corner_TopRight];
-	if(PositionFlags&BottomLeft) return mCornerColors[Corner_BottomLeft];
-	if(PositionFlags&BottomRight) return mCornerColors[Corner_BottomRight];
+	if(PositionFlags&TopLeft) return mCornerColors[CornerPosition::TopLeft];
+	if(PositionFlags&TopRight) return mCornerColors[CornerPosition::TopRight];
+	if(PositionFlags&BottomLeft) return mCornerColors[CornerPosition::BottomLeft];
+	if(PositionFlags&BottomRight) return mCornerColors[CornerPosition::BottomRight];
 	return *this;
 }
 

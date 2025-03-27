@@ -15,9 +15,12 @@ public:
 		Right             = TopRight|BottomRight,
 		Entire            = Top|Bottom|Left|Right,
 	};
-	enum eCornerPosition
+	struct CornerPosition
 	{
-		Corner_TopLeft, Corner_TopRight, Corner_BottomLeft, Corner_BottomRight
+		static constexpr int TopLeft = 0;
+		static constexpr int TopRight = 1;
+		static constexpr int BottomLeft = 2;
+		static constexpr int BottomRight = 3;
 	};
 private:
 	cColor mCornerColors[4];
@@ -30,7 +33,7 @@ public:
 	void SetARGBColor_ByPosition(unsigned int PositionFlags,unsigned int Color);
 	void SetAlpha_ByPosition(unsigned int PositionFlags,unsigned int Alpha);
 	const cColor &GetColor_ByPosition(unsigned int PositionFlag) const;
-	const cColor &GetColor_ByCorner(eCornerPosition Corner) const;
+	const cColor &GetColor_ByCorner(int cornerIndex) const;
 	const cSpriteColor &operator=(const cColor &ColorInfo) { mColor=GetARGBColor(); mPerCornerMode=false; return *this; }
 	void SetAlpha(unsigned int Alpha); // 0 - 255, 0: solid, 255: transparent
 };
