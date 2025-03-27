@@ -6,7 +6,7 @@ class cPixieObjectAnimator;
 class cPixieWindow;
 enum class ePixieObjectAnimationDoneReason;
 
-class cSpriteBase: public cPixieObject
+class c2DRenderable: public cPixieObject
 {
 public:
 //	struct cRenderInfo;
@@ -28,10 +28,10 @@ protected:
 		eClippingMode mClippingMode = eClippingMode::None;
 	} mProperties;
 	bool mIsColorSet=false;
-	virtual ~cSpriteBase(); // use Drop() or Destroy()
-    void CopyProperties(const cSpriteBase& source); // used by Clone()
+	virtual ~c2DRenderable(); // use Drop() or Destroy()
+    void CopyProperties(const c2DRenderable& source); // used by Clone()
 public:
-	cSpriteBase();
+	c2DRenderable();
 	void Drop();
 	void Destroy(); 
 	std::string GetDebugID() const { return fmt::sprintf("sprite#%d",mDebugID); }
@@ -94,7 +94,6 @@ public:
 	void SetWindow(cPixieWindow *Window);
 	cPixieWindow *GetWindow() const { return mWindow; }
 
-    virtual std::unique_ptr<cSpriteBase> Clone() const=0;
 //-----------------------------------
  	enum eDestroyZombieResult { StillAlive, Destroyed };	
 	eDestroyZombieResult DestroyZombie(); // only cPixieWindow is allowed to call this
@@ -103,6 +102,14 @@ public:
 	virtual cSpriteRenderInfo GetRenderInfo() const { return cSpriteRenderInfo(); }
 };
 
-USE_DROP_INSTEAD_DELETE(cSpriteBase)
+USE_DROP_INSTEAD_DELETE(c2DRenderable)
+
+class cSpriteBase : public c2DRenderable
+{
+public:
+	virtual std::unique_ptr<cSpriteBase> Clone() const = 0;
+};
+
+USE_DROP_INSTEAD_DELETE_PARENT(cSpriteBase, c2DRenderable);
 
 

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "pixie/pixie/2dEngine/SpriteColor.h"
 
 struct cSpriteRenderInfo
 {

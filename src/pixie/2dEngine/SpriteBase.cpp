@@ -1,32 +1,32 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
-int cSpriteBase::mDebugIDCounter=0;
+int c2DRenderable::mDebugIDCounter=0;
 
-cSpriteBase::cSpriteBase()
+c2DRenderable::c2DRenderable()
 : mDebugID(++mDebugIDCounter)
 {
 	mProperties.mColor.SetRGBColor(~0);
 }
 
-cSpriteBase::~cSpriteBase()
+c2DRenderable::~c2DRenderable()
 {
 	if(mWindow&&IsVisible())
 		mWindow->RemoveSprite(this);
 }
 
-void cSpriteBase::Drop()
+void c2DRenderable::Drop()
 {
 	mIsOwned=false;
 	if(!mWindow||!IsVisible())
 		delete this;
 }
 
-void cSpriteBase::Destroy()
+void c2DRenderable::Destroy()
 {
 	delete this;
 }
 
-bool cSpriteBase::IsDestroyable() const
+bool c2DRenderable::IsDestroyable() const
 {
 	if(mIsOwned)
 		return false;
@@ -35,7 +35,7 @@ bool cSpriteBase::IsDestroyable() const
 	return CanDestroy;
 }
 
-cSpriteBase::eDestroyZombieResult cSpriteBase::DestroyZombie()
+c2DRenderable::eDestroyZombieResult c2DRenderable::DestroyZombie()
 {
 	if(IsDestroyable())
 	{
@@ -46,7 +46,7 @@ cSpriteBase::eDestroyZombieResult cSpriteBase::DestroyZombie()
 	return eDestroyZombieResult::StillAlive;
 }
 
-void cSpriteBase::SetPosition(cPoint Position)
+void c2DRenderable::SetPosition(cPoint Position)
 {
 	if(!CheckIfChangableProperty(Property_Position))
 		return;
@@ -54,7 +54,7 @@ void cSpriteBase::SetPosition(cPoint Position)
 	PropertiesSet(Property_Position);
 }
 
-void cSpriteBase::SetRect(const cRect &Rect)
+void c2DRenderable::SetRect(const cRect &Rect)
 {
 	if(!CheckIfChangableProperty(Property_Rect))
 		return;
@@ -62,7 +62,7 @@ void cSpriteBase::SetRect(const cRect &Rect)
 	PropertiesSet(Property_Rect);
 }
 
-void cSpriteBase::SetSize(cPoint Size)
+void c2DRenderable::SetSize(cPoint Size)
 {
 	if(!CheckIfChangableProperty(Property_Size))
 		return;
@@ -70,7 +70,7 @@ void cSpriteBase::SetSize(cPoint Size)
 	PropertiesSet(Property_Size);
 }
 
-void cSpriteBase::SetRotation(float Rotation)
+void c2DRenderable::SetRotation(float Rotation)
 {
 	if(!CheckIfChangableProperty(Property_Rotation))
 		return;
@@ -82,7 +82,7 @@ void cSpriteBase::SetRotation(float Rotation)
 	PropertiesSet(Property_Rotation);
 }
 
-void cSpriteBase::SetPositionOffset(const cPoint &PositionOffset)
+void c2DRenderable::SetPositionOffset(const cPoint &PositionOffset)
 {
 	if(!CheckIfChangableProperty(Property_PositionOffset))
 		return;
@@ -90,7 +90,7 @@ void cSpriteBase::SetPositionOffset(const cPoint &PositionOffset)
 	PropertiesSet(Property_PositionOffset);
 }
 
-void cSpriteBase::SetRGBColor(cColor Color)
+void c2DRenderable::SetRGBColor(cColor Color)
 {
 	if(!CheckIfChangableProperty(Property_Color))
 		return;
@@ -99,7 +99,7 @@ void cSpriteBase::SetRGBColor(cColor Color)
 	PropertiesSet(Property_Color);
 }
 
-void cSpriteBase::SetARGBColor(D3DCOLOR Color)
+void c2DRenderable::SetARGBColor(D3DCOLOR Color)
 {
 	if(!CheckIfChangableProperty(Property_Color|Property_Alpha))
 		return;
@@ -108,7 +108,7 @@ void cSpriteBase::SetARGBColor(D3DCOLOR Color)
 	PropertiesSet(Property_Color|Property_Alpha);
 }
 
-void cSpriteBase::SetARGBColor_ByPosition(unsigned int PositionFlags,D3DCOLOR Color)
+void c2DRenderable::SetARGBColor_ByPosition(unsigned int PositionFlags,D3DCOLOR Color)
 {
 	if(!CheckIfChangableProperty(Property_Color|Property_Alpha))
 		return;
@@ -117,7 +117,7 @@ void cSpriteBase::SetARGBColor_ByPosition(unsigned int PositionFlags,D3DCOLOR Co
 	PropertiesSet(Property_Color|Property_Alpha);
 }
 
-void cSpriteBase::SetAlpha(DWORD Alpha)
+void c2DRenderable::SetAlpha(DWORD Alpha)
 {
 	if(!CheckIfChangableProperty(Property_Alpha))
 		return;
@@ -125,7 +125,7 @@ void cSpriteBase::SetAlpha(DWORD Alpha)
 	PropertiesSet(Property_Alpha);
 }
 
-void cSpriteBase::SetZOrder(int ZOrder)
+void c2DRenderable::SetZOrder(int ZOrder)
 {
 	if(!CheckIfChangableProperty(Property_ZOrder))
 		return;
@@ -139,7 +139,7 @@ void cSpriteBase::SetZOrder(int ZOrder)
 	PropertiesSet(Property_ZOrder);
 }
 
-void cSpriteBase::Show()
+void c2DRenderable::Show()
 {
 	if(!CheckIfChangableProperty(Property_Visibility))
 		return;
@@ -151,7 +151,7 @@ void cSpriteBase::Show()
 	PropertiesSet(Property_Visibility);
 }
 
-void cSpriteBase::Hide()
+void c2DRenderable::Hide()
 {
 	if(!CheckIfChangableProperty(Property_Visibility))
 		return;
@@ -163,7 +163,7 @@ void cSpriteBase::Hide()
 	PropertiesSet(Property_Visibility);
 }
 
-void cSpriteBase::SetVisible(bool IsVisible)
+void c2DRenderable::SetVisible(bool IsVisible)
 {
 	if(IsVisible)
 		Show();
@@ -171,7 +171,7 @@ void cSpriteBase::SetVisible(bool IsVisible)
 		Hide();
 }
 
-void cSpriteBase::SetWindow(cPixieWindow *Window)
+void c2DRenderable::SetWindow(cPixieWindow *Window)
 {
 	if(!CheckIfChangableProperty(Property_Window))
 		return;
@@ -183,7 +183,7 @@ void cSpriteBase::SetWindow(cPixieWindow *Window)
 	PropertiesChanged(Property_Window);
 }
 
-cRect cSpriteBase::GetRectForRendering() const
+cRect c2DRenderable::GetRectForRendering() const
 {
 	cRect RectForRendering(mProperties.mRect);
 	RectForRendering.left<cRect::PreserveSize>() += mProperties.mPositionOffset.x;
@@ -197,12 +197,12 @@ cRect cSpriteBase::GetRectForRendering() const
 	return RectForRendering;
 }
 
-cPoint cSpriteBase::center() const
+cPoint c2DRenderable::center() const
 {
 	return GetRect().center();
 }
 
-cPoint cSpriteBase::GetScreenPosition() const
+cPoint c2DRenderable::GetScreenPosition() const
 {
 	cPixieWindow *Window=GetWindow();
 	if(Window)
@@ -211,13 +211,13 @@ cPoint cSpriteBase::GetScreenPosition() const
 		return GetPosition();
 }
 
-void cSpriteBase::SetCenter(cPoint Center)
+void c2DRenderable::SetCenter(cPoint Center)
 {
 	cPoint Size=GetSize();
 	SetPosition({ Center.x-Size.x/2, Center.y-Size.y/2 });
 }
 
-void cSpriteBase::SetValidRect(const cRect &ValidRect)
+void c2DRenderable::SetValidRect(const cRect &ValidRect)
 {
 	mProperties.mValidRect=ValidRect;
 	if (ValidRect.width() >= 0 && ValidRect.height() >= 0 && mProperties.mClippingMode == eClippingMode::None) // backward compatibility
@@ -228,23 +228,23 @@ void cSpriteBase::SetValidRect(const cRect &ValidRect)
 	PropertiesChanged(Property_ValidRect);
 }
 
-void cSpriteBase::DisableClipping()
+void c2DRenderable::DisableClipping()
 {
 	mProperties.mClippingMode = eClippingMode::None;
 	PropertiesChanged(Property_ClippingMode);
 }
 
-cRect cSpriteBase::GetCenterAndHSize() const
+cRect c2DRenderable::GetCenterAndHSize() const
 {
 	return { GetRect().center(), GetSize()/2 };
 }
 
-void cSpriteBase::SetCenterAndHSize(const cRect &Rect)
+void c2DRenderable::SetCenterAndHSize(const cRect &Rect)
 {
 	SetRect(cRect::aroundPoint(Rect.position(), Rect.size()*2));
 }
 
-void cSpriteBase::SetScreenPosition(cPoint Position)
+void c2DRenderable::SetScreenPosition(cPoint Position)
 {
 	cPixieWindow *Window=GetWindow();
 	if(!Window)
@@ -253,7 +253,7 @@ void cSpriteBase::SetScreenPosition(cPoint Position)
 		SetPosition(Position-Window->GetScreenRect().position());
 }
 
-bool cSpriteBase::GetProperty(unsigned int PropertyFlags,OUT cPropertyValues &PropertyValues) const
+bool c2DRenderable::GetProperty(unsigned int PropertyFlags,OUT cPropertyValues &PropertyValues) const
 {
 	switch(PropertyFlags)
 	{
@@ -280,7 +280,7 @@ bool cSpriteBase::GetProperty(unsigned int PropertyFlags,OUT cPropertyValues &Pr
 	return false;
 }
 
-bool cSpriteBase::SetProperty(unsigned int PropertyFlags,const cPropertyValues &Value)
+bool c2DRenderable::SetProperty(unsigned int PropertyFlags,const cPropertyValues &Value)
 {
 	if(!CheckIfChangableProperty(PropertyFlags))
 		return false;
@@ -309,7 +309,7 @@ bool cSpriteBase::SetProperty(unsigned int PropertyFlags,const cPropertyValues &
 	return false;
 }
 
-bool cSpriteBase::GetFloatProperty(unsigned int PropertyFlags, OUT float &Value) const
+bool c2DRenderable::GetFloatProperty(unsigned int PropertyFlags, OUT float &Value) const
 {
 	switch(PropertyFlags)
 	{
@@ -319,7 +319,7 @@ bool cSpriteBase::GetFloatProperty(unsigned int PropertyFlags, OUT float &Value)
 	return false;
 }
 
-bool cSpriteBase::SetFloatProperty(unsigned int PropertyFlags, float Value)
+bool c2DRenderable::SetFloatProperty(unsigned int PropertyFlags, float Value)
 {
 	if(!CheckIfChangableProperty(PropertyFlags))
 		return false;
@@ -331,7 +331,7 @@ bool cSpriteBase::SetFloatProperty(unsigned int PropertyFlags, float Value)
 	return false;
 }
 
-bool cSpriteBase::SetStringProperty(unsigned int PropertyFlags, const std::string &Value)
+bool c2DRenderable::SetStringProperty(unsigned int PropertyFlags, const std::string &Value)
 {
 	if(!CheckIfChangableProperty(PropertyFlags))
 		return false;
@@ -339,7 +339,7 @@ bool cSpriteBase::SetStringProperty(unsigned int PropertyFlags, const std::strin
 	return false;
 }
 
-void cSpriteBase::CopyProperties(const cSpriteBase& source)
+void c2DRenderable::CopyProperties(const c2DRenderable& source)
 {
     mProperties = source.mProperties;
     mIsColorSet = source.mIsColorSet;
@@ -352,7 +352,7 @@ void cSpriteBase::CopyProperties(const cSpriteBase& source)
         mWindow->AddSprite(this);
 }
 
-void cSpriteBase::setClippingMode(eClippingMode ClippingMode)
+void c2DRenderable::setClippingMode(eClippingMode ClippingMode)
 {
     mProperties.mClippingMode = ClippingMode;
 	PropertiesChanged(Property_ClippingMode);

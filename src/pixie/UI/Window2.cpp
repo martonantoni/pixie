@@ -63,13 +63,13 @@ tIntrusivePtr<cEventDispatcher> cPixieWindow::GetDispatcher(eEventType EventType
 	return mEventDispatchers[EventType];
 }
 
-void cPixieWindow::AddSprite(cSpriteBase *Sprite)
+void cPixieWindow::AddSprite(c2DRenderable* Sprite)
 {
 	auto i=std::lower_bound(ALL(mSprites), Sprite->GetZOrder(), [](auto &Sprite, auto ZOrder) { return Sprite->GetZOrder()<ZOrder; });
 	mSprites.insert(i, Sprite);
 }
 
-void cPixieWindow::RemoveSprite(cSpriteBase *Sprite)
+void cPixieWindow::RemoveSprite(c2DRenderable* Sprite)
 {
 	auto i=std::ranges::find(mSprites, Sprite);
 	if(ASSERTTRUE(i!=mSprites.end()))

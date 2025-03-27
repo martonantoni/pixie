@@ -21,7 +21,7 @@ tIntrusivePtr<cSpriteRenderedTexture> cSpriteRenderedTexture::Create(const cPoin
 	return NewTexture;
 }
 
-void cSpriteRenderedTexture::AddSprite(std::unique_ptr<cSpriteBase> Sprite)
+void cSpriteRenderedTexture::AddSprite(std::unique_ptr<c2DRenderable> Sprite)
 {
 	Sprite->SetWindow(mSpriteContainerWindow.get());
 	Sprite->Show();

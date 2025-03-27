@@ -44,8 +44,8 @@ protected:
 public:
 	cSpriteRenderer(cPixieWindow &BaseWindow): mBaseWindow(BaseWindow) {}
 	~cSpriteRenderer();
-	void AddSprite(cSprite *Sprite);
-	void RemoveSprite(cSprite *Sprite);
+	//void AddSprite(cSprite *Sprite);
+	//void RemoveSprite(cSprite *Sprite);
 	void SetClearBeforeRender(bool ClearBeforeRender) { mClearBeforeRender=ClearBeforeRender; }
 	virtual void Render() override;
 };

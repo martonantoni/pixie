@@ -4,7 +4,7 @@ class cMouseBlocker;
 
 class cPixieWindow: public cPixieObject
 {
-	friend class cSpriteBase;
+	friend class c2DRenderable;
 	friend class cMouseTarget;
 	friend class cSpriteRenderer;
 public:
@@ -50,7 +50,7 @@ private:
 	cWindows mSubWindows;
 	cPixieWindow* mParentWindow = nullptr;
 
-	typedef std::vector<cSpriteBase *> cSprites;
+	typedef std::vector<c2DRenderable *> cSprites;
 	cSprites mSprites;
 	typedef std::vector<cMouseTarget *> cMouseTargets;
 	cMouseTargets mMouseTargets;
@@ -83,8 +83,8 @@ public:
 	cPoint ScreenCoordinatesToWindowCoordinates(cPoint ScreenCoords) const;
 	// Sprite handling:
 private:
-	void AddSprite(cSpriteBase *Sprite);
-	void RemoveSprite(cSpriteBase *Sprite);
+	void AddSprite(c2DRenderable* Sprite);
+	void RemoveSprite(c2DRenderable* Sprite);
 public:
 	void CheckOwnerlessSprites();
 	// SubWindows:
