@@ -193,7 +193,7 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
 			NumberOfBatchedVertices += 4;
 			//Flush buffer if it's full or no more sprite to draw
 		}
-		if (NumberOfBatchedVertices == mMaxSpritesPerFlush * 4)
+		if (NumberOfBatchedVertices > (mMaxSpritesPerFlush - 1) * 4)
 		{
 			FlushBuffer(batchVertices, NumberOfBatchedVertices, true);
 		}

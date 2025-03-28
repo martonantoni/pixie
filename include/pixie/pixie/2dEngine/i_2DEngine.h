@@ -6,6 +6,7 @@ struct cBlendData;
 #include "SpriteRenderInfo.h"
 #include "2d_renderable.h"
 #include "SpriteBase.h"
+#include "2d_triangle.h"
 #include "Sprite.h"
 #include "TextSprite.h"
 #include "MultiSpriteBase.h"
