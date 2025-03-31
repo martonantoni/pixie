@@ -7,12 +7,13 @@ cPixieObject::~cPixieObject()
 
 bool cPixieObject::CheckIfChangableProperty(unsigned int PropertiesBeingChanged) const
 {
-	if(mAnimatorBeingExecuted&&PropertiesBeingChanged!=(PropertiesBeingChanged&mAnimatorBeingExecuted->GetAffectedProperties()))
+	PropertiesBeingChanged &= ~PropertyType_Text;
+	if (mAnimatorBeingExecuted && PropertiesBeingChanged != (PropertiesBeingChanged & mAnimatorBeingExecuted->GetAffectedProperties()))
 	{
 		ASSERT(false);
 		return false;
 	}
-	if(ASSERTFALSE(mLockedProperties&PropertiesBeingChanged))
+	if (ASSERTFALSE(mLockedProperties & PropertiesBeingChanged))
 	{
 		return false;
 	}
