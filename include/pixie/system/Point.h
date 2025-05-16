@@ -31,6 +31,11 @@ struct tPoint
 		int xdist=x-Other.x, ydist=y-Other.y;
 		return sqrt(xdist*xdist+ydist*ydist);
 	}
+    T distanceSquared(tPoint Other) const
+    {
+        T xdist = x - Other.x, ydist = y - Other.y;
+        return xdist * xdist + ydist * ydist;
+    }
 	void RatioKeeping_SetX(T nx) { y=y*nx/x; x=nx; }
 	void RatioKeeping_SetY(T ny) { x=x*ny/y; y=ny; }
     void Normalize()
