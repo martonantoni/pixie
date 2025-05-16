@@ -23,15 +23,15 @@ public:
 	virtual void Activated(cPixieObject &Object) override;
 	virtual eAnimateResult Animate(cPixieObject &Object) override;
 
-	static void BlendObject(cPixieObject &Object, const cPixieObject::cPropertyValues &TargetValues, unsigned int AffectedProperties, unsigned int BlendTime, bool KeepObjectAlive=true);
+	static tIntrusivePtr<cPixieObjectAnimator> BlendObject(cPixieObject &Object, const cPixieObject::cPropertyValues &TargetValues, unsigned int AffectedProperties, unsigned int BlendTime, bool KeepObjectAlive=true);
 };
 
 
 #define BLEND_SPRITE_FUNCTION(FunctionNameExtension,AffectedProperties) \
-	inline void BlendObject##FunctionNameExtension(cPixieObject &Sprite,const cPixieObject::cPropertyValues &TargetValues,int BlendTime) \
-	{ cGeneralPixieObjectBlender::BlendObject(Sprite,TargetValues,AffectedProperties,BlendTime); } \
-	inline void BlendObject##FunctionNameExtension##_NoKeepAlive(cPixieObject &Sprite, const cPixieObject::cPropertyValues &TargetValues, int BlendTime) \
-	{ cGeneralPixieObjectBlender::BlendObject(Sprite,TargetValues,AffectedProperties,BlendTime,false); } 
+	inline tIntrusivePtr<cPixieObjectAnimator> BlendObject##FunctionNameExtension(cPixieObject &Sprite,const cPixieObject::cPropertyValues &TargetValues,int BlendTime) \
+	{ return cGeneralPixieObjectBlender::BlendObject(Sprite,TargetValues,AffectedProperties,BlendTime); } \
+	inline tIntrusivePtr<cPixieObjectAnimator> BlendObject##FunctionNameExtension##_NoKeepAlive(cPixieObject &Sprite, const cPixieObject::cPropertyValues &TargetValues, int BlendTime) \
+	{ return cGeneralPixieObjectBlender::BlendObject(Sprite,TargetValues,AffectedProperties,BlendTime,false); } 
 
 BLEND_SPRITE_FUNCTION(Position, cPixieObject::Property_Position);
 BLEND_SPRITE_FUNCTION(PositionOffset, cPixieObject::Property_PositionOffset);

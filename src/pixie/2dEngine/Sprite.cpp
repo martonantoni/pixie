@@ -3,7 +3,10 @@
 
 void cSprite::SetTexture(tIntrusivePtr<cTexture> Texture)
 {
+	if (!CheckIfChangableProperty(Property_Texture))
+		return;
 	mTexture=std::move(Texture);
+	PropertiesSet(Property_Texture);
 }
 
 void cSprite::SetTextureAndSize(tIntrusivePtr<cTexture> Texture)

@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
 
+#include <print>
+
 tDataHolder<uint32_t> cKeyboardServer::mEventDataHolder;
 
 
@@ -40,6 +42,40 @@ const cEventDispatchers::cDispatcherRangeInfo cKeyboardServer::mDispatcherRangeI
 /* e8 - f0 */ "",           "",           "",           "",           "",           "",           "",           "", 
 /* f0 - f8 */ "",           "",           "",           "",           "",           "",           "",           "", 
 /* f8 - ff */ "",           "",           "",           "",           "",           "",           "",
+
+/* 100 - 108 */ "",  "",           "",           "",           "",           "",           "",           "",
+/* 108 - 110 */ "keyup_bs", "keyup_tab","",           "",           "",           "keyup_enter",           "",           "",
+/* 110 - 118 */ "keyup_shift","",         "",           "",           "",           "",           "",           "",
+/* 118 - 120 */ "",           "",           "",           "keyup_esc","",           "",           "",           "",
+/* 120 - 128 */ "",           "keyup_page_up","keyup_page_down","keyup_end","keyup_home","keyup_left","keyup_up","keyup_right",
+/* 128 - 130 */ "keyup_down","",           "",           "",           "",           "",           "keyup_delete","",
+/* 130 - 138 */ "keyup_0",  "keyup_1",  "keyup_2",  "keyup_3",  "keyup_4",  "keyup_5",  "keyup_6",  "keyup_7",
+/* 138 - 140 */ "keyup_8",  "keyup_9",  "",           "",           "",           "",           "",           "",
+/* 140 - 148 */ "",           "keyup_a",  "keyup_b",  "keyup_c",  "keyup_d",  "keyup_e",  "keyup_f",  "keyup_g",
+/* 148 - 150 */ "keyup_h",  "keyup_i",  "keyup_j",  "keyup_k",  "keyup_l",  "keyup_m",  "keyup_n",  "keyup_o",
+/* 150 - 158 */ "keyup_p",  "keyup_q",  "keyup_r",  "keyup_s",  "keyup_t",  "keyup_u",  "keyup_v",  "keyup_w",
+/* 158 - 160 */ "keyup_x",  "keyup_y",  "keyup_z",  "",           "",           "",           "",           "",
+/* 160 - 168 */ "",           "",           "",           "",           "",           "",           "",           "",
+/* 168 - 170 */ "",           "",           "keyup_num*","keyup_num+","",         "",           "",           "keyup_num/",
+/* 170 - 178 */ "keyup_f1", "keyup_f2", "keyup_f3", "keyup_f4", "keyup_f5", "keyup_f6", "keyup_f7", "keyup_f8",
+/* 178 - 180 */ "keyup_f9", "keyup_f10","keyup_f11","keyup_f12",           "",           "",           "",           "",
+/* 180 - 188 */ "",           "",           "",           "",           "",           "",           "",           "",
+/* 188 - 190 */ "",           "",           "",           "",           "",           "",           "",           "",
+/* 190 - 198 */ "",           "",           "",           "",           "",           "",           "",           "",
+/* 198 - 1a0 */ "",           "",           "",           "",           "",           "",           "",           "",
+/* 1a0 - 1a8 */ "",           "",           "",           "",           "",           "",           "",           "",
+/* 1a8 - 1b0 */ "",           "",           "",           "",           "",           "",           "",           "",
+/* 1b0 - 1b8 */ "",           "",           "",           "",           "",           "",           "",           "",
+/* 1b8 - 1c0 */ "",           "",           "",           "",           "",           "",           "",           "",
+/* 1c0 - 1c8 */ "",           "",           "",           "",           "",           "",           "",           "",
+/* 1c8 - 1d0 */ "",           "",           "",           "",           "",           "",           "",           "",
+/* 1d0 - 1d8 */ "",           "",           "",           "",           "",           "",           "",           "",
+/* 1d8 - 1e0 */ "",           "",           "",           "",           "",           "",           "",           "",
+/* 1e0 - 1e8 */ "",           "",           "",           "",           "",           "",           "",           "",
+/* 1e8 - 1f0 */ "",           "",           "",           "",           "",           "",           "",           "",
+/* 1f0 - 1f8 */ "",           "",           "",           "",           "",           "",           "",           "",
+/* 1f8 - 1ff */ "",           "",           "",           "",           "",           "",           "",
+
 }
 };
 
@@ -53,6 +89,7 @@ cKeyboardServer::cKeyboardServer()
 {
 	cPrimaryWindow &PrimaryWindow=cPrimaryWindow::Get();
 	mListenerIDs.push_back(PrimaryWindow.AddMessageHandler(WM_KEYDOWN, [this](auto wp, auto lp) { return OnKeyDown(wp, lp); }));
+    mListenerIDs.push_back(PrimaryWindow.AddMessageHandler(WM_KEYUP, [this](auto wp, auto lp) { return OnKeyUp(wp, lp); }));
 	mListenerIDs.push_back(PrimaryWindow.AddMessageHandler(WM_SYSKEYDOWN, [this](auto wp, auto lp) { return OnKeyDown(wp, lp); }));
     mListenerIDs.push_back(PrimaryWindow.AddMessageHandler(WM_CHAR, [this](auto wp, auto lp) { return OnCharacter(wp, lp); }));
 
@@ -60,6 +97,7 @@ cKeyboardServer::cKeyboardServer()
 	mEventDispatchers.AddEvents(mDispatcherRangeInfo);
 	cEventDispatcher::cEventListenerRequest ListenerRequest;
 	ListenerRequest.mOrder=0;
+    std::ranges::fill(mKeyState, false);
 }
 
 uint32_t cKeyboardServer::keyUpDownEventData(WPARAM wParam)
@@ -80,10 +118,24 @@ cWindowsMessageResult cKeyboardServer::OnKeyDown(WPARAM wParam, LPARAM lParam)
 	mEventDispatchers.PostEvent(Keyboard_KeyDown_Any, cEvent(mEventDataHolder.StoreData(eventData)));
 	if (wParam <= 255 && !mDispatcherRangeInfo.mEventNames[wParam + 1].empty())
 	{
+        mKeyState[wParam] = true;
 		mEventDispatchers.PostEvent(Keyboard_KeyDown_First + wParam, cEvent(mEventDataHolder.StoreData(eventData)));
 		return cWindowsMessageResult(0);
 	}
 	return cWindowsMessageResult();
+}
+
+// key up:
+cWindowsMessageResult cKeyboardServer::OnKeyUp(WPARAM wParam, LPARAM lParam)
+{
+    auto eventData = keyUpDownEventData(wParam);
+    if (wParam <= 255 && !mDispatcherRangeInfo.mEventNames[wParam + 1].empty())
+    {
+        mKeyState[wParam] = false;
+        mEventDispatchers.PostEvent(Keyboard_KeyUp_First + wParam, cEvent(mEventDataHolder.StoreData(eventData)));
+        return cWindowsMessageResult(0);
+    }
+    return cWindowsMessageResult();
 }
 
 cWindowsMessageResult cKeyboardServer::OnCharacter(WPARAM wParam, LPARAM lParam)

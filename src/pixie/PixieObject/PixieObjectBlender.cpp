@@ -8,14 +8,16 @@ cGeneralPixieObjectBlender::cGeneralPixieObjectBlender(const cRequest &Request)
 	SetStartTime(mRequest.mStartTime);
 }
 
-void cGeneralPixieObjectBlender::BlendObject(cPixieObject &Object, const cPixieObject::cPropertyValues &TargetValues, unsigned int AffectedProperties, unsigned int BlendTime, bool KeepObjectAlive)
+tIntrusivePtr<cPixieObjectAnimator> cGeneralPixieObjectBlender::BlendObject(cPixieObject &Object, const cPixieObject::cPropertyValues &TargetValues, unsigned int AffectedProperties, unsigned int BlendTime, bool KeepObjectAlive)
 {
 	cRequest Request;
 	Request.mBlendTime=BlendTime;
 	Request.mTargetValues=TargetValues;
 	Request.mAffectedProperties=AffectedProperties;
 	Request.mKeepObjectAlive=KeepObjectAlive;
-	Object.AddAnimator(make_intrusive_ptr<cGeneralPixieObjectBlender>(Request));
+	auto animator = make_intrusive_ptr<cGeneralPixieObjectBlender>(Request);
+	Object.AddAnimator(animator);
+    return animator;
 }
 
 void cGeneralPixieObjectBlender::Activated(cPixieObject &Object)
