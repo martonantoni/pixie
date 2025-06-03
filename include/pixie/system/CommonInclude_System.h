@@ -47,6 +47,7 @@
 #include <optional>
 #include <any>
 #include <expected>
+#include <print>
 
 #include "fmt/core.h"
 #include "fmt/printf.h"
