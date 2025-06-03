@@ -55,7 +55,7 @@ public:
 		Keyboard_KeyDown_F1=Keyboard_KeyDown_First+0x70,
 		Keyboard_KeyDown_F2, Keyboard_KeyDown_F3, Keyboard_KeyDown_F4, Keyboard_KeyDown_F5, Keyboard_KeyDown_F6, Keyboard_KeyDown_F7,
 		Keyboard_KeyDown_F8, Keyboard_KeyDown_F9, Keyboard_KeyDown_F10, Keyboard_KeyDown_F11, Keyboard_KeyDown_F12,
-		Keyboard_KeyDown_Last=Keyboard_KeyDown_First+255,
+		Keyboard_KeyDown_Last=Keyboard_KeyDown_First+254,
 
 		Keyboard_KeyUp_First,
 		Keyboard_KeyUp_Tab = Keyboard_KeyUp_First + 9,
