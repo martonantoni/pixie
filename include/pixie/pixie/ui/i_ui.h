@@ -8,9 +8,9 @@
 #include "TooltipDisplayer.h"
 
 #include "visualizers/VisualizationHelpers.h"
-#include "visualizers/MultiSprite_Horiz3.h"
-#include "visualizers/MultiSprite_Simple9Patch.h"
-#include "visualizers/MultiSprite_1PixRect.h"
+#include "2dEngine/MultiSprite_Horiz3.h"
+#include "2dEngine/MultiSprite_Simple9Patch.h"
+#include "2dEngine/MultiSprite_1PixRect.h"
 
 #include "PixieVisualizer.h"
 #include "PixieStandardWindow.h"
