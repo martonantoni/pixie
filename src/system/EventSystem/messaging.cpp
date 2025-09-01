@@ -2,7 +2,7 @@
 
 cMessageCenter theMessageCenter;
 
-void cMessageCenter::tDispatcher<void>::dispatch(const std::any& messageData, int messageIndex)
+void cMessageCenter::tDispatcher<void>::dispatch(const std::any& messageData, cMessageIndex messageIndex)
 {
     mListeners.ForEach([messageIndex](auto& listener)
         {
@@ -84,7 +84,7 @@ void cMessageCenter::setNeedDispatchProcessor(std::function<void()> needDispatch
     mNeedDispatchProcessor = needDispatchProcessor;
 }
 
-void cMessageCenter::cEndPoint::dispatch(const std::any& messageData, int messageIndex)
+void cMessageCenter::cEndPoint::dispatch(const std::any& messageData, cMessageIndex messageIndex)
 {
     if (mDispatcher)
         mDispatcher->dispatch(messageData, messageIndex);

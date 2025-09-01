@@ -1,14 +1,38 @@
 #pragma once
 
+class cMessageIndex // todo: create strong type support class
+{
+    int mIndex;
+public:
+    constexpr cMessageIndex(int index = 0) : mIndex(index) {}
+    constexpr explicit operator int() const { return mIndex; }
+    constexpr cMessageIndex& operator++() { ++mIndex; return *this; }
+    constexpr auto operator<=>(const cMessageIndex&) const = default;
+};
+
+class cMessageSequence
+{
+    cRegisteredIDList mListeners;
+public:
+    cMessageSequence() = default;
+    cMessageSequence(const cMessageSequence&) = delete;
+    cMessageSequence& operator=(const cMessageSequence&) = delete;
+    cMessageSequence(cMessageSequence&&);
+    cMessageSequence& operator=(cMessageSequence&&);
+
+    template<class C> requires cCallableSignature<C>::available [[nodiscard]]
+        cMessageSequence response(const std::string& endpointID, const C& listener);
+};
+
 class cMessageCenter final
 {
-    static constexpr int mDirectMessageIndex = -1;
+    static constexpr cMessageIndex mDirectMessageIndex = -1;
     class cDispatcher
     {
     public:
         cDispatcher() = default;
         virtual ~cDispatcher() = default;
-        virtual void dispatch(const std::any& messageData, int messageIndex) = 0;
+        virtual void dispatch(const std::any& messageData, cMessageIndex messageIndex) = 0;
     };
     template<class T> struct tDispatcher : public cDispatcher
     {
@@ -19,10 +43,10 @@ class cMessageCenter final
         struct cListener
         {
             cFunction mFunction;
-            int mEventFilter = -1;
-            template<class C> cListener(const C& callable, int eventFilter);
+            cMessageIndex mEventFilter = -1;
+            template<class C> cListener(const C& callable, cMessageIndex eventFilter);
         };
-        virtual void dispatch(const std::any& messageData, int messageIndex) override;
+        virtual void dispatch(const std::any& messageData, cMessageIndex messageIndex) override;
         tRegisteredObjects<cListener> mListeners;
     };
     template<> struct tDispatcher<void> : public cDispatcher
@@ -32,11 +56,11 @@ class cMessageCenter final
         struct cListener
         {
             cFunction mFunction;
-            int mEventFilter = -1;
-            cListener(const cFunction& function, int eventFilter)
+            cMessageIndex mEventFilter = -1;
+            cListener(const cFunction& function, cMessageIndex eventFilter)
                 : mFunction(function), mEventFilter(eventFilter) {}
         };
-        virtual void dispatch(const std::any& messageData, int messageIndex) override;
+        virtual void dispatch(const std::any& messageData, cMessageIndex messageIndex) override;
         tRegisteredObjects<cListener> mListeners;
     };
     using cVoidDispatcher = tDispatcher<void>;
@@ -46,7 +70,7 @@ class cMessageCenter final
         std::optional<std::type_index> mMessageType;
         std::unique_ptr<cDispatcher> mDispatcher;
         std::unique_ptr<cVoidDispatcher> mVoidDispatcher;
-        void dispatch(const std::any& messageData, int messageIndex);
+        void dispatch(const std::any& messageData, cMessageIndex messageIndex);
     };
     using cDispatchers = std::unordered_map<std::string, std::unique_ptr<cEndPoint>>;
     cDispatchers mEndPoints;
@@ -57,8 +81,8 @@ class cMessageCenter final
     };
     std::vector<cEvent> mEventsWriting;
     std::vector<cEvent> mEventsReading;
-    int mLastPostedMessageIndex = -1;
-    int mDispatchedMessageIndex = 0;
+    cMessageIndex mLastPostedMessageIndex = -1;
+    cMessageIndex mDispatchedMessageIndex = 0;
     std::function<void()> mNeedDispatchProcessor;
 public:
     template<class... Ts> void post(const std::string& endpointID, Ts&&... messageData);
@@ -73,14 +97,14 @@ public:
  
 
 template<class T> template<class C> 
-cMessageCenter::tDispatcher<T>::cListener::cListener(const C& callable, int eventFilter)
+cMessageCenter::tDispatcher<T>::cListener::cListener(const C& callable, cMessageIndex eventFilter)
     : mEventFilter(eventFilter)
 {
     mFunction = callable;
 }
 
 template<class T>
-void cMessageCenter::tDispatcher<T>::dispatch(const std::any& messageData, int messageIndex)
+void cMessageCenter::tDispatcher<T>::dispatch(const std::any& messageData, cMessageIndex messageIndex)
 {
     const T& messageDataT = std::any_cast<const T&>(messageData);
     mListeners.ForEach([messageIndex, &messageDataT](auto& listener)
@@ -157,7 +181,7 @@ template<class C> requires cCallableSignature<C>::available
     using T = typename cCallableSignature<C>::DecayedArguments;
 
     auto& endPoint = mEndPoints[endpointID];
-    int messageFilter = mEventsReading.empty() ? mLastPostedMessageIndex : mDispatchedMessageIndex;
+    auto messageFilter = mEventsReading.empty() ? mLastPostedMessageIndex : mDispatchedMessageIndex;
     if (!endPoint)
     {
         endPoint = std::make_unique<cEndPoint>();
