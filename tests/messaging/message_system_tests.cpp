@@ -4,6 +4,18 @@
 namespace MessageSystemTests
 {
 
+TEST(message_sequencing, basic)
+{
+    cMessageCenter messageCenter;
+
+    int response1Count = 0, response1X = 0;
+    int response2Count = 0, response2X = 0;
+
+    //auto sequenceID = theMessageCenter.sequence("test.start", source).
+    //    response("test.response_1", [](int x) { ++response1Count; response1X = x; }).
+    //    response("test.response_2", [](int x) { ++response2Count; response2X = x; });
+}
+
 TEST(message_system, single_listen_post_receive)
 {
     cMessageCenter messageCenter;
@@ -374,3 +386,9 @@ TEST(message_system, message_sent_from_listener)
 }
 
 } // namespace MessageSystemTests
+
+
+
+//mCompileSequence = theMessageCenter.sequence("ready.compile", source).
+//response("ready.compile.failed", [](auto& errors) { handleCompileErrors(errors); }).
+//response("ready.compile.success", [](auto& program) { handleCompileSuccess(program); });

@@ -1,9 +1,5 @@
 #pragma once
 
-
-template<class C, class T> concept cMessageListener = 
-    std::is_invocable_r_v<void, C, T> || std::is_invocable_r_v<void, C, const T&> || std::is_invocable_r_v<void, C>;
-
 class cMessageCenter final
 {
     static constexpr int mDirectMessageIndex = -1;
