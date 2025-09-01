@@ -24,6 +24,15 @@ public:
         cMessageSequence response(const std::string& endpointID, const C& listener);
 };
 
+template <typename C, typename TTuple>
+struct is_invocable_with_tuple;
+
+template <typename C, typename... Args>
+struct is_invocable_with_tuple<C, std::tuple<Args...>>
+    : std::is_invocable<C, Args...> {
+};
+
+
 class cMessageCenter final
 {
     static constexpr cMessageIndex mDirectMessageIndex = -1;
@@ -39,26 +48,28 @@ class cMessageCenter final
         tDispatcher() = default;
 
         using cFunction = tTupleTakerFunction<T>;
+        using cMessageIndexTakerFunction = tTupleTakerFunction<tuple_prepend_t<T, cMessageIndex>>;
 
         struct cListener
         {
-            cFunction mFunction;
+            std::variant<std::monostate, cFunction, cMessageIndexTakerFunction> mFunction;
             cMessageIndex mEventFilter = -1;
             template<class C> cListener(const C& callable, cMessageIndex eventFilter);
         };
         virtual void dispatch(const std::any& messageData, cMessageIndex messageIndex) override;
         tRegisteredObjects<cListener> mListeners;
     };
-    template<> struct tDispatcher<void> : public cDispatcher
+    template<> struct tDispatcher<void> : public cDispatcher             // void dispatcher
     {
         tDispatcher() = default;
         using cFunction = std::function<void()>;
+        using cMessageIndexTakerFunction = std::function<void(cMessageIndex)>;
         struct cListener
         {
-            cFunction mFunction;
+//            std::variant<std::monostate, cFunction, cMessageIndexTakerFunction>
+                cFunction mFunction;
             cMessageIndex mEventFilter = -1;
-            cListener(const cFunction& function, cMessageIndex eventFilter)
-                : mFunction(function), mEventFilter(eventFilter) {}
+            cListener(const cFunction& function, cMessageIndex eventFilter);
         };
         virtual void dispatch(const std::any& messageData, cMessageIndex messageIndex) override;
         tRegisteredObjects<cListener> mListeners;
@@ -100,7 +111,14 @@ template<class T> template<class C>
 cMessageCenter::tDispatcher<T>::cListener::cListener(const C& callable, cMessageIndex eventFilter)
     : mEventFilter(eventFilter)
 {
-    mFunction = callable;
+    if constexpr (is_invocable_with_tuple<C, T>::value)
+        mFunction = cFunction(callable);
+}
+
+//template<>
+inline cMessageCenter::tDispatcher<void>::cListener::cListener(const cFunction& function, cMessageIndex eventFilter)
+    : mFunction(function), mEventFilter(eventFilter)
+{
 }
 
 template<class T>
@@ -113,7 +131,16 @@ void cMessageCenter::tDispatcher<T>::dispatch(const std::any& messageData, cMess
             {
                 if(messageIndex != mDirectMessageIndex)
                     listener.mEventFilter = messageIndex;
-                std::apply(listener.mFunction, messageDataT);
+                switch (listener.mFunction.index())
+                {
+                case 1:
+                    std::apply(std::get<1>(listener.mFunction), messageDataT);
+                    break;
+                case 2:
+                    std::apply(std::get<2>(listener.mFunction), 
+                        std::tuple_cat(std::forward_as_tuple(messageIndex), messageDataT));
+                    break;
+                };
             }
         });
 }
