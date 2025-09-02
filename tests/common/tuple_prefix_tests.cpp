@@ -150,5 +150,59 @@ TEST(applyTail, empty)
     EXPECT_EQ(testedD, 0);
 }
 
+TEST(applyHead, full)
+{
+    int testedA = 0;
+    double testedB = 0.0;
+    std::string testedC;
+    char testedD = 0;
+    auto f4 = [&](int a, double b, const std::string& c, char d)
+        {
+            testedA = a;
+            testedB = b;
+            testedC = c;
+            testedD = d;
+        };
+    applyHead<4>(f4, std::make_tuple(1, 2.5, "alma", 'x'));
+    EXPECT_EQ(testedA, 1);
+    EXPECT_DOUBLE_EQ(testedB, 2.5);
+    EXPECT_EQ(testedC, "alma");
+    EXPECT_EQ(testedD, 'x');
+}
+
+TEST(applyHead, partial)
+{
+    int testedA = 0;
+    double testedB = 0.0;
+    std::string testedC;
+    char testedD = 0;
+    auto f2 = [&](int a, double b)
+        {
+            testedA = a;
+            testedB = b;
+        };
+    applyHead<2>(f2, std::make_tuple(1, 2.5, "alma", 'x'));
+    EXPECT_EQ(testedA, 1);
+    EXPECT_DOUBLE_EQ(testedB, 2.5);
+    EXPECT_EQ(testedC, "");
+    EXPECT_EQ(testedD, 0);
+}
+
+TEST(applyHead, empty)
+{
+    int testedA = 0;
+    double testedB = 0.0;
+    std::string testedC;
+    char testedD = 0;
+    auto f0 = [&]()
+        {
+        };
+    applyHead<0>(f0, std::make_tuple(1, 2.5, "alma", 'x'));
+    EXPECT_EQ(testedA, 0);
+    EXPECT_DOUBLE_EQ(testedB, 0.0);
+    EXPECT_EQ(testedC, "");
+    EXPECT_EQ(testedD, 0);
+}
+
 } // namespace TuplePrefixTests
 

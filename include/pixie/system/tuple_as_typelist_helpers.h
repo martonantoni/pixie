@@ -33,7 +33,9 @@
 //
 
 
+
 ////////////////////////////////////////////////////////////////////////////
+
 
 
 //                  tTuplePrefix
@@ -48,6 +50,7 @@ template<size_t N, typename Tuple> using tTuplePrefix =
 
 
 //                 tTuplePostfix
+
 
 template<typename Tuple, size_t... N>
 auto tTuplePostfixHelper(std::index_sequence<N...>)
@@ -105,6 +108,7 @@ using tSafeTupleElementT = typename tSafeTupleElement<I, Tuple>::type;
 
 //               applyTail
 
+
 template<typename F, typename Tuple, size_t... I>
 decltype(auto) applyTailHelper(F&& f, Tuple&& t, std::index_sequence<I...>)
 {
@@ -116,4 +120,21 @@ template<size_t N, typename F, typename Tuple>
 decltype(auto) applyTail(F&& f, Tuple&& t)
 {
     return applyTailHelper(std::forward<F>(f), std::forward<Tuple>(t), std::make_index_sequence<N>{});
+}
+
+
+//              applyHead
+
+
+template<typename F, typename Tuple, size_t... I>
+decltype(auto) applyHeadHelper(F&& f, Tuple&& t, std::index_sequence<I...>)
+{
+    return std::invoke(std::forward<F>(f),
+        std::get<I>(std::forward<Tuple>(t))...);
+}
+
+template<size_t N, typename F, typename Tuple>
+decltype(auto) applyHead(F&& f, Tuple&& t)
+{
+    return applyHeadHelper(std::forward<F>(f), std::forward<Tuple>(t), std::make_index_sequence<N>{});
 }
