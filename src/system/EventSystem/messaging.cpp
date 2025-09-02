@@ -9,7 +9,7 @@ void cMessageCenter::tDispatcher<void>::dispatch(const std::any& messageData, cM
             if (messageIndex == mDirectMessageIndex || messageIndex > listener.mEventFilter)
             {
                 listener.mEventFilter = messageIndex;
-                listener.mFunction();
+                std::get<1>(listener.mFunction)();
             }
         });
 }

@@ -38,10 +38,6 @@ auto best_score_element(const T &Container, P ScoreCalculator)
 	return Best;
 }
 
-
-template <typename Tuple, typename... Ts>
-using tuple_prepend_t = decltype(std::tuple_cat(std::declval<std::tuple<Ts...>>(), std::declval<Tuple>()));
-
 namespace std
 {
 	template<> struct hash<std::pair<std::string, std::string>>

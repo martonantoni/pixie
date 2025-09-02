@@ -48,7 +48,7 @@ class cMessageCenter final
         tDispatcher() = default;
 
         using cFunction = tTupleTakerFunction<T>;
-        using cMessageIndexTakerFunction = tTupleTakerFunction<tuple_prepend_t<T, cMessageIndex>>;
+        using cMessageIndexTakerFunction = tTupleTakerFunction<tTuplePrepend<T, cMessageIndex>>;
 
         struct cListener
         {
@@ -66,10 +66,9 @@ class cMessageCenter final
         using cMessageIndexTakerFunction = std::function<void(cMessageIndex)>;
         struct cListener
         {
-//            std::variant<std::monostate, cFunction, cMessageIndexTakerFunction>
-                cFunction mFunction;
+            std::variant<std::monostate, cFunction, cMessageIndexTakerFunction> mFunction;
             cMessageIndex mEventFilter = -1;
-            cListener(const cFunction& function, cMessageIndex eventFilter);
+            template<class C> cListener(const C& callable, cMessageIndex eventFilter);
         };
         virtual void dispatch(const std::any& messageData, cMessageIndex messageIndex) override;
         tRegisteredObjects<cListener> mListeners;
@@ -113,12 +112,18 @@ cMessageCenter::tDispatcher<T>::cListener::cListener(const C& callable, cMessage
 {
     if constexpr (is_invocable_with_tuple<C, T>::value)
         mFunction = cFunction(callable);
+    else 
+        mFunction = cMessageIndexTakerFunction(callable);
 }
 
-//template<>
-inline cMessageCenter::tDispatcher<void>::cListener::cListener(const cFunction& function, cMessageIndex eventFilter)
-    : mFunction(function), mEventFilter(eventFilter)
+template<class C>
+inline cMessageCenter::tDispatcher<void>::cListener::cListener(const C& callable, cMessageIndex eventFilter)
+    : mEventFilter(eventFilter)
 {
+    if constexpr (std::is_invocable_v<C>)
+        mFunction = cFunction(callable);
+    else
+        mFunction = cMessageIndexTakerFunction(callable);
 }
 
 template<class T>
@@ -205,7 +210,13 @@ template<class... Ts> void cMessageCenter::send(const std::string& endpointID, T
 template<class C> requires cCallableSignature<C>::available
     cRegisteredID cMessageCenter::registerListener(const std::string& endpointID, const C& listener)
 {
-    using T = typename cCallableSignature<C>::DecayedArguments;
+    using Signature = cCallableSignature<C>;
+    using T = std::conditional_t<
+        Signature::numberOfArguments >= 1 &&         
+        std::is_same_v<std::tuple_element_t<0, typename Signature::DecayedArguments>, cMessageIndex>,
+        typename Signature::DecayedArguments,
+        typename Signature::DecayedArguments>;
+//    using T = typename cCallableSignature<C>::DecayedArguments;
 
     auto& endPoint = mEndPoints[endpointID];
     auto messageFilter = mEventsReading.empty() ? mLastPostedMessageIndex : mDispatchedMessageIndex;
