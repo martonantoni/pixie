@@ -9,7 +9,15 @@ void cMessageCenter::tDispatcher<void>::dispatch(const std::any& messageData, cM
             if (messageIndex == mDirectMessageIndex || messageIndex > listener.mEventFilter)
             {
                 listener.mEventFilter = messageIndex;
-                std::get<1>(listener.mFunction)();
+                switch (listener.mFunction.index())
+                {
+                case 1:
+                    std::get<1>(listener.mFunction)();
+                    break;
+                case 2:
+                    std::get<2>(listener.mFunction)(messageIndex);
+                    break;
+                }
             }
         });
 }
@@ -45,7 +53,7 @@ void cMessageCenter::post(const std::string& endpointID)
         if (endPoint->mMessageType.has_value())
         {
             if (*endPoint->mMessageType != typeid(void))
-                throw std::runtime_error("Wrong message type");
+                throw std::runtime_error("Wrong message type (post)");
         }
         else
             endPoint->mMessageType.emplace(typeid(void));
@@ -71,7 +79,7 @@ void cMessageCenter::send(const std::string& endpointID)
         if (endPoint->mMessageType.has_value())
         {
             if (*endPoint->mMessageType != typeid(void))
-                throw std::runtime_error("Wrong message type");
+                throw std::runtime_error("Wrong message type (send)");
         }
         else
             endPoint->mMessageType.emplace(typeid(void));

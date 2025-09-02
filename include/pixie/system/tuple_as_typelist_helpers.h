@@ -4,9 +4,11 @@
 // Helpers for tuple manipulations, when treating tuple as a typelist
 //
 //
-// tTuplePrefix<T, Tuple> - gives you a tuple type which is the prefix of Tuple of length T
+// tTuplePrefix<Tuple, N> - gives you a tuple type which is the prefix of Tuple of length N
 //        Example: tTuplePrefix<2, std::tuple<int, double, std::string>> is std::tuple<int, double>
 //
+// tTuplePostfix<Tuple, N> - gives you a tuple type which is the postfix of Tuple of length N
+//        Example: tTuplePostfix<std::tuple<int, double, std::string>, 2> is std::tuple<double, std::string>
 // 
 // tTuplePrefixTakerFunction<T, Tuple> - gives you a std::function with arguments of the prefix of Tuple of length T
 //        Example: tTuplePrefixTakerFunction<2, std::tuple<int, double, std::string>> 
@@ -23,9 +25,6 @@
 //                 tSafeTupleElement<1, std::tuple<int, double>> is double
 // tSafeTupleElementT<I, Tuple> - tSafeTupleElement<I, Tuple>::type
 //
-//
-// tTuplePostfix<Tuple, N> - gives you a tuple type which is the postfix of Tuple of length N
-//        Example: tTuplePostfix<std::tuple<int, double, std::string>, 2> is std::tuple<double, std::string>
 //
 // applyTail(callable, tuple, N) - calls callable with the last N elements of tuple as arguments
 //
@@ -45,7 +44,7 @@ template<typename Tuple, size_t... N>
 auto tTuplePrefixHelper(std::index_sequence<N...>)
     -> std::tuple<std::tuple_element_t<N, Tuple>...>;
 
-template<size_t N, typename Tuple> using tTuplePrefix =
+template<typename Tuple, size_t N> using tTuplePrefix =
     decltype(tTuplePrefixHelper<Tuple>(std::make_index_sequence<N>{}));
 
 
@@ -54,10 +53,10 @@ template<size_t N, typename Tuple> using tTuplePrefix =
 
 template<typename Tuple, size_t... N>
 auto tTuplePostfixHelper(std::index_sequence<N...>)
--> std::tuple<std::tuple_element_t<std::tuple_size<Tuple>::value - sizeof...(N) + N, Tuple>...>;
+    -> std::tuple<std::tuple_element_t<std::tuple_size<Tuple>::value - sizeof...(N) + N, Tuple>...>;
 
 template<typename Tuple, size_t N> using tTuplePostfix =
-decltype(tTuplePostfixHelper<Tuple>(std::make_index_sequence<N>{}));
+    decltype(tTuplePostfixHelper<Tuple>(std::make_index_sequence<std::max(0, static_cast<int>(N))>{}));
 
 
 //                 tTuplePrefixTakerFunction
@@ -77,7 +76,7 @@ template<typename Tuple> using tTupleTakerFunction =
 
 
 template<size_t N, typename Tuple> using tTuplePrefixTakerFunction =
-    tTupleTakerFunction<tTuplePrefix<N, Tuple>>;
+    tTupleTakerFunction<tTuplePrefix<Tuple, N>>;
 
 
 //                tTuplePrepend

@@ -4,16 +4,77 @@
 namespace MessageSystemTests
 {
 
-TEST(message_sequencing, basic)
+TEST(message_sequencing, nv_listener_gets_message_index)
 {
     cMessageCenter messageCenter;
 
-    int response1Count = 0, response1X = 0;
-    int response2Count = 0, response2X = 0;
+    int numberOfMessagesReceived = 0;
+    auto listener = messageCenter.registerListener(
+        "test.seq_test",
+        [&](cMessageIndex messageIndex, int message)
+        {
+            EXPECT_EQ(message, 12);
+            ++numberOfMessagesReceived;
+        });
+    auto normalListener = messageCenter.registerListener(
+        "test.seq_test",
+        [&](int message)
+        {
+            EXPECT_EQ(message, 12);
+            ++numberOfMessagesReceived;
+        });
+    messageCenter.post("test.seq_test", 12);
 
-    //auto sequenceID = theMessageCenter.sequence("test.start", source).
-    //    response("test.response_1", [](int x) { ++response1Count; response1X = x; }).
-    //    response("test.response_2", [](int x) { ++response2Count; response2X = x; });
+    messageCenter.dispatch();
+
+    EXPECT_EQ(numberOfMessagesReceived, 2);
+}
+
+TEST(message_sequencing, v_listener_gets_message_index)
+{
+    cMessageCenter messageCenter;
+    int numberOfMessagesReceived = 0;
+    auto listener = messageCenter.registerListener(
+        "test.seq_test",
+        [&](cMessageIndex messageIndex)
+        {
+            ++numberOfMessagesReceived;
+        });
+    auto normalListener = messageCenter.registerListener(
+        "test.seq_test",
+        [&](int message)
+        {
+            EXPECT_EQ(message, 12);
+            ++numberOfMessagesReceived;
+        });
+
+    messageCenter.post("test.seq_test", 12);
+    messageCenter.dispatch();
+    EXPECT_EQ(numberOfMessagesReceived, 2);
+}
+
+TEST(message_sequencing, posting_message_index)
+{
+    cMessageCenter messageCenter;
+    int numberOfMessagesReceived = 0;
+    auto listener = messageCenter.registerListener(
+        "test.seq_test",
+        [&](cMessageIndex messageIndex, int message)
+        {
+            EXPECT_EQ(messageIndex, 42);
+            EXPECT_EQ(message, 12);
+            ++numberOfMessagesReceived;
+        });
+    auto normalListener = messageCenter.registerListener(
+        "test.seq_test",
+        [&](int message)
+        {
+            EXPECT_EQ(message, 12);
+            ++numberOfMessagesReceived;
+        });
+    messageCenter.post("test.seq_test", cMessageIndex(42), 12);
+    messageCenter.dispatch();
+    EXPECT_EQ(numberOfMessagesReceived, 2);
 }
 
 TEST(message_system, single_listen_post_receive)

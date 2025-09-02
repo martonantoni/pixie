@@ -133,9 +133,7 @@ void cMessageCenter::tDispatcher<T>::dispatch(const std::any& messageData, cMess
     const T* messageDataT = std::any_cast<const T>(&messageData);
     const cMessageIndexedT* messageDataIndexedT = std::any_cast<const cMessageIndexedT>(&messageData);
 
-    //if (!messageDataT)
-    //    messageDataT = 
-    mListeners.ForEach([messageIndex, messageDataT](auto& listener)
+    mListeners.ForEach([messageIndex, messageDataT, messageDataIndexedT](auto& listener)
         {
             if (messageIndex == mDirectMessageIndex || messageIndex > listener.mEventFilter)
             {
@@ -146,12 +144,15 @@ void cMessageCenter::tDispatcher<T>::dispatch(const std::any& messageData, cMess
                 case 1:
                     if(messageDataT)
                         std::apply(std::get<1>(listener.mFunction), *messageDataT);
-                    //else
-                    //    std::apply(std::get<1>(listener.mFunction), );
+                    else
+                        applyTail<std::tuple_size_v<T>>(std::get<1>(listener.mFunction), *messageDataIndexedT);
                     break;
                 case 2:
-                    std::apply(std::get<2>(listener.mFunction), 
-                        std::tuple_cat(std::forward_as_tuple(messageIndex), *messageDataT));
+                    if (messageDataT)
+                        std::apply(std::get<2>(listener.mFunction),
+                            std::tuple_cat(std::forward_as_tuple(messageIndex), *messageDataT));
+                    else
+                        std::apply(std::get<2>(listener.mFunction), *messageDataIndexedT);
                     break;
                 };
             }
@@ -163,7 +164,7 @@ template<class... Ts> void cMessageCenter::post(const std::string& endpointID, T
     using AllT = std::tuple<std::decay_t<Ts>...>;
     using T = std::conditional_t<
         std::tuple_size_v<AllT> >= 1 &&        
-        std::is_same_v<tSafeTupleElement<0, AllT>, cMessageIndex>,
+        std::is_same_v<tSafeTupleElementT<0, AllT>, cMessageIndex>,
         tTuplePostfix<AllT, std::tuple_size_v<AllT> -1>,
         AllT>;
     auto& endPoint = mEndPoints[endpointID];
@@ -180,7 +181,8 @@ template<class... Ts> void cMessageCenter::post(const std::string& endpointID, T
         {
             if (*endPoint->mMessageType != typeid(T))
             {
-                throw std::runtime_error("Wrong message type");
+                throw std::runtime_error(std::format("Wrong message type (post), expected: {}, got: {}", 
+                    endPoint->mMessageType->name(), typeid(T).name()));
             }
         }
         else
@@ -215,7 +217,7 @@ template<class... Ts> void cMessageCenter::send(const std::string& endpointID, T
         if (endPoint->mMessageType.has_value())
         {
             if (*endPoint->mMessageType != typeid(T))
-                throw std::runtime_error("Wrong message type");
+                throw std::runtime_error("Wrong message type (send)");
         }
         else
         {
@@ -229,10 +231,11 @@ template<class C> requires cCallableSignature<C>::available
     cRegisteredID cMessageCenter::registerListener(const std::string& endpointID, const C& listener)
 {
     using Signature = cCallableSignature<C>;
+    int numberOfArgs = Signature::numberOfArguments;
     using T = std::conditional_t<
         Signature::numberOfArguments >= 1 &&         
-        std::is_same_v<tSafeTupleElement<0, typename Signature::DecayedArguments>, cMessageIndex>,
-        typename Signature::DecayedArguments,
+        std::is_same_v<tSafeTupleElementT<0, typename Signature::DecayedArguments>, cMessageIndex>,
+        tTuplePostfix<typename Signature::DecayedArguments, Signature::numberOfArguments - 1>,
         typename Signature::DecayedArguments>;
 
     auto& endPoint = mEndPoints[endpointID];
@@ -256,7 +259,7 @@ template<class C> requires cCallableSignature<C>::available
         else
         {
             if (*endPoint->mMessageType != typeid(T))
-                throw std::runtime_error("Wrong message type");
+                throw std::runtime_error("Wrong message type (listener)");
         }
         if (!endPoint->mDispatcher)
             endPoint->mDispatcher = std::make_unique<tDispatcher<T>>();
