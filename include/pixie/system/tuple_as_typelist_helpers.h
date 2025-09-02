@@ -26,7 +26,11 @@
 //
 // tTuplePostfix<Tuple, N> - gives you a tuple type which is the postfix of Tuple of length N
 //        Example: tTuplePostfix<std::tuple<int, double, std::string>, 2> is std::tuple<double, std::string>
-
+//
+// applyTail(callable, tuple, N) - calls callable with the last N elements of tuple as arguments
+//
+// applyHead(callable, tuple, N) - calls callable with the first N elements of tuple as arguments
+//
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -83,7 +87,7 @@ using tTuplePrepend = decltype(std::tuple_cat(std::declval<std::tuple<Ts...>>(),
 //                tSafeTupleElement
 
 
-template<size_t I, typename Tuple, bool isInRange = (I < std::tuple_size_v<Tuple>)>
+template<size_t I, typename Tuple, bool isInRange = I < std::tuple_size_v<Tuple>>
 struct tSafeTupleElement
 {
     using type = void;
@@ -99,4 +103,17 @@ template<size_t I, typename Tuple>
 using tSafeTupleElementT = typename tSafeTupleElement<I, Tuple>::type;
 
 
-//
+//               applyTail
+
+template<typename F, typename Tuple, size_t... I>
+decltype(auto) applyTailHelper(F&& f, Tuple&& t, std::index_sequence<I...>)
+{
+    return std::invoke(std::forward<F>(f),
+        std::get<std::tuple_size_v<std::remove_reference_t<Tuple>> - sizeof...(I) + I>(std::forward<Tuple>(t))...);
+}
+
+template<size_t N, typename F, typename Tuple>
+decltype(auto) applyTail(F&& f, Tuple&& t)
+{
+    return applyTailHelper(std::forward<F>(f), std::forward<Tuple>(t), std::make_index_sequence<N>{});
+}

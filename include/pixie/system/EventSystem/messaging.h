@@ -48,7 +48,8 @@ class cMessageCenter final
         tDispatcher() = default;
 
         using cFunction = tTupleTakerFunction<T>;
-        using cMessageIndexTakerFunction = tTupleTakerFunction<tTuplePrepend<T, cMessageIndex>>;
+        using cMessageIndexedT = tTuplePrepend<T, cMessageIndex>;
+        using cMessageIndexTakerFunction = tTupleTakerFunction<cMessageIndexedT>;
 
         struct cListener
         {
@@ -129,8 +130,12 @@ inline cMessageCenter::tDispatcher<void>::cListener::cListener(const C& callable
 template<class T>
 void cMessageCenter::tDispatcher<T>::dispatch(const std::any& messageData, cMessageIndex messageIndex)
 {
-    const T& messageDataT = std::any_cast<const T&>(messageData);
-    mListeners.ForEach([messageIndex, &messageDataT](auto& listener)
+    const T* messageDataT = std::any_cast<const T>(&messageData);
+    const cMessageIndexedT* messageDataIndexedT = std::any_cast<const cMessageIndexedT>(&messageData);
+
+    //if (!messageDataT)
+    //    messageDataT = 
+    mListeners.ForEach([messageIndex, messageDataT](auto& listener)
         {
             if (messageIndex == mDirectMessageIndex || messageIndex > listener.mEventFilter)
             {
@@ -139,11 +144,14 @@ void cMessageCenter::tDispatcher<T>::dispatch(const std::any& messageData, cMess
                 switch (listener.mFunction.index())
                 {
                 case 1:
-                    std::apply(std::get<1>(listener.mFunction), messageDataT);
+                    if(messageDataT)
+                        std::apply(std::get<1>(listener.mFunction), *messageDataT);
+                    //else
+                    //    std::apply(std::get<1>(listener.mFunction), );
                     break;
                 case 2:
                     std::apply(std::get<2>(listener.mFunction), 
-                        std::tuple_cat(std::forward_as_tuple(messageIndex), messageDataT));
+                        std::tuple_cat(std::forward_as_tuple(messageIndex), *messageDataT));
                     break;
                 };
             }
@@ -152,7 +160,12 @@ void cMessageCenter::tDispatcher<T>::dispatch(const std::any& messageData, cMess
 
 template<class... Ts> void cMessageCenter::post(const std::string& endpointID, Ts&&... messageData)
 {
-    using T = std::tuple<std::decay_t<Ts>...>;
+    using AllT = std::tuple<std::decay_t<Ts>...>;
+    using T = std::conditional_t<
+        std::tuple_size_v<AllT> >= 1 &&        
+        std::is_same_v<tSafeTupleElement<0, AllT>, cMessageIndex>,
+        tTuplePostfix<AllT, std::tuple_size_v<AllT> -1>,
+        AllT>;
     auto& endPoint = mEndPoints[endpointID];
     if (!endPoint)
     {
@@ -183,7 +196,12 @@ template<class... Ts> void cMessageCenter::post(const std::string& endpointID, T
 
 template<class... Ts> void cMessageCenter::send(const std::string& endpointID, Ts&&... messageData)
 {
-    using T = std::tuple<std::decay_t<Ts>...>;
+    using AllT = std::tuple<std::decay_t<Ts>...>;
+    using T = std::conditional_t<
+        std::tuple_size_v<AllT> >= 1 &&
+        std::is_same_v<tSafeTupleElement<0, AllT>, cMessageIndex>,
+        tTuplePostfix<AllT, std::tuple_size_v<AllT> -1>,
+        AllT>;
     auto& endPoint = mEndPoints[endpointID];
     if (!endPoint)
     {
@@ -213,10 +231,9 @@ template<class C> requires cCallableSignature<C>::available
     using Signature = cCallableSignature<C>;
     using T = std::conditional_t<
         Signature::numberOfArguments >= 1 &&         
-        std::is_same_v<std::tuple_element_t<0, typename Signature::DecayedArguments>, cMessageIndex>,
+        std::is_same_v<tSafeTupleElement<0, typename Signature::DecayedArguments>, cMessageIndex>,
         typename Signature::DecayedArguments,
         typename Signature::DecayedArguments>;
-//    using T = typename cCallableSignature<C>::DecayedArguments;
 
     auto& endPoint = mEndPoints[endpointID];
     auto messageFilter = mEventsReading.empty() ? mLastPostedMessageIndex : mDispatchedMessageIndex;
