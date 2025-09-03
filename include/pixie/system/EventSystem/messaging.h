@@ -24,15 +24,6 @@ public:
         cMessageSequence response(const std::string& endpointID, const C& listener);
 };
 
-template <typename C, typename TTuple>
-struct is_invocable_with_tuple;
-
-template <typename C, typename... Args>
-struct is_invocable_with_tuple<C, std::tuple<Args...>>
-    : std::is_invocable<C, Args...> {
-};
-
-
 class cMessageCenter final
 {
     static constexpr cMessageIndex mDirectMessageIndex = -1;

@@ -137,3 +137,15 @@ decltype(auto) applyHead(F&& f, Tuple&& t)
 {
     return applyHeadHelper(std::forward<F>(f), std::forward<Tuple>(t), std::make_index_sequence<N>{});
 }
+
+
+//             is_invocable_with_tuple
+
+
+template <typename C, typename TTuple>
+struct is_invocable_with_tuple;
+
+template <typename C, typename... Args>
+struct is_invocable_with_tuple<C, std::tuple<Args...>>
+    : std::is_invocable<C, Args...> {
+};
