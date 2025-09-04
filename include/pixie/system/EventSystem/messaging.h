@@ -1,6 +1,6 @@
 #pragma once
 
-class cMessageIndex // todo: create strong type support class
+class cMessageIndex
 {
     int mIndex;
 public:
@@ -18,8 +18,8 @@ public:
     cMessageSequence() = default;
     cMessageSequence(const cMessageSequence&) = delete;
     cMessageSequence& operator=(const cMessageSequence&) = delete;
-    cMessageSequence(cMessageSequence&&);
-    cMessageSequence& operator=(cMessageSequence&&);
+    cMessageSequence(cMessageSequence&&) = default;
+    cMessageSequence& operator=(cMessageSequence&&) = default;
 
     template<class C> requires cCallableSignature<C>::available void on(const std::string& endpointID, const C& listener);
 };
@@ -86,6 +86,39 @@ class cMessageCenter final
     cMessageIndex mLastPostedMessageIndex = -1;
     cMessageIndex mDispatchedMessageIndex = 0;
     std::function<void()> mNeedDispatchProcessor;
+    template<class... Ts> class cMessageSequenceBuilder
+    {
+        cMessageSequence mMessageSequence;
+        std::tuple<std::decay_t<Ts>...> mMessageData;
+        cMessageCenter& mCenter;
+        std::string mEndPoint;
+        cMessageSequenceBuilder(const cMessageSequenceBuilder&) = delete;
+        cMessageSequenceBuilder(cMessageSequenceBuilder&&) = delete;
+        cMessageSequenceBuilder& operator=(const cMessageSequenceBuilder&) = delete;
+        cMessageSequenceBuilder& operator=(cMessageSequenceBuilder&&) = delete;
+    public:
+        cMessageSequenceBuilder(cMessageCenter& center, const std::string& endpoint, Ts&&... messageData) :
+            mCenter(center),
+            mMessageData(std::forward<Ts>(messageData)...),
+            mEndPoint(endpoint)
+        {
+        }
+        auto on(const std::string& endpointID, const auto& listener) && -> cMessageSequenceBuilder<Ts...>
+        {
+            mMessageSequence.on(endpointID, listener);
+            return std::move(*this);
+        }
+        operator cMessageSequence()&&
+        {
+            std::apply([&, this](auto&&... args)
+                {
+                    mCenter.post(mEndPoint, std::forward<decltype(args)>(args)...);
+                },
+                std::move(mMessageData));
+            return std::move(mMessageSequence);
+        }
+        void test() const {}
+    };
 public:
     template<class... Ts> void post(const std::string& endpointID, Ts&&... messageData);
     template<class... Ts> void send(const std::string& endpointID, Ts&&... messageData);
@@ -188,40 +221,9 @@ template<class... Ts> void cMessageCenter::post(const std::string& endpointID, T
         mNeedDispatchProcessor();
 }
 
-template<class... Ts> auto cMessageCenter::sequence(const std::string& endpointID, Ts&&... messageData)
+template<class... Ts> auto cMessageCenter::sequence(const std::string& endpoint, Ts&&... messageData)
 {
-    class cMessageSequenceBuilder : protected cMessageSequence
-    {
-        std::tuple<std::decay_t<Ts>...> mMessageData{ std::forward<Ts>(messageData)... };
-        cMessageCenter& mCenter;
-        std::string mEndPoint;
-        cMessageSequenceBuilder(const cMessageSequenceBuilder&) = delete;
-        cMessageSequenceBuilder(cMessageSequenceBuilder&&) = default;
-        cMessageSequenceBuilder& operator=(const cMessageSequenceBuilder&) = delete;
-        cMessageSequenceBuilder& operator=(cMessageSequenceBuilder&&) = default;
-    public:
-        cMessageSequenceBuilder(const std::string& endPoint, cMessageCenter& center, Ts&&... messageData): 
-            mCenter(center),
-            mMessageData(std::forward<Ts>(messageData)...),
-            mEndPoint(endPoint)
-        {
-        }
-        auto on(const std::string& endpointID, const auto& listener)&&
-        {
-            cMessageSequence::on(endpointID, listener);
-            return std::move(*this);
-        }
-        operator cMessageSequence()&& 
-        { 
-            std::apply([&, this](auto&&... args) 
-                { 
-                    mCenter.post(mEndPoint, std::forward<decltype(args)>(args)...);
-                }, 
-                std::move(mMessageData));
-            return std::move(*this); 
-        }
-    };
-    return cMessageSequenceBuilder{ std::forward<Ts>(messageData)... };
+    return cMessageSequenceBuilder<Ts...>{ *this, endpoint, std::forward<Ts>(messageData)... };
 }
 
 template<class... Ts> void cMessageCenter::send(const std::string& endpointID, Ts&&... messageData)

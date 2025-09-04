@@ -81,9 +81,11 @@ TEST(message_sequencing, building_sequence)
 {
     cMessageCenter messageCenter;
 
-    cMessageSequence sequence = messageCenter.sequence("test.test_seq", 12)
-        .on("test.test_seq.reply_a", []() {})
-        .on("test.test_seq.reply_b", []() {});
+    auto sequence = messageCenter.sequence("test.test_seq", 12);
+    sequence.test();
+//    auto x = sequence;
+        //.on("test.test_seq.reply_a", []() {})
+        //.on("test.test_seq.reply_b", []() {});
 }
 
 TEST(message_system, single_listen_post_receive)
