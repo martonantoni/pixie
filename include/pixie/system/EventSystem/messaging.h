@@ -13,6 +13,7 @@ public:
 class cMessageSequence
 {
     cRegisteredIDList mListeners;
+    cMessageIndex mOriginalMessageIndex = -1;
 public:
     cMessageSequence() = default;
     cMessageSequence(const cMessageSequence&) = delete;
@@ -20,8 +21,7 @@ public:
     cMessageSequence(cMessageSequence&&);
     cMessageSequence& operator=(cMessageSequence&&);
 
-    template<class C> requires cCallableSignature<C>::available [[nodiscard]]
-        cMessageSequence response(const std::string& endpointID, const C& listener);
+    template<class C> requires cCallableSignature<C>::available void on(const std::string& endpointID, const C& listener);
 };
 
 class cMessageCenter final
@@ -91,6 +91,7 @@ public:
     template<class... Ts> void send(const std::string& endpointID, Ts&&... messageData);
     void post(const std::string& endpointID);
     void send(const std::string& endpointID);
+    template<class... Ts> auto sequence(const std::string& endpointID, Ts&&... messageData);
     template<class C> requires cCallableSignature<C>::available [[nodiscard]] 
         cRegisteredID registerListener(const std::string& endpointID, const C& listener);
     void dispatch();
@@ -185,6 +186,42 @@ template<class... Ts> void cMessageCenter::post(const std::string& endpointID, T
     mEventsWriting.emplace_back(std::make_tuple(std::forward<Ts>(messageData)...), endPoint.get());
     if(mNeedDispatchProcessor)
         mNeedDispatchProcessor();
+}
+
+template<class... Ts> auto cMessageCenter::sequence(const std::string& endpointID, Ts&&... messageData)
+{
+    class cMessageSequenceBuilder : protected cMessageSequence
+    {
+        std::tuple<std::decay_t<Ts>...> mMessageData{ std::forward<Ts>(messageData)... };
+        cMessageCenter& mCenter;
+        std::string mEndPoint;
+        cMessageSequenceBuilder(const cMessageSequenceBuilder&) = delete;
+        cMessageSequenceBuilder(cMessageSequenceBuilder&&) = default;
+        cMessageSequenceBuilder& operator=(const cMessageSequenceBuilder&) = delete;
+        cMessageSequenceBuilder& operator=(cMessageSequenceBuilder&&) = default;
+    public:
+        cMessageSequenceBuilder(const std::string& endPoint, cMessageCenter& center, Ts&&... messageData): 
+            mCenter(center),
+            mMessageData(std::forward<Ts>(messageData)...),
+            mEndPoint(endPoint)
+        {
+        }
+        auto on(const std::string& endpointID, const auto& listener)&&
+        {
+            cMessageSequence::on(endpointID, listener);
+            return std::move(*this);
+        }
+        operator cMessageSequence()&& 
+        { 
+            std::apply([&, this](auto&&... args) 
+                { 
+                    mCenter.post(mEndPoint, std::forward<decltype(args)>(args)...);
+                }, 
+                std::move(mMessageData));
+            return std::move(*this); 
+        }
+    };
+    return cMessageSequenceBuilder{ std::forward<Ts>(messageData)... };
 }
 
 template<class... Ts> void cMessageCenter::send(const std::string& endpointID, Ts&&... messageData)
