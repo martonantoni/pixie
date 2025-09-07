@@ -81,8 +81,12 @@ TEST(message_sequencing, building_sequence)
 {
     cMessageCenter messageCenter;
 
-    auto sequence = messageCenter.sequence("test.test_seq", 12);
-    sequence.test();
+    cMessageSequence sequence = messageCenter.sequence("test.test_seq", 12)
+        .on("test.test_seq.reply_a", [](int a) { EXPECT_EQ(a, 34); })
+        .on("test.test_seq.reply_b", [](const std::string& b) { EXPECT_STREQ(b.c_str(), "hello"); });
+    
+
+
 //    auto x = sequence;
         //.on("test.test_seq.reply_a", []() {})
         //.on("test.test_seq.reply_b", []() {});

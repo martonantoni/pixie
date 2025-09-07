@@ -38,7 +38,7 @@ void cMessageCenter::dispatch()
     }
 }
 
-void cMessageCenter::post(const std::string& endpointID)
+cMessageIndex cMessageCenter::post(const std::string& endpointID)
 {
     auto& endPoint = mEndPoints[endpointID];
     if (!endPoint)
@@ -62,6 +62,7 @@ void cMessageCenter::post(const std::string& endpointID)
     mEventsWriting.emplace_back(std::monostate(), endPoint.get());
     if (mNeedDispatchProcessor)
         mNeedDispatchProcessor();
+    return mLastPostedMessageIndex;
 }
 
 void cMessageCenter::send(const std::string& endpointID)
