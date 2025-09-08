@@ -37,6 +37,7 @@ class cMessageSequence
     };
     template<class Listener> class tListenerWrapper;
 public:
+    cMessageSequence() = default;
     cMessageSequence(cMessageCenter& center, cMessageIndex filter) : mCenter(center), mFilter(filter) {}
     cMessageSequence(const cMessageSequence&) = delete;
     cMessageSequence& operator=(const cMessageSequence&) = delete;
