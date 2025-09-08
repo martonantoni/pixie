@@ -44,7 +44,7 @@ public:
     cMessageSequence(cMessageSequence&&);
     cMessageSequence& operator=(cMessageSequence&&);
 
-    template<class C> requires cCallableSignature<C>::available void on(const std::string& endpointID, const C& listener);
+    void on(const std::string& endpointID, cCallable auto listener);
 };
 
 class cMessageCenter final
@@ -69,7 +69,7 @@ class cMessageCenter final
         {
             std::variant<std::monostate, cFunction, cMessageIndexTakerFunction> mFunction;
             cMessageIndex mEventFilter = -1;
-            template<class C> cListener(const C& callable, cMessageIndex eventFilter);
+            cListener(cCallable auto callable, cMessageIndex eventFilter);
         };
         virtual void dispatch(const std::any& messageData, cMessageIndex messageIndex) override;
         tRegisteredObjects<cListener> mListeners;
@@ -83,7 +83,7 @@ class cMessageCenter final
         {
             std::variant<std::monostate, cFunction, cMessageIndexTakerFunction> mFunction;
             cMessageIndex mEventFilter = -1;
-            template<class C> cListener(const C& callable, cMessageIndex eventFilter);
+            cListener(cCallable auto callable, cMessageIndex eventFilter);
         };
         virtual void dispatch(const std::any& messageData, cMessageIndex messageIndex) override;
         tRegisteredObjects<cListener> mListeners;
@@ -127,9 +127,9 @@ class cMessageCenter final
             mEndPoint(endpoint)
         {
         }
-        auto on(const std::string& endpointID, const auto& listener) && -> cMessageSequenceBuilder<Ts...>
+        auto on(const std::string& endpointID, cCallable auto listener) && -> cMessageSequenceBuilder<Ts...>
         {
-            mMessageSequence.on(endpointID, listener);
+            mMessageSequence.on(endpointID, std::move(listener));
             return std::move(*this);
         }
         operator cMessageSequence()&&
@@ -170,33 +170,31 @@ public:
     }
 };
 
-template<class C> requires cCallableSignature<C>::available
-void cMessageSequence::on(const std::string& endpointID, const C& listener)
+void cMessageSequence::on(const std::string& endpointID, cCallable auto listener)
 {
     mListeners.emplace_back(mCenter.get().registerListener(endpointID,
-        tListenerWrapper<typename cSignatureExtractor<decltype(&C::operator())>::Signature>(mFilter, listener)));
+        tListenerWrapper<typename cCallableSignature<decltype(listener)>::Signature>(mFilter, std::move(listener))));
 }
 
 // MessageCenter
 
-template<class T> template<class C> 
-cMessageCenter::tDispatcher<T>::cListener::cListener(const C& callable, cMessageIndex eventFilter)
+template<class T>
+cMessageCenter::tDispatcher<T>::cListener::cListener(cCallable auto callable, cMessageIndex eventFilter)
     : mEventFilter(eventFilter)
 {
-    if constexpr (is_invocable_with_tuple<C, T>::value)
-        mFunction = cFunction(callable);
+    if constexpr (is_invocable_with_tuple<decltype(callable), T>::value)
+        mFunction = cFunction(std::move(callable));
     else 
-        mFunction = cMessageIndexTakerFunction(callable);
+        mFunction = cMessageIndexTakerFunction(std::move(callable));
 }
 
-template<class C>
-inline cMessageCenter::tDispatcher<void>::cListener::cListener(const C& callable, cMessageIndex eventFilter)
+inline cMessageCenter::tDispatcher<void>::cListener::cListener(cCallable auto callable, cMessageIndex eventFilter)
     : mEventFilter(eventFilter)
 {
-    if constexpr (std::is_invocable_v<C>)
-        mFunction = cFunction(callable);
+    if constexpr (std::is_invocable_v<decltype(callable)>)
+        mFunction = cFunction(std::move(callable));
     else
-        mFunction = cMessageIndexTakerFunction(callable);
+        mFunction = cMessageIndexTakerFunction(std::move(callable));
 }
 
 template<class T>
