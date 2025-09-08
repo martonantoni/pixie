@@ -70,3 +70,6 @@ struct cSignatureExtractorHelper<C, std::enable_if_t<std::is_member_function_poi
 
 template<class C>
 using cCallableSignature = typename cSignatureExtractorHelper<C>::type;
+
+template<class C>
+concept cCallable = cCallableSignature<C>::available;

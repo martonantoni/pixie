@@ -149,8 +149,7 @@ public:
     void send(const std::string& endpointID);
 
     template<class... Ts> auto sequence(const std::string& endpointID, Ts&&... messageData);
-    template<class C> requires cCallableSignature<C>::available [[nodiscard]] 
-        cRegisteredID registerListener(const std::string& endpointID, const C& listener);
+    [[nodiscard]] cRegisteredID registerListener(const std::string& endpointID, cCallable auto listener);
     void dispatch();
     void setNeedDispatchProcessor(std::function<void()> needDispatchProcessor);
 };
@@ -307,10 +306,9 @@ template<class... Ts> void cMessageCenter::send(const std::string& endpointID, T
     endPoint->dispatch(std::make_tuple(std::forward<Ts>(messageData)...), mDirectMessageIndex);
 }
 
-template<class C> requires cCallableSignature<C>::available
-    cRegisteredID cMessageCenter::registerListener(const std::string& endpointID, const C& listener)
+cRegisteredID cMessageCenter::registerListener(const std::string& endpointID, cCallable auto listener)
 {
-    using Signature = cCallableSignature<C>;
+    using Signature = cCallableSignature<decltype(listener)>;
     int numberOfArgs = Signature::numberOfArguments;
     using T = std::conditional_t<
         Signature::numberOfArguments >= 1 &&         
@@ -354,7 +352,7 @@ class cMessageListeners final
 {
     cRegisteredIDList mListeners;
 public:
-    template<class C> void listen(const std::string& endpointID, const C& callback)
+    void listen(const std::string& endpointID, const cCallable auto& callback)
     {
         mListeners.emplace_back(theMessageCenter.registerListener(endpointID, callback));
     }
