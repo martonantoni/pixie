@@ -63,4 +63,10 @@ struct cSignatureExtractorHelper<C, std::enable_if_t<std::is_function_v<std::rem
 };
 
 template<class C>
+struct cSignatureExtractorHelper<C, std::enable_if_t<std::is_member_function_pointer_v<C>>> 
+{
+    using type = cSignatureExtractor<C>;
+};
+
+template<class C>
 using cCallableSignature = typename cSignatureExtractorHelper<C>::type;

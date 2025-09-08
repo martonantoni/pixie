@@ -64,6 +64,27 @@ TEST(CallableSignatureTests, lambda_double_stringint)
     static_assert(std::is_same_v<double, cCallableSignature<decltype(testedLambda)>::ReturnType>);
 }
 
+TEST(CallableSignatureTests, member_functions)
+{
+    struct cTestStruct
+    {
+        int memberFunction(int a, double b) { return a + static_cast<int>(b); }
+        void constMemberFunction(const std::string& s) const {}
+    };
+    static_assert(cCallableSignature<decltype(&cTestStruct::memberFunction)>::numberOfArguments == 2);
+    static_assert(std::tuple_size_v<cCallableSignature<decltype(&cTestStruct::memberFunction)>::Arguments> == 2);
+    static_assert(std::is_same_v<int, std::tuple_element_t<0, cCallableSignature<decltype(&cTestStruct::memberFunction)>::Arguments>>);
+    static_assert(std::is_same_v<double, std::tuple_element_t<1, cCallableSignature<decltype(&cTestStruct::memberFunction)>::Arguments>>);
+    static_assert(std::is_same_v<int, cCallableSignature<decltype(&cTestStruct::memberFunction)>::ReturnType>);
+
+    static_assert(!cCallableSignature<decltype(&cTestStruct::memberFunction)>::isConst);
+    static_assert(cCallableSignature<decltype(&cTestStruct::constMemberFunction)>::isConst);
+    static_assert(cCallableSignature<decltype(&cTestStruct::constMemberFunction)>::numberOfArguments == 1);
+    static_assert(std::tuple_size_v<cCallableSignature<decltype(&cTestStruct::constMemberFunction)>::Arguments> == 1);
+    static_assert(std::is_same_v<const std::string&, std::tuple_element_t<0, cCallableSignature<decltype(&cTestStruct::constMemberFunction)>::Arguments>>);
+    static_assert(std::is_same_v<void, cCallableSignature<decltype(&cTestStruct::constMemberFunction)>::ReturnType>);
+}
+
 void testFunct_v_is(int a, std::string s)
 {
 }
