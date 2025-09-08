@@ -77,19 +77,70 @@ TEST(message_sequencing, posting_message_index)
     EXPECT_EQ(numberOfMessagesReceived, 2);
 }
 
-TEST(message_sequencing, building_sequence)
+TEST(message_sequencing, sequence_starting_message_delivered)
 {
     cMessageCenter messageCenter;
+
+    int numberOfMessagesReceived = 0;
+    auto listener = messageCenter.registerListener(
+        "test.test_seq",
+        [&](int a) 
+        { 
+            if (numberOfMessagesReceived < 2)
+            {
+                auto expected = std::array{ 12, 56 }[numberOfMessagesReceived];
+                EXPECT_EQ(a, expected);
+            }
+            ++numberOfMessagesReceived;
+        });
 
     cMessageSequence sequence = messageCenter.sequence("test.test_seq", 12)
         .on("test.test_seq.reply_a", [](int a) { EXPECT_EQ(a, 34); })
         .on("test.test_seq.reply_b", [](const std::string& b) { EXPECT_STREQ(b.c_str(), "hello"); });
+
+
+    cMessageSequence sequence2 = messageCenter.sequence("test.test_seq", 56);
+
+    messageCenter.dispatch();
+
+    EXPECT_EQ(numberOfMessagesReceived, 2);
+}
+
+TEST(message_sequencing, sequence_message_delivered)
+{
+    cMessageCenter messageCenter;
     
+    std::unordered_map<std::string, int> repliesReceived;
+    int numberOfMessagesReceived = 0;
 
+    auto listener = messageCenter.registerListener(
+        "test.test_seq",
+        [&](cMessageIndex idx, int a)
+        {
+            if (numberOfMessagesReceived < 2)
+            {
+                auto expected = std::array{ 12, 56 }[numberOfMessagesReceived];
+                EXPECT_EQ(a, expected);
+                auto replyDestination = std::array{ "test.test_seq.reply_a", "test.test_seq.reply_c" }[numberOfMessagesReceived];
+                messageCenter.post(replyDestination, idx, std::array{ 34, 78 }[numberOfMessagesReceived]);
+            }
+            ++numberOfMessagesReceived;
+        });
+    cMessageSequence sequence = messageCenter.sequence("test.test_seq", 12)
+        .on("test.test_seq.reply_a", [&](int a) { EXPECT_EQ(a, 34); ++repliesReceived["reply_a"]; })
+        .on("test.test_seq.reply_b", [&](const std::string& b) { EXPECT_STREQ(b.c_str(), "hello"); ++repliesReceived["reply_b"]; });
+    cMessageSequence sequence2 = messageCenter.sequence("test.test_seq", 56)
+        .on("test.test_seq.reply_c", [&](int a) { EXPECT_EQ(a, 78); ++repliesReceived["reply_c"]; })
+        .on("test.test_seq.reply_d", [&](const std::string& b) { EXPECT_STREQ(b.c_str(), "world"); ++repliesReceived["reply_d"]; });
 
-//    auto x = sequence;
-        //.on("test.test_seq.reply_a", []() {})
-        //.on("test.test_seq.reply_b", []() {});
+    messageCenter.dispatch();
+
+    EXPECT_EQ(numberOfMessagesReceived, 2);
+
+    EXPECT_EQ(repliesReceived["reply_a"], 1);
+    EXPECT_EQ(repliesReceived["reply_b"], 0);
+    EXPECT_EQ(repliesReceived["reply_c"], 1);
+    EXPECT_EQ(repliesReceived["reply_d"], 0);
 }
 
 TEST(message_system, single_listen_post_receive)

@@ -2,6 +2,31 @@
 
 cMessageCenter theMessageCenter;
 
+cMessageSequence::cMessageSequence(cMessageSequence&& src):
+    mCenter(src.mCenter),
+    mListeners(std::move(src.mListeners)),
+    mFilter(src.mFilter)
+{
+}
+
+cMessageSequence& cMessageSequence::operator=(cMessageSequence&& src)
+{
+    if (this != &src)
+    {
+        // use move assignment to avoid unregistering listeners
+        mCenter = src.mCenter;
+        mListeners = std::move(src.mListeners);
+        mFilter = src.mFilter;
+    }
+    return *this;
+}
+
+
+bool cMessageSequence::cListenerWrapper::canDispatch(cMessageIndex messageIndex) const 
+{ 
+    return messageIndex == mFilter;
+}
+
 void cMessageCenter::tDispatcher<void>::dispatch(const std::any& messageData, cMessageIndex messageIndex)
 {
     mListeners.ForEach([messageIndex](auto& listener)

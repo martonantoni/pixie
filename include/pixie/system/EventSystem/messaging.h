@@ -8,32 +8,40 @@ public:
     constexpr explicit operator int() const { return mIndex; }
     constexpr cMessageIndex& operator++() { ++mIndex; return *this; }
     constexpr auto operator<=>(const cMessageIndex&) const = default;
+    constexpr cMessageIndex operator+(int delta) const { return cMessageIndex(mIndex + delta); }
+};
+
+template<> struct std::formatter<cMessageIndex> : std::formatter<int> 
+{
+    auto format(const cMessageIndex& idx, auto& ctx) const 
+    {
+        return std::formatter<int>::format(static_cast<int>(idx), ctx);
+    }
 };
 
 class cMessageCenter;
 
 class cMessageSequence
 {
+    std::reference_wrapper<cMessageCenter> mCenter;
+    cMessageIndex mFilter = -1;
     cRegisteredIDList mListeners;
-    cMessageIndex mOriginalMessageIndex = -1;
-    cMessageCenter& mCenter;
     class cListenerWrapper
     {
-        cMessageSequence& mSequence;
+        cMessageIndex mFilter = -1;
     protected:
-        bool canDispatch(cMessageIndex messageIndex) const { return messageIndex == mSequence.mOriginalMessageIndex; }
+        bool canDispatch(cMessageIndex messageIndex) const;
     public:
-        cListenerWrapper(cMessageSequence& sequence) : mSequence(sequence) {}
+        cListenerWrapper(cMessageIndex filter) : mFilter(filter) {}
         virtual ~cListenerWrapper() = default;
     };
     template<class Listener> class tListenerWrapper;
 public:
-    cMessageSequence(cMessageCenter& center) : mCenter(center) {}
+    cMessageSequence(cMessageCenter& center, cMessageIndex filter) : mCenter(center), mFilter(filter) {}
     cMessageSequence(const cMessageSequence&) = delete;
     cMessageSequence& operator=(const cMessageSequence&) = delete;
-    cMessageSequence(cMessageSequence&&) = default;
-    cMessageSequence& operator=(cMessageSequence&&) = default;
-    void setFilter(cMessageIndex messageIndex) { mOriginalMessageIndex = messageIndex; }
+    cMessageSequence(cMessageSequence&&);
+    cMessageSequence& operator=(cMessageSequence&&);
 
     template<class C> requires cCallableSignature<C>::available void on(const std::string& endpointID, const C& listener);
 };
@@ -111,8 +119,8 @@ class cMessageCenter final
         cMessageSequenceBuilder& operator=(const cMessageSequenceBuilder&) = delete;
         cMessageSequenceBuilder& operator=(cMessageSequenceBuilder&&) = delete;
     public:
-        cMessageSequenceBuilder(cMessageCenter& center, const std::string& endpoint, Ts&&... messageData) :
-            mMessageSequence(center),
+        cMessageSequenceBuilder(cMessageCenter& center, cMessageIndex filter, const std::string& endpoint, Ts&&... messageData) :
+            mMessageSequence(center, filter),
             mCenter(center),
             mMessageData(std::forward<Ts>(messageData)...),
             mEndPoint(endpoint)
@@ -127,7 +135,7 @@ class cMessageCenter final
         {
             std::apply([&, this](auto&&... args)
                 {
-                    mMessageSequence.setFilter(mCenter.post(mEndPoint, std::forward<decltype(args)>(args)...));
+                    mCenter.post(mEndPoint, std::forward<decltype(args)>(args)...);
                 },
                 std::move(mMessageData));
             return std::move(mMessageSequence);
@@ -152,8 +160,8 @@ template<class R, class... Args> class cMessageSequence::tListenerWrapper<R(Args
 {
     std::function<void(Args...)> mListener;
 public:
-    tListenerWrapper(cMessageSequence& sequence, const std::function<void(Args...)>& listener)
-        : cListenerWrapper(sequence), mListener(listener) {
+    tListenerWrapper(cMessageIndex filter, const std::function<void(Args...)>& listener)
+        : cListenerWrapper(filter), mListener(listener) {
     }
     void operator()(cMessageIndex messageIndex, Args... args)
     {
@@ -165,8 +173,8 @@ public:
 template<class C> requires cCallableSignature<C>::available
 void cMessageSequence::on(const std::string& endpointID, const C& listener)
 {
-    mListeners.emplace_back(mCenter.registerListener(endpointID,
-        tListenerWrapper<typename cSignatureExtractor<decltype(&C::operator())>::Signature>(*this, listener)));
+    mListeners.emplace_back(mCenter.get().registerListener(endpointID,
+        tListenerWrapper<typename cSignatureExtractor<decltype(&C::operator())>::Signature>(mFilter, listener)));
 }
 
 // MessageCenter
@@ -264,7 +272,7 @@ cMessageIndex cMessageCenter::post(const std::string& endpointID, Ts&&... messag
 
 template<class... Ts> auto cMessageCenter::sequence(const std::string& endpoint, Ts&&... messageData)
 {
-    return cMessageSequenceBuilder<Ts...>{ *this, endpoint, std::forward<Ts>(messageData)... };
+    return cMessageSequenceBuilder<Ts...>{ *this, mLastPostedMessageIndex + 1, endpoint, std::forward<Ts>(messageData)... };
 }
 
 template<class... Ts> void cMessageCenter::send(const std::string& endpointID, Ts&&... messageData)
