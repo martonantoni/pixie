@@ -37,7 +37,7 @@ class cMessageSequence
     };
     template<class Listener> class tListenerWrapper;
 public:
-    cMessageSequence() {}
+    cMessageSequence() = default;
     cMessageSequence(std::shared_ptr<cMessageCenter> center, cMessageIndex filter) 
         : mCenter(std::move(center)), mFilter(filter) {}
     cMessageSequence(const cMessageSequence&) = delete;
@@ -90,7 +90,6 @@ class cMessageCenter final : public std::enable_shared_from_this<cMessageCenter>
         tRegisteredObjects<cListener> mListeners;
     };
     using cVoidDispatcher = tDispatcher<void>;
-    struct cUnknownMessageType {};
     struct cEndPoint
     {
         std::optional<std::type_index> mMessageType;
@@ -154,6 +153,12 @@ public:
     void dispatch();
     void setNeedDispatchProcessor(std::function<void()> needDispatchProcessor);
 };
+
+//////////////////////////////////////////
+// 
+//      Implementation
+//
+
 
 // MessageSequence
 
@@ -353,7 +358,7 @@ cRegisteredID cMessageCenter::registerListener(const std::string& endpointID, cC
 
 extern cMessageCenter& theMessageCenter;
 
-class cMessageListeners final
+class cMessageListeners final // only works with the global message center
 {
     cRegisteredIDList mListeners;
 public:
