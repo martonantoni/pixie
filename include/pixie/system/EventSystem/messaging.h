@@ -23,7 +23,7 @@ class cMessageCenter;
 
 class cMessageSequence
 {
-    std::reference_wrapper<cMessageCenter> mCenter;
+    std::shared_ptr<cMessageCenter> mCenter;
     cMessageIndex mFilter = -1;
     cRegisteredIDList mListeners;
     class cListenerWrapper
@@ -37,8 +37,9 @@ class cMessageSequence
     };
     template<class Listener> class tListenerWrapper;
 public:
-    cMessageSequence() = default;
-    cMessageSequence(cMessageCenter& center, cMessageIndex filter) : mCenter(center), mFilter(filter) {}
+    cMessageSequence() {}
+    cMessageSequence(std::shared_ptr<cMessageCenter> center, cMessageIndex filter) 
+        : mCenter(std::move(center)), mFilter(filter) {}
     cMessageSequence(const cMessageSequence&) = delete;
     cMessageSequence& operator=(const cMessageSequence&) = delete;
     cMessageSequence(cMessageSequence&&);
@@ -47,7 +48,7 @@ public:
     void on(const std::string& endpointID, cCallable auto listener);
 };
 
-class cMessageCenter final
+class cMessageCenter final : public std::enable_shared_from_this<cMessageCenter>
 {
     static constexpr cMessageIndex mDirectMessageIndex = -1;
     class cDispatcher
@@ -113,14 +114,14 @@ class cMessageCenter final
     {
         cMessageSequence mMessageSequence;
         std::tuple<std::decay_t<Ts>...> mMessageData;
-        cMessageCenter& mCenter;
+        std::shared_ptr<cMessageCenter> mCenter;
         std::string mEndPoint;
         cMessageSequenceBuilder(const cMessageSequenceBuilder&) = delete;
         cMessageSequenceBuilder(cMessageSequenceBuilder&&) = default;
         cMessageSequenceBuilder& operator=(const cMessageSequenceBuilder&) = delete;
         cMessageSequenceBuilder& operator=(cMessageSequenceBuilder&&) = delete;
     public:
-        cMessageSequenceBuilder(cMessageCenter& center, cMessageIndex filter, const std::string& endpoint, Ts&&... messageData) :
+        cMessageSequenceBuilder(std::shared_ptr<cMessageCenter> center, cMessageIndex filter, const std::string& endpoint, Ts&&... messageData) :
             mMessageSequence(center, filter),
             mCenter(center),
             mMessageData(std::forward<Ts>(messageData)...),
@@ -136,7 +137,7 @@ class cMessageCenter final
         {
             std::apply([&, this](auto&&... args)
                 {
-                    mCenter.post(mEndPoint, std::forward<decltype(args)>(args)...);
+                    mCenter->post(mEndPoint, std::forward<decltype(args)>(args)...);
                 },
                 std::move(mMessageData));
             return std::move(mMessageSequence);
@@ -148,7 +149,7 @@ public:
     template<class... Ts> void send(const std::string& endpointID, Ts&&... messageData);
     void send(const std::string& endpointID);
 
-    template<class... Ts> auto sequence(const std::string& endpointID, Ts&&... messageData);
+    template<class... Ts> [[nodiscard]] auto sequence(const std::string& endpointID, Ts&&... messageData);
     [[nodiscard]] cRegisteredID registerListener(const std::string& endpointID, cCallable auto listener);
     void dispatch();
     void setNeedDispatchProcessor(std::function<void()> needDispatchProcessor);
@@ -172,7 +173,7 @@ public:
 
 void cMessageSequence::on(const std::string& endpointID, cCallable auto listener)
 {
-    mListeners.emplace_back(mCenter.get().registerListener(endpointID,
+    mListeners.emplace_back(mCenter->registerListener(endpointID,
         tListenerWrapper<typename cCallableSignature<decltype(listener)>::Signature>(mFilter, std::move(listener))));
 }
 
@@ -270,7 +271,13 @@ cMessageIndex cMessageCenter::post(const std::string& endpointID, Ts&&... messag
 
 template<class... Ts> auto cMessageCenter::sequence(const std::string& endpoint, Ts&&... messageData)
 {
-    return cMessageSequenceBuilder<Ts...>{ *this, mLastPostedMessageIndex + 1, endpoint, std::forward<Ts>(messageData)... };
+    return cMessageSequenceBuilder<Ts...>
+        { 
+            shared_from_this(), 
+            mLastPostedMessageIndex + 1,   // filter for the next message (sent by builder -> sequence conversion)
+            endpoint, 
+            std::forward<Ts>(messageData)... 
+        };
 }
 
 template<class... Ts> void cMessageCenter::send(const std::string& endpointID, Ts&&... messageData)
@@ -344,7 +351,7 @@ cRegisteredID cMessageCenter::registerListener(const std::string& endpointID, cC
     }
 }
 
-extern cMessageCenter theMessageCenter;
+extern cMessageCenter& theMessageCenter;
 
 class cMessageListeners final
 {

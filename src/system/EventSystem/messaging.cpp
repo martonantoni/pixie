@@ -1,6 +1,11 @@
 #include "StdAfx.h"
 
-cMessageCenter theMessageCenter;
+namespace 
+{ 
+    // hack for backward compatibility
+std::shared_ptr<cMessageCenter> theMessageCenterPtr = std::make_shared<cMessageCenter>();
+}
+cMessageCenter& theMessageCenter = *theMessageCenterPtr;
 
 cMessageSequence::cMessageSequence(cMessageSequence&& src):
     mCenter(src.mCenter),

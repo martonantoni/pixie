@@ -6,41 +6,41 @@ namespace MessageSystemTests
 
 TEST(message_sequencing, nv_listener_gets_message_index)
 {
-    cMessageCenter messageCenter;
+    auto messageCenter = std::make_shared<cMessageCenter>();
 
     int numberOfMessagesReceived = 0;
-    auto listener = messageCenter.registerListener(
+    auto listener = messageCenter->registerListener(
         "test.seq_test",
         [&](cMessageIndex messageIndex, int message)
         {
             EXPECT_EQ(message, 12);
             ++numberOfMessagesReceived;
         });
-    auto normalListener = messageCenter.registerListener(
+    auto normalListener = messageCenter->registerListener(
         "test.seq_test",
         [&](int message)
         {
             EXPECT_EQ(message, 12);
             ++numberOfMessagesReceived;
         });
-    messageCenter.post("test.seq_test", 12);
+    messageCenter->post("test.seq_test", 12);
 
-    messageCenter.dispatch();
+    messageCenter->dispatch();
 
     EXPECT_EQ(numberOfMessagesReceived, 2);
 }
 
 TEST(message_sequencing, v_listener_gets_message_index)
 {
-    cMessageCenter messageCenter;
+    auto messageCenter = std::make_shared<cMessageCenter>();
     int numberOfMessagesReceived = 0;
-    auto listener = messageCenter.registerListener(
+    auto listener = messageCenter->registerListener(
         "test.seq_test",
         [&](cMessageIndex messageIndex)
         {
             ++numberOfMessagesReceived;
         });
-    auto normalListener = messageCenter.registerListener(
+    auto normalListener = messageCenter->registerListener(
         "test.seq_test",
         [&](int message)
         {
@@ -48,16 +48,16 @@ TEST(message_sequencing, v_listener_gets_message_index)
             ++numberOfMessagesReceived;
         });
 
-    messageCenter.post("test.seq_test", 12);
-    messageCenter.dispatch();
+    messageCenter->post("test.seq_test", 12);
+    messageCenter->dispatch();
     EXPECT_EQ(numberOfMessagesReceived, 2);
 }
 
 TEST(message_sequencing, posting_message_index)
 {
-    cMessageCenter messageCenter;
+    auto messageCenter = std::make_shared<cMessageCenter>();
     int numberOfMessagesReceived = 0;
-    auto listener = messageCenter.registerListener(
+    auto listener = messageCenter->registerListener(
         "test.seq_test",
         [&](cMessageIndex messageIndex, int message)
         {
@@ -65,24 +65,24 @@ TEST(message_sequencing, posting_message_index)
             EXPECT_EQ(message, 12);
             ++numberOfMessagesReceived;
         });
-    auto normalListener = messageCenter.registerListener(
+    auto normalListener = messageCenter->registerListener(
         "test.seq_test",
         [&](int message)
         {
             EXPECT_EQ(message, 12);
             ++numberOfMessagesReceived;
         });
-    messageCenter.post("test.seq_test", cMessageIndex(42), 12);
-    messageCenter.dispatch();
+    messageCenter->post("test.seq_test", cMessageIndex(42), 12);
+    messageCenter->dispatch();
     EXPECT_EQ(numberOfMessagesReceived, 2);
 }
 
 TEST(message_sequencing, sequence_starting_message_delivered)
 {
-    cMessageCenter messageCenter;
+    auto messageCenter = std::make_shared<cMessageCenter>();
 
     int numberOfMessagesReceived = 0;
-    auto listener = messageCenter.registerListener(
+    auto listener = messageCenter->registerListener(
         "test.test_seq",
         [&](int a) 
         { 
@@ -94,26 +94,26 @@ TEST(message_sequencing, sequence_starting_message_delivered)
             ++numberOfMessagesReceived;
         });
 
-    cMessageSequence sequence = messageCenter.sequence("test.test_seq", 12)
+    cMessageSequence sequence = messageCenter->sequence("test.test_seq", 12)
         .on("test.test_seq.reply_a", [](int a) { EXPECT_EQ(a, 34); })
         .on("test.test_seq.reply_b", [](const std::string& b) { EXPECT_STREQ(b.c_str(), "hello"); });
 
 
-    cMessageSequence sequence2 = messageCenter.sequence("test.test_seq", 56);
+    cMessageSequence sequence2 = messageCenter->sequence("test.test_seq", 56);
 
-    messageCenter.dispatch();
+    messageCenter->dispatch();
 
     EXPECT_EQ(numberOfMessagesReceived, 2);
 }
 
 TEST(message_sequencing, sequence_message_delivered)
 {
-    cMessageCenter messageCenter;
+    auto messageCenter = std::make_shared<cMessageCenter>();
     
     std::unordered_map<std::string, int> repliesReceived;
     int numberOfMessagesReceived = 0;
 
-    auto listener = messageCenter.registerListener(
+    auto listener = messageCenter->registerListener(
         "test.test_seq",
         [&](cMessageIndex idx, int a)
         {
@@ -122,18 +122,18 @@ TEST(message_sequencing, sequence_message_delivered)
                 auto expected = std::array{ 12, 56 }[numberOfMessagesReceived];
                 EXPECT_EQ(a, expected);
                 auto replyDestination = std::array{ "test.test_seq.reply_a", "test.test_seq.reply_c" }[numberOfMessagesReceived];
-                messageCenter.post(replyDestination, idx, std::array{ 34, 78 }[numberOfMessagesReceived]);
+                messageCenter->post(replyDestination, idx, std::array{ 34, 78 }[numberOfMessagesReceived]);
             }
             ++numberOfMessagesReceived;
         });
-    cMessageSequence sequence = messageCenter.sequence("test.test_seq", 12)
+    cMessageSequence sequence = messageCenter->sequence("test.test_seq", 12)
         .on("test.test_seq.reply_a", [&](int a) { EXPECT_EQ(a, 34); ++repliesReceived["reply_a"]; })
         .on("test.test_seq.reply_b", [&](const std::string& b) { EXPECT_STREQ(b.c_str(), "hello"); ++repliesReceived["reply_b"]; });
-    cMessageSequence sequence2 = messageCenter.sequence("test.test_seq", 56)
+    cMessageSequence sequence2 = messageCenter->sequence("test.test_seq", 56)
         .on("test.test_seq.reply_c", [&](int a) { EXPECT_EQ(a, 78); ++repliesReceived["reply_c"]; })
         .on("test.test_seq.reply_d", [&](const std::string& b) { EXPECT_STREQ(b.c_str(), "world"); ++repliesReceived["reply_d"]; });
 
-    messageCenter.dispatch();
+    messageCenter->dispatch();
 
     EXPECT_EQ(numberOfMessagesReceived, 2);
 
@@ -145,12 +145,12 @@ TEST(message_sequencing, sequence_message_delivered)
 
 TEST(message_sequencing, filtering_out_messages)
 {
-    cMessageCenter messageCenter;
+    auto messageCenter = std::make_shared<cMessageCenter>();
 
     std::unordered_map<std::string, int> repliesReceived;
     int numberOfMessagesReceived = 0;
 
-    auto listener = messageCenter.registerListener(
+    auto listener = messageCenter->registerListener(
         "test.test_seq",
         [&](cMessageIndex idx, int a)
         {
@@ -159,29 +159,29 @@ TEST(message_sequencing, filtering_out_messages)
                 auto expected = std::array{ 12, 56 }[numberOfMessagesReceived];
                 EXPECT_EQ(a, expected);
                 auto replyDestination = std::array{ "test.test_seq.reply_a", "test.test_seq.reply_c" }[numberOfMessagesReceived];
-                messageCenter.post(replyDestination, idx, std::array{ 34, 78 }[numberOfMessagesReceived]);
+                messageCenter->post(replyDestination, idx, std::array{ 34, 78 }[numberOfMessagesReceived]);
             }
             ++numberOfMessagesReceived;
         });
 
-    messageCenter.post("test.test_seq.reply_a", 23);  // must not get delivered
-    messageCenter.post("test.test_seq.reply_b", "alma"s);  // must not get delivered
-    messageCenter.post("test.test_seq.reply_c", 33); // must not get delivered
-    messageCenter.post("test.test_seq.reply_d", "alma"s);  // must not get delivered
+    messageCenter->post("test.test_seq.reply_a", 23);  // must not get delivered
+    messageCenter->post("test.test_seq.reply_b", "alma"s);  // must not get delivered
+    messageCenter->post("test.test_seq.reply_c", 33); // must not get delivered
+    messageCenter->post("test.test_seq.reply_d", "alma"s);  // must not get delivered
 
-    cMessageSequence sequence = messageCenter.sequence("test.test_seq", 12)
+    cMessageSequence sequence = messageCenter->sequence("test.test_seq", 12)
         .on("test.test_seq.reply_a", [&](int a) { EXPECT_EQ(a, 34); ++repliesReceived["reply_a"]; })
         .on("test.test_seq.reply_b", [&](const std::string& b) { EXPECT_STREQ(b.c_str(), "hello"); ++repliesReceived["reply_b"]; });
-    cMessageSequence sequence2 = messageCenter.sequence("test.test_seq", 56)
+    cMessageSequence sequence2 = messageCenter->sequence("test.test_seq", 56)
         .on("test.test_seq.reply_c", [&](int a) { EXPECT_EQ(a, 78); ++repliesReceived["reply_c"]; })
         .on("test.test_seq.reply_d", [&](const std::string& b) { EXPECT_STREQ(b.c_str(), "world"); ++repliesReceived["reply_d"]; });
 
-    messageCenter.post("test.test_seq.reply_a", 99);  // must not get delivered
-    messageCenter.post("test.test_seq.reply_b", "alma"s);  // must not get delivered
-    messageCenter.post("test.test_seq.reply_c", 100); // must not get delivered
-    messageCenter.post("test.test_seq.reply_d", "alma"s);  // must not get delivered
+    messageCenter->post("test.test_seq.reply_a", 99);  // must not get delivered
+    messageCenter->post("test.test_seq.reply_b", "alma"s);  // must not get delivered
+    messageCenter->post("test.test_seq.reply_c", 100); // must not get delivered
+    messageCenter->post("test.test_seq.reply_d", "alma"s);  // must not get delivered
 
-    messageCenter.dispatch();
+    messageCenter->dispatch();
 
     EXPECT_EQ(numberOfMessagesReceived, 2);
     EXPECT_EQ(repliesReceived["reply_a"], 1);
@@ -192,10 +192,10 @@ TEST(message_sequencing, filtering_out_messages)
 
 TEST(message_sequencing, abandoning_sequence)
 {
-    cMessageCenter messageCenter;
+    auto messageCenter = std::make_shared<cMessageCenter>();
     std::unordered_map<std::string, int> repliesReceived;
     int numberOfMessagesReceived = 0;
-    auto listener = messageCenter.registerListener(
+    auto listener = messageCenter->registerListener(
         "test.test_seq",
         [&](cMessageIndex idx, int a)
         {
@@ -204,19 +204,19 @@ TEST(message_sequencing, abandoning_sequence)
                 auto expected = std::array{ 12, 56 }[numberOfMessagesReceived];
                 EXPECT_EQ(a, expected);
                 auto replyDestination = std::array{ "test.test_seq.reply_a", "test.test_seq.reply_c" }[numberOfMessagesReceived];
-                messageCenter.post(replyDestination, idx, std::array{ 34, 78 }[numberOfMessagesReceived]);
+                messageCenter->post(replyDestination, idx, std::array{ 34, 78 }[numberOfMessagesReceived]);
             }
             ++numberOfMessagesReceived;
         });
     {
-        cMessageSequence sequence = messageCenter.sequence("test.test_seq", 12)
+        cMessageSequence sequence = messageCenter->sequence("test.test_seq", 12)
             .on("test.test_seq.reply_a", [&](int a) { EXPECT_EQ(a, 34); ++repliesReceived["reply_a"]; })
             .on("test.test_seq.reply_b", [&](const std::string& b) { EXPECT_STREQ(b.c_str(), "hello"); ++repliesReceived["reply_b"]; });
-        cMessageSequence sequence2 = messageCenter.sequence("test.test_seq", 56)
+        cMessageSequence sequence2 = messageCenter->sequence("test.test_seq", 56)
             .on("test.test_seq.reply_c", [&](int a) { EXPECT_EQ(a, 78); ++repliesReceived["reply_c"]; })
             .on("test.test_seq.reply_d", [&](const std::string& b) { EXPECT_STREQ(b.c_str(), "world"); ++repliesReceived["reply_d"]; });
     } // sequences go out of scope here
-    messageCenter.dispatch();
+    messageCenter->dispatch();
     EXPECT_EQ(numberOfMessagesReceived, 2);
     EXPECT_EQ(repliesReceived["reply_a"], 0);
     EXPECT_EQ(repliesReceived["reply_b"], 0);
@@ -227,10 +227,10 @@ TEST(message_sequencing, abandoning_sequence)
 
 TEST(message_system, single_listen_post_receive)
 {
-    cMessageCenter messageCenter;
+    auto messageCenter = std::make_shared<cMessageCenter>();
 
     int numberOfMessagesReceived = 0;
-    auto listenerID = messageCenter.registerListener(
+    auto listenerID = messageCenter->registerListener(
         "test.a.b.c", 
         [&](const std::string& message) 
         {
@@ -238,19 +238,19 @@ TEST(message_system, single_listen_post_receive)
             ++numberOfMessagesReceived;
         });
 
-    messageCenter.post("test.a.b.c", "hello world"s);
+    messageCenter->post("test.a.b.c", "hello world"s);
 
-    messageCenter.dispatch();
+    messageCenter->dispatch();
 
     EXPECT_EQ(numberOfMessagesReceived, 1);
 }
 
 TEST(message_system, multi_param_all_listening)
 {
-    cMessageCenter messageCenter;
+    auto messageCenter = std::make_shared<cMessageCenter>();
 
     int numberOfMessagesReceived = 0;
-    auto listenerID = messageCenter.registerListener(
+    auto listenerID = messageCenter->registerListener(
         "test.a.b.c",
         [&](int a, const std::string& b, int c)
         {
@@ -260,9 +260,9 @@ TEST(message_system, multi_param_all_listening)
             ++numberOfMessagesReceived;
         });
 
-    messageCenter.post("test.a.b.c", 1, "alma"s, 3);
+    messageCenter->post("test.a.b.c", 1, "alma"s, 3);
 
-    messageCenter.dispatch();
+    messageCenter->dispatch();
 
     EXPECT_EQ(numberOfMessagesReceived, 1);
 }
@@ -271,10 +271,10 @@ TEST(message_system, multi_param_all_listening)
 
 //TEST(message_system, multi_param_partial_listening)
 //{
-//    cMessageCenter messageCenter;
+//    auto messageCenter = std::make_shared<cMessageCenter>();
 //
 //    int numberOfMessagesReceived = 0;
-//    auto listenerID = messageCenter.registerListener(
+//    auto listenerID = messageCenter->registerListener(
 //        "test.a.b.c",
 //        [&](int a, const std::string& b)
 //        {
@@ -283,9 +283,9 @@ TEST(message_system, multi_param_all_listening)
 //            ++numberOfMessagesReceived;
 //        });
 //
-//    messageCenter.post("test.a.b.c", 1, "alma"s, 3);
+//    messageCenter->post("test.a.b.c", 1, "alma"s, 3);
 //
-//    messageCenter.dispatch();
+//    messageCenter->dispatch();
 //
 //    EXPECT_EQ(numberOfMessagesReceived, 1);
 //
@@ -293,34 +293,34 @@ TEST(message_system, multi_param_all_listening)
 
 TEST(message_system, wrong_post_type)
 {
-    cMessageCenter messageCenter;
-    auto listenerID = messageCenter.registerListener(
+    auto messageCenter = std::make_shared<cMessageCenter>();
+    auto listenerID = messageCenter->registerListener(
         "test.a.b.c",
         [&](const std::string& message)
         {
         });
-    ASSERT_THROW(messageCenter.post("test.a.b.c", 42), std::runtime_error);
+    ASSERT_THROW(messageCenter->post("test.a.b.c", 42), std::runtime_error);
 
-    messageCenter.post("test", "hello world"s);
-    ASSERT_THROW(messageCenter.post("test", 33), std::runtime_error);
+    messageCenter->post("test", "hello world"s);
+    ASSERT_THROW(messageCenter->post("test", 33), std::runtime_error);
 }
 
 TEST(message_system, wrong_listen_type)
 {
-    cMessageCenter messageCenter;
-    messageCenter.post("test.a.b.c", "hello world"s);
-    ASSERT_THROW(auto listenerID = messageCenter.registerListener(
+    auto messageCenter = std::make_shared<cMessageCenter>();
+    messageCenter->post("test.a.b.c", "hello world"s);
+    ASSERT_THROW(auto listenerID = messageCenter->registerListener(
         "test.a.b.c",
         [&](int message)
         {
         }), std::runtime_error);
 
-    auto listenerID = messageCenter.registerListener(
+    auto listenerID = messageCenter->registerListener(
         "test",
         [&](const std::string& message)
         {
         });
-    ASSERT_THROW(auto listenerID = messageCenter.registerListener(
+    ASSERT_THROW(auto listenerID = messageCenter->registerListener(
         "test",
         [&](int message)
         {
@@ -329,33 +329,33 @@ TEST(message_system, wrong_listen_type)
 
 TEST(message_system, post_before_listener_added_is_not_delivered)
 {
-    cMessageCenter messageCenter;
-    messageCenter.post("test.a.b.c", 1);
+    auto messageCenter = std::make_shared<cMessageCenter>();
+    messageCenter->post("test.a.b.c", 1);
     int numberOfMessagesReceived = 0;
-    auto listenerID = messageCenter.registerListener(
+    auto listenerID = messageCenter->registerListener(
         "test.a.b.c",
         [&](int message)
         {
             EXPECT_EQ(message, 2);
             ++numberOfMessagesReceived;
         });
-    messageCenter.post("test.a.b.c", 2);
+    messageCenter->post("test.a.b.c", 2);
 
-    messageCenter.dispatch();
+    messageCenter->dispatch();
 
     EXPECT_EQ(numberOfMessagesReceived, 1);
 }
 
 TEST(message_system, registering_from_listeners_gets_later_messages_delivered)
 {
-    cMessageCenter messageCenter;
+    auto messageCenter = std::make_shared<cMessageCenter>();
 
     cRegisteredID secondListenerID;
-    auto firstListenerID = messageCenter.registerListener(
+    auto firstListenerID = messageCenter->registerListener(
         "test.a.b.c",
         [&](int message)
         {
-            secondListenerID = messageCenter.registerListener(
+            secondListenerID = messageCenter->registerListener(
                 "test.d.e.f",
                 [&](int message)
                 {
@@ -363,81 +363,81 @@ TEST(message_system, registering_from_listeners_gets_later_messages_delivered)
                 });
         });
 
-    messageCenter.post("test.d.e.f", 1);  // must not get delivered
-    messageCenter.post("test.a.b.c", 2);  // delivered, listener registers another listener
-    messageCenter.post("test.d.e.f", 3);  // must get delivered
+    messageCenter->post("test.d.e.f", 1);  // must not get delivered
+    messageCenter->post("test.a.b.c", 2);  // delivered, listener registers another listener
+    messageCenter->post("test.d.e.f", 3);  // must get delivered
 
-    messageCenter.dispatch();
+    messageCenter->dispatch();
 }
 
 TEST(message_system, listening_with_void)
 {
-    cMessageCenter messageCenter;
+    auto messageCenter = std::make_shared<cMessageCenter>();
     int numberOfMessagesReceived = 0;
-    auto listenerID = messageCenter.registerListener(
+    auto listenerID = messageCenter->registerListener(
         "test",
         [&]()
         {
             ++numberOfMessagesReceived;
         });
-    messageCenter.post("test", 1);
-    messageCenter.post("test", 2);
-    messageCenter.post("test", 3);
+    messageCenter->post("test", 1);
+    messageCenter->post("test", 2);
+    messageCenter->post("test", 3);
 
-    messageCenter.dispatch();
+    messageCenter->dispatch();
 
     EXPECT_EQ(numberOfMessagesReceived, 3);
 }
 
 TEST(message_system, void_end_points)
 {
-    cMessageCenter messageCenter;
+    auto messageCenter = std::make_shared<cMessageCenter>();
     int numberOfMessagesReceived = 0;
-    auto listenerID = messageCenter.registerListener(
+    auto listenerID = messageCenter->registerListener(
         "test",
         [&]()
         {
             ++numberOfMessagesReceived;
         });
-    messageCenter.post("test");
-    messageCenter.post("test");
-    messageCenter.post("test");
+    messageCenter->post("test");
+    messageCenter->post("test");
+    messageCenter->post("test");
 
-    messageCenter.dispatch();
+    messageCenter->dispatch();
 
     EXPECT_EQ(numberOfMessagesReceived, 3);
 }
 
 TEST(message_system, order_kept_with_different_endpoints)
 {
-    cMessageCenter messageCenter;
+    auto messageCenter = std::make_shared<cMessageCenter>();
     std::vector<int> messagesReceived;
-    auto listenerID1 = messageCenter.registerListener(
+    auto listenerID1 = messageCenter->registerListener(
         "test1",
         [&](int message)
         {
             messagesReceived.push_back(message);
         });
-    auto listenerID2 = messageCenter.registerListener(
+    auto listenerID2 = messageCenter->registerListener(
         "test2",
         [&](int message)
         {
             messagesReceived.push_back(message);
         });
-    auto listenerID3 = messageCenter.registerListener(
+    auto listenerID3 = messageCenter->registerListener(
         "test3",
         [&](int message)
         {
             messagesReceived.push_back(message);
         });
-    messageCenter.post("test3", 1);
-    messageCenter.post("test1", 2);
-    messageCenter.post("test2", 3);
-    messageCenter.post("test3", 4);
-    messageCenter.post("test1", 5);
-    messageCenter.post("test2", 6);
+    messageCenter->post("test3", 1);
+    messageCenter->post("test1", 2);
+    messageCenter->post("test2", 3);
+    messageCenter->post("test3", 4);
+    messageCenter->post("test1", 5);
+    messageCenter->post("test2", 6);
 
-    messageCenter.dispatch();
+    messageCenter->dispatch();
 
     ASSERT_EQ(messagesReceived.size(), 6);
     for(int i=1;i<=6;++i)
@@ -449,9 +449,9 @@ TEST(message_system, order_kept_with_different_endpoints)
 
 TEST(message_system, unregister)
 {
-    cMessageCenter messageCenter;
+    auto messageCenter = std::make_shared<cMessageCenter>();
     int numberOfMessagesReceived = 0;
-    auto listenerID = messageCenter.registerListener(
+    auto listenerID = messageCenter->registerListener(
         "test",
         [&](int message)
         {
@@ -459,31 +459,31 @@ TEST(message_system, unregister)
         });
     for(int i=1;i<=3;++i)
     {
-        messageCenter.post("test", i);
+        messageCenter->post("test", i);
     }
 
-    messageCenter.dispatch();
+    messageCenter->dispatch();
 
     EXPECT_EQ(numberOfMessagesReceived, 3);
 
     listenerID.Unregister();
 
-    messageCenter.post("test", 4);
-    messageCenter.post("test", 5);
-    messageCenter.post("test", 6);
+    messageCenter->post("test", 4);
+    messageCenter->post("test", 5);
+    messageCenter->post("test", 6);
 
-    messageCenter.dispatch();
+    messageCenter->dispatch();
 
     EXPECT_EQ(numberOfMessagesReceived, 3); // meaning no new messages were received
 }
 
 TEST(message_system, unregister_in_handler)
 {
-    cMessageCenter messageCenter;
+    auto messageCenter = std::make_shared<cMessageCenter>();
     int numberOfMessagesReceived = 0;
     cRegisteredID listenerID;
     std::vector<int> messagesReceived;
-    listenerID = messageCenter.registerListener(
+    listenerID = messageCenter->registerListener(
         "test",
         [&](int message)
         {
@@ -496,10 +496,10 @@ TEST(message_system, unregister_in_handler)
         });
     for (int i = 1; i <= 6; ++i)
     {
-        messageCenter.post("test", i);
+        messageCenter->post("test", i);
     }
 
-    messageCenter.dispatch();
+    messageCenter->dispatch();
 
     ASSERT_EQ(numberOfMessagesReceived, 3);
     for(int i=1;i<=3;++i)
@@ -510,12 +510,12 @@ TEST(message_system, unregister_in_handler)
 
 TEST(message_system, unregister_in_handler_many_listeners)
 {
-    cMessageCenter messageCenter;
+    auto messageCenter = std::make_shared<cMessageCenter>();
     std::vector<cRegisteredID> listenerIDs;
     std::array<std::vector<int>,10> messagesReceived;
     for (int i = 0; i < 10; ++i)
     {
-        listenerIDs.push_back(messageCenter.registerListener(
+        listenerIDs.push_back(messageCenter->registerListener(
             "test",
             [i, numberOfMessagesReceived = 0, &listenerIDs, &messagesReceived](int message) mutable
             {
@@ -529,10 +529,10 @@ TEST(message_system, unregister_in_handler_many_listeners)
     }
     for (int i = 1; i <= 20; ++i)
     {
-        messageCenter.post("test", i);
+        messageCenter->post("test", i);
     }
 
-    messageCenter.dispatch();
+    messageCenter->dispatch();
     for (int i = 0; i < 10; ++i)
     {
         EXPECT_EQ(messagesReceived[i].size(), (i + 5) % 10 + 1) << "i=" << i;
@@ -545,7 +545,7 @@ TEST(message_system, unregister_in_handler_many_listeners)
 
 TEST(message_system, not_leaking_messages)
 {
-    cMessageCenter messageCenter;
+    auto messageCenter = std::make_shared<cMessageCenter>();
     int numberOfAliveMessages = 0;
     int numberOfMessagesReceived = 0;
     struct cTestMessage
@@ -555,7 +555,7 @@ TEST(message_system, not_leaking_messages)
         ~cTestMessage() { --mMessageCount; }
         cTestMessage(const cTestMessage& src): mMessageCount(src.mMessageCount) { ++mMessageCount; }
     };
-    auto listenerID = messageCenter.registerListener(
+    auto listenerID = messageCenter->registerListener(
         "test",
         [&](const cTestMessage&)
         {
@@ -565,9 +565,9 @@ TEST(message_system, not_leaking_messages)
     {
         for (int j = 0; j < 10; ++j)
         {
-            messageCenter.post("test", cTestMessage(numberOfAliveMessages));
+            messageCenter->post("test", cTestMessage(numberOfAliveMessages));
         }
-        messageCenter.dispatch();
+        messageCenter->dispatch();
     }
     EXPECT_EQ(numberOfAliveMessages, 0);
     EXPECT_EQ(numberOfMessagesReceived, 50);
@@ -575,21 +575,21 @@ TEST(message_system, not_leaking_messages)
 
 TEST(message_system, message_sent_from_listener)
 {
-    cMessageCenter messageCenter;
+    auto messageCenter = std::make_shared<cMessageCenter>();
     int numberOfMessagesReceived = 0;
-    auto listenerID = messageCenter.registerListener(
+    auto listenerID = messageCenter->registerListener(
         "test",
         [&](int message)
         {
             ++numberOfMessagesReceived;
             if (numberOfMessagesReceived < 10)
             {
-                messageCenter.post("test", message + 1);
+                messageCenter->post("test", message + 1);
             }
         });
-    messageCenter.post("test", 1);
+    messageCenter->post("test", 1);
 
-    messageCenter.dispatch();
+    messageCenter->dispatch();
 
     EXPECT_EQ(numberOfMessagesReceived, 10);
 }
@@ -598,6 +598,6 @@ TEST(message_system, message_sent_from_listener)
 
 
 
-//mCompileSequence = theMessageCenter.sequence("ready.compile", source).
+//mCompileSequence = themessageCenter->sequence("ready.compile", source).
 //response("ready.compile.failed", [](auto& errors) { handleCompileErrors(errors); }).
 //response("ready.compile.success", [](auto& program) { handleCompileSuccess(program); });
