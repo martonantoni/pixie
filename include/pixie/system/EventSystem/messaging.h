@@ -9,6 +9,8 @@ public:
     constexpr cMessageIndex& operator++() { ++mIndex; return *this; }
     constexpr auto operator<=>(const cMessageIndex&) const = default;
     constexpr cMessageIndex operator+(int delta) const { return cMessageIndex(mIndex + delta); }
+    static constexpr cMessageIndex invalid() { return cMessageIndex(-1); }
+    constexpr bool operator!() const { return mIndex == -1; }
 };
 
 template<> struct std::formatter<cMessageIndex> : std::formatter<int> 
@@ -17,6 +19,12 @@ template<> struct std::formatter<cMessageIndex> : std::formatter<int>
     {
         return std::formatter<int>::format(static_cast<int>(idx), ctx);
     }
+};
+
+struct cMessageSequencingID
+{
+    cMessageIndex mInResponseTo = -1;
+    cMessageIndex mThisMessage = -1;
 };
 
 class cMessageCenter;
