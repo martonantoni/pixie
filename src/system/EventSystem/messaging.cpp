@@ -27,25 +27,25 @@ cMessageSequence& cMessageSequence::operator=(cMessageSequence&& src)
 }
 
 
-bool cMessageSequence::cListenerWrapper::canDispatch(cMessageIndex messageIndex) const 
+bool cMessageSequence::cListenerWrapper::canDispatch(cMessageSequencingID sequencingID) const
 { 
-    return messageIndex == mFilter;
+    return sequencingID.mInResponseTo == mFilter;
 }
 
-void cMessageCenter::tDispatcher<void>::dispatch(const std::any& messageData, cMessageIndex messageIndex)
+void cMessageCenter::tDispatcher<void>::dispatch(const std::any& messageData, cMessageSequencingID sequencingID)
 {
-    mListeners.ForEach([messageIndex](auto& listener)
+    mListeners.ForEach([sequencingID](auto& listener)
         {
-            if (messageIndex == mDirectMessageIndex || messageIndex > listener.mEventFilter)
+            if (sequencingID.mThisMessage == mDirectMessageIndex || sequencingID.mThisMessage > listener.mEventFilter)
             {
-                listener.mEventFilter = messageIndex;
+                listener.mEventFilter = sequencingID.mThisMessage;
                 switch (listener.mFunction.index())
                 {
                 case 1:
                     std::get<1>(listener.mFunction)();
                     break;
                 case 2:
-                    std::get<2>(listener.mFunction)(messageIndex);
+                    std::get<2>(listener.mFunction)(sequencingID);
                     break;
                 }
             }
@@ -61,7 +61,12 @@ void cMessageCenter::dispatch()
             break;
         for (auto& event : mEventsReading)
         {
-            event.mDispatcher->dispatch(event.mMessageData, mDispatchedMessageIndex);
+            event.mDispatcher->dispatch(event.mMessageData, 
+                cMessageSequencingID
+                { 
+                    .mInResponseTo = event.mInResponseTo,
+                    .mThisMessage = mDispatchedMessageIndex
+                });
             ++mDispatchedMessageIndex;
         }
         mEventsReading.clear();
@@ -115,7 +120,12 @@ void cMessageCenter::send(const std::string& endpointID)
         else
             endPoint->mMessageType.emplace(typeid(void));
     }
-    endPoint->dispatch(std::monostate(), mDirectMessageIndex);
+    endPoint->dispatch(std::monostate(), 
+        cMessageSequencingID
+        {
+            .mInResponseTo = cMessageIndex::invalid(),
+            .mThisMessage = mDirectMessageIndex
+        });
 }
  
 void cMessageCenter::setNeedDispatchProcessor(std::function<void()> needDispatchProcessor)
@@ -123,10 +133,10 @@ void cMessageCenter::setNeedDispatchProcessor(std::function<void()> needDispatch
     mNeedDispatchProcessor = needDispatchProcessor;
 }
 
-void cMessageCenter::cEndPoint::dispatch(const std::any& messageData, cMessageIndex messageIndex)
+void cMessageCenter::cEndPoint::dispatch(const std::any& messageData, cMessageSequencingID sequencingID)
 {
     if (mDispatcher)
-        mDispatcher->dispatch(messageData, messageIndex);
+        mDispatcher->dispatch(messageData, sequencingID);
     if (mVoidDispatcher)
-        mVoidDispatcher->dispatch(messageData, messageIndex);
+        mVoidDispatcher->dispatch(messageData, sequencingID);
 }

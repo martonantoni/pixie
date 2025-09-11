@@ -38,7 +38,7 @@ class cMessageSequence
     {
         cMessageIndex mFilter = -1;
     protected:
-        bool canDispatch(cMessageIndex messageIndex) const;
+        bool canDispatch(cMessageSequencingID sequencingID) const;
     public:
         cListenerWrapper(cMessageIndex filter) : mFilter(filter) {}
         virtual ~cListenerWrapper() = default;
@@ -64,14 +64,14 @@ class cMessageCenter final : public std::enable_shared_from_this<cMessageCenter>
     public:
         cDispatcher() = default;
         virtual ~cDispatcher() = default;
-        virtual void dispatch(const std::any& messageData, cMessageIndex messageIndex) = 0;
+        virtual void dispatch(const std::any& messageData, cMessageSequencingID sequencingID) = 0;
     };
     template<class T> struct tDispatcher : public cDispatcher
     {
         tDispatcher() = default;
 
         using cFunction = tTupleTakerFunction<T>;
-        using cMessageIndexedT = tTuplePrepend<T, cMessageIndex>;
+        using cMessageIndexedT = tTuplePrepend<T, cMessageSequencingID>;
         using cMessageIndexTakerFunction = tTupleTakerFunction<cMessageIndexedT>;
 
         struct cListener
@@ -80,21 +80,21 @@ class cMessageCenter final : public std::enable_shared_from_this<cMessageCenter>
             cMessageIndex mEventFilter = -1;
             cListener(cCallable auto callable, cMessageIndex eventFilter);
         };
-        virtual void dispatch(const std::any& messageData, cMessageIndex messageIndex) override;
+        virtual void dispatch(const std::any& messageData, cMessageSequencingID sequencingID) override;
         tRegisteredObjects<cListener> mListeners;
     };
     template<> struct tDispatcher<void> : public cDispatcher             // void dispatcher
     {
         tDispatcher() = default;
         using cFunction = std::function<void()>;
-        using cMessageIndexTakerFunction = std::function<void(cMessageIndex)>;
+        using cMessageIndexTakerFunction = std::function<void(cMessageSequencingID)>;
         struct cListener
         {
             std::variant<std::monostate, cFunction, cMessageIndexTakerFunction> mFunction;
             cMessageIndex mEventFilter = -1;
             cListener(cCallable auto callable, cMessageIndex eventFilter);
         };
-        virtual void dispatch(const std::any& messageData, cMessageIndex messageIndex) override;
+        virtual void dispatch(const std::any& messageData, cMessageSequencingID sequencingID) override;
         tRegisteredObjects<cListener> mListeners;
     };
     using cVoidDispatcher = tDispatcher<void>;
@@ -103,7 +103,7 @@ class cMessageCenter final : public std::enable_shared_from_this<cMessageCenter>
         std::optional<std::type_index> mMessageType;
         std::unique_ptr<cDispatcher> mDispatcher;
         std::unique_ptr<cVoidDispatcher> mVoidDispatcher;
-        void dispatch(const std::any& messageData, cMessageIndex messageIndex);
+        void dispatch(const std::any& messageData, cMessageSequencingID sequencingID);
     };
     using cDispatchers = std::unordered_map<std::string, std::unique_ptr<cEndPoint>>;
     cDispatchers mEndPoints;
@@ -111,6 +111,7 @@ class cMessageCenter final : public std::enable_shared_from_this<cMessageCenter>
     {
         std::any mMessageData;
         cEndPoint* mDispatcher;
+        cMessageIndex mInResponseTo = cMessageIndex::invalid();
     };
     std::vector<cEvent> mEventsWriting;
     std::vector<cEvent> mEventsReading;
@@ -153,6 +154,10 @@ class cMessageCenter final : public std::enable_shared_from_this<cMessageCenter>
 public:
     template<class... Ts> cMessageIndex post(const std::string& endpointID, Ts&&... messageData);
     cMessageIndex post(const std::string& endpointID);
+
+    template<class... Ts> cMessageIndex respond(cMessageIndex inResponseTo, const std::string& endpointID, Ts&&... messageData);
+    cMessageIndex respond(cMessageIndex inResponseTo, const std::string& endpointID);
+
     template<class... Ts> void send(const std::string& endpointID, Ts&&... messageData);
     void send(const std::string& endpointID);
 
@@ -177,9 +182,9 @@ public:
     tListenerWrapper(cMessageIndex filter, const std::function<void(Args...)>& listener)
         : cListenerWrapper(filter), mListener(listener) {
     }
-    void operator()(cMessageIndex messageIndex, Args... args)
+    void operator()(cMessageSequencingID sequencingID, Args... args)
     {
-        if (canDispatch(messageIndex))
+        if (canDispatch(sequencingID))
             mListener(std::forward<Args>(args)...);
     }
 };
@@ -212,32 +217,34 @@ inline cMessageCenter::tDispatcher<void>::cListener::cListener(cCallable auto ca
 }
 
 template<class T>
-void cMessageCenter::tDispatcher<T>::dispatch(const std::any& messageData, cMessageIndex messageIndex)
+void cMessageCenter::tDispatcher<T>::dispatch(const std::any& messageData, cMessageSequencingID sequencingID)
 {
     const T* messageDataT = std::any_cast<const T>(&messageData);
-    const cMessageIndexedT* messageDataIndexedT = std::any_cast<const cMessageIndexedT>(&messageData);
+//    const cMessageIndexedT* messageDataIndexedT = std::any_cast<const cMessageIndexedT>(&messageData);
 
-    mListeners.ForEach([messageIndex, messageDataT, messageDataIndexedT](auto& listener)
+    mListeners.ForEach([sequencingID, messageDataT](auto& listener)
         {
-            if (messageIndex == mDirectMessageIndex || messageIndex > listener.mEventFilter)
+            if (sequencingID.mThisMessage == mDirectMessageIndex || sequencingID.mThisMessage > listener.mEventFilter)
             {
-                if(messageIndex != mDirectMessageIndex)
-                    listener.mEventFilter = messageIndex;
+                if(sequencingID.mThisMessage != mDirectMessageIndex)
+                    listener.mEventFilter = sequencingID.mThisMessage;
                 switch (listener.mFunction.index())
                 {
                 case 1:
-                    if(messageDataT)
+//                    if(messageDataT)
                         std::apply(std::get<1>(listener.mFunction), *messageDataT);
-                    else
-                        applyTail<std::tuple_size_v<T>>(std::get<1>(listener.mFunction), *messageDataIndexedT);
+                    //else
+                    //    applyTail<std::tuple_size_v<T>>(std::get<1>(listener.mFunction), *messageDataIndexedT);
                     break;
                 case 2:
-                    if (messageDataT)
-                        std::apply(std::get<2>(listener.mFunction),
-                            std::tuple_cat(std::forward_as_tuple(messageIndex), *messageDataT));
-                    else
-                        std::apply(std::get<2>(listener.mFunction), *messageDataIndexedT);
+                {
+                    //if (messageDataT)
+                    std::apply(std::get<2>(listener.mFunction),
+                        std::tuple_cat(std::forward_as_tuple(sequencingID), *messageDataT));
+                    //else
+                    //    std::apply(std::get<2>(listener.mFunction), *messageDataIndexedT);
                     break;
+                }
                 };
             }
         });
@@ -246,12 +253,12 @@ void cMessageCenter::tDispatcher<T>::dispatch(const std::any& messageData, cMess
 template<class... Ts> 
 cMessageIndex cMessageCenter::post(const std::string& endpointID, Ts&&... messageData)
 {
-    using AllT = std::tuple<std::decay_t<Ts>...>;
-    using T = std::conditional_t<
-        std::tuple_size_v<AllT> >= 1 &&        
-        std::is_same_v<tSafeTupleElementT<0, AllT>, cMessageIndex>,
-        tTuplePostfix<AllT, std::tuple_size_v<AllT> -1>,
-        AllT>;
+    using T = std::tuple<std::decay_t<Ts>...>;
+    //using T = std::conditional_t<
+    //    std::tuple_size_v<AllT> >= 1 &&        
+    //    std::is_same_v<tSafeTupleElementT<0, AllT>, cMessageIndex>,
+    //    tTuplePostfix<AllT, std::tuple_size_v<AllT> -1>,
+    //    AllT>;
     auto& endPoint = mEndPoints[endpointID];
     if (!endPoint)
     {
@@ -295,12 +302,12 @@ template<class... Ts> auto cMessageCenter::sequence(const std::string& endpoint,
 
 template<class... Ts> void cMessageCenter::send(const std::string& endpointID, Ts&&... messageData)
 {
-    using AllT = std::tuple<std::decay_t<Ts>...>;
-    using T = std::conditional_t<
-        std::tuple_size_v<AllT> >= 1 &&
-        std::is_same_v<tSafeTupleElement<0, AllT>, cMessageIndex>,
-        tTuplePostfix<AllT, std::tuple_size_v<AllT> -1>,
-        AllT>;
+    using T = std::tuple<std::decay_t<Ts>...>;
+    //using T = std::conditional_t<
+    //    std::tuple_size_v<AllT> >= 1 &&
+    //    std::is_same_v<tSafeTupleElement<0, AllT>, cMessageIndex>,
+    //    tTuplePostfix<AllT, std::tuple_size_v<AllT> -1>,
+    //    AllT>;
     auto& endPoint = mEndPoints[endpointID];
     if (!endPoint)
     {
@@ -330,7 +337,7 @@ cRegisteredID cMessageCenter::registerListener(const std::string& endpointID, cC
     int numberOfArgs = Signature::numberOfArguments;
     using T = std::conditional_t<
         Signature::numberOfArguments >= 1 &&         
-        std::is_same_v<tSafeTupleElementT<0, typename Signature::DecayedArguments>, cMessageIndex>,
+        std::is_same_v<tSafeTupleElementT<0, typename Signature::DecayedArguments>, cMessageSequencingID>,
         tTuplePostfix<typename Signature::DecayedArguments, Signature::numberOfArguments - 1>,
         typename Signature::DecayedArguments>;
 
