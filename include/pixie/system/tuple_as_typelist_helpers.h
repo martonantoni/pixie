@@ -30,7 +30,8 @@
 //
 // applyHead(callable, tuple, N) - calls callable with the first N elements of tuple as arguments
 //
-
+//
+//  isInTuple<Tuple, T> - true if T is in Tuple, false otherwise
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -149,3 +150,21 @@ template <typename C, typename... Args>
 struct is_invocable_with_tuple<C, std::tuple<Args...>>
     : std::is_invocable<C, Args...> {
 };
+
+
+//             isInTuple
+
+template<typename Tuple, typename T>
+struct isInTupleHelper {
+private:
+    template<std::size_t... Is>
+    static constexpr bool check(std::index_sequence<Is...>) {
+        return (std::is_same_v<std::tuple_element_t<Is, Tuple>, T> || ...);
+    }
+
+public:
+    static constexpr bool value = check(std::make_index_sequence<std::tuple_size_v<Tuple>>{});
+};
+
+template<typename Tuple, typename T>
+inline constexpr bool isInTuple = isInTupleHelper<Tuple, T>::value;

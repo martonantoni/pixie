@@ -4,225 +4,201 @@
 namespace MessageSystemTests
 {
 
-//TEST(message_sequencing, nv_listener_gets_message_index)
-//{
-//    auto messageCenter = std::make_shared<cMessageCenter>();
-//
-//    int numberOfMessagesReceived = 0;
-//    auto listener = messageCenter->registerListener(
-//        "test.seq_test",
-//        [&](cMessageIndex messageIndex, int message)
-//        {
-//            EXPECT_EQ(message, 12);
-//            ++numberOfMessagesReceived;
-//        });
-//    auto normalListener = messageCenter->registerListener(
-//        "test.seq_test",
-//        [&](int message)
-//        {
-//            EXPECT_EQ(message, 12);
-//            ++numberOfMessagesReceived;
-//        });
-//    messageCenter->post("test.seq_test", 12);
-//
-//    messageCenter->dispatch();
-//
-//    EXPECT_EQ(numberOfMessagesReceived, 2);
-//}
-//
-//TEST(message_sequencing, v_listener_gets_message_index)
-//{
-//    auto messageCenter = std::make_shared<cMessageCenter>();
-//    int numberOfMessagesReceived = 0;
-//    auto listener = messageCenter->registerListener(
-//        "test.seq_test",
-//        [&](cMessageIndex messageIndex)
-//        {
-//            ++numberOfMessagesReceived;
-//        });
-//    auto normalListener = messageCenter->registerListener(
-//        "test.seq_test",
-//        [&](int message)
-//        {
-//            EXPECT_EQ(message, 12);
-//            ++numberOfMessagesReceived;
-//        });
-//
-//    messageCenter->post("test.seq_test", 12);
-//    messageCenter->dispatch();
-//    EXPECT_EQ(numberOfMessagesReceived, 2);
-//}
-//
-//TEST(message_sequencing, posting_message_index)
-//{
-//    auto messageCenter = std::make_shared<cMessageCenter>();
-//    int numberOfMessagesReceived = 0;
-//    auto listener = messageCenter->registerListener(
-//        "test.seq_test",
-//        [&](cMessageIndex messageIndex, int message)
-//        {
-//            EXPECT_EQ(messageIndex, 42);
-//            EXPECT_EQ(message, 12);
-//            ++numberOfMessagesReceived;
-//        });
-//    auto normalListener = messageCenter->registerListener(
-//        "test.seq_test",
-//        [&](int message)
-//        {
-//            EXPECT_EQ(message, 12);
-//            ++numberOfMessagesReceived;
-//        });
-//    messageCenter->post("test.seq_test", cMessageIndex(42), 12);
-//    messageCenter->dispatch();
-//    EXPECT_EQ(numberOfMessagesReceived, 2);
-//}
-//
-//TEST(message_sequencing, sequence_starting_message_delivered)
-//{
-//    auto messageCenter = std::make_shared<cMessageCenter>();
-//
-//    int numberOfMessagesReceived = 0;
-//    auto listener = messageCenter->registerListener(
-//        "test.test_seq",
-//        [&](int a) 
-//        { 
-//            if (numberOfMessagesReceived < 2)
-//            {
-//                auto expected = std::array{ 12, 56 }[numberOfMessagesReceived];
-//                EXPECT_EQ(a, expected);
-//            }
-//            ++numberOfMessagesReceived;
-//        });
-//
-//    cMessageSequence sequence = messageCenter->sequence("test.test_seq", 12)
-//        .on("test.test_seq.reply_a", [](int a) { EXPECT_EQ(a, 34); })
-//        .on("test.test_seq.reply_b", [](const std::string& b) { EXPECT_STREQ(b.c_str(), "hello"); });
-//
-//
-//    cMessageSequence sequence2 = messageCenter->sequence("test.test_seq", 56);
-//
-//    messageCenter->dispatch();
-//
-//    EXPECT_EQ(numberOfMessagesReceived, 2);
-//}
-//
-//TEST(message_sequencing, sequence_message_delivered)
-//{
-//    auto messageCenter = std::make_shared<cMessageCenter>();
-//    
-//    std::unordered_map<std::string, int> repliesReceived;
-//    int numberOfMessagesReceived = 0;
-//
-//    auto listener = messageCenter->registerListener(
-//        "test.test_seq",
-//        [&](cMessageIndex idx, int a)
-//        {
-//            if (numberOfMessagesReceived < 2)
-//            {
-//                auto expected = std::array{ 12, 56 }[numberOfMessagesReceived];
-//                EXPECT_EQ(a, expected);
-//                auto replyDestination = std::array{ "test.test_seq.reply_a", "test.test_seq.reply_c" }[numberOfMessagesReceived];
-//                messageCenter->post(replyDestination, idx, std::array{ 34, 78 }[numberOfMessagesReceived]);
-//            }
-//            ++numberOfMessagesReceived;
-//        });
-//    cMessageSequence sequence = messageCenter->sequence("test.test_seq", 12)
-//        .on("test.test_seq.reply_a", [&](int a) { EXPECT_EQ(a, 34); ++repliesReceived["reply_a"]; })
-//        .on("test.test_seq.reply_b", [&](const std::string& b) { EXPECT_STREQ(b.c_str(), "hello"); ++repliesReceived["reply_b"]; });
-//    cMessageSequence sequence2 = messageCenter->sequence("test.test_seq", 56)
-//        .on("test.test_seq.reply_c", [&](int a) { EXPECT_EQ(a, 78); ++repliesReceived["reply_c"]; })
-//        .on("test.test_seq.reply_d", [&](const std::string& b) { EXPECT_STREQ(b.c_str(), "world"); ++repliesReceived["reply_d"]; });
-//
-//    messageCenter->dispatch();
-//
-//    EXPECT_EQ(numberOfMessagesReceived, 2);
-//
-//    EXPECT_EQ(repliesReceived["reply_a"], 1);
-//    EXPECT_EQ(repliesReceived["reply_b"], 0);
-//    EXPECT_EQ(repliesReceived["reply_c"], 1);
-//    EXPECT_EQ(repliesReceived["reply_d"], 0);
-//}
-//
-//TEST(message_sequencing, filtering_out_messages)
-//{
-//    auto messageCenter = std::make_shared<cMessageCenter>();
-//
-//    std::unordered_map<std::string, int> repliesReceived;
-//    int numberOfMessagesReceived = 0;
-//
-//    auto listener = messageCenter->registerListener(
-//        "test.test_seq",
-//        [&](cMessageIndex idx, int a)
-//        {
-//            if (numberOfMessagesReceived < 2)
-//            {
-//                auto expected = std::array{ 12, 56 }[numberOfMessagesReceived];
-//                EXPECT_EQ(a, expected);
-//                auto replyDestination = std::array{ "test.test_seq.reply_a", "test.test_seq.reply_c" }[numberOfMessagesReceived];
-//                messageCenter->post(replyDestination, idx, std::array{ 34, 78 }[numberOfMessagesReceived]);
-//            }
-//            ++numberOfMessagesReceived;
-//        });
-//
-//    messageCenter->post("test.test_seq.reply_a", 23);  // must not get delivered
-//    messageCenter->post("test.test_seq.reply_b", "alma"s);  // must not get delivered
-//    messageCenter->post("test.test_seq.reply_c", 33); // must not get delivered
-//    messageCenter->post("test.test_seq.reply_d", "alma"s);  // must not get delivered
-//
-//    cMessageSequence sequence = messageCenter->sequence("test.test_seq", 12)
-//        .on("test.test_seq.reply_a", [&](int a) { EXPECT_EQ(a, 34); ++repliesReceived["reply_a"]; })
-//        .on("test.test_seq.reply_b", [&](const std::string& b) { EXPECT_STREQ(b.c_str(), "hello"); ++repliesReceived["reply_b"]; });
-//    cMessageSequence sequence2 = messageCenter->sequence("test.test_seq", 56)
-//        .on("test.test_seq.reply_c", [&](int a) { EXPECT_EQ(a, 78); ++repliesReceived["reply_c"]; })
-//        .on("test.test_seq.reply_d", [&](const std::string& b) { EXPECT_STREQ(b.c_str(), "world"); ++repliesReceived["reply_d"]; });
-//
-//    messageCenter->post("test.test_seq.reply_a", 99);  // must not get delivered
-//    messageCenter->post("test.test_seq.reply_b", "alma"s);  // must not get delivered
-//    messageCenter->post("test.test_seq.reply_c", 100); // must not get delivered
-//    messageCenter->post("test.test_seq.reply_d", "alma"s);  // must not get delivered
-//
-//    messageCenter->dispatch();
-//
-//    EXPECT_EQ(numberOfMessagesReceived, 2);
-//    EXPECT_EQ(repliesReceived["reply_a"], 1);
-//    EXPECT_EQ(repliesReceived["reply_b"], 0);
-//    EXPECT_EQ(repliesReceived["reply_c"], 1);
-//    EXPECT_EQ(repliesReceived["reply_d"], 0);
-//}
-//
-//TEST(message_sequencing, abandoning_sequence)
-//{
-//    auto messageCenter = std::make_shared<cMessageCenter>();
-//    std::unordered_map<std::string, int> repliesReceived;
-//    int numberOfMessagesReceived = 0;
-//    auto listener = messageCenter->registerListener(
-//        "test.test_seq",
-//        [&](cMessageIndex idx, int a)
-//        {
-//            if (numberOfMessagesReceived < 2)
-//            {
-//                auto expected = std::array{ 12, 56 }[numberOfMessagesReceived];
-//                EXPECT_EQ(a, expected);
-//                auto replyDestination = std::array{ "test.test_seq.reply_a", "test.test_seq.reply_c" }[numberOfMessagesReceived];
-//                messageCenter->post(replyDestination, idx, std::array{ 34, 78 }[numberOfMessagesReceived]);
-//            }
-//            ++numberOfMessagesReceived;
-//        });
-//    {
-//        cMessageSequence sequence = messageCenter->sequence("test.test_seq", 12)
-//            .on("test.test_seq.reply_a", [&](int a) { EXPECT_EQ(a, 34); ++repliesReceived["reply_a"]; })
-//            .on("test.test_seq.reply_b", [&](const std::string& b) { EXPECT_STREQ(b.c_str(), "hello"); ++repliesReceived["reply_b"]; });
-//        cMessageSequence sequence2 = messageCenter->sequence("test.test_seq", 56)
-//            .on("test.test_seq.reply_c", [&](int a) { EXPECT_EQ(a, 78); ++repliesReceived["reply_c"]; })
-//            .on("test.test_seq.reply_d", [&](const std::string& b) { EXPECT_STREQ(b.c_str(), "world"); ++repliesReceived["reply_d"]; });
-//    } // sequences go out of scope here
-//    messageCenter->dispatch();
-//    EXPECT_EQ(numberOfMessagesReceived, 2);
-//    EXPECT_EQ(repliesReceived["reply_a"], 0);
-//    EXPECT_EQ(repliesReceived["reply_b"], 0);
-//    EXPECT_EQ(repliesReceived["reply_c"], 0);
-//    EXPECT_EQ(repliesReceived["reply_d"], 0);
-//}
+TEST(message_sequencing, nv_listener_gets_message_index)
+{
+    auto messageCenter = std::make_shared<cMessageCenter>();
+
+    int numberOfMessagesReceived = 0;
+    auto listener = messageCenter->registerListener(
+        "test.seq_test",
+        [&](cMessageSequencingID sequencingID, int message)
+        {
+            EXPECT_EQ(message, 12);
+            ++numberOfMessagesReceived;
+        });
+    auto normalListener = messageCenter->registerListener(
+        "test.seq_test",
+        [&](int message)
+        {
+            EXPECT_EQ(message, 12);
+            ++numberOfMessagesReceived;
+        });
+    messageCenter->post("test.seq_test", 12);
+
+    messageCenter->dispatch();
+
+    EXPECT_EQ(numberOfMessagesReceived, 2);
+}
+
+TEST(message_sequencing, v_listener_gets_message_index)
+{
+    auto messageCenter = std::make_shared<cMessageCenter>();
+    int numberOfMessagesReceived = 0;
+    auto listener = messageCenter->registerListener(
+        "test.seq_test",
+        [&](cMessageSequencingID sequencingID)
+        {
+            ++numberOfMessagesReceived;
+        });
+    auto normalListener = messageCenter->registerListener(
+        "test.seq_test",
+        [&](int message)
+        {
+            EXPECT_EQ(message, 12);
+            ++numberOfMessagesReceived;
+        });
+
+    messageCenter->post("test.seq_test", 12);
+    messageCenter->dispatch();
+    EXPECT_EQ(numberOfMessagesReceived, 2);
+}
+
+TEST(message_sequencing, sequence_starting_message_delivered)
+{
+    auto messageCenter = std::make_shared<cMessageCenter>();
+
+    int numberOfMessagesReceived = 0;
+    auto listener = messageCenter->registerListener(
+        "test.test_seq",
+        [&](int a) 
+        { 
+            if (numberOfMessagesReceived < 2)
+            {
+                auto expected = std::array{ 12, 56 }[numberOfMessagesReceived];
+                EXPECT_EQ(a, expected);
+            }
+            ++numberOfMessagesReceived;
+        });
+
+    cMessageSequence sequence = messageCenter->sequence("test.test_seq", 12)
+        .on("test.test_seq.reply_a", [](int a) { EXPECT_EQ(a, 34); })
+        .on("test.test_seq.reply_b", [](const std::string& b) { EXPECT_STREQ(b.c_str(), "hello"); });
+
+
+    cMessageSequence sequence2 = messageCenter->sequence("test.test_seq", 56);
+
+    messageCenter->dispatch();
+
+    EXPECT_EQ(numberOfMessagesReceived, 2);
+}
+
+TEST(message_sequencing, response_message_delivered)
+{
+    auto messageCenter = std::make_shared<cMessageCenter>();
+    
+    std::unordered_map<std::string, int> repliesReceived;
+    int numberOfMessagesReceived = 0;
+
+    auto listener = messageCenter->registerListener(
+        "test.test_seq",
+        [&](cMessageSequencingID idx, int a)
+        {
+            if (numberOfMessagesReceived < 2)
+            {
+                auto expected = std::array{ 12, 56 }[numberOfMessagesReceived];
+                EXPECT_EQ(a, expected);
+                auto replyDestination = std::array{ "test.test_seq.reply_a"s, "test.test_seq.reply_c"s }[numberOfMessagesReceived];
+                messageCenter->respond(idx.mThisMessage, replyDestination, std::array{ 34, 78 }[numberOfMessagesReceived]);
+            }
+            ++numberOfMessagesReceived;
+        });
+    cMessageSequence sequence = messageCenter->sequence("test.test_seq", 12)
+        .on("test.test_seq.reply_a", [&](int a) { EXPECT_EQ(a, 34); ++repliesReceived["reply_a"]; })
+        .on("test.test_seq.reply_b", [&](const std::string& b) { EXPECT_STREQ(b.c_str(), "hello"); ++repliesReceived["reply_b"]; });
+    cMessageSequence sequence2 = messageCenter->sequence("test.test_seq", 56)
+        .on("test.test_seq.reply_c", [&](int a) { EXPECT_EQ(a, 78); ++repliesReceived["reply_c"]; })
+        .on("test.test_seq.reply_d", [&](const std::string& b) { EXPECT_STREQ(b.c_str(), "world"); ++repliesReceived["reply_d"]; });
+
+    messageCenter->dispatch();
+
+    EXPECT_EQ(numberOfMessagesReceived, 2);
+
+    EXPECT_EQ(repliesReceived["reply_a"], 1);
+    EXPECT_EQ(repliesReceived["reply_b"], 0);
+    EXPECT_EQ(repliesReceived["reply_c"], 1);
+    EXPECT_EQ(repliesReceived["reply_d"], 0);
+}
+
+TEST(message_sequencing, filtering_out_messages)
+{
+    auto messageCenter = std::make_shared<cMessageCenter>();
+
+    std::unordered_map<std::string, int> repliesReceived;
+    int numberOfMessagesReceived = 0;
+
+    auto listener = messageCenter->registerListener(
+        "test.test_seq",
+        [&](cMessageSequencingID idx, int a)
+        {
+            if (numberOfMessagesReceived < 2)
+            {
+                auto expected = std::array{ 12, 56 }[numberOfMessagesReceived];
+                EXPECT_EQ(a, expected);
+                auto replyDestination = std::array{ "test.test_seq.reply_a", "test.test_seq.reply_c" }[numberOfMessagesReceived];
+                messageCenter->respond(idx.mThisMessage, replyDestination, std::array{ 34, 78 }[numberOfMessagesReceived]);
+            }
+            ++numberOfMessagesReceived;
+        });
+
+    messageCenter->post("test.test_seq.reply_a", 23);  // must not get delivered
+    messageCenter->post("test.test_seq.reply_b", "alma"s);  // must not get delivered
+    messageCenter->post("test.test_seq.reply_c", 33); // must not get delivered
+    messageCenter->post("test.test_seq.reply_d", "alma"s);  // must not get delivered
+
+    cMessageSequence sequence = messageCenter->sequence("test.test_seq", 12)
+        .on("test.test_seq.reply_a", [&](int a) { EXPECT_EQ(a, 34); ++repliesReceived["reply_a"]; })
+        .on("test.test_seq.reply_b", [&](const std::string& b) { EXPECT_STREQ(b.c_str(), "hello"); ++repliesReceived["reply_b"]; });
+    cMessageSequence sequence2 = messageCenter->sequence("test.test_seq", 56)
+        .on("test.test_seq.reply_c", [&](int a) { EXPECT_EQ(a, 78); ++repliesReceived["reply_c"]; })
+        .on("test.test_seq.reply_d", [&](const std::string& b) { EXPECT_STREQ(b.c_str(), "world"); ++repliesReceived["reply_d"]; });
+
+    messageCenter->post("test.test_seq.reply_a", 99);  // must not get delivered
+    messageCenter->post("test.test_seq.reply_b", "alma"s);  // must not get delivered
+    messageCenter->post("test.test_seq.reply_c", 100); // must not get delivered
+    messageCenter->post("test.test_seq.reply_d", "alma"s);  // must not get delivered
+
+    messageCenter->dispatch();
+
+    EXPECT_EQ(numberOfMessagesReceived, 2);
+    EXPECT_EQ(repliesReceived["reply_a"], 1);
+    EXPECT_EQ(repliesReceived["reply_b"], 0);
+    EXPECT_EQ(repliesReceived["reply_c"], 1);
+    EXPECT_EQ(repliesReceived["reply_d"], 0);
+}
+
+TEST(message_sequencing, abandoning_sequence)
+{
+    auto messageCenter = std::make_shared<cMessageCenter>();
+    std::unordered_map<std::string, int> repliesReceived;
+    int numberOfMessagesReceived = 0;
+    auto listener = messageCenter->registerListener(
+        "test.test_seq",
+        [&](cMessageSequencingID idx, int a)
+        {
+            if (numberOfMessagesReceived < 2)
+            {
+                auto expected = std::array{ 12, 56 }[numberOfMessagesReceived];
+                EXPECT_EQ(a, expected);
+                auto replyDestination = std::array{ "test.test_seq.reply_a", "test.test_seq.reply_c" }[numberOfMessagesReceived];
+                messageCenter->respond(idx.mThisMessage, replyDestination, std::array{ 34, 78 }[numberOfMessagesReceived]);
+            }
+            ++numberOfMessagesReceived;
+        });
+    {
+        cMessageSequence sequence = messageCenter->sequence("test.test_seq", 12)
+            .on("test.test_seq.reply_a", [&](int a) { EXPECT_EQ(a, 34); ++repliesReceived["reply_a"]; })
+            .on("test.test_seq.reply_b", [&](const std::string& b) { EXPECT_STREQ(b.c_str(), "hello"); ++repliesReceived["reply_b"]; });
+        cMessageSequence sequence2 = messageCenter->sequence("test.test_seq", 56)
+            .on("test.test_seq.reply_c", [&](int a) { EXPECT_EQ(a, 78); ++repliesReceived["reply_c"]; })
+            .on("test.test_seq.reply_d", [&](const std::string& b) { EXPECT_STREQ(b.c_str(), "world"); ++repliesReceived["reply_d"]; });
+    } // sequences go out of scope here
+    messageCenter->dispatch();
+    EXPECT_EQ(numberOfMessagesReceived, 2);
+    EXPECT_EQ(repliesReceived["reply_a"], 0);
+    EXPECT_EQ(repliesReceived["reply_b"], 0);
+    EXPECT_EQ(repliesReceived["reply_c"], 0);
+    EXPECT_EQ(repliesReceived["reply_d"], 0);
+}
 
 
 TEST(message_system, single_listen_post_receive)

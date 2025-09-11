@@ -151,12 +151,12 @@ class cMessageCenter final : public std::enable_shared_from_this<cMessageCenter>
             return std::move(mMessageSequence);
         }
     };
+    template<class T> cEndPoint& endPoint(const std::string& endpointID);
 public:
     template<class... Ts> cMessageIndex post(const std::string& endpointID, Ts&&... messageData);
     cMessageIndex post(const std::string& endpointID);
 
     template<class... Ts> cMessageIndex respond(cMessageIndex inResponseTo, const std::string& endpointID, Ts&&... messageData);
-    cMessageIndex respond(cMessageIndex inResponseTo, const std::string& endpointID);
 
     template<class... Ts> void send(const std::string& endpointID, Ts&&... messageData);
     void send(const std::string& endpointID);
@@ -250,15 +250,9 @@ void cMessageCenter::tDispatcher<T>::dispatch(const std::any& messageData, cMess
         });
 }
 
-template<class... Ts> 
-cMessageIndex cMessageCenter::post(const std::string& endpointID, Ts&&... messageData)
+template<class T> 
+cMessageCenter::cEndPoint& cMessageCenter::endPoint(const std::string& endpointID)
 {
-    using T = std::tuple<std::decay_t<Ts>...>;
-    //using T = std::conditional_t<
-    //    std::tuple_size_v<AllT> >= 1 &&        
-    //    std::is_same_v<tSafeTupleElementT<0, AllT>, cMessageIndex>,
-    //    tTuplePostfix<AllT, std::tuple_size_v<AllT> -1>,
-    //    AllT>;
     auto& endPoint = mEndPoints[endpointID];
     if (!endPoint)
     {
@@ -273,7 +267,7 @@ cMessageIndex cMessageCenter::post(const std::string& endpointID, Ts&&... messag
         {
             if (*endPoint->mMessageType != typeid(T))
             {
-                throw std::runtime_error(std::format("Wrong message type (post), expected: {}, got: {}", 
+                throw std::runtime_error(std::format("Wrong message type, expected: {}, got: {}",
                     endPoint->mMessageType->name(), typeid(T).name()));
             }
         }
@@ -282,58 +276,66 @@ cMessageIndex cMessageCenter::post(const std::string& endpointID, Ts&&... messag
             endPoint->mMessageType.emplace(typeid(T));
         }
     }
+    return *endPoint;
+}
+
+template<class... Ts> 
+cMessageIndex cMessageCenter::post(const std::string& endpointID, Ts&&... messageData)
+{
+    using T = std::tuple<std::decay_t<Ts>...>;
     ++mLastPostedMessageIndex;
-    mEventsWriting.emplace_back(std::make_tuple(std::forward<Ts>(messageData)...), endPoint.get());
+    mEventsWriting.emplace_back(std::make_tuple(std::forward<Ts>(messageData)...), &endPoint<T>(endpointID));
     if(mNeedDispatchProcessor)
         mNeedDispatchProcessor();
     return mLastPostedMessageIndex;
 }
 
-template<class... Ts> auto cMessageCenter::sequence(const std::string& endpoint, Ts&&... messageData)
+template<class... Ts> 
+cMessageIndex cMessageCenter::respond(cMessageIndex inResponseTo, const std::string& endpointID, Ts&&... messageData)
 {
-    return cMessageSequenceBuilder<Ts...>
-        { 
-            shared_from_this(), 
-            mLastPostedMessageIndex + 1,   // filter for the next message (sent by builder -> sequence conversion)
-            endpoint, 
-            std::forward<Ts>(messageData)... 
-        };
+    using T = std::tuple<std::decay_t<Ts>...>;
+    ++mLastPostedMessageIndex;
+    mEventsWriting.emplace_back(
+        std::make_tuple(std::forward<Ts>(messageData)...), 
+        &endPoint<T>(endpointID),
+        inResponseTo);
+    if (mNeedDispatchProcessor)
+        mNeedDispatchProcessor();
+    return mLastPostedMessageIndex;
 }
 
 template<class... Ts> void cMessageCenter::send(const std::string& endpointID, Ts&&... messageData)
 {
     using T = std::tuple<std::decay_t<Ts>...>;
-    //using T = std::conditional_t<
-    //    std::tuple_size_v<AllT> >= 1 &&
-    //    std::is_same_v<tSafeTupleElement<0, AllT>, cMessageIndex>,
-    //    tTuplePostfix<AllT, std::tuple_size_v<AllT> -1>,
-    //    AllT>;
-    auto& endPoint = mEndPoints[endpointID];
-    if (!endPoint)
+    endPoint<T>(endpointID).dispatch(std::make_tuple(std::forward<Ts>(messageData)...), mDirectMessageIndex);
+}
+
+//template<class... Ts> 
+//void cMessageCenter::respond(cMessageIndex inResponseTo, const std::string& endpointID, Ts&&... messageData)
+//{
+//    using T = std::tuple<std::decay_t<Ts>...>;
+//    endPoint<T>(endpointID).dispatch(
+//        std::make_tuple(std::forward<Ts>(messageData)...), 
+//        cMessageSequencingID{ .mInResponseTo = inResponseTo, .mThisMessage = mDirectMessageIndex });
+//}
+
+template<class... Ts> auto cMessageCenter::sequence(const std::string& endpoint, Ts&&... messageData)
+{
+    return cMessageSequenceBuilder<Ts...>
     {
-        endPoint = std::make_unique<cEndPoint>();
-        endPoint->mMessageType.emplace(typeid(T));
-        endPoint->mDispatcher = std::make_unique<tDispatcher<T>>();
-    }
-    else
-    {
-        // for posting the message type has to match even if it is void
-        if (endPoint->mMessageType.has_value())
-        {
-            if (*endPoint->mMessageType != typeid(T))
-                throw std::runtime_error("Wrong message type (send)");
-        }
-        else
-        {
-            endPoint->mMessageType.emplace(typeid(T));
-        }
-    }
-    endPoint->dispatch(std::make_tuple(std::forward<Ts>(messageData)...), mDirectMessageIndex);
+        shared_from_this(),
+            mLastPostedMessageIndex + 1,   // filter for the next message (sent by builder -> sequence conversion)
+            endpoint,
+            std::forward<Ts>(messageData)...
+    };
 }
 
 cRegisteredID cMessageCenter::registerListener(const std::string& endpointID, cCallable auto listener)
 {
     using Signature = cCallableSignature<decltype(listener)>;
+
+    static_assert(!isInTuple<typename Signature::DecayedArguments, cMessageIndex>,
+        "Listener cannot have cMessageIndex as parameter. Use cMessageSequencingID instead");
     int numberOfArgs = Signature::numberOfArguments;
     using T = std::conditional_t<
         Signature::numberOfArguments >= 1 &&         
