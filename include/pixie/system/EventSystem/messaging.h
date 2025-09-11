@@ -220,7 +220,6 @@ template<class T>
 void cMessageCenter::tDispatcher<T>::dispatch(const std::any& messageData, cMessageSequencingID sequencingID)
 {
     const T* messageDataT = std::any_cast<const T>(&messageData);
-//    const cMessageIndexedT* messageDataIndexedT = std::any_cast<const cMessageIndexedT>(&messageData);
 
     mListeners.ForEach([sequencingID, messageDataT](auto& listener)
         {
@@ -231,18 +230,13 @@ void cMessageCenter::tDispatcher<T>::dispatch(const std::any& messageData, cMess
                 switch (listener.mFunction.index())
                 {
                 case 1:
-//                    if(messageDataT)
-                        std::apply(std::get<1>(listener.mFunction), *messageDataT);
-                    //else
-                    //    applyTail<std::tuple_size_v<T>>(std::get<1>(listener.mFunction), *messageDataIndexedT);
+                    std::apply(std::get<1>(listener.mFunction), *messageDataT);
                     break;
                 case 2:
                 {
-                    //if (messageDataT)
-                    std::apply(std::get<2>(listener.mFunction),
+                    std::apply(
+                        std::get<2>(listener.mFunction), 
                         std::tuple_cat(std::forward_as_tuple(sequencingID), *messageDataT));
-                    //else
-                    //    std::apply(std::get<2>(listener.mFunction), *messageDataIndexedT);
                     break;
                 }
                 };
@@ -309,15 +303,6 @@ template<class... Ts> void cMessageCenter::send(const std::string& endpointID, T
     using T = std::tuple<std::decay_t<Ts>...>;
     endPoint<T>(endpointID).dispatch(std::make_tuple(std::forward<Ts>(messageData)...), mDirectMessageIndex);
 }
-
-//template<class... Ts> 
-//void cMessageCenter::respond(cMessageIndex inResponseTo, const std::string& endpointID, Ts&&... messageData)
-//{
-//    using T = std::tuple<std::decay_t<Ts>...>;
-//    endPoint<T>(endpointID).dispatch(
-//        std::make_tuple(std::forward<Ts>(messageData)...), 
-//        cMessageSequencingID{ .mInResponseTo = inResponseTo, .mThisMessage = mDirectMessageIndex });
-//}
 
 template<class... Ts> auto cMessageCenter::sequence(const std::string& endpoint, Ts&&... messageData)
 {
