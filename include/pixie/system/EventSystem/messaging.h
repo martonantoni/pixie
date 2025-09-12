@@ -301,7 +301,12 @@ cMessageIndex cMessageCenter::respond(cMessageIndex inResponseTo, const std::str
 template<class... Ts> void cMessageCenter::send(const std::string& endpointID, Ts&&... messageData)
 {
     using T = std::tuple<std::decay_t<Ts>...>;
-    endPoint<T>(endpointID).dispatch(std::make_tuple(std::forward<Ts>(messageData)...), mDirectMessageIndex);
+    endPoint<T>(endpointID).dispatch(std::make_tuple(std::forward<Ts>(messageData)...), 
+        cMessageSequencingID
+        {
+            .mInResponseTo = cMessageIndex::invalid(),
+            .mThisMessage = mDirectMessageIndex
+        });
 }
 
 template<class... Ts> auto cMessageCenter::sequence(const std::string& endpoint, Ts&&... messageData)
