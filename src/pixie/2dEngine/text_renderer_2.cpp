@@ -584,4 +584,26 @@ void cTextRenderer2::cPrefixRemover::overridePrefixSize(int size)
     mPrefixSize = size;
 }
 
+std::unique_ptr<cMultiSpriteBase> cTextRenderer2::quickRender(const std::string& font, const std::string& text)
+{
+    cTextRenderer2 textRenderer;
+    cTextRenderer2Config config;
+    config.mFonts.mRegular = theFontManager.font(font);
+    config.mFonts.mBold = config.mFonts.mRegular;
+    config.mFonts.mItalic = config.mFonts.mRegular;
+    config.mFonts.mBoldItalic = config.mFonts.mRegular;
+    config.mFonts.mMonospace = config.mFonts.mRegular;
+    config.mColors.mDefaultColor = "white";
+    config.mTabWidth = 4;
+    cTextRenderer2Target target;
+    textRenderer.init(config, target);
+    auto blocks = parse(text);
+    ASSERT(blocks.size() == 1);
+
+    auto renderResult = textRenderer.render(blocks.front());
+    auto textSprite = std::make_unique<cSimpleMultiSprite>(std::move(renderResult.mSprites), cSimpleMultiSprite::eBasePosition::Zero);
+    return textSprite;
+}
+
+
 } // namespace Pixie

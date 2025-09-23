@@ -133,6 +133,7 @@ public:
     }
 
     cTextRenderer2BlockResult render(const cTextRenderer2Block& block);
+    static std::unique_ptr<cMultiSpriteBase> quickRender(const std::string& font, const std::string& text);
 
 
     /*
