@@ -36,6 +36,7 @@ struct cTextRenderer2Span
 {
     std::string_view mText;
     std::span<const cColor> mColors; // for each character in mText, if empty, use the default color
+    std::optional<cColor> mOverrideColor; // if set, use this color for the entire span
     char mSeparator = 0;
     bool mIsBold = false;
     bool mIsItalic = false;
@@ -154,6 +155,9 @@ public:
 
     @img texture_name
     @img_scaled texture_name
+
+    @c color_name : set color
+    @cd : back to default color
 
     ```type:title          both type and title are optional, but in front of title there must be a colon
     code 

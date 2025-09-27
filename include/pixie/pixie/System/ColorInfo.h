@@ -7,8 +7,7 @@ protected:
 public:
 	cColor(unsigned int Color=0xff000000): mColor(Color) {}
 	cColor(int Red, int Green, int Blue): mColor(0xff000000|((Red&0xff)<<16)|((Green&0xff)<<8)|(Blue&0xff)) {}
-	cColor(const std::string &ColorName);
-	cColor(const char *ColorName): cColor(std::string(ColorName)) {}
+	cColor(auto&& colorName) requires std::totally_ordered_with<decltype(colorName), std::string>;
 	cColor(const cColor &ColorInfo)=default;
 	cColor(cColor &&)=default;
 	cColor &operator=(const cColor &)=default;
@@ -34,10 +33,22 @@ public:
 
 class cColorServer
 {
-	std::unordered_map<std::string, cColor> mColorMap;
+	std::map<std::string, cColor, std::less<>> mColorMap;
 public:
 	void Init();
-	cColor GetColor(const std::string& name) const;
+	cColor GetColor(auto&& colorName) const requires std::totally_ordered_with<decltype(colorName), std::string>
+	{
+        auto i = mColorMap.find(std::forward<decltype(colorName)>(colorName));
+		if (ASSERTTRUE(i != mColorMap.end()))
+            return i->second;
+        MainLog->Log("Unknown color name: %s", std::forward<decltype(colorName)>(colorName));
+        return cColor(0xffff00ff); // magenta
+    }
 };
 
 extern cColorServer theColorServer;
+
+cColor::cColor(auto&& colorName) requires std::totally_ordered_with<decltype(colorName), std::string>
+    : mColor(theColorServer.GetColor(std::forward<decltype(colorName)>(colorName)).GetARGBColor())
+{
+}

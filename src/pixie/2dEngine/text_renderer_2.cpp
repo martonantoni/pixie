@@ -23,7 +23,11 @@ void cTextRenderer2::setTargetWidth(int width)
 
 std::pair<const cFont&, cColor>  cTextRenderer2::determineFont(const cTextRenderer2Block& block, const cTextRenderer2Span& span) const
 {
-    auto& color = span.mIsLink ? mConfig.mColors.mLinkRegular : mConfig.mColors.mDefaultColor;
+    auto color = span.mIsLink ? mConfig.mColors.mLinkRegular : mConfig.mColors.mDefaultColor;
+    if(span.mOverrideColor.has_value())
+    {
+        color = *span.mOverrideColor;
+    }
     if (block.mIsCodeBlock || span.mIsMonospace)
     {
         return { *mConfig.mFonts.mMonospace, color };
@@ -475,12 +479,26 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
                     span.mText = std::string_view(span.mText.data(), lastWord.data() + lastWord.size() - span.mText.data());
                 }
             });
+        enum class eWordMeaning { Normal, ColorName, ImageName };
+        eWordMeaning wordMeaning = eWordMeaning::Normal;
         while(!line.empty())
         {
             auto wordEnd = line.find_first_of(" \t");
             std::string_view word = wordEnd == std::string_view::npos ? line : line.substr(0, wordEnd);
             char separator = wordEnd == std::string_view::npos ? 0 : line[wordEnd];
             cPrefixRemover prefixRemover(line, std::min(word.size() + 1, line.size()));
+            if(wordMeaning != eWordMeaning::Normal)
+            {
+                if (wordMeaning == eWordMeaning::ColorName)
+                {
+                    span.mOverrideColor = cColor(word);
+                }
+                else if (wordMeaning == eWordMeaning::ImageName)
+                {
+                }
+                wordMeaning = eWordMeaning::Normal;
+                continue; // ignore rest of the word
+            }
             if (word.starts_with("@h") && word.size() >= 3)
             {
                 pushSpan();
@@ -528,6 +546,20 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
             if (word.starts_with("@="))
             {
                 setAlign(cTextRenderer2Block::eAlign::Justify);
+                continue; // ignore rest of the word
+            }
+            if(word.starts_with("@cd")) // default color
+            {
+                span.mSeparator = separator;
+                pushSpan();
+                span.mOverrideColor = std::nullopt;
+                continue; // ignore rest of the word
+            }
+            if(word.starts_with("@c")) // set color
+            {
+                span.mSeparator = separator;
+                pushSpan();
+                wordMeaning = eWordMeaning::ColorName;
                 continue; // ignore rest of the word
             }
             if([&]() 
