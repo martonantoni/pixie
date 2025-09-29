@@ -14,6 +14,7 @@ struct cBlendData;
 #include "font.h"
 #include "font_manager.h"
 #include "TextRenderer.h"
+#include "text_renderer_2.h"
 #include "SpriteRenderedTexture.h"
 #include "TextureAnimator.h"
 #include "LineSprite.h"
