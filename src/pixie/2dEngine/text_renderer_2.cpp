@@ -447,6 +447,7 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
         }
         auto& block = blocks.back();
         cSpan span;
+        char previousSeparator = 0;
         auto pushSpan = [&]()
             {
                 if (!span.mText.empty())
@@ -550,14 +551,14 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
             }
             if(word.starts_with("@cd")) // default color
             {
-                span.mSeparator = separator;
+                span.mSeparator = previousSeparator;
                 pushSpan();
                 span.mOverrideColor = std::nullopt;
                 continue; // ignore rest of the word
             }
             if(word.starts_with("@c")) // set color
             {
-                span.mSeparator = separator;
+                span.mSeparator = previousSeparator;
                 pushSpan();
                 wordMeaning = eWordMeaning::ColorName;
                 continue; // ignore rest of the word
@@ -600,6 +601,7 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
                 continue;
             }
             extendSpan(word);
+            previousSeparator = separator;
         } // words
         pushSpan();
     }
