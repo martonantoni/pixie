@@ -10,7 +10,7 @@ public:
 
 void cPixieMainLoop::Init()
 {
-	cRegisteredIDSink(theLogicServer.AddLogic([this]() { OnLogic(); }, 300));
+	cRegisteredIDSink(theLogicServer.AddLogic([this]() { OnLogic(); }, cLogicServer::LogicOrders::messaging));
 }
 
 void cPixieMainLoop::OnLogic()

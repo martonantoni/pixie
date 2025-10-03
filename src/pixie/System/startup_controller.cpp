@@ -57,6 +57,8 @@ void cStartupController::continueStartup()
     if(mConfig.startApplication)
         mConfig.startApplication();
 
+    theRedrawableDispatcher.init();
+
 // 	cMouseCursor::Get();
 //     cMouseCursorServer::Get();
 }

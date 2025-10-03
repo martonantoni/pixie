@@ -36,7 +36,9 @@ void cLogicServer::Tick()
 			if(mLogicUsersModifiedTrap)
 				break;
 		}
-	} while(mLogicUsersModifiedTrap);
+	} 
+	while(mLogicUsersModifiedTrap);
+
 	for(;;)
 	{
 		std::swap(mExecuteOnceWriting, mExecuteOnceReading);
@@ -55,5 +57,42 @@ void cLogicServer::Unregister(const cRegisteredID &RegisteredID,eCallbackType Ca
 	{
 		mLogicUsers.erase(i);
 		mLogicUsersModifiedTrap=true;
+	}
+}
+
+cRedrawableDispatcher theRedrawableDispatcher;
+
+void cRedrawableDispatcher::init()
+{
+	mLogicId=theLogicServer.AddLogic([this]()
+		{
+			while (!mRegisteredRedrawables[mWriteList].empty())
+			{
+				std::swap(mWriteList, mReadList);
+				for (auto redrawable : mRegisteredRedrawables[mReadList])
+					redrawable->doRedraw();
+				mRegisteredRedrawables[mReadList].clear();
+			}
+		}, cLogicServer::LogicOrders::preRender);
+}
+
+void cRedrawableDispatcher::registerRedrawable(cRedrawable* redrawable)
+{
+    mRegisteredRedrawables[mWriteList].push_back(redrawable);
+}
+
+void cRedrawableDispatcher::unregisterRedrawable(cRedrawable* redrawable)
+{
+	auto it = std::ranges::find(mRegisteredRedrawables[mWriteList], redrawable);
+	if (it != mRegisteredRedrawables[mWriteList].end())
+		mRegisteredRedrawables[mWriteList].erase(it);
+}
+
+void cRedrawable::requestRedraw()
+{
+	if (!mRedrawRequested)
+	{
+		mRedrawRequested = true;
+		theRedrawableDispatcher.registerRedrawable(this);
 	}
 }
