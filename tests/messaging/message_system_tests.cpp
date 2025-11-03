@@ -98,7 +98,7 @@ TEST(message_sequencing, response_message_delivered)
                 auto expected = std::array{ 12, 56 }[numberOfMessagesReceived];
                 EXPECT_EQ(a, expected);
                 auto replyDestination = std::array{ "test.test_seq.reply_a"s, "test.test_seq.reply_c"s }[numberOfMessagesReceived];
-                messageCenter->respond(idx.mThisMessage, replyDestination, std::array{ 34, 78 }[numberOfMessagesReceived]);
+                messageCenter->postResponse(idx.mThisMessage, replyDestination, std::array{ 34, 78 }[numberOfMessagesReceived]);
             }
             ++numberOfMessagesReceived;
         });
@@ -135,7 +135,7 @@ TEST(message_sequencing, filtering_out_messages)
                 auto expected = std::array{ 12, 56 }[numberOfMessagesReceived];
                 EXPECT_EQ(a, expected);
                 auto replyDestination = std::array{ "test.test_seq.reply_a", "test.test_seq.reply_c" }[numberOfMessagesReceived];
-                messageCenter->respond(idx.mThisMessage, replyDestination, std::array{ 34, 78 }[numberOfMessagesReceived]);
+                messageCenter->postResponse(idx.mThisMessage, replyDestination, std::array{ 34, 78 }[numberOfMessagesReceived]);
             }
             ++numberOfMessagesReceived;
         });
@@ -180,7 +180,7 @@ TEST(message_sequencing, abandoning_sequence)
                 auto expected = std::array{ 12, 56 }[numberOfMessagesReceived];
                 EXPECT_EQ(a, expected);
                 auto replyDestination = std::array{ "test.test_seq.reply_a", "test.test_seq.reply_c" }[numberOfMessagesReceived];
-                messageCenter->respond(idx.mThisMessage, replyDestination, std::array{ 34, 78 }[numberOfMessagesReceived]);
+                messageCenter->postResponse(idx.mThisMessage, replyDestination, std::array{ 34, 78 }[numberOfMessagesReceived]);
             }
             ++numberOfMessagesReceived;
         });

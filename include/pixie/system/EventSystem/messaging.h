@@ -156,7 +156,7 @@ public:
     template<class... Ts> cMessageIndex post(const std::string& endpointID, Ts&&... messageData);
     cMessageIndex post(const std::string& endpointID);
 
-    template<class... Ts> cMessageIndex respond(cMessageIndex inResponseTo, const std::string& endpointID, Ts&&... messageData);
+    template<class... Ts> cMessageIndex postResponse(cMessageIndex inResponseTo, const std::string& endpointID, Ts&&... messageData);
 
     template<class... Ts> void send(const std::string& endpointID, Ts&&... messageData);
     void send(const std::string& endpointID);
@@ -285,7 +285,7 @@ cMessageIndex cMessageCenter::post(const std::string& endpointID, Ts&&... messag
 }
 
 template<class... Ts> 
-cMessageIndex cMessageCenter::respond(cMessageIndex inResponseTo, const std::string& endpointID, Ts&&... messageData)
+cMessageIndex cMessageCenter::postResponse(cMessageIndex inResponseTo, const std::string& endpointID, Ts&&... messageData)
 {
     using T = std::tuple<std::decay_t<Ts>...>;
     ++mLastPostedMessageIndex;
