@@ -508,6 +508,14 @@ TEST(lua_object, is_type)
     ASSERT_EQ(script->stackSize(), 0);
 }
 
+TEST(lua_object, empty_object_is_nill)
+{
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject emptyObject = script->createObject();
+    ASSERT_TRUE(emptyObject.isNil());
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
 TEST(lua_object, has)
 {
     auto script = std::make_shared<cLuaState>();

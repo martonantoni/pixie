@@ -28,6 +28,7 @@ public:
     enum class IsRecursive { Yes, No };
     using cKey = std::variant<std::string_view, int, cLuaObject>;
     struct cFunctionMustExist {};
+//    struct iterator;
 private:
     std::shared_ptr<cLuaState> mState;
     int mReference = LUA_NOREF;
@@ -76,6 +77,7 @@ public:
     std::string toString() const;
     bool isFunction() const;
     bool isTable() const;
+    bool isNil() const;
     template<class C> void visit(const C& callable) const;
     template<cLuaReturnable... ReturnTs, cLuaAssignable... Args> auto call(const Args&... args);
     template<cLuaReturnable... ReturnTs, cLuaAssignable... Args> auto callMember(const cKey& functionKey, const Args&... args);
@@ -102,6 +104,19 @@ public:
     operator bool() { return mState != nullptr; }
     void release() { mState = nullptr; }
 };
+
+//struct cLuaObject::iterator : public std::iterator<std::input_iterator_tag, std::pair<std::string, cLuaObject>>
+//{
+//    cLuaObject mTable;
+//    cLuaObject mNextKey;
+//    bool mEnd = false;
+//    iterator() = default;
+//    iterator(const cLuaObject& table);
+//    iterator& operator++();
+//    std::pair<cLuaObject, cLuaObject> operator*() const;
+//    bool operator==(const iterator& other) const { return mEnd == other.mEnd; }
+//    bool operator!=(const iterator& other) const { return !(*this == other); }
+//};
 
 
 template<class T> void cLuaObject::push(lua_State* L, const T& value)

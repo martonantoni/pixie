@@ -107,6 +107,16 @@ bool cLuaObject::isString() const
     return false;
 }
 
+bool cLuaObject::isNil() const
+{
+    if(auto L = retrieveSelf())
+    {
+        bool result = lua_isnil(L, -1);
+        return result;
+    }
+    return true;
+}
+
 bool cLuaObject::isFunction() const
 {
     if(auto L = retrieveSelf())
