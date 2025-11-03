@@ -82,10 +82,10 @@ TEST(message_sequencing, sequence_starting_message_delivered)
     EXPECT_EQ(numberOfMessagesReceived, 2);
 }
 
-TEST(message_sequencing, response_message_delivered)
+void responseMessageDeliveredTest(bool usePost)
 {
     auto messageCenter = std::make_shared<cMessageCenter>();
-    
+
     std::unordered_map<std::string, int> repliesReceived;
     int numberOfMessagesReceived = 0;
 
@@ -98,7 +98,10 @@ TEST(message_sequencing, response_message_delivered)
                 auto expected = std::array{ 12, 56 }[numberOfMessagesReceived];
                 EXPECT_EQ(a, expected);
                 auto replyDestination = std::array{ "test.test_seq.reply_a"s, "test.test_seq.reply_c"s }[numberOfMessagesReceived];
-                messageCenter->postResponse(idx.mThisMessage, replyDestination, std::array{ 34, 78 }[numberOfMessagesReceived]);
+                if(usePost)
+                    messageCenter->postResponse(idx.mThisMessage, replyDestination, std::array{ 34, 78 }[numberOfMessagesReceived]);
+                else
+                    messageCenter->sendResponse(idx.mThisMessage, replyDestination, std::array{ 34, 78 }[numberOfMessagesReceived]);
             }
             ++numberOfMessagesReceived;
         });
@@ -119,7 +122,16 @@ TEST(message_sequencing, response_message_delivered)
     EXPECT_EQ(repliesReceived["reply_d"], 0);
 }
 
-TEST(message_sequencing, filtering_out_messages)
+TEST(message_sequencing, response_message_delivered)
+{
+    responseMessageDeliveredTest(true);
+}
+TEST(message_sequencing, send_response_message_delivered)
+{
+    responseMessageDeliveredTest(false);
+}
+
+void filterOutTest(bool usePost)
 {
     auto messageCenter = std::make_shared<cMessageCenter>();
 
@@ -135,7 +147,10 @@ TEST(message_sequencing, filtering_out_messages)
                 auto expected = std::array{ 12, 56 }[numberOfMessagesReceived];
                 EXPECT_EQ(a, expected);
                 auto replyDestination = std::array{ "test.test_seq.reply_a", "test.test_seq.reply_c" }[numberOfMessagesReceived];
-                messageCenter->postResponse(idx.mThisMessage, replyDestination, std::array{ 34, 78 }[numberOfMessagesReceived]);
+                if(usePost)
+                    messageCenter->postResponse(idx.mThisMessage, replyDestination, std::array{ 34, 78 }[numberOfMessagesReceived]);
+                else
+                    messageCenter->sendResponse(idx.mThisMessage, replyDestination, std::array{ 34, 78 }[numberOfMessagesReceived]);
             }
             ++numberOfMessagesReceived;
         });
@@ -166,6 +181,14 @@ TEST(message_sequencing, filtering_out_messages)
     EXPECT_EQ(repliesReceived["reply_d"], 0);
 }
 
+TEST(message_sequencing, filtering_out_messages)
+{
+    filterOutTest(true);
+}
+TEST(message_sequencing, send_filtering_out_messages)
+{
+    filterOutTest(false);
+}
 TEST(message_sequencing, abandoning_sequence)
 {
     auto messageCenter = std::make_shared<cMessageCenter>();
@@ -200,6 +223,56 @@ TEST(message_sequencing, abandoning_sequence)
     EXPECT_EQ(repliesReceived["reply_d"], 0);
 }
 
+TEST(message_sequencing, post_vs_send)
+{
+    // tests that post is asynchronous and send is synchronous
+
+    auto messageCenter = std::make_shared<cMessageCenter>();
+
+    std::array<bool, 2> postTargetReceivedMessage = { false, false };
+    std::array<bool, 2> sendTargetReceivedMessage = { false, false };
+
+    auto listener = messageCenter->registerListener(
+        "test.test_seq",
+        [&](cMessageSequencingID idx, int a)
+        {
+            messageCenter->postResponse(idx.mThisMessage, "test.post_target", 1);
+            for(auto& v : sendTargetReceivedMessage)
+                EXPECT_FALSE(v);
+            for (auto& v : postTargetReceivedMessage)
+                EXPECT_FALSE(v);
+            messageCenter->sendResponse(idx.mThisMessage, "test.send_target", 2);
+            for (auto& v : sendTargetReceivedMessage)
+                EXPECT_TRUE(v);
+            for (auto& v : postTargetReceivedMessage)
+                EXPECT_FALSE(v);
+        });
+
+    auto generalPostListener = messageCenter->registerListener(
+        "test.post_target",
+        [&](int a)
+        {
+            postTargetReceivedMessage[0] = true;
+        });
+
+    auto sendListener = messageCenter->registerListener(
+        "test.send_target",
+        [&](int a)
+        {
+            sendTargetReceivedMessage[0] = true;
+        });
+
+    cMessageSequence sequence = messageCenter->sequence("test.test_seq", 12)
+        .on("test.post_target", [&](int a) { EXPECT_EQ(a, 1); postTargetReceivedMessage[1] = true; })
+        .on("test.send_target", [&](int a) { EXPECT_EQ(a, 2); sendTargetReceivedMessage[1] = true; });
+
+    messageCenter->dispatch();
+
+    EXPECT_TRUE(sendTargetReceivedMessage[0]);
+    EXPECT_TRUE(sendTargetReceivedMessage[1]);
+    EXPECT_TRUE(postTargetReceivedMessage[0]);
+    EXPECT_TRUE(postTargetReceivedMessage[1]);
+}
 
 TEST(message_system, single_listen_post_receive)
 {

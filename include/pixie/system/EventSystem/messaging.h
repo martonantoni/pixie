@@ -157,6 +157,7 @@ public:
     cMessageIndex post(const std::string& endpointID);
 
     template<class... Ts> cMessageIndex postResponse(cMessageIndex inResponseTo, const std::string& endpointID, Ts&&... messageData);
+    template<class... Ts> void sendResponse(cMessageIndex inResponseTo, const std::string& endpointID, Ts&&... messageData);
 
     template<class... Ts> void send(const std::string& endpointID, Ts&&... messageData);
     void send(const std::string& endpointID);
@@ -296,6 +297,17 @@ cMessageIndex cMessageCenter::postResponse(cMessageIndex inResponseTo, const std
     if (mNeedDispatchProcessor)
         mNeedDispatchProcessor();
     return mLastPostedMessageIndex;
+}
+
+template<class... Ts> void cMessageCenter::sendResponse(cMessageIndex inResponseTo, const std::string& endpointID, Ts&&... messageData)
+{
+    using T = std::tuple<std::decay_t<Ts>...>;
+    endPoint<T>(endpointID).dispatch(std::make_tuple(std::forward<Ts>(messageData)...),
+        cMessageSequencingID
+        {
+            .mInResponseTo = inResponseTo,
+            .mThisMessage = mDirectMessageIndex
+        });
 }
 
 template<class... Ts> void cMessageCenter::send(const std::string& endpointID, Ts&&... messageData)
