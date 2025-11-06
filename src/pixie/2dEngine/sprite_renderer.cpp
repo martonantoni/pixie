@@ -270,9 +270,18 @@ void cSpriteRenderer::Render()
 	D3V(mDevice->SetVertexShader(NULL));
 	D3V(mDevice->SetFVF(cSpriteVertexData::FVF));
 	D3V(mDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE));
+
+    // better for sprites (but blurrier when scaled):
+
 	mDevice->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
  	mDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC);
- 	mDevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC);
+	mDevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC);
+
+	// better for UI:
+
+	//mDevice->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
+	//mDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+	//mDevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
 
 	mBaseWindow.CheckOwnerlessSprites();
 	RenderSprites();
