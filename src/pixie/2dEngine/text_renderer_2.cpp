@@ -285,9 +285,11 @@ cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
     int headerHeight = 0;
     const cFont& font = mConfig.mFonts.mMonospace ? *mConfig.mFonts.mMonospace : *mConfig.mFonts.mRegular;
 
+    int spaceAdvance = font.letterData(' ').advance();
     int width = block.mCodeBlock.mFixedWidth != -1 ?
-        std::min(mTarget.mWidth, font.letterData(' ').advance() * (block.mCodeBlock.mFixedWidth + 1)) :
+        std::min(mTarget.mWidth, spaceAdvance * (block.mCodeBlock.mFixedWidth + 1)) :
         mTarget.mWidth;
+    int availableWidthInChars = std::max(0, width / spaceAdvance - 2); // 2 spaces: padding left and right each 1 space
     if (!block.mCodeBlock.mTitle.empty())
     {
         // ---- header BG ----
@@ -322,12 +324,13 @@ cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
     // ---- block ----
     ASSERT(block.mSpans.size() == 1);
     auto& span = block.mSpans[0];
-    int startX = font.letterData(' ').advance();
+    int startX = spaceAdvance;
     cPoint position(startX, font.height() / 2 + headerHeight);
     for (auto lineView : span.mText | std::views::split('\n'))
     {
         std::string_view line(lineView.data(), lineView.size());
-        while (!line.empty())
+        int decodedCharacterCount = 0;
+        while (decodedCharacterCount++ < availableWidthInChars && !line.empty())
         {
             wchar_t decodedChar = UTF8::popCharacter(line);
             auto& letterData = font.letterData(decodedChar);
