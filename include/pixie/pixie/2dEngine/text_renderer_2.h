@@ -57,6 +57,8 @@ struct cTextRenderer2Block
     {
         std::string mTitle;
         std::string mType;
+        int mFixedWidth = -1; // -1 means not set, otherwise in characters
+                              // if target width is smaller, use that
     } mCodeBlock;
     int mHeadingLevel = -1; // -1 means not a heading
     int mTabWidth = -1; // -1 means not set (use config)
@@ -160,7 +162,7 @@ public:
     @c color_name : set color
     @cd : back to default color
 
-    ```type:title          both type and title are optional, but in front of title there must be a colon
+    ```type:title:width       all 3 are optional. For example setting 20 width: "```::20"
     code 
     block
     ```

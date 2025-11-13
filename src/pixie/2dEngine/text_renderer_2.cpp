@@ -403,15 +403,18 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
                 startOfCodeBlock = nullptr;
                 if (line.length() > 3)
                 {
-                    auto colonPos = line.find(':');
-                    if (colonPos != std::string_view::npos)
+                    cStringViewVector parts(line.substr(3), ":"s, true);
+                    if (parts.size() >= 1)
                     {
-                        codeBlock.mCodeBlock.mType = line.substr(3, colonPos - 3);
-                        codeBlock.mCodeBlock.mTitle = line.substr(colonPos + 1);
+                        codeBlock.mCodeBlock.mType = std::string(parts[0]);
                     }
-                    else
+                    if (parts.size() >= 2)
                     {
-                        codeBlock.mCodeBlock.mTitle = line.substr(3);
+                        codeBlock.mCodeBlock.mTitle = std::string(parts[1]);
+                    }
+                    if (parts.size() >= 3)
+                    {
+                        codeBlock.mCodeBlock.mFixedWidth = std::stoi(std::string(parts[2]));
                     }
                 }
             }

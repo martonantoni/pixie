@@ -29,6 +29,12 @@ template<class T> concept cStringVectorSupportedSource =
     std::same_as<std::decay_t<T>, std::string_view> ||
     std::is_convertible_v<T, const char*>;
 
+template<class T> concept cStringVectorDelimeter = 
+    requires(const std::string_view sv, const T & t) 
+    {
+        { sv.find_first_of(t) } -> std::convertible_to<std::size_t>;
+    };
+
 template<class T> concept cStringContainer = requires(T t)
 {
     t.begin();
@@ -41,16 +47,22 @@ template<cStringVectorSupportedStoredTypes StoredType>
 class tStringVector : public std::vector<StoredType>
 {
     using base = std::vector<StoredType>;
-    template<cStringVectorSupportedSource T> void addFields(const T& source, const std::string& delimeters, bool emptyFieldsAllowed);
+    void addFields(
+        const cStringVectorSupportedSource auto& source,
+        const cStringVectorDelimeter auto& delimeters,
+        bool emptyFieldsAllowed);
     static void trim(StoredType& s);
 public:
     tStringVector() {}
-    template<cStringContainer T> 
-        tStringVector(const T& source);
-    template<cStringVectorSupportedSource T> 
-        tStringVector(const T& sourceString, const std::string& delimeters, bool emptyFieldsAllowed = true);
-    template<cStringVectorSupportedSource T> 
-        void fromString(const T& source, const std::string& delimeters, bool emptyFieldsAllowed = true);
+    tStringVector(const cStringContainer auto& source);
+    tStringVector(
+        const cStringVectorSupportedSource auto& source,
+        const cStringVectorDelimeter auto& delimeters, 
+        bool emptyFieldsAllowed = true);
+    void fromString(
+        const cStringVectorSupportedSource auto& source,
+        const cStringVectorDelimeter auto& delimeters, 
+        bool emptyFieldsAllowed = true);
     void trimAll();
     std::string toString(const std::string& separator) const;
     void fromIntVector(const cIntVector& intVector) requires std::same_as<StoredType, std::string>;
@@ -61,8 +73,10 @@ using cStringVector = tStringVector<std::string>;
 using cStringViewVector = tStringVector<std::string_view>;
 
 template<cStringVectorSupportedStoredTypes StoredType>
-template<cStringVectorSupportedSource T>
-void tStringVector<StoredType>::addFields(const T& source, const std::string& delimeters, bool emptyFieldsAllowed)
+void tStringVector<StoredType>::addFields(
+    const cStringVectorSupportedSource auto& source,
+    const cStringVectorDelimeter auto& delimeters, 
+    bool emptyFieldsAllowed)
 {
     std::string_view sourceView(source);
     std::string::size_type start = 0;
@@ -79,16 +93,20 @@ void tStringVector<StoredType>::addFields(const T& source, const std::string& de
 }
 
 template<cStringVectorSupportedStoredTypes StoredType>
-template<cStringVectorSupportedSource T>
-tStringVector<StoredType>::tStringVector(const T& source, const std::string& delimeters, bool emptyFieldsAllowed)
+tStringVector<StoredType>::tStringVector(
+    const cStringVectorSupportedSource auto& source,
+    const cStringVectorDelimeter auto& delimeters,
+    bool emptyFieldsAllowed)
 {
     this->reserve(4);
     addFields(source, delimeters, emptyFieldsAllowed);
 }
 
 template<cStringVectorSupportedStoredTypes StoredType>
-template<cStringVectorSupportedSource T>
-void tStringVector<StoredType>::fromString(const T& source, const std::string& delimeters, bool emptyFieldsAllowed)
+void tStringVector<StoredType>::fromString(
+    const cStringVectorSupportedSource auto& source,
+    const cStringVectorDelimeter auto& delimeters,
+    bool emptyFieldsAllowed)
 {
     this->clear(); this->reserve(4);
     addFields(source, delimeters, emptyFieldsAllowed);

@@ -5,8 +5,8 @@
 namespace StringVectorTests
 {
 
-template<class SourceType>
-void testConstruction(SourceType source, const std::string &delimeters, bool emptyFieldsAllowed, const std::vector<std::string> &expected)
+template<class SourceType, class DelimeterType>
+void testConstruction(SourceType source, const DelimeterType& delimeters, bool emptyFieldsAllowed, const std::vector<std::string> &expected)
 {
     cStringVector tested(source, delimeters, emptyFieldsAllowed);
     EXPECT_EQ(tested.size(), expected.size()) << "source: \"" << source << "\", delimeters: \"" << delimeters << "\", emptyFieldsAllowed: " << emptyFieldsAllowed;
@@ -41,7 +41,8 @@ void extendString(std::string& str)
     replace(str, "c", "citrom");
 }
 
-void testConstructionExtended(const std::string &source, const std::string &delimeters, bool emptyFieldsAllowed, const std::vector<std::string> &expected)
+template<class DelimeterType>
+void testConstructionExtended(const std::string &source, const DelimeterType& delimeters, bool emptyFieldsAllowed, const std::vector<std::string> &expected)
 {
     testConstruction(source, delimeters, emptyFieldsAllowed, expected);
     std::string extendedSource = source;
@@ -92,6 +93,42 @@ TEST(construction, single_delimeter_allow_empty_fields)
     testConstructionExtended(",a,b,c", ",", true, { "", "a", "b", "c"});
 }
 
+TEST(construction, single_delimeter_allow_empty_fields_char_delimeter)
+{
+    testConstructionExtended("", ',', true, { "" });
+    testConstructionExtended("a", ',', true, { "a" });
+    testConstructionExtended("a,b", ',', true, { "a", "b" });
+    testConstructionExtended(",,,", ',', true, { "", "", "", "" });
+    testConstructionExtended("a,,b", ',', true, { "a", "", "b" });
+    testConstructionExtended("a,b,", ',', true, { "a", "b", "" });
+    testConstructionExtended("a,b,c", ',', true, { "a", "b", "c" });
+    testConstructionExtended(",a,b,c", ',', true, { "", "a", "b", "c" });
+}
+
+TEST(construction, single_delimeter_allow_empty_fields_sv_delimeter)
+{
+    testConstructionExtended("", ","sv, true, { "" });
+    testConstructionExtended("a", ","sv, true, { "a" });
+    testConstructionExtended("a,b", ","sv, true, { "a", "b" });
+    testConstructionExtended(",,,", ","sv, true, { "", "", "", "" });
+    testConstructionExtended("a,,b", ","sv, true, { "a", "", "b" });
+    testConstructionExtended("a,b,", ","sv, true, { "a", "b", "" });
+    testConstructionExtended("a,b,c", ","sv, true, { "a", "b", "c" });
+    testConstructionExtended(",a,b,c", ","sv, true, { "", "a", "b", "c" });
+}
+
+TEST(construction, single_delimeter_allow_empty_fields_string_delimeter)
+{
+    testConstructionExtended("", ","s, true, { "" });
+    testConstructionExtended("a", ","s, true, { "a" });
+    testConstructionExtended("a,b", ","s, true, { "a", "b" });
+    testConstructionExtended(",,,", ","s, true, { "", "", "", "" });
+    testConstructionExtended("a,,b", ","s, true, { "a", "", "b" });
+    testConstructionExtended("a,b,", ","s, true, { "a", "b", "" });
+    testConstructionExtended("a,b,c", ","s, true, { "a", "b", "c" });
+    testConstructionExtended(",a,b,c", ","s, true, { "", "a", "b", "c" });
+}
+
 TEST(construction, single_delimeter_empty_fields_not_allowed)
 {
     testConstructionExtended("", ",", false, {});
@@ -140,6 +177,44 @@ TEST(construction, multiple_delimeters_empty_fields_not_allowed)
     testConstructionExtended("a,b;", ",;", false, { "a", "b" });
     testConstructionExtended("a,b,c", ",;", false, { "a", "b", "c" });
     testConstructionExtended(";a,b;c", ",;", false, { "a", "b", "c" });
+}
+
+TEST(construction, multiple_delimeters_empty_fields_not_allowed_sv_delimeter)
+{
+    testConstructionExtended("", ",;"sv, false, {});
+    testConstructionExtended("a", ",;"sv, false, { "a" });
+    testConstructionExtended("a,b", ",;"sv, false, { "a", "b" });
+    testConstructionExtended(",,,", ",;"sv, false, {});
+    testConstructionExtended("a,,b", ",;"sv, false, { "a", "b" });
+    testConstructionExtended("a,b,", ",;"sv, false, { "a", "b" });
+    testConstructionExtended("a,b,c", ",;"sv, false, { "a", "b", "c" });
+    testConstructionExtended(",a,b,c", ",;"sv, false, { "a", "b", "c" });
+
+    testConstructionExtended("a;b", ",;"sv, false, { "a", "b" });
+    testConstructionExtended(";,;", ",;"sv, false, {});
+    testConstructionExtended("a;,b", ",;"sv, false, { "a", "b" });
+    testConstructionExtended("a,b;", ",;"sv, false, { "a", "b" });
+    testConstructionExtended("a,b,c", ",;"sv, false, { "a", "b", "c" });
+    testConstructionExtended(";a,b;c", ",;"sv, false, { "a", "b", "c" });
+}
+
+TEST(construction, multiple_delimeters_empty_fields_not_allowed_string_delimeter)
+{
+    testConstructionExtended("", ",;"s, false, {});
+    testConstructionExtended("a", ",;"s, false, { "a" });
+    testConstructionExtended("a,b", ",;"s, false, { "a", "b" });
+    testConstructionExtended(",,,", ",;"s, false, {});
+    testConstructionExtended("a,,b", ",;"s, false, { "a", "b" });
+    testConstructionExtended("a,b,", ",;"s, false, { "a", "b" });
+    testConstructionExtended("a,b,c", ",;"s, false, { "a", "b", "c" });
+    testConstructionExtended(",a,b,c", ",;"s, false, { "a", "b", "c" });
+
+    testConstructionExtended("a;b", ",;"s, false, { "a", "b" });
+    testConstructionExtended(";,;", ",;"s, false, {});
+    testConstructionExtended("a;,b", ",;"s, false, { "a", "b" });
+    testConstructionExtended("a,b;", ",;"s, false, { "a", "b" });
+    testConstructionExtended("a,b,c", ",;"s, false, { "a", "b", "c" });
+    testConstructionExtended(";a,b;c", ",;"s, false, { "a", "b", "c" });
 }
 
 TEST(construction_from_string_view, single_delimeter_allow_empty_fields)
