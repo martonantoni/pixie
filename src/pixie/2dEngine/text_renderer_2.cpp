@@ -283,6 +283,11 @@ cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
 {
     cTextRenderer2BlockResult result;
     int headerHeight = 0;
+    const cFont& font = mConfig.mFonts.mMonospace ? *mConfig.mFonts.mMonospace : *mConfig.mFonts.mRegular;
+
+    int width = block.mCodeBlock.mFixedWidth != -1 ?
+        std::min(mTarget.mWidth, font.letterData(' ').advance() * (block.mCodeBlock.mFixedWidth + 1)) :
+        mTarget.mWidth;
     if (!block.mCodeBlock.mTitle.empty())
     {
         // ---- header BG ----
@@ -294,7 +299,7 @@ cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
         headerBackgroundSprite->SetWindow(mTarget.mWindow);
         headerBackgroundSprite->SetRGBColor("dark_gray");
         headerBackgroundSprite->SetPosition(cPoint(0, 0));
-        headerBackgroundSprite->SetSize(cPoint(mTarget.mWidth, headerHeight));
+        headerBackgroundSprite->SetSize(cPoint(width, headerHeight));
         result.mSprites.emplace_back(std::move(headerBackgroundSprite));
         // ---- header text ----
         std::string_view headerText = block.mCodeBlock.mTitle;
@@ -317,7 +322,6 @@ cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
     // ---- block ----
     ASSERT(block.mSpans.size() == 1);
     auto& span = block.mSpans[0];
-    const cFont& font = mConfig.mFonts.mMonospace ? *mConfig.mFonts.mMonospace : *mConfig.mFonts.mRegular;
     int startX = font.letterData(' ').advance();
     cPoint position(startX, font.height() / 2 + headerHeight);
     for (auto lineView : span.mText | std::views::split('\n'))
@@ -347,7 +351,7 @@ cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
     backgroundSprite->SetWindow(mTarget.mWindow);
     backgroundSprite->SetRGBColor(mConfig.mColors.mCodeBlockBG);
     backgroundSprite->SetPosition(cPoint(0, headerHeight));
-    backgroundSprite->SetSize(cPoint(mTarget.mWidth, position.y - headerHeight));
+    backgroundSprite->SetSize(cPoint(width, position.y - headerHeight));
     result.mSprites.emplace_back(std::move(backgroundSprite));
     // ---- border  ----
     auto borderSprite = std::make_unique<cRectBorderMultiSprite>(1);
@@ -355,7 +359,7 @@ cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
     borderSprite->SetWindow(mTarget.mWindow);
     borderSprite->SetRGBColor(mConfig.mColors.mCodeBlockBorder);
     borderSprite->SetPosition(cPoint(0, 0));
-    borderSprite->SetSize(cPoint(mTarget.mWidth, position.y));
+    borderSprite->SetSize(cPoint(width, position.y));
     result.mSprites.emplace_back(std::move(borderSprite));
 
     result.mHeight = position.y + font.height();
