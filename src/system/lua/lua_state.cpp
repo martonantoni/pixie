@@ -220,14 +220,14 @@ void cLuaState::error(lua_State* L, const std::string& message)
     throw std::runtime_error(errorMessage);
 }
 
-std::string cLuaState::configToScript(const cConfig& config, const std::string& ident)
+std::string cLuaState::configToScript(const cConfig& config, const cConfigToScriptStyle& style, const std::string& ident)
 {
     if (ident.empty() && config.isArray())
     {
         throw std::runtime_error("array on global level");
     }
     std::vector<std::tuple<std::string, std::string, bool>> elements; // key, value, isTable
-    config.visit([&elements, ident]
+    config.visit([&elements, &ident, &style]
         (auto key, auto value)
         {
             elements.emplace_back();
@@ -275,13 +275,13 @@ std::string cLuaState::configToScript(const cConfig& config, const std::string& 
             }
             else if constexpr (std::is_same_v<decltype(value), std::shared_ptr<cConfig>>)
             {
-                std::get<1>(elements.back()) = configToScript(*value, ident + "  ");
+                std::get<1>(elements.back()) = configToScript(*value, style, ident + "  ");
                 std::get<2>(elements.back()) = true;
             }
         });
     std::ranges::stable_sort(elements, [](const auto& a, const auto& b) { return std::get<0>(a) < std::get<0>(b); });
     std::string script;
-    auto newLine = ident.empty() ? "\n"s : ",\n"s;
+    auto newLine = ident.empty() ? (style.singleLine ? ";"s : "\n"s) : (style.singleLine ? ","s : ",\n"s);
     for (const auto& [key, value, isTable] : elements)
     {
         if (!key.empty())
@@ -294,7 +294,7 @@ std::string cLuaState::configToScript(const cConfig& config, const std::string& 
         }
         if (isTable)
         {
-            script += "{\n";
+            script += style.singleLine ? "{"s : "{\n"s;
             script += value;
             script += ident + "}" + newLine;
         }

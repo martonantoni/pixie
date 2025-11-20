@@ -61,7 +61,7 @@ TEST(config_from_lua, array)
     ASSERT_EQ(testedConfig->get<int>(4), 5);
 }
 
-TEST(config_to_lua_script, simple_table)
+void configToLuaScript_simple_table(const cLuaState::cConfigToScriptStyle& style)
 {
     cConfig config;
     config.set("a", 1);
@@ -70,7 +70,11 @@ TEST(config_to_lua_script, simple_table)
     config.set("d", true);
     config.set("e", 3.14);
 
-    auto scriptifiedConfig = cLuaState::configToScript(config);
+    auto scriptifiedConfig = cLuaState::configToScript(config, style);
+    if (style.singleLine)
+    {
+        EXPECT_TRUE(scriptifiedConfig.find('\n') == std::string::npos);
+    }
     //printf("%s\n", scriptifiedConfig.c_str());
     auto script = std::make_shared<cLuaState>();
     script->executeString(scriptifiedConfig);
@@ -83,7 +87,17 @@ TEST(config_to_lua_script, simple_table)
     ASSERT_EQ(globalTable.get<double>("e"), 3.14);
 }
 
-TEST(config_to_lua_script, nested_tables)
+TEST(config_to_lua_script, simple_table)
+{
+    configToLuaScript_simple_table({ .singleLine = false });
+}
+
+TEST(config_to_lua_script, simple_table__single_line)
+{
+    configToLuaScript_simple_table({ .singleLine = true });
+}
+
+void configToLuaScript_nestedTable(const cLuaState::cConfigToScriptStyle& style)
 {
     cConfig config;
     {
@@ -101,7 +115,11 @@ TEST(config_to_lua_script, nested_tables)
         subTable11->set("e", 6.28);
     }
 
-    auto scriptifiedConfig = cLuaState::configToScript(config);
+    auto scriptifiedConfig = cLuaState::configToScript(config, style);
+    if (style.singleLine)
+    {
+        EXPECT_TRUE(scriptifiedConfig.find('\n') == std::string::npos);
+    }
     //printf("%s\n", scriptifiedConfig.c_str());
     auto script = std::make_shared<cLuaState>();
     script->executeString(scriptifiedConfig);
@@ -123,7 +141,17 @@ TEST(config_to_lua_script, nested_tables)
     }
 }
 
-TEST(config_to_lua_script, array)
+TEST(config_to_lua_script, nested_tables)
+{
+    configToLuaScript_nestedTable({ .singleLine = false });
+}
+
+TEST(config_to_lua_script, nested_tables__single_line)
+{
+    configToLuaScript_nestedTable({ .singleLine = false });
+}
+
+void configToLuaScript_array(const cLuaState::cConfigToScriptStyle& style)
 {
     cConfig config;
     auto subConfig = config.createSubConfig("my_array");
@@ -134,7 +162,11 @@ TEST(config_to_lua_script, array)
     subConfig->push(true);
     subConfig->push(3.14);
 
-    auto scriptifiedConfig = cLuaState::configToScript(config);
+    auto scriptifiedConfig = cLuaState::configToScript(config, style);
+    if (style.singleLine)
+    {
+        EXPECT_TRUE(scriptifiedConfig.find('\n') == std::string::npos);
+    }
     //printf("%s\n", scriptifiedConfig.c_str());
     auto script = std::make_shared<cLuaState>();
     script->executeString(scriptifiedConfig);
@@ -146,6 +178,16 @@ TEST(config_to_lua_script, array)
     ASSERT_EQ(subTable.get<std::string>(3), "hello");
     ASSERT_EQ(subTable.get<bool>(4), true);
     ASSERT_EQ(subTable.get<double>(5), 3.14);
+}
+
+TEST(config_to_lua_script, array)
+{
+    configToLuaScript_array({ .singleLine = false });
+}
+
+TEST(config_to_lua_script, array__single_line)
+{
+    configToLuaScript_array({ .singleLine = true });
 }
 
 TEST(config_to_lua_script, array_on_global_is_error)
