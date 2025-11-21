@@ -118,7 +118,7 @@ bool cTextureManager2::AddEntire(const std::string &Name, cImageFile *ImageFile)
 	if(Condition) \
 	{ \
 		ASSERT(false); \
-		MainLog->Log("Warning! Invalid line \"%.*s\" in %s (condition: %s)",Line.size(),Line.data(),Path.c_str(),#Condition); \
+		MainLog->Log("Warning! Invalid line \"%.*s\" in %s (condition: %s)",line.size(),line.data(),Path.c_str(),#Condition); \
 		continue; \
 	}
 
@@ -143,16 +143,13 @@ void cTextureManager2::ProcessInfoFile(const std::string &Path, const cPath &Tex
 			return;
 		}
 		cFastFileReader InfoFile(Path);
-		for(;;)
+		for(auto line: InfoFile)
 		{
-			auto [Line, isEOF] = InfoFile.getNextLine();
-			if(isEOF)
-				break;
-			if(Line.size()==0)
+			if(line.empty())
 				continue;
-			if(Line[0]==';'||Line[0]=='#')
+			if(line[0]==';'||line[0]=='#')
 				continue;
-			cStringVector LineTokens((std::string)Line," \t",false);
+			cStringVector LineTokens(line," \t",false);
 			if(LineTokens.empty())
 				continue;
 			if(LineTokens[0]=="entire")
