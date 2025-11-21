@@ -3,16 +3,16 @@
 cCSVConfig::cCSVConfig(const cPath &Path, const std::string &Separator)
 {
 	cFastFileReader File(Path);
-	auto Line=File.GetNextLine();
-	if(!Line.IsValid())
+	auto [Line, isEOF]=File.GetNextLine();
+	if(isEOF)
 		return;
 	mKeys.fromString(std::string(Line), Separator, false);
 	for(;;)
 	{
-		auto Line=File.GetNextLine();
-		if(!Line.IsValid())
+		auto [Line, isEOF]=File.GetNextLine();
+		if(isEOF)
 			return;
-		if(Line.Length>0)
+		if(Line.size()>0)
 			mRows.emplace_back(std::string(Line), Separator, true);
 	}
 }

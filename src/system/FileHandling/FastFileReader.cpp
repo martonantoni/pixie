@@ -59,12 +59,12 @@ int cFastFileReader::MoveView()
 // 0x0a
 // 0x0d 0x0a
 
-cFastFileReader::cLine cFastFileReader::GetNextLine()
+std::pair<cFastFileReader::cLine, bool> cFastFileReader::GetNextLine()
 {
     if (mPosition == mEndPosition)
     {
         if (!MoveView())
-            return cLine(NULL, 0);
+            return { {}, true };
     }
     // Find the end of the line
     for (;;) // (try again if there was not enough buffer first)
@@ -82,7 +82,7 @@ cFastFileReader::cLine cFastFileReader::GetNextLine()
         { // Did not find the line's end
             __int64 OldViewOffset = mViewOffset;
             if (!MoveView())
-                return cLine(NULL, 0); // End of file
+                return { {}, true };
             if (mViewOffset == OldViewOffset)
             {
                 if (mViewOffset + (mEndPosition - mViewPosition) == mFileSize)
@@ -90,7 +90,7 @@ cFastFileReader::cLine cFastFileReader::GetNextLine()
                     --lineEnd;
                     char* LineStart = mPosition;
                     mPosition = mEndPosition;
-                    return cLine(LineStart, (int)(lineEnd - LineStart + 1));
+                    return { cLine(LineStart, (int)(lineEnd - LineStart + 1)) , false };
                 }
                 else
                     THROW_DETAILED_EXCEPTION(fmt::sprintf("Too long line in file (ViewOffset: %d). File: %s", mViewOffset, FileName.c_str()));
@@ -103,8 +103,16 @@ cFastFileReader::cLine cFastFileReader::GetNextLine()
             int lineLength = static_cast<int>(lineEnd - lineStart);
             if (lineLength >= 1 && lineStart[lineLength - 1] == 0xd)
                 --lineLength;
-            return cLine(lineStart, lineLength);
+            return { cLine(lineStart, lineLength), false };
         }
     }
-    return cLine(NULL, 0);
+    return { {}, true };
+}
+
+cFastFileReader::iterator cFastFileReader::begin()
+{
+    auto [firstLine, isEOF] = GetNextLine();
+    if (isEOF)
+        return {};
+    return iterator(*this, firstLine);
 }

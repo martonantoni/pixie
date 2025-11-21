@@ -3,29 +3,56 @@
 class cFastFileReader
 {
 public:
-	struct cLine
-	{
-		const char *Data = nullptr;
-		int Length = 0;
-		cLine(const char *pData,int pLength): Data(pData), Length(pLength) {}
-        cLine() = default;
-		int IsValid() { return Data!=NULL; }
-		inline operator std::string() const { return std::string(Data,Length); }
-		inline bool empty() const { return Length == 0; }
-		const char* end() const { return Data + Length; }
-		const char* begin() const { return Data; }
-		char operator[](int i) const { return Data[i]; }
-	};
+	using cLine = std::string_view;
     class iterator
     {
     public:
-        iterator(cFastFileReader& reader, cLine line) : mReader(reader), mLine(line) {}
-        cLine operator*() const { return mLine; }
-        iterator& operator++() { mLine = mReader.GetNextLine(); return *this; }
-        bool operator!=(const iterator& rhs) const { return mLine.Data != rhs.mLine.Data; }
+        // --- Iterator traits ---
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = cLine;
+        using difference_type = std::ptrdiff_t;
+        using reference = cLine;
+        using pointer = const cLine*;
+
     private:
-        cFastFileReader& mReader;
-        cLine mLine;
+        cFastFileReader* mReader = nullptr;
+        cLine mLine{};
+        bool mIsEnd = true;
+
+    public:
+        iterator() = default; // end iterator
+        iterator(cFastFileReader& reader, cLine firstLine)
+            : mReader(&reader), mLine(firstLine), mIsEnd(false)
+        {
+        }
+        reference operator*() const { return mLine; }
+        pointer operator->() const { return &mLine; }
+        iterator& operator++()
+        {
+            if (!mIsEnd) 
+            {
+                std::tie(mLine, mIsEnd) = mReader->GetNextLine();
+            }
+            return *this;
+        }
+        iterator operator++(int)
+        {
+            iterator tmp = *this;
+            ++(*this);
+            return tmp;
+        }
+        bool operator==(const iterator& other) const
+        {
+            if (mIsEnd && other.mIsEnd)
+                return true;
+            if (mIsEnd != other.mIsEnd)
+                return false;
+            return mReader == other.mReader;
+        }
+        bool operator!=(const iterator& other) const 
+        {
+            return !(*this == other);
+        }
     };
 private:
 	std::string FileName; // Stored for debug purposes
@@ -42,26 +69,9 @@ public:
 	cFastFileReader(const cPath &Path);
 	~cFastFileReader();
 
-	cLine GetNextLine();
+    std::pair<cLine, bool> GetNextLine(); // returns line, isEOF
 	__int64 GetFileSize() const { return mFileSize; }
 	const std::string &GetFileName() const { return FileName; }
-    iterator begin() { return { *this, GetNextLine() }; }
-    iterator end() { return { *this, {} }; }
+    iterator begin();
+    iterator end() { return {}; }
 };
-
-inline const char *cbegin(const cFastFileReader::cLine &Line)
-{
-	return Line.Data;
-}
-inline const char *cend(const cFastFileReader::cLine &Line)
-{
-	return Line.end();
-}
-inline const char *begin(cFastFileReader::cLine &Line)
-{
-	return Line.Data;
-}
-inline const char *end(cFastFileReader::cLine &Line)
-{
-	return Line.end();
-}
