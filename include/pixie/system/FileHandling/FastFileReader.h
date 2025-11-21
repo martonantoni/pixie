@@ -1,6 +1,13 @@
 #pragma once
 
-class cFastFileReader
+// Supports both CRLF and LF line endings, but not CR (mac old style).
+// Windows only, uses memory mapped files for performance.
+
+#ifndef _WIN32
+#error "cFastFileReader is only supported on Windows"
+#endif
+
+class cFastFileReader final
 {
 public:
 	using cLine = std::string_view;
@@ -21,57 +28,68 @@ public:
 
     public:
         iterator() = default; // end iterator
-        iterator(cFastFileReader& reader, cLine firstLine)
-            : mReader(&reader), mLine(firstLine), mIsEnd(false)
-        {
-        }
+        iterator(cFastFileReader& reader, cLine firstLine);
         reference operator*() const { return mLine; }
         pointer operator->() const { return &mLine; }
-        iterator& operator++()
-        {
-            if (!mIsEnd) 
-            {
-                std::tie(mLine, mIsEnd) = mReader->GetNextLine();
-            }
-            return *this;
-        }
-        iterator operator++(int)
-        {
-            iterator tmp = *this;
-            ++(*this);
-            return tmp;
-        }
-        bool operator==(const iterator& other) const
-        {
-            if (mIsEnd && other.mIsEnd)
-                return true;
-            if (mIsEnd != other.mIsEnd)
-                return false;
-            return mReader == other.mReader;
-        }
-        bool operator!=(const iterator& other) const 
-        {
-            return !(*this == other);
-        }
+        iterator& operator++();
+        iterator operator++(int);
+        bool operator==(const iterator& other) const;
+        bool operator!=(const iterator& other) const;
     };
 private:
-	std::string FileName; // Stored for debug purposes
-	enum { MaxViewSize = 0x20000 }; 
-	HANDLE FileHandle,FileMappingHandle;
-	int SystemGranuality; // Size of memory pages
+    const std::filesystem::path mPath; // Stored for debug purposes
+	static constexpr int MaxViewSize = 0x20000; 
+	HANDLE mFileHandle, mFileMappingHandle;
+	int mSystemGranuality; // Size of memory pages
 	__int64 mFileSize;
 	__int64 mViewOffset;
 	char *mViewPosition;
 	char *mPosition;
 	char *mEndPosition;
-	int MoveView(); // returns true if there is more of the file to read
+	int moveView(); // returns true if there is more of the file to read
 public:
-	cFastFileReader(const cPath &Path);
+	cFastFileReader(const std::filesystem::path &Path);
 	~cFastFileReader();
 
-    std::pair<cLine, bool> GetNextLine(); // returns line, isEOF
-	__int64 GetFileSize() const { return mFileSize; }
-	const std::string &GetFileName() const { return FileName; }
+    std::pair<cLine, bool> getNextLine(); // returns line, isEOF
+	__int64 fileSize() const { return mFileSize; }
+	const std::filesystem::path& path() const { return mPath; }
     iterator begin();
     iterator end() { return {}; }
 };
+
+
+inline cFastFileReader::iterator::iterator(cFastFileReader& reader, cLine firstLine)
+    : mReader(&reader), mLine(firstLine), mIsEnd(false)
+{
+}
+
+inline cFastFileReader::iterator& cFastFileReader::iterator::operator++()
+{
+    if (!mIsEnd)
+    {
+        std::tie(mLine, mIsEnd) = mReader->getNextLine();
+    }
+    return *this;
+}
+
+inline cFastFileReader::iterator cFastFileReader::iterator::operator++(int)
+{
+    iterator tmp = *this;
+    ++(*this);
+    return tmp;
+}
+
+inline bool cFastFileReader::iterator::operator==(const iterator& other) const
+{
+    if (mIsEnd && other.mIsEnd)
+        return true;
+    if (mIsEnd != other.mIsEnd)
+        return false;
+    return mReader == other.mReader;
+}
+
+inline bool cFastFileReader::iterator::operator!=(const iterator& other) const
+{
+    return !(*this == other);
+}

@@ -3,13 +3,13 @@
 cCSVConfig::cCSVConfig(const cPath &Path, const std::string &Separator)
 {
 	cFastFileReader File(Path);
-	auto [Line, isEOF]=File.GetNextLine();
+	auto [Line, isEOF]=File.getNextLine();
 	if(isEOF)
 		return;
 	mKeys.fromString(std::string(Line), Separator, false);
 	for(;;)
 	{
-		auto [Line, isEOF]=File.GetNextLine();
+		auto [Line, isEOF]=File.getNextLine();
 		if(isEOF)
 			return;
 		if(Line.size()>0)

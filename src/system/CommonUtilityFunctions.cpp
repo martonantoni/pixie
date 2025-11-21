@@ -26,7 +26,7 @@ void TruncateFileAt(const std::string &FileName,__int64 NewFileSize)
 	CloseHandle(FileHandle);
 }
 
-__int64 GetFileSize(const std::string &FileName)
+__int64 fileSize(const std::string &FileName)
 {
 	HANDLE FileHandle=CreateFile(FileName.c_str(),GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0);
 	if(FileHandle==INVALID_HANDLE_VALUE)

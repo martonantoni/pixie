@@ -3,6 +3,12 @@
 bool Global_HandleAssert(const std::string &Text,int *Ignored);
 void ThrowLastError(const std::string &Text);
 
+inline void throwLastError(const std::string& context)
+{
+	DWORD error = ::GetLastError();
+	throw std::system_error(static_cast<int>(error), std::system_category(), context);
+}
+
 #define THE_ASSERT_MACRO(x,Info)\
 	do \
 		{\

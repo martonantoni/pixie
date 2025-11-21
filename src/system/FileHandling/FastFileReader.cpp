@@ -1,69 +1,72 @@
 #include "StdAfx.h"
 
 
-cFastFileReader::cFastFileReader(const cPath &Path): FileName(Path.toString())
+cFastFileReader::cFastFileReader(const std::filesystem::path& path) :
+    mPath(path)
 {
-	FileHandle=::CreateFile(FileName.c_str(),GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,NULL);
-	if(FileHandle==INVALID_HANDLE_VALUE)
-		ThrowLastError(fmt::sprintf("CreateFile(\"%s\")",FileName.c_str()));
-	FileMappingHandle=::CreateFileMapping(FileHandle,NULL,PAGE_WRITECOPY,0,0,NULL);
-	if(FileMappingHandle==INVALID_HANDLE_VALUE)
-	{
-		::CloseHandle(FileHandle);
-		ThrowLastError(fmt::sprintf("CreateFileMapping(\"%s\")", FileName.c_str()));
-	}
-	GetFileSizeEx(FileHandle,(LARGE_INTEGER *)&mFileSize);
-	SYSTEM_INFO SystemInfo;
-	::GetSystemInfo(&SystemInfo);
-	SystemGranuality=SystemInfo.dwAllocationGranularity;
+    mFileHandle = ::CreateFile(path.string().c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+    if (mFileHandle == INVALID_HANDLE_VALUE)
+    {
+        throwLastError(std::format("CreateFile(\"{}\")", mPath.string()));
+    }
+    mFileMappingHandle = ::CreateFileMapping(mFileHandle, NULL, PAGE_WRITECOPY, 0, 0, NULL);
+    if (mFileMappingHandle == INVALID_HANDLE_VALUE)
+    {
+        ::CloseHandle(mFileHandle);
+        throwLastError(std::format("CreateFileMapping(\"{}\")", mPath.string()));
+    }
+    GetFileSizeEx(mFileHandle, (LARGE_INTEGER*)&mFileSize);
+    SYSTEM_INFO SystemInfo;
+    ::GetSystemInfo(&SystemInfo);
+    mSystemGranuality = SystemInfo.dwAllocationGranularity;
 
-	mViewOffset=0;
-	mViewPosition=mPosition=mEndPosition=NULL;
+    mViewOffset = 0;
+    mViewPosition = mPosition = mEndPosition = NULL;
 }
 
 cFastFileReader::~cFastFileReader()
 {
-	if(FileHandle!=INVALID_HANDLE_VALUE)
-	{
-		if(mViewPosition)
-			if(!::UnmapViewOfFile(mViewPosition))
-				ThrowLastError(fmt::sprintf("UnmapViewOfFile failed. File: %s",FileName.c_str()));
-		if(FileMappingHandle!=INVALID_HANDLE_VALUE)
-			CloseHandle(FileMappingHandle);
-		CloseHandle(FileHandle);
-	}
+    if (mFileHandle != INVALID_HANDLE_VALUE)
+    {
+        if (mViewPosition)
+            if (!::UnmapViewOfFile(mViewPosition))
+                throwLastError(std::format("UnmapViewOfFile failed. File: {}", mPath.string()));
+        if (mFileMappingHandle != INVALID_HANDLE_VALUE)
+            CloseHandle(mFileMappingHandle);
+        CloseHandle(mFileHandle);
+    }
 }
 
-int cFastFileReader::MoveView()
-{ 
-	if(mViewPosition)
-		if(!::UnmapViewOfFile(mViewPosition))
-			ThrowLastError(fmt::sprintf("UnmapViewOfFile failed. File: %s",FileName.c_str()));
-	__int64 Offset=(mPosition-mViewPosition)+mViewOffset;
-	if(Offset==mFileSize)
-	{
-		mViewPosition=NULL;
-		return false;
-	}
-	__int64 OffsetError=Offset%SystemGranuality;
-	mViewOffset=Offset-OffsetError;
-	int ViewSize=Low32(std::min<__int64>(mFileSize-mViewOffset,MaxViewSize));
-	mViewPosition=(char *)::MapViewOfFile(FileMappingHandle,FILE_MAP_COPY,High32(mViewOffset),Low32(mViewOffset),ViewSize);
-	if(!mViewPosition)
-		ThrowLastError(fmt::sprintf("MapViewOfFile failed (offset= %d, size: %d). File: %s",mViewOffset,ViewSize,FileName.c_str()));
-	mPosition=mViewPosition+OffsetError;
-	mEndPosition=mViewPosition+ViewSize;
-	return true;
+int cFastFileReader::moveView()
+{
+    if (mViewPosition)
+        if (!::UnmapViewOfFile(mViewPosition))
+            throwLastError(std::format("UnmapViewOfFile failed. File: {}", mPath.string()));
+    __int64 Offset = (mPosition - mViewPosition) + mViewOffset;
+    if (Offset == mFileSize)
+    {
+        mViewPosition = NULL;
+        return false;
+    }
+    __int64 OffsetError = Offset % mSystemGranuality;
+    mViewOffset = Offset - OffsetError;
+    int ViewSize = Low32(std::min<__int64>(mFileSize - mViewOffset, MaxViewSize));
+    mViewPosition = (char*)::MapViewOfFile(mFileMappingHandle, FILE_MAP_COPY, High32(mViewOffset), Low32(mViewOffset), ViewSize);
+    if (!mViewPosition)
+        throwLastError(std::format("MapViewOfFile failed (offset= {}, size: {}). File: {}", mViewOffset, ViewSize, mPath.string()));
+    mPosition = mViewPosition + OffsetError;
+    mEndPosition = mViewPosition + ViewSize;
+    return true;
 }
 
 // 0x0a
 // 0x0d 0x0a
 
-std::pair<cFastFileReader::cLine, bool> cFastFileReader::GetNextLine()
+std::pair<cFastFileReader::cLine, bool> cFastFileReader::getNextLine()
 {
     if (mPosition == mEndPosition)
     {
-        if (!MoveView())
+        if (!moveView())
             return { {}, true };
     }
     // Find the end of the line
@@ -81,7 +84,7 @@ std::pair<cFastFileReader::cLine, bool> cFastFileReader::GetNextLine()
         if (lineEnd == mEndPosition)
         { // Did not find the line's end
             __int64 OldViewOffset = mViewOffset;
-            if (!MoveView())
+            if (!moveView())
                 return { {}, true };
             if (mViewOffset == OldViewOffset)
             {
@@ -93,7 +96,7 @@ std::pair<cFastFileReader::cLine, bool> cFastFileReader::GetNextLine()
                     return { cLine(LineStart, (int)(lineEnd - LineStart + 1)) , false };
                 }
                 else
-                    THROW_DETAILED_EXCEPTION(fmt::sprintf("Too long line in file (ViewOffset: %d). File: %s", mViewOffset, FileName.c_str()));
+                    throw std::runtime_error(std::format("Too long line in file (ViewOffset: {}). File: {}", mViewOffset, mPath.string()));
             }
         }
         else
@@ -111,7 +114,7 @@ std::pair<cFastFileReader::cLine, bool> cFastFileReader::GetNextLine()
 
 cFastFileReader::iterator cFastFileReader::begin()
 {
-    auto [firstLine, isEOF] = GetNextLine();
+    auto [firstLine, isEOF] = getNextLine();
     if (isEOF)
         return {};
     return iterator(*this, firstLine);

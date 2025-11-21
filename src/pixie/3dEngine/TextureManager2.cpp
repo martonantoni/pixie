@@ -145,7 +145,7 @@ void cTextureManager2::ProcessInfoFile(const std::string &Path, const cPath &Tex
 		cFastFileReader InfoFile(Path);
 		for(;;)
 		{
-			auto [Line, isEOF] = InfoFile.GetNextLine();
+			auto [Line, isEOF] = InfoFile.getNextLine();
 			if(isEOF)
 				break;
 			if(Line.size()==0)

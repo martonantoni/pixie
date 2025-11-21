@@ -9,6 +9,8 @@ namespace FastFileReaderTests
 
 const std::filesystem::path testFilePath_crlf = "test_fast_file_reader_crlf.txt";
 const std::filesystem::path testFilePath_lf = "test_fast_file_reader_lf.txt";
+const std::filesystem::path testEmptyFilePath = "test_fast_file_reader_empty.txt";
+const std::filesystem::path testSingleEmptyLineFilePath = "test_fast_file_reader_single_empty_line.txt";
 bool testFilesCreated = false;
 int linesWritten = 0;
 
@@ -84,6 +86,16 @@ void createTestFiles()
         return;
     createTestFile("\r\n"s, testFilePath_crlf);
     createTestFile("\n"s, testFilePath_lf);
+
+    {
+        cFile emptyOut;
+        emptyOut.Open(testEmptyFilePath, cFile::Open_Truncate | cFile::Open_Write);
+    }
+    {
+        cFile singleEmptyLineOut;
+        singleEmptyLineOut.Open(testSingleEmptyLineFilePath, cFile::Open_Truncate | cFile::Open_Write);
+        singleEmptyLineOut.Write("\n", 1);
+    }
 }
 
 void testReadLines(const std::filesystem::path& path)
@@ -109,6 +121,55 @@ TEST(fast_file_reader, read_lines_lf)
 {
     createTestFiles();
     testReadLines(testFilePath_lf);
+}
+
+TEST(fast_file_reader, empty_file)
+{
+    createTestFiles();
+    {
+        cFastFileReader reader(testEmptyFilePath);
+        auto it = reader.begin();
+        auto endIt = reader.end();
+        EXPECT_EQ(it, endIt);
+    }
+    {
+        cFastFileReader reader(testEmptyFilePath);
+        for (auto line : reader)
+        {
+            EXPECT_TRUE(false) << "Should not read any lines from empty file";
+        }
+    }
+}
+
+TEST(fast_file_reader, single_empty_line)
+{
+    createTestFiles();
+    {
+        cFastFileReader reader(testSingleEmptyLineFilePath);
+        auto it = reader.begin();
+        auto endIt = reader.end();
+        ASSERT_NE(it, endIt);
+        EXPECT_EQ(*it, "");
+        ++it;
+        EXPECT_EQ(it, endIt);
+    }
+    {
+        cFastFileReader reader(testSingleEmptyLineFilePath);
+        int lineCount = 0;
+        for (auto line : reader)
+        {
+            EXPECT_EQ(line, "");
+            ++lineCount;
+        }
+        EXPECT_EQ(lineCount, 1);
+    }
+}
+
+TEST(fast_file_reader, nonexisting_file_exception)
+{
+    EXPECT_THROW({
+        cFastFileReader reader("this_file_does_not_exist.txt");
+        }, std::runtime_error);
 }
 
 
