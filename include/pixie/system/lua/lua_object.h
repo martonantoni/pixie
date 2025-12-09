@@ -328,8 +328,8 @@ template<cLuaReturnable... ReturnTs, cLuaAssignable... Args> auto cLuaObject::ca
     {
         throw std::runtime_error("not a valid lua object");
     }
+    cLuaStackGuard guard(*mState);
     lua_State* L = mState->state();
-    int startSize = lua_gettop(L);
     lua_rawgeti(L, LUA_REGISTRYINDEX, mReference); // Retrieve the table from the registry
     if (!lua_isfunction(L, -1))
     {
@@ -344,12 +344,10 @@ template<cLuaReturnable... ReturnTs, cLuaAssignable... Args> auto cLuaObject::ca
     if (status != 0) 
     {
         const char* errorMessage = lua_tostring(L, -1);
-        lua_pop(L, startSize - lua_gettop(L));
         throw std::runtime_error(std::format("lua error: {}", errorMessage));
     }
     if constexpr (sizeof...(ReturnTs) == 0)
     {
-        lua_pop(L, lua_gettop(L) - startSize);
         return;
     }
     else if constexpr (sizeof...(ReturnTs) == 1)
@@ -357,7 +355,6 @@ template<cLuaReturnable... ReturnTs, cLuaAssignable... Args> auto cLuaObject::ca
         using FirstType = std::tuple_element_t<0, std::tuple<ReturnTs...>>;
         if constexpr (std::is_same_v<FirstType, void>)
         {
-            lua_pop(L, lua_gettop(L) - startSize);
             return;
         }
         else if constexpr(std::is_same_v<FirstType, cLuaReturnVector>)
@@ -369,13 +366,11 @@ template<cLuaReturnable... ReturnTs, cLuaAssignable... Args> auto cLuaObject::ca
             {
                 returnValues[i - 1] = cLuaObject(mState, luaL_ref(L, LUA_REGISTRYINDEX), false);
             }
-            lua_pop(L, lua_gettop(L) - startSize);
             return returnValues;
         }
         else
         {
             auto returnValue = pop<FirstType>(*mState, L);
-            lua_pop(L, lua_gettop(L) - startSize);
             return returnValue;
         }
     }
