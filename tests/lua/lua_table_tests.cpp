@@ -797,6 +797,130 @@ TEST(lua_function_call, returning_vector)
     ASSERT_EQ(script->stackSize(), 0);
 }
 
+TEST(lua_function_call, explicit_error_produces_traceback)
+{
+    auto script = std::make_shared<cLuaState>();
+
+    script->executeString(
+        "function testedFunction()\n"
+        "   error(\"boom from lua\")\n"
+        "end");
+
+    cLuaObject globalTable = script->globalTable();
+    auto func = globalTable.get("testedFunction"s);
+
+    try
+    {
+        func.call();
+        FAIL() << "Expected std::runtime_error to be thrown";
+    }
+    catch (const std::runtime_error& e)
+    {
+        std::string msg = e.what();
+
+        // Comes from error("boom from lua")
+        EXPECT_NE(msg.find("boom from lua"), std::string::npos)
+            << "Message was: " << msg;
+
+        // If using luaL_traceback, the stack trace should contain the function name
+        EXPECT_NE(msg.find("testedFunction"), std::string::npos)
+            << "Message was: " << msg;
+
+    }
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_function_call, runtime_error_with_arguments_produces_traceback)
+{
+    auto script = std::make_shared<cLuaState>();
+
+    script->executeString(
+        "function testedFunction(a, b)\n"
+        "   local sum = a + b\n"
+        "   error(\"boom with args: \" .. sum)\n"
+        "end");
+
+    cLuaObject globalTable = script->globalTable();
+    auto func = globalTable.get("testedFunction"s);
+
+    try
+    {
+        func.call(10, 11);
+        FAIL() << "Expected std::runtime_error to be thrown";
+    }
+    catch (const std::runtime_error& e)
+    {
+        std::string msg = e.what();
+
+        EXPECT_NE(msg.find("boom with args: 21"), std::string::npos)
+            << "Message was: " << msg;
+
+        EXPECT_NE(msg.find("testedFunction"), std::string::npos)
+            << "Message was: " << msg;
+    }
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+
+TEST(lua_function_call, calling_non_function_throws_and_clears_stack)
+{
+    auto script = std::make_shared<cLuaState>();
+
+    script->executeString("value = 42\n");
+    cLuaObject globalTable = script->globalTable();
+    auto notAFunction = globalTable.get("value"s);
+
+    try
+    {
+        notAFunction.call();
+        FAIL() << "Expected std::runtime_error when calling non-function";
+    }
+    catch (const std::runtime_error& e)
+    {
+        std::string msg = e.what();
+        EXPECT_NE(msg.find("not a function"), std::string::npos)
+            << "Message was: " << msg;
+    }
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_oop, member_function_error_produces_traceback)
+{
+    auto script = std::make_shared<cLuaState>();
+
+    script->executeString(
+        "my_table = {\n"
+        "    a = 1,\n"
+        "    fail = function(self, x)\n"
+        "        error(\"member boom: \" .. x)\n"
+        "    end\n"
+        "}");
+
+    auto globalTable = script->globalTable();
+    auto myTable = globalTable.get<cLuaObject>("my_table");
+
+    try
+    {
+        myTable.callMember("fail"s, 42);
+        FAIL() << "Expected std::runtime_error to be thrown";
+    }
+    catch (const std::runtime_error& e)
+    {
+        std::string msg = e.what();
+
+        EXPECT_NE(msg.find("member boom: 42"), std::string::npos)
+            << "Message was: " << msg;
+    }
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+
+
+
 TEST(lua_object, c_to_lua_back_to_c)
 {
     auto script = std::make_shared<cLuaState>();

@@ -328,3 +328,26 @@ void cLuaObject::remove(const cKey& key)
         }
     }
 }
+
+int cLuaObject::luaErrorFunction(lua_State* L)
+{
+    // Error object is at index 1
+    const char* msg = lua_tostring(L, 1);
+    if (!msg)
+    {
+        // Try __tostring metamethod if not a string
+        if (luaL_callmeta(L, 1, "__tostring") && lua_isstring(L, -1))
+        {
+            msg = lua_tostring(L, -1);
+            lua_remove(L, 1);  // remove original error object
+        }
+        else
+        {
+            msg = "non-string error object";
+        }
+    }
+
+    // Push traceback with that message
+    luaL_traceback(L, L, msg, 1);
+    return 1; // return the traceback string}
+}

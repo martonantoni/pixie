@@ -42,6 +42,7 @@ private:
     static void pushKey(lua_State* L, const cKey& key);
     class cStateWithSelfCleanup;
     cStateWithSelfCleanup retrieveSelf() const; // returns nullptr on error, self will be at -1 on stack if successful
+    static int luaErrorFunction(lua_State* L);
 public:
 
     cLuaObject() = default;
@@ -330,17 +331,19 @@ template<cLuaReturnable... ReturnTs, cLuaAssignable... Args> auto cLuaObject::ca
     }
     cLuaStackGuard guard(*mState);
     lua_State* L = mState->state();
+
+    lua_pushcfunction(L, luaErrorFunction); // Push error handler
+
     lua_rawgeti(L, LUA_REGISTRYINDEX, mReference); // Retrieve the table from the registry
     if (!lua_isfunction(L, -1))
     {
         throw std::runtime_error("not a function");
     }
-    int oldSize = lua_gettop(L);
     if constexpr (sizeof...(args) > 0)
     {
         push(L, args...);
     }
-    int status = lua_pcall(L, sizeof...(args), LUA_MULTRET, 0);
+    int status = lua_pcall(L, sizeof...(args), LUA_MULTRET, guard.oldTop() + 1);
     if (status != 0) 
     {
         const char* errorMessage = lua_tostring(L, -1);
@@ -360,11 +363,12 @@ template<cLuaReturnable... ReturnTs, cLuaAssignable... Args> auto cLuaObject::ca
         else if constexpr(std::is_same_v<FirstType, cLuaReturnVector>)
         {
             std::vector<cLuaObject> returnValues;
-            auto numberOfReturnValues = lua_gettop(L);
+            auto numberOfReturnValues = lua_gettop(L) - guard.oldTop() - 1; // -1 for error handler
             returnValues.resize(numberOfReturnValues);
-            for (int i = lua_gettop(L); i >= 1; --i) // at the bottom of the stack, our table is.
+            for (int i = 0; i < numberOfReturnValues; ++i)
             {
-                returnValues[i - 1] = cLuaObject(mState, luaL_ref(L, LUA_REGISTRYINDEX), false);
+                returnValues[numberOfReturnValues - i - 1] = 
+                    cLuaObject(mState, luaL_ref(L, LUA_REGISTRYINDEX), false);
             }
             return returnValues;
         }
