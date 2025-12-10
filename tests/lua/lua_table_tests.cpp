@@ -1110,6 +1110,98 @@ TEST(lua_object, forEach)
     ASSERT_TRUE(extractedValues["mySubTable"].isTable());
 }
 
+TEST(lua_table_iterate, simple_iterate)
+{
+    auto script = std::make_shared<cLuaState>();
+    script->executeString(
+        "my_table = { apple = 22, pear = 33, banana = 44 }");
+    auto globalTable = script->globalTable();
+    auto myTable = globalTable.get<cLuaObject>("my_table");
+    std::unordered_map<std::string, int> extractedValues;
+    for (const auto& [key, value] : myTable)
+    {
+        extractedValues[key.toString()] = value.toInt();
+        ASSERT_EQ(script->stackSize(), 0);
+    }
+    ASSERT_EQ(extractedValues.size(), 3u);
+    ASSERT_EQ(extractedValues["apple"], 22);
+    ASSERT_EQ(extractedValues["pear"], 33);
+    ASSERT_EQ(extractedValues["banana"], 44);
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+void checkIfZeroIteration(auto& script)
+{
+    auto globalTable = script->globalTable();
+    auto myTable = globalTable.get<cLuaObject>("my_table");
+    size_t count = 0;
+    for (const auto& [key, value] : myTable)
+    {
+        ++count;
+        ASSERT_EQ(script->stackSize(), 0);
+    }
+    ASSERT_EQ(count, 0u);
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_table_iterate, empty_table)
+{
+    auto script = std::make_shared<cLuaState>();
+    script->executeString(
+        "my_table = {}");
+    checkIfZeroIteration(script);
+}
+
+TEST(lua_table_iterate, non_table)
+{
+    auto script = std::make_shared<cLuaState>();
+    script->executeString(
+        "my_table = 42");   // not a table, test is to see that iteration does not throw
+
+    checkIfZeroIteration(script);
+}
+
+TEST(lua_table_iterate, iterating_global_table)
+{
+    auto script = std::make_shared<cLuaState>();
+    script->executeString(
+        "apple = 42\n"
+        "banana = 44\n"
+        "pear = 33\n");
+    auto globalTable = script->globalTable();
+    std::unordered_map<std::string, int> extractedValues;
+    for (const auto& [key, value] : globalTable)
+    {
+        extractedValues[key.toString()] = value.toInt();
+        ASSERT_EQ(script->stackSize(), 0);
+    }
+    ASSERT_EQ(extractedValues.size(), 3u);
+    ASSERT_EQ(extractedValues["apple"], 42);
+    ASSERT_EQ(extractedValues["pear"], 33);
+    ASSERT_EQ(extractedValues["banana"], 44);
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_table_iterate, copy_iterator)
+{
+    auto script = std::make_shared<cLuaState>();
+    script->executeString(
+        "my_table = { apple = 22, pear = 33, banana = 44 }");
+    auto globalTable = script->globalTable();
+    auto myTable = globalTable.get<cLuaObject>("my_table");
+    std::unordered_map<std::string, int> extractedValues;
+    for (auto it = myTable.begin(); it != myTable.end(); ++it)
+    {
+        auto itCopy = it; // copy iterator
+        extractedValues[(*itCopy).first.toString()] = (*itCopy).second.toInt();
+        ASSERT_EQ(script->stackSize(), 0);
+    }
+    ASSERT_EQ(extractedValues.size(), 3u);
+    ASSERT_EQ(extractedValues["apple"], 22);
+    ASSERT_EQ(extractedValues["pear"], 33);
+    ASSERT_EQ(extractedValues["banana"], 44);
+    ASSERT_EQ(script->stackSize(), 0);
+}
 
 TEST(lua_execute, simple_execute)
 {

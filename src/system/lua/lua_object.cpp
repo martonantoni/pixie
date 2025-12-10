@@ -11,6 +11,7 @@ cLuaObject::cLuaObject(std::shared_ptr<cLuaState> state, int reference, bool isG
 cLuaObject::cLuaObject(cLuaObject&& src)
     : mState(std::move(src.mState))
     , mReference(src.mReference)
+    , mIsGlobalTable(src.mIsGlobalTable)
 {
     src.mReference = LUA_NOREF;
 }
@@ -24,6 +25,7 @@ cLuaObject::~cLuaObject()
 }
 
 cLuaObject::cLuaObject(const cLuaObject& src)
+    : mIsGlobalTable(src.mIsGlobalTable)
 {
     if (!src.mState || src.mReference == LUA_NOREF)
     {
@@ -135,6 +137,84 @@ bool cLuaObject::isTable() const
         return result;
     }
     return false;
+}
+
+cLuaObject::iterator::iterator(const cLuaObject& table)
+    : mTable(table)
+    , mEnd(false)
+{
+    if (!mTable.isTable())
+    {
+        mEnd = true;
+        return;
+    }
+    {
+        if (auto L = mTable.retrieveSelf())
+        {
+            lua_pushnil(L); // first key
+            mKey = cLuaObject{ mTable.mState, luaL_ref(L, LUA_REGISTRYINDEX), false }; // pops the nil
+        }
+        else
+            return;
+    }
+    next();
+}
+
+bool cLuaObject::iterator::operator==(const iterator& other) const
+{
+    return mEnd && other.mEnd; // cannot compare mTable, mKey, mValue easily, so just compare end state
+}
+
+void cLuaObject::iterator::next()
+{
+    if (mEnd)
+    {
+        return;
+    }
+    if (auto L = mTable.retrieveSelf())
+    {
+        do
+        {
+            mKey.retrieveSelf().release(); // pushes the key onto the stack
+            if (lua_next(L, -2) != 0)  // table at -2, key at -1
+            {
+                mValue = cLuaObject{ mTable.mState, luaL_ref(L, LUA_REGISTRYINDEX), false }; // pops the value
+                mKey = cLuaObject{ mTable.mState, luaL_ref(L, LUA_REGISTRYINDEX), false }; // pops the key
+            }
+            else
+            {
+                mEnd = true;
+            }
+        }
+        while (!mEnd && mTable.mIsGlobalTable && cLuaState::isGlobalInternalElement(mKey.toString()));
+    }
+    else
+    {
+        mEnd = true;
+    }
+}
+
+cLuaObject::iterator& cLuaObject::iterator::operator++()
+{
+    next();
+    return *this;
+}
+
+cLuaObject::iterator cLuaObject::iterator::operator++(int)
+{ 
+    auto tmp = *this; 
+    ++(*this); 
+    return tmp; 
+}
+
+cLuaObject::iterator cLuaObject::begin() const
+{
+    return iterator{ *this };
+}
+
+cLuaObject::iterator cLuaObject::end() const
+{
+    return iterator{};
 }
 
 void cLuaObject::copy_(const cLuaObject& src)

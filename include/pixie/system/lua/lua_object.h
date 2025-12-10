@@ -28,7 +28,7 @@ public:
     enum class IsRecursive { Yes, No };
     using cKey = std::variant<std::string_view, int, cLuaObject>;
     struct cFunctionMustExist {};
-//    struct iterator;
+    class iterator;
 private:
     std::shared_ptr<cLuaState> mState;
     int mReference = LUA_NOREF;
@@ -69,6 +69,8 @@ public:
         requires std::is_invocable_v<C, const std::string&, const cLuaObject&> ||
                  std::is_invocable_v<C, const cLuaObject&>
     void forEach(const C& callable) const; 
+    iterator begin() const;
+    iterator end() const;
 // operating on the value itself:
     template<cLuaRetrievable T> bool isType() const;
     int toInt() const;
@@ -106,18 +108,30 @@ public:
     void release() { mState = nullptr; }
 };
 
-//struct cLuaObject::iterator : public std::iterator<std::input_iterator_tag, std::pair<std::string, cLuaObject>>
-//{
-//    cLuaObject mTable;
-//    cLuaObject mNextKey;
-//    bool mEnd = false;
-//    iterator() = default;
-//    iterator(const cLuaObject& table);
-//    iterator& operator++();
-//    std::pair<cLuaObject, cLuaObject> operator*() const;
-//    bool operator==(const iterator& other) const { return mEnd == other.mEnd; }
-//    bool operator!=(const iterator& other) const { return !(*this == other); }
-//};
+class cLuaObject::iterator
+{
+    cLuaObject mTable;
+    cLuaObject mKey; 
+    cLuaObject mValue;
+    bool mEnd = true;
+    void next();
+
+public:
+    using iterator_category = std::input_iterator_tag;
+    using value_type = std::pair<cLuaObject, cLuaObject>;
+    using difference_type = std::ptrdiff_t;
+    using reference = value_type;
+    using pointer = void;
+
+    iterator() = default;
+    explicit iterator(const cLuaObject& table);
+
+    iterator& operator++();
+    iterator operator++(int);
+    value_type operator*() const { return { mKey, mValue }; }
+    bool operator==(const iterator& other) const;
+    bool operator!=(const iterator& other) const { return !(*this == other); }
+};
 
 
 template<class T> void cLuaObject::push(lua_State* L, const T& value)
