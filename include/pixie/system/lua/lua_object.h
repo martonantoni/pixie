@@ -29,7 +29,9 @@ public:
     using cKey = std::variant<std::string_view, int, cLuaObject>;
     struct cFunctionMustExist {};
     class iterator;
+
 private:
+    friend class cLuaState;
     std::shared_ptr<cLuaState> mState;
     int mReference = LUA_NOREF;
     bool mIsGlobalTable = false;
@@ -43,10 +45,10 @@ private:
     class cStateWithSelfCleanup;
     cStateWithSelfCleanup retrieveSelf() const; // returns nullptr on error, self will be at -1 on stack if successful
     static int luaErrorFunction(lua_State* L);
-public:
-
-    cLuaObject() = default;
     cLuaObject(std::shared_ptr<cLuaState> state, int reference, bool isGlobalTable);
+
+public:
+    cLuaObject() = default;
     cLuaObject(std::shared_ptr<cLuaState> state): mState(std::move(state)) {}
     cLuaObject(cLuaObject&& src);
     cLuaObject(const cLuaObject& src);
@@ -56,11 +58,13 @@ public:
     cLuaObject& operator=(const cLuaObject& src) { return operator=<const cLuaObject&>(src); }
     cLuaObject subTable(const std::string& key) const; // creates a new table if it doesn't exist
     int arraySize() const; // returns the length of the array, returns 0 if the value is not an array
-// when the value is a table, accessing an element:
+
+/////////////////////////////////////////////////////
+// when the value is a table, accessing element(s):
     template<cLuaRetrievable T = cLuaObject> std::optional<T> tryGet(const cKey& key) const;
     template<cLuaRetrievable T = cLuaObject, class D = T> T get(const cKey& key, D&& defaultValue) const;
     template<cLuaRetrievable T = cLuaObject> T get(const cKey& key) const;
-    template<cLuaAssignable T> void set(const cKey& key, const T& value);
+    void set(const cKey& key, const cLuaAssignable auto& value);
     template<class C> requires cCallableSignature<C>::available
     void registerFunction(const cKey& key, const C& func);
     void remove(const cKey& key);
@@ -68,9 +72,10 @@ public:
     template<class C> 
         requires std::is_invocable_v<C, const std::string&, const cLuaObject&> ||
                  std::is_invocable_v<C, const cLuaObject&>
-    void forEach(const C& callable) const; 
+    void forEach(const C& callable) const;  // old method, prefer begin()/end() for iteration
     iterator begin() const;
     iterator end() const;
+/////////////////////////////////////////////////////
 // operating on the value itself:
     template<cLuaRetrievable T> bool isType() const;
     int toInt() const;
@@ -173,8 +178,7 @@ template<class T, class... Ts> void cLuaObject::push(lua_State* L, const T& valu
     push(L, values...);
 }
 
-template<cLuaAssignable T>
-void cLuaObject::set(const cKey& key, const T& value)
+void cLuaObject::set(const cKey& key, const cLuaAssignable auto& value)
 {
     if(auto L = retrieveSelf())
     {
