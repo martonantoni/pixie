@@ -9,9 +9,9 @@ extern "C"
 
 class cLuaObject;
 
-struct cLuaException
+struct cLuaException: public std::runtime_error
 {
-    int mLine = 0;
+    using std::runtime_error::runtime_error;
 };
 
 class cLuaState: public std::enable_shared_from_this<cLuaState>
