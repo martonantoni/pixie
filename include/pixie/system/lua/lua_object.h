@@ -36,7 +36,6 @@ private:
     template<class T> static void push(lua_State* L, const T& value);
     template<class T, class... Ts> static void push(lua_State* L, const T& value, const Ts&... values);
     template<class T> static T pop(cLuaState& state, lua_State* L);
-    std::shared_ptr<cConfig> toConfig_topTable(lua_State* L, IsRecursive isRecursive) const;
     void copy_(const cLuaObject& src);
     static void retrieveItem(lua_State* L, const cKey& key);
     static void pushKey(lua_State* L, const cKey& key);
@@ -84,14 +83,12 @@ public:
     bool isFunction() const;
     bool isTable() const;
     bool isNil() const;
-    template<class C> void visit(const C& callable) const;
+    template<class C> auto visit(const C& callable) const;
     template<cLuaReturnable... ReturnTs, cLuaAssignable... Args> auto call(const Args&... args);
     template<cLuaReturnable... ReturnTs, cLuaAssignable... Args> auto callMember(const cKey& functionKey, const Args&... args);
 
     cLuaState& state() { return *mState; }
     const cLuaState& state() const { return *mState; }
-// if the value is a table, we can create a config from it:
-    std::shared_ptr<cConfig> toConfig(IsRecursive isRecursive = IsRecursive::Yes) const;
 };
 
 class cLuaObject::cStateWithSelfCleanup
@@ -186,7 +183,7 @@ void cLuaObject::set(const cKey& key, const cLuaAssignable auto& value)
     }
 }
 
-template<class C> void cLuaObject::visit(const C& callable) const
+template<class C> auto cLuaObject::visit(const C& callable) const
 {
     if(auto L = retrieveSelf())
     {
@@ -195,30 +192,30 @@ template<class C> void cLuaObject::visit(const C& callable) const
             case LUA_TNUMBER:
                 if (lua_isinteger(L, -1))
                 {
-                    callable(static_cast<int>(lua_tointeger(L, -1)));
+                    return callable(static_cast<int>(lua_tointeger(L, -1)));
                 }
                 else
                 {
-                    callable(static_cast<double>(lua_tonumber(L, -1)));
+                    return callable(static_cast<double>(lua_tonumber(L, -1)));
                 }
                 break;
             case LUA_TSTRING:
-                callable(std::string(lua_tostring(L, -1)));
+                return callable(std::string(lua_tostring(L, -1)));
                 break;
             case LUA_TBOOLEAN:
-                callable(lua_toboolean(L, -1) != 0);
+                return callable(lua_toboolean(L, -1) != 0);
                 break;
             case LUA_TTABLE:
-                callable(*this);
+                return callable(*this);
                 break;
             default:
-                callable(std::monostate());
+                return callable(std::monostate());
                 break;
         }
     }
     else
     {
-        callable(std::monostate());
+        return callable(std::monostate());
     }
 }
 

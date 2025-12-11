@@ -33,7 +33,7 @@ void cStartupController::continueStartup()
     auto luaState = std::make_shared<cLuaState>();
     registerGlobalPixieLuaFunctions(luaState->globalTable());
     luaState->executeFile(mConfig.mainLuaConfigPath.empty() ? "MainConfig.lua" : mConfig.mainLuaConfigPath.c_str());
-    theGlobalConfig = luaState->globalTable().toConfig();
+    theGlobalConfig = Pixie::toConfig(luaState->globalTable());
 
 
     auto InstanceName = theGlobalConfig->get<std::string>("instance_name", std::string());

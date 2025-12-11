@@ -1069,7 +1069,7 @@ TEST(lua_object, toConfig_nonrecursive)
     auto script = std::make_shared<cLuaState>();
 
     setupConfigTestVariables(*script);
-    auto config = script->globalTable().toConfig(cLuaObject::IsRecursive::No);
+    auto config = Pixie::toConfig(script->globalTable(),Pixie::IsRecursive::No);
     verifyConfigSingleLevel(*config);
     ASSERT_EQ(script->stackSize(), 0);
 }
@@ -1079,7 +1079,7 @@ TEST(lua_object, toConfig_recursive)
     auto script = std::make_shared<cLuaState>();
 
     setupConfigTestVariables(*script);
-    auto config = script->globalTable().toConfig(cLuaObject::IsRecursive::Yes);
+    auto config = Pixie::toConfig(script->globalTable(), Pixie::IsRecursive::Yes);
     verifyConfigSingleLevel(*config);
     auto subConfig = config->getSubConfig("mySubTable");
     ASSERT_TRUE(subConfig);
@@ -1437,7 +1437,7 @@ void wikiExamples() // making sure they compile without error
            }
            )LUA");
 
-        auto print_table = [](cLuaObject table, auto print_table, std::string prefix = {})
+        auto print_table = [](cLuaObject table, auto print_table, std::string prefix = {}) -> void
             {
                 table.forEach(
                     [&](const std::string& key, const cLuaObject& value)

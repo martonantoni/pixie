@@ -17,7 +17,7 @@ TEST(config_from_lua, simple_table)
         "e = 3.14\n");
 
     cLuaObject globalTable = script->globalTable();
-    auto config = globalTable.toConfig();
+    auto config = Pixie::toConfig(globalTable); 
     ASSERT_EQ(config->get<int>("a", 0), 1);
     ASSERT_EQ(config->get<int>("b", 0), 2);
     ASSERT_EQ(config->get<std::string>("c", ""), "hello");
@@ -33,7 +33,7 @@ TEST(config_from_lua, nested_table)
         "sub_table_2 = { sub_table_21 = { a = 3, c = 4, d = \"hi\", e = false, f = 6.28 } }\n");
 
     cLuaObject globalTable = script->globalTable();
-    auto config = globalTable.toConfig();
+    auto config = Pixie::toConfig(globalTable);
     ASSERT_EQ(config->get<int>("sub_table_1.sub_table_11.a"), 1);
     ASSERT_EQ(config->get<int>("sub_table_1.sub_table_11.c"), 2);
     ASSERT_EQ(config->get<std::string>("sub_table_1.sub_table_11.d"), "hello");
@@ -51,7 +51,7 @@ TEST(config_from_lua, array)
         "array = { 1, 2, 3, 4, 5 }\n");
 
     cLuaObject globalTable = script->globalTable();
-    auto config = globalTable.toConfig();
+    auto config = Pixie::toConfig(globalTable);
     auto testedConfig = config->getSubConfig("array");
     ASSERT_TRUE(testedConfig->isArray());
     ASSERT_EQ(testedConfig->get<int>(0), 1);

@@ -199,14 +199,14 @@ std::shared_ptr<cConfig> cLuaState::stringToConfig(const std::string& scriptText
 {
     auto script = std::make_shared<cLuaState>();
     script->executeString(scriptText);
-    return script->globalTable().toConfig();
+    return Pixie::toConfig(script->globalTable());
 }
 
 std::shared_ptr<cConfig> cLuaState::fileToConfig(const std::filesystem::path& scriptPath)
 {
     auto script = std::make_shared<cLuaState>();
     script->executeFile(scriptPath);
-    return script->globalTable().toConfig();
+    return Pixie::toConfig(script->globalTable());
 }
 
 void cLuaState::error(lua_State* L, const std::string& message)
