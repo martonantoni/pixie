@@ -2,7 +2,6 @@
 
 template<class T> concept cLuaAssignable = 
     std::is_same_v<std::decay_t<T>, cLuaObject> ||
-    std::is_same_v<T, void> ||
     std::is_same_v<T, int> ||
     std::is_same_v<T, double> ||
     std::convertible_to<T, std::string_view> ||
@@ -13,8 +12,7 @@ template<class T> concept cLuaRetrievable =
     std::is_same_v<T, int> ||
     std::is_same_v<T, double> ||
     std::is_same_v<T, std::string> ||
-    std::is_same_v<T, bool> ||
-    std::is_same_v<T, cLuaState>;  // <--- only used for registerFunction
+    std::is_same_v<T, bool>;
 
 struct cLuaReturnVector {};
 
