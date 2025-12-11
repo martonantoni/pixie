@@ -9,4 +9,5 @@ extern "C"
 
 
 #include "lua_state.h"
+#include "lua_stack_guard.h"
 #include "lua_object.h"
