@@ -360,7 +360,7 @@ template<cLuaReturnable... ReturnTs, cLuaAssignable... Args> auto cLuaObject::ca
     if (status != 0) 
     {
         const char* errorMessage = lua_tostring(L, -1);
-        throw std::runtime_error(std::format("lua error: {}", errorMessage));
+        throw cLuaException(std::format("lua error: {}", errorMessage));
     }
     if constexpr (sizeof...(ReturnTs) == 0)
     {

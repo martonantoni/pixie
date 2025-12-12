@@ -19,8 +19,15 @@ void cMainThread::threadLoop()
 
 void cMainThread::processEventDispatch()
 {
-    theEventCenter->DispatchEvents(mTimeToNextTimer);
-    theMessageCenter.dispatch();
+    try
+    {
+        theEventCenter->DispatchEvents(mTimeToNextTimer);
+        theMessageCenter.dispatch();
+    }
+    catch(std::runtime_error& e)
+    {
+        MainLog->Log("Exception in main thread event dispatch: %s", e.what());
+    }
 }
 
 
