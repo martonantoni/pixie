@@ -77,6 +77,7 @@ public:
     template<cLuaRetrievable T> bool isType() const;
     int toInt() const;
     double toDouble() const;
+    bool toBool() const;
     bool isNumber() const;
     bool isString() const;
     std::string toString() const;
@@ -86,7 +87,12 @@ public:
     template<class C> auto visit(const C& callable) const;
     template<cLuaReturnable... ReturnTs, cLuaAssignable... Args> auto call(const Args&... args);
     template<cLuaReturnable... ReturnTs, cLuaAssignable... Args> auto callMember(const cKey& functionKey, const Args&... args);
+//////////////////////////////////////////////////////
+// serialize / deserialize:
+    std::string serialize(const cLuaState::cConfigToScriptStyle& style = {}) const;
+    void deserialize(const std::string& scriptText);
 
+/////////////////////////////////////////////////
     cLuaState& state() { return *mState; }
     const cLuaState& state() const { return *mState; }
 };

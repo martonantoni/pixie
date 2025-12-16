@@ -272,9 +272,22 @@ int cLuaObject::toInt() const
 {
     if (auto L = retrieveSelf())
     {
+        if (lua_isboolean(L, -1))
+        {
+            return lua_toboolean(L, -1) ? 1 : 0;
+        }
         return lua_tointeger(L, -1);
     }
     return 0;
+}
+
+bool cLuaObject::toBool() const
+{
+    if (auto L = retrieveSelf())
+    {
+        return lua_toboolean(L, -1) != 0;
+    }
+    return false;
 }
 
 double cLuaObject::toDouble() const
@@ -365,4 +378,37 @@ int cLuaObject::luaErrorFunction(lua_State* L)
     // Push traceback with that message
     luaL_traceback(L, L, msg, 1);
     return 1; // return the traceback string}
+}
+
+std::string cLuaObject::serialize(const cLuaState::cConfigToScriptStyle& style) const
+{
+    return cLuaState::objectToScript(*this, style);
+}
+
+void cLuaObject::deserialize(const std::string& scriptText)
+{
+    if(!mState)
+    {
+        throw cLuaException("not a valid lua object");
+    }
+    lua_State* L = mState->state();
+    int oldTop = lua_gettop(L);
+    std::string chunk = std::format("return ({})", scriptText);
+    if (luaL_loadbuffer(L, chunk.data(), chunk.size(), "deserialize") != LUA_OK)
+    {
+        const char* error = lua_tostring(L, -1);
+        lua_settop(L, oldTop);
+        throw std::runtime_error(std::format("deserialize failed: {}", error));
+    }
+    if (lua_pcall(L, 0, 1, 0) != LUA_OK)
+    {
+        const char* error = lua_tostring(L, -1);
+        lua_settop(L, oldTop);
+        throw cLuaException(error);
+    }
+    if (mReference != LUA_NOREF)
+    {
+        luaL_unref(mState->state(), LUA_REGISTRYINDEX, mReference);
+    }
+    mReference = luaL_ref(L, LUA_REGISTRYINDEX);
 }

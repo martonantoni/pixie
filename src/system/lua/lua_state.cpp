@@ -215,19 +215,16 @@ void cLuaState::error(lua_State* L, const std::string& message)
     throw std::runtime_error(errorMessage);
 }
 
-std::string cLuaState::configToScript(const cConfig& config, const cConfigToScriptStyle& style, const std::string& ident)
+template<auto visit, class SUB_TABLE_T, auto convertSubTable>
+std::string toScript(const auto& object, const cLuaState::cConfigToScriptStyle& style, const std::string& ident)
 {
-    if (ident.empty() && config.isArray())
-    {
-        throw std::runtime_error("array on global level");
-    }
     std::vector<std::tuple<std::string, std::string, bool>> elements; // key, value, isTable
-    config.visit([&elements, &ident, &style]
+    visit(object, [&elements, &ident, &style]
         (auto key, auto value)
         {
             elements.emplace_back();
             std::get<2>(elements.back()) = false;
-        // print out the key (it can be int or std::string)
+            // print out the key (it can be int or std::string)
             if constexpr (std::is_same_v<decltype(key), int>)
             {
                 // nothing to do
@@ -268,9 +265,10 @@ std::string cLuaState::configToScript(const cConfig& config, const cConfigToScri
                 }
                 std::get<1>(elements.back()) = "\""s + result + "\"";
             }
-            else if constexpr (std::is_same_v<decltype(value), std::shared_ptr<cConfig>>)
+            else if constexpr (std::is_same_v<decltype(value), SUB_TABLE_T>)
             {
-                std::get<1>(elements.back()) = configToScript(*value, style, ident + "  ");
+                std::get<1>(elements.back()) = toScript<visit, SUB_TABLE_T, convertSubTable>
+                    (convertSubTable(value), style, ident + "  ");
                 std::get<2>(elements.back()) = true;
             }
         });
@@ -299,4 +297,73 @@ std::string cLuaState::configToScript(const cConfig& config, const cConfigToScri
         }
     }
     return script;
+
+}
+
+std::string cLuaState::configToScript(const cConfig& config, const cConfigToScriptStyle& style, const std::string& ident)
+{
+    if (ident.empty() && config.isArray())
+    {
+        throw std::runtime_error("array on global level");
+    }
+    return toScript<
+        [](const cConfig& config, auto&& visitor)
+        {
+            config.visit([&visitor](const auto& key, const auto& value)
+                {
+                    visitor(key, value);
+                });
+        }, std::shared_ptr<cConfig>,
+        [](const std::shared_ptr<cConfig>& config)
+        {
+            return *config; 
+        }>
+        (config, style, ident);
+}
+
+std::string cLuaState::objectToScript(const cLuaObject& object, const cConfigToScriptStyle& style, const std::string& ident)
+{
+    bool treatAsTable = object.isTable() && !object.mIsGlobalTable;
+    std::string script = toScript <
+        [](const cLuaObject& object, auto&& visitor)
+        {
+            if (object.isTable())
+            {
+                for (auto&& [key, value] : object)
+                {
+                    value.visit([&visitor, &key](auto&& val)
+                        {
+                            if (key.isNumber())
+                            {
+                                visitor(key.toInt(), val);
+                            }
+                            else if (key.isString())
+                            {
+                                visitor(key.toString(), val);
+                            }
+                        });
+                }
+            }
+            else
+            {
+                object.visit([&visitor](auto&& val)
+                    {
+                        visitor(0, val);
+                    });
+            }
+        },
+        cLuaObject,
+        [](const cLuaObject& table)
+        {
+            return table;
+        }>
+        (object, style, ident + (treatAsTable ? "  "s : std::string()));
+    if (treatAsTable)
+    {
+        return style.singleLine ? "{"s + script + "}"s : "{\n"s + script + ident + "}"s;
+    }
+    else
+    {
+        return script;
+    }
 }

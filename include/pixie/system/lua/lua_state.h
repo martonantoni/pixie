@@ -40,6 +40,8 @@ public:
     static bool isGlobalInternalElement(const std::string& key);
     struct cConfigToScriptStyle { bool singleLine = false; };
     static std::string configToScript(const cConfig& config, const cConfigToScriptStyle& style = {}, const std::string& ident = std::string());
+    static std::string objectToScript(const cLuaObject& table, const cConfigToScriptStyle& style = {}, const std::string& ident = std::string());
+
 
     lua_State* state() { return L; }
     cLuaObject globalTable();
