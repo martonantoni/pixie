@@ -380,7 +380,7 @@ int cLuaObject::luaErrorFunction(lua_State* L)
     return 1; // return the traceback string}
 }
 
-std::string cLuaObject::serialize(const cLuaState::cConfigToScriptStyle& style) const
+std::string cLuaObject::serialize(const cSerializationStyle& style) const
 {
     return cLuaState::objectToScript(*this, style);
 }

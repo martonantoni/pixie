@@ -89,7 +89,8 @@ public:
     template<cLuaReturnable... ReturnTs, cLuaAssignable... Args> auto callMember(const cKey& functionKey, const Args&... args);
 //////////////////////////////////////////////////////
 // serialize / deserialize:
-    std::string serialize(const cLuaState::cConfigToScriptStyle& style = {}) const;
+    using cSerializationStyle = cLuaState::cSerializationStyle;
+    std::string serialize(const cSerializationStyle& style = {}) const;
     void deserialize(const std::string& scriptText);
 
 /////////////////////////////////////////////////

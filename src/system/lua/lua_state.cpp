@@ -216,7 +216,7 @@ void cLuaState::error(lua_State* L, const std::string& message)
 }
 
 template<auto visit, class SUB_TABLE_T, auto convertSubTable>
-std::string toScript(const auto& object, const cLuaState::cConfigToScriptStyle& style, const std::string& ident)
+std::string toScript(const auto& object, const cLuaState::cSerializationStyle& style, const std::string& ident)
 {
     std::vector<std::tuple<std::string, std::string, bool>> elements; // key, value, isTable
     visit(object, [&elements, &ident, &style]
@@ -300,7 +300,7 @@ std::string toScript(const auto& object, const cLuaState::cConfigToScriptStyle& 
 
 }
 
-std::string cLuaState::configToScript(const cConfig& config, const cConfigToScriptStyle& style, const std::string& ident)
+std::string cLuaState::configToScript(const cConfig& config, const cSerializationStyle& style, const std::string& ident)
 {
     if (ident.empty() && config.isArray())
     {
@@ -321,7 +321,7 @@ std::string cLuaState::configToScript(const cConfig& config, const cConfigToScri
         (config, style, ident);
 }
 
-std::string cLuaState::objectToScript(const cLuaObject& object, const cConfigToScriptStyle& style, const std::string& ident)
+std::string cLuaState::objectToScript(const cLuaObject& object, const cSerializationStyle& style, const std::string& ident)
 {
     bool treatAsTable = object.isTable() && !object.mIsGlobalTable;
     std::string script = toScript <

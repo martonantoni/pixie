@@ -6,29 +6,6 @@
 namespace lua_serialize_tests
 {
 
-TEST(serialize_lua_with_execute, global_table)
-{
-    auto script = std::make_shared<cLuaState>();
-    script->executeString(
-        "a = 1\n"
-        "b = 2\n"
-        "c = \"hello\"\n"
-        "d = true\n"
-        "e = 3.14\n");
-
-    cLuaObject globalTable = script->globalTable();
-    auto serialized = cLuaState::objectToScript(globalTable);
-
-    auto script2 = std::make_shared<cLuaState>();
-    script2->executeString(serialized);
-    cLuaObject globalTable2 = script2->globalTable();
-    ASSERT_EQ(globalTable2.get<int>("a"), 1);
-    ASSERT_EQ(globalTable2.get<int>("b"), 2);
-    ASSERT_EQ(globalTable2.get<std::string>("c"), "hello");
-    ASSERT_EQ(globalTable2.get<bool>("d"), true);
-    ASSERT_EQ(globalTable2.get<double>("e"), 3.14);
-}
-
 TEST(serialize_deserialize, single_values)
 {
     auto script = std::make_shared<cLuaState>();
@@ -40,11 +17,11 @@ TEST(serialize_deserialize, single_values)
         "e = 3.14\n");
 
     cLuaObject globalTable = script->globalTable();
-    auto serialized_a = cLuaState::objectToScript(globalTable.get<cLuaObject>("a"));
-    auto serialized_b = cLuaState::objectToScript(globalTable.get<cLuaObject>("b"));
-    auto serialized_c = cLuaState::objectToScript(globalTable.get<cLuaObject>("c"));
-    auto serialized_d = cLuaState::objectToScript(globalTable.get<cLuaObject>("d"));
-    auto serialized_e = cLuaState::objectToScript(globalTable.get<cLuaObject>("e"));
+    auto serialized_a = globalTable.get<cLuaObject>("a").serialize();
+    auto serialized_b = globalTable.get<cLuaObject>("b").serialize();
+    auto serialized_c = globalTable.get<cLuaObject>("c").serialize();
+    auto serialized_d = globalTable.get<cLuaObject>("d").serialize();
+    auto serialized_e = globalTable.get<cLuaObject>("e").serialize();
 
     auto a = script->createObject();
     a.deserialize(serialized_a);
@@ -86,7 +63,7 @@ TEST(serialize_deserialize, table)
         "}\n");
     cLuaObject globalTable = script->globalTable();
     cLuaObject myTable = globalTable.get<cLuaObject>("my_table");
-    auto serialized_table = cLuaState::objectToScript(myTable);
+    auto serialized_table = myTable.serialize();
     auto table2 = script->createObject();
     table2.deserialize(serialized_table);
     ASSERT_TRUE(table2.isType<cLuaObject>());
@@ -117,7 +94,7 @@ TEST(serialize_deserialize, multi_level_table)
 
     cLuaObject globalTable = script->globalTable();
     cLuaObject myTable = globalTable.get<cLuaObject>("my_table");
-    auto serialized_table = cLuaState::objectToScript(myTable);
+    auto serialized_table = myTable.serialize();
 
     auto table2 = script->createObject();
     table2.deserialize(serialized_table);
@@ -132,6 +109,47 @@ TEST(serialize_deserialize, multi_level_table)
     ASSERT_TRUE(e.isTable());
     ASSERT_EQ(e.get<bool>("f"), true);
     ASSERT_EQ(e.get<double>("g"), 3.14);
+}
+
+TEST(serialize_deserialize, array)
+{
+    auto script = std::make_shared<cLuaState>();
+    script->executeString(
+        "my_array = { 1, 2, 3, 4, 5 }\n");
+    cLuaObject globalTable = script->globalTable();
+    cLuaObject myArray = globalTable.get<cLuaObject>("my_array");
+    auto serialized_array = myArray.serialize();
+    auto array2 = script->createObject();
+    array2.deserialize(serialized_array);
+    ASSERT_TRUE(array2.isTable());
+    ASSERT_EQ(array2.arraySize(), 5u);
+    for (int i = 1; i <= 5; ++i)
+    {
+        ASSERT_EQ(array2.get<int>(i), i);
+    }
+}
+
+TEST(serialize_lua_with_execute, global_table)
+{
+    auto script = std::make_shared<cLuaState>();
+    script->executeString(
+        "a = 1\n"
+        "b = 2\n"
+        "c = \"hello\"\n"
+        "d = true\n"
+        "e = 3.14\n");
+
+    cLuaObject globalTable = script->globalTable();
+    auto serialized = cLuaState::objectToScript(globalTable);
+
+    auto script2 = std::make_shared<cLuaState>();
+    script2->executeString(serialized);
+    cLuaObject globalTable2 = script2->globalTable();
+    ASSERT_EQ(globalTable2.get<int>("a"), 1);
+    ASSERT_EQ(globalTable2.get<int>("b"), 2);
+    ASSERT_EQ(globalTable2.get<std::string>("c"), "hello");
+    ASSERT_EQ(globalTable2.get<bool>("d"), true);
+    ASSERT_EQ(globalTable2.get<double>("e"), 3.14);
 }
 
 

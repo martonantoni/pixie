@@ -61,7 +61,7 @@ TEST(config_from_lua, array)
     ASSERT_EQ(testedConfig->get<int>(4), 5);
 }
 
-void configToLuaScript_simple_table(const cLuaState::cConfigToScriptStyle& style)
+void configToLuaScript_simple_table(const cLuaState::cSerializationStyle& style)
 {
     cConfig config;
     config.set("a", 1);
@@ -97,7 +97,7 @@ TEST(config_to_lua_script, simple_table__single_line)
     configToLuaScript_simple_table({ .singleLine = true });
 }
 
-void configToLuaScript_nestedTable(const cLuaState::cConfigToScriptStyle& style)
+void configToLuaScript_nestedTable(const cLuaState::cSerializationStyle& style)
 {
     cConfig config;
     {
@@ -151,7 +151,7 @@ TEST(config_to_lua_script, nested_tables__single_line)
     configToLuaScript_nestedTable({ .singleLine = false });
 }
 
-void configToLuaScript_array(const cLuaState::cConfigToScriptStyle& style)
+void configToLuaScript_array(const cLuaState::cSerializationStyle& style)
 {
     cConfig config;
     auto subConfig = config.createSubConfig("my_array");

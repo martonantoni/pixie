@@ -38,9 +38,9 @@ public:
     std::shared_ptr<cLuaState> shareSelf() { return shared_from_this(); }
     static std::string valueToString(lua_State* L, int index);
     static bool isGlobalInternalElement(const std::string& key);
-    struct cConfigToScriptStyle { bool singleLine = false; };
-    static std::string configToScript(const cConfig& config, const cConfigToScriptStyle& style = {}, const std::string& ident = std::string());
-    static std::string objectToScript(const cLuaObject& table, const cConfigToScriptStyle& style = {}, const std::string& ident = std::string());
+    struct cSerializationStyle { bool singleLine = false; };
+    static std::string configToScript(const cConfig& config, const cSerializationStyle& style = {}, const std::string& ident = std::string());
+    static std::string objectToScript(const cLuaObject& table, const cSerializationStyle& style = {}, const std::string& ident = std::string());
 
 
     lua_State* state() { return L; }

@@ -135,6 +135,25 @@ TEST(lua_object, toInt)
     ASSERT_EQ(script->stackSize(), 0);
 }
 
+TEST(lua_object, toInt_boolean)
+{
+    auto script = std::make_shared<cLuaState>();
+    script->executeString(
+        R"script(
+        my_table = {
+          a = true,
+          b = false,
+        }
+        )script");
+
+    cLuaObject globalTable = script->globalTable();
+    cLuaObject myTable = globalTable.get<cLuaObject>("my_table");
+    cLuaObject aValue = myTable.get<cLuaObject>("a");
+    ASSERT_EQ(aValue.toInt(), 1);
+    cLuaObject bValue = myTable.get<cLuaObject>("b");
+    ASSERT_EQ(bValue.toInt(), 0);
+}
+
 TEST(lua_object, toDouble)
 {
     auto script = std::make_shared<cLuaState>();
