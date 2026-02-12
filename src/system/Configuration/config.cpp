@@ -93,14 +93,14 @@ bool cConfig::operator==(const cConfig& other) const
                     }
                     else
                     {
-                        if(!std::visit([&value, &otherValue](const auto& value)
-                            {
-                                return std::get<std::decay_t<decltype(value)>>(otherValue) == value;
-                            }
-                            , value))
-                        {
+                        //if(!std::visit([&value, &otherValue](const auto& v)
+                        //    {
+                        //        return std::get<std::decay_t<decltype(value)>>(otherValue) == value;
+                        //    }
+                        //    , value))
+                        //{
                             return false;
-                        }
+                        //}
                     }
                 }
                 return true;
