@@ -25,6 +25,12 @@ struct cTextRenderer2Config
     int mTabWidth = 2;          // in spaces
 };
 
+struct cTextRenderer2ParseConfig
+{
+    bool mNewLinesSeparateBlocks = false; // if false, new lines only separate spans, not blocks
+                                          // in that case you need empty lines to separate blocks
+};
+
 struct cTextRenderer2Target
 {
     cPixieWindow* mWindow = nullptr;
@@ -63,6 +69,7 @@ struct cTextRenderer2Block
     int mHeadingLevel = -1; // -1 means not a heading
     int mTabWidth = -1; // -1 means not set (use config)
 };
+using cTextRenderer2Blocks = std::vector<cTextRenderer2Block>;
 
 struct cTextRenderer2BlockResult
 {
@@ -130,6 +137,7 @@ public:
     void setTargetWidth(int width);
     int targetWidth() const { return mTarget.mWidth; }
     const cTextRenderer2Config& config() const { return mConfig; }
+    void setConfig(const cTextRenderer2Config& config);
 
     template<class T> void setColorSelector(T&& colorSelector) requires std::constructible_from<cTextColorSelector, T>
     {
@@ -173,7 +181,7 @@ public:
     - list item
 
     */
-    static std::vector<cTextRenderer2Block> parse(const std::string& text);
+    static std::vector<cTextRenderer2Block> parse(const std::string& text, const cTextRenderer2ParseConfig& config = {});
 };
 
 

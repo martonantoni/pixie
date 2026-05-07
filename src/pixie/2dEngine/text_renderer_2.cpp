@@ -7,8 +7,13 @@ namespace Pixie
 
 void cTextRenderer2::init(const cTextRenderer2Config& config, const cTextRenderer2Target& target)
 {
+    setConfig(config);
+    setTarget(target);
+}
+
+void cTextRenderer2::setConfig(const cTextRenderer2Config& config)
+{
     mConfig = config;
-    mTarget = target;
 }
 
 void cTextRenderer2::setTarget(const cTextRenderer2Target& target)
@@ -370,7 +375,7 @@ cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
     return result;
 }
 
-std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
+std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text, const cTextRenderer2ParseConfig& config)
 {
     std::vector<cBlock> blocks;
     bool isInsideCodeBlock = false;
@@ -435,10 +440,11 @@ std::vector<cTextRenderer2Block> cTextRenderer2::parse(const std::string& text)
             }
             continue; // ignore line inside code block
         }
-        if(blocks.empty() || line.empty())
+        if (blocks.empty() || line.empty() || config.mNewLinesSeparateBlocks) // new block
         {
             blocks.emplace_back();
             blocks.back().mAlign = defaultAlign;
+            blocks.back().mEmptyLineAfter = !config.mNewLinesSeparateBlocks;
         }
         if (line.starts_with("-")) // list item
         {
