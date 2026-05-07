@@ -78,6 +78,7 @@ public:
 	void SetPlacement(const cRect &Rect);
 	void SetValidRect(const cRect &ValidRect);
 	int GetZOrder() const { return mZOrder; }
+    void setZOrder(int ZOrder);
 	bool IsInside(cPoint WindowRelativeCoords) const;
 	cPoint WindowCoordinatesToScreenCoordinates(cPoint WindowRelativeCoords) const;
 	cPoint ScreenCoordinatesToWindowCoordinates(cPoint ScreenCoords) const;

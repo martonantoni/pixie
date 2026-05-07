@@ -128,6 +128,7 @@ public:
     void init(const cTextRenderer2Config& config, const cTextRenderer2Target& target);
     void setTarget(const cTextRenderer2Target& target);
     void setTargetWidth(int width);
+    int targetWidth() const { return mTarget.mWidth; }
     const cTextRenderer2Config& config() const { return mConfig; }
 
     template<class T> void setColorSelector(T&& colorSelector) requires std::constructible_from<cTextColorSelector, T>

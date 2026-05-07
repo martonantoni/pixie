@@ -76,6 +76,16 @@ void cPixieWindow::RemoveSprite(c2DRenderable* Sprite)
 		mSprites.erase(i);
 }
 
+void cPixieWindow::setZOrder(int ZOrder)
+{
+    mZOrder = ZOrder;
+	if (mParentWindow)
+	{
+		mParentWindow->RemoveSubWindow(this);
+		mParentWindow->AddSubWindow(this);
+	}
+}
+
 void cPixieWindow::AddSubWindow(cPixieWindow *SubWindow)
 {
 	auto i=std::lower_bound(ALL(mSubWindows), SubWindow->mZOrder, [](auto &Window, auto ZOrder) { return Window->mZOrder>ZOrder; });
