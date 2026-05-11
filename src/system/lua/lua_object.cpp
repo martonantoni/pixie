@@ -268,7 +268,7 @@ std::string cLuaState::valueToString(lua_State* L, int index)
     return convertedString;
 }
 
-int cLuaObject::toInt() const
+long long cLuaObject::toInt() const
 {
     if (auto L = retrieveSelf())
     {
@@ -278,7 +278,7 @@ int cLuaObject::toInt() const
         }
         return lua_tointeger(L, -1);
     }
-    return 0;
+    return 0ll;
 }
 
 bool cLuaObject::toBool() const

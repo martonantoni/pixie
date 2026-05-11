@@ -3,6 +3,7 @@
 template<class T> concept cLuaAssignable = 
     std::is_same_v<std::decay_t<T>, cLuaObject> ||
     std::is_same_v<T, int> ||
+    std::is_same_v<T, long long> ||
     std::is_same_v<T, double> ||
     std::convertible_to<T, std::string_view> ||
     std::is_same_v<T, bool>;
@@ -10,6 +11,7 @@ template<class T> concept cLuaAssignable =
 template<class T> concept cLuaRetrievable =
     std::is_same_v<T, cLuaObject> ||
     std::is_same_v<T, int> ||
+    std::is_same_v<T, long long> ||
     std::is_same_v<T, double> ||
     std::is_same_v<T, std::string> ||
     std::is_same_v<T, bool>;
@@ -75,7 +77,7 @@ public:
 /////////////////////////////////////////////////////
 // operating on the value itself:
     template<cLuaRetrievable T> bool isType() const;
-    int toInt() const;
+    long long toInt() const;
     double toDouble() const;
     bool toBool() const;
     bool isNumber() const;
@@ -144,6 +146,10 @@ public:
 template<class T> void cLuaObject::push(lua_State* L, const T& value)
 {
     if constexpr (std::is_same_v<T, int>)
+    {
+        lua_pushinteger(L, value);
+    }
+    else if constexpr (std::is_same_v<T, long long>)
     {
         lua_pushinteger(L, value);
     }
@@ -243,6 +249,13 @@ T cLuaObject::pop(cLuaState& state, lua_State* L)
                 return static_cast<T>(lua_tointeger(L, -1));
             }
         }
+        else if constexpr (std::is_same_v<T, long long>)
+        {
+            if (lua_isinteger(L, -1))
+            {
+                return static_cast<T>(lua_tointeger(L, -1));
+            }
+        }
         else if constexpr (std::is_same_v<T, double>)
         {
             if (lua_isnumber(L, -1))
@@ -320,6 +333,10 @@ bool cLuaObject::isType() const
         int type = lua_type(L, -1);
         bool result = false;
         if constexpr (std::is_same_v<T, int>)
+        {
+            return type == LUA_TNUMBER && lua_isinteger(L, -1);
+        }
+        else if constexpr (std::is_same_v<T, long long>)
         {
             return type == LUA_TNUMBER && lua_isinteger(L, -1);
         }
@@ -487,6 +504,10 @@ template<cLuaAssignable T> cLuaObject& cLuaObject::operator=(T&& value)
             luaL_unref(mState->state(), LUA_REGISTRYINDEX, mReference);
         }
         if constexpr (std::is_same_v<std::decay_t<T>, int>)
+        {
+            lua_pushinteger(mState->state(), value);
+        }
+        else if constexpr (std::is_same_v<std::decay_t<T>, long long>)
         {
             lua_pushinteger(mState->state(), value);
         }
