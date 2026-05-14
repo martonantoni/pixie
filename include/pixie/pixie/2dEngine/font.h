@@ -38,6 +38,7 @@ public:
 		std::vector<cPoint> mLineSizes;
 	};
 	cTextMetrics MeasureText(const UTF8::cDecodedString &Text) const;
+    cTextMetrics measure(const UTF8::cDecodedString& Text) const { return MeasureText(Text); }
 	int GetHeight() const { return mFontHeight; } // temp
 	int height() const { return mFontHeight; }
 	int GetAdvance(int Char) const;
