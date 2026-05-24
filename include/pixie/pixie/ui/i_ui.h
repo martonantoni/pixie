@@ -1,6 +1,7 @@
 
 #include "PixieInitData.h"
 #include "MouseTarget2.h"
+#include "mouse_target_bridge.h"
 #include "Window2.h"
 #include "Desktop2.h"
 
