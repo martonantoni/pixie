@@ -4,6 +4,9 @@ class cColor
 {
 protected:
 	unsigned int mColor;
+    cColor adjustedRGB(double amount) const;
+    cColor adjustedHSV(double amount) const;
+    cColor adjustedHSL(double amount) const;
 public:
 	cColor(unsigned int Color=0xff000000): mColor(Color) {}
 	cColor(int Red, int Green, int Blue): mColor(0xff000000|((Red&0xff)<<16)|((Green&0xff)<<8)|(Blue&0xff)) {}
@@ -12,6 +15,12 @@ public:
 	cColor(cColor &&)=default;
 	cColor &operator=(const cColor &)=default;
 	cColor &operator=(cColor &&)=default;
+
+	struct RGB {};
+	struct HSV {};
+	struct HSL {};
+
+	template<class MODE = RGB> [[nodiscard]] cColor adjusted(double amount) const;
 
 	unsigned int GetAlpha() const { return 255-(mColor>>24); } // 0 - 255, 0: solid, 255: transparent
 	unsigned int GetRGBColor() const { return mColor&0xffffff; }
@@ -26,10 +35,52 @@ public:
 	void SetRed(int Red) { ASSERT(Red>=0 && Red<=255); mColor=(mColor&0xff00ffff)|((Red&0xff)<<16); }
 	void SetGreen(int Green) { ASSERT(Green>=0 && Green<=255); mColor=(mColor&0xffff00ff)|((Green&0xff)<<8); }
 	void SetBlue(int Blue) { ASSERT(Blue>=0 && Blue<=255); mColor=(mColor&0xffffff00)|(Blue&0xff); }
+
+	auto red()
+	{
+		return tProxy<cColor, int,
+			[](auto& color) { return color.GetRed(); },
+			[](auto& color, auto value) { color.SetRed(value); } > (*this);
+
+	}
+    int red() const { return GetRed(); }
+    auto green()
+    {
+        return tProxy<cColor, int,
+            [](auto& color) { return color.GetGreen(); },
+            [](auto& color, auto value) { color.SetGreen(value); } > (*this);
+    }
+    int green() const { return GetGreen(); }
+    auto blue()
+    {
+        return tProxy<cColor, int,
+            [](auto& color) { return color.GetBlue(); },
+            [](auto& color, auto value) { color.SetBlue(value); } > (*this);
+    }
+    int blue() const { return GetBlue(); }
+    auto alpha()
+    {
+        return tProxy<cColor, int,
+            [](auto& color) { return color.GetAlpha(); },
+            [](auto& color, auto value) { color.SetAlpha(value); } > (*this);
+    }
+    int alpha() const { return GetAlpha(); }
+
 	cColor toGrayscale() const;
 
 	static cColor FromRGBColor(unsigned int Color) { return cColor(Color|0xff000000); }
 };
+
+template<class MODE> cColor cColor::adjusted(double amount) const
+{
+    if constexpr (std::same_as<MODE, RGB>)
+        return adjustedRGB(amount);
+    else if constexpr (std::same_as<MODE, HSV>)
+        return adjustedHSV(amount);
+    else if constexpr (std::same_as<MODE, HSL>)
+        return adjustedHSL(amount);
+}
+
 
 class cColorServer
 {
