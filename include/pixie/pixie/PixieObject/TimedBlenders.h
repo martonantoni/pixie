@@ -34,7 +34,7 @@ private:
 	virtual eAnimateResult Animate(cPixieObject &Object) override;
 	void HandleScheduledAnimators(cPixieObject &Object);
 public:
-	cTimedAnimators();
+	cTimedAnimators(bool keepObjectAlive = true);
 	void AddStandardBlender(const cStandardBlenderRequest &BlenderRequest); // must not be called after Activate()
 	static tIntrusivePtr<cPixieObjectAnimator> CreateStandardBlender(const cStandardBlenderRequest &ScheduledBlender);
 	void AddAnimator(const cTimeRange &Timing, tIntrusivePtr<cPixieObjectAnimator> Animator);

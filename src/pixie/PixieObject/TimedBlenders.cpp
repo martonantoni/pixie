@@ -1,7 +1,8 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
-cTimedAnimators::cTimedAnimators()
-	: cPixieObjectAnimator(DoneWhenSamePropertyAnimatorAdded|DoneWhenAffectedPropertySet|KeepsObjectAlive, 0)
+
+cTimedAnimators::cTimedAnimators(bool keepObjectAlive)
+	: cPixieObjectAnimator(DoneWhenSamePropertyAnimatorAdded|DoneWhenAffectedPropertySet|(keepObjectAlive?KeepsObjectAlive:0), 0)
 {
 }
 
