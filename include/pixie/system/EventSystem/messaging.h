@@ -54,6 +54,7 @@ public:
     cMessageSequence& operator=(cMessageSequence&&);
 
     void on(const std::string& endpointID, cCallable auto listener);
+    void reset() { mListeners.clear(); }
 };
 
 class cMessageCenter final : public std::enable_shared_from_this<cMessageCenter>
