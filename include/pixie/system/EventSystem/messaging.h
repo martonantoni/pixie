@@ -163,7 +163,8 @@ public:
     void send(const std::string& endpointID);
 
     template<class... Ts> [[nodiscard]] auto sequence(const std::string& endpointID, Ts&&... messageData);
-    [[nodiscard]] cRegisteredID registerListener(const std::string& endpointID, cCallable auto listener);
+    struct NoFiltering {};
+    template<class Options = void> [[nodiscard]] cRegisteredID registerListener(const std::string& endpointID, cCallable auto listener);
     void dispatch();
     void setNeedDispatchProcessor(std::function<void()> needDispatchProcessor);
 };
@@ -332,12 +333,18 @@ template<class... Ts> auto cMessageCenter::sequence(const std::string& endpoint,
     };
 }
 
+template<class Options>
 cRegisteredID cMessageCenter::registerListener(const std::string& endpointID, cCallable auto listener)
 {
     using Signature = cCallableSignature<decltype(listener)>;
 
     static_assert(!isInTuple<typename Signature::DecayedArguments, cMessageIndex>,
         "Listener cannot have cMessageIndex as parameter. Use cMessageSequencingID instead");
+    static_assert(
+        std::is_same_v<Options, void> ||
+        std::is_same_v<Options, NoFiltering>,
+        "Unsupported registerListener option");
+
     int numberOfArgs = Signature::numberOfArguments;
     using T = std::conditional_t<
         Signature::numberOfArguments >= 1 &&         
@@ -346,7 +353,8 @@ cRegisteredID cMessageCenter::registerListener(const std::string& endpointID, cC
         typename Signature::DecayedArguments>;
 
     auto& endPoint = mEndPoints[endpointID];
-    auto messageFilter = mEventsReading.empty() ? mLastPostedMessageIndex : mDispatchedMessageIndex;
+    auto messageFilter = std::is_same_v<Options, NoFiltering> ? cMessageIndex::invalid() : (
+        mEventsReading.empty() ? mLastPostedMessageIndex : mDispatchedMessageIndex);
     if (!endPoint)
     {
         endPoint = std::make_unique<cEndPoint>();
@@ -381,9 +389,10 @@ class cMessageListeners final // only works with the global message center
 {
     cRegisteredIDList mListeners;
 public:
+    template<class Options = void>
     void listen(const std::string& endpointID, const cCallable auto& callback)
     {
-        mListeners.emplace_back(theMessageCenter.registerListener(endpointID, callback));
+        mListeners.emplace_back(theMessageCenter.registerListener<Options>(endpointID, callback));
     }
     void clear()
     {
