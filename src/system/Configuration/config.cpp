@@ -66,79 +66,70 @@ void cConfig::makeArray()
 
 bool cConfig::operator==(const cConfig& other) const
 {
-    if (mValues.index() != other.mValues.index())
-        return false;
-    return std::visit([&other](const auto& values)
+    auto valueEquals = [](const cValue& lhs, const cValue& rhs) -> bool
         {
-            if constexpr (std::is_same_v<std::decay_t<decltype(values)>, cValueMap>)
+            return std::visit([](const auto& a, const auto& b) -> bool
+                {
+                    using A = std::decay_t<decltype(a)>;
+                    using B = std::decay_t<decltype(b)>;
+
+                    if constexpr (!std::is_same_v<A, B>)
+                    {
+                        return false;
+                    }
+                    else if constexpr (std::is_same_v<A, cConfigPtr>)
+                    {
+                        return *a == *b;
+                    }
+                    else
+                    {
+                        return a == b;
+                    }
+                }, lhs, rhs);
+        };
+
+    return std::visit([&](const auto& values, const auto& otherValues) -> bool
+        {
+            using Values = std::decay_t<decltype(values)>;
+            using OtherValues = std::decay_t<decltype(otherValues)>;
+
+            if constexpr (!std::is_same_v<Values, OtherValues>)
             {
-                const cValueMap& otherValueMap = std::get<cValueMap>(other.mValues);
-                if (values.size() != otherValueMap.size())
+                return false;
+            }
+            else if constexpr (std::is_same_v<Values, cValueMap>)
+            {
+                if (values.size() != otherValues.size())
                     return false;
+
                 for (const auto& [key, value] : values)
                 {
-                    auto otherIt = otherValueMap.find(key);
-                    if (otherIt == otherValueMap.end())
-                        return false;
-                    const cValue& otherValue = otherIt->second;
-                    if (value.index() != otherValue.index())
+                    auto otherIt = otherValues.find(key);
+                    if (otherIt == otherValues.end())
                         return false;
 
-                    if (std::holds_alternative<cConfigPtr>(value))
-                    {
-                        auto it = otherValueMap.find(key);
-                        if (it == otherValueMap.end())
-                            return false;
-                        return std::get<cConfigPtr>(value)->operator==(*std::get<cConfigPtr>(it->second));
-                    }
-                    else
-                    {
-                        //if(!std::visit([&value, &otherValue](const auto& v)
-                        //    {
-                        //        return std::get<std::decay_t<decltype(value)>>(otherValue) == value;
-                        //    }
-                        //    , value))
-                        //{
-                            return false;
-                        //}
-                    }
+                    if (!valueEquals(value, otherIt->second))
+                        return false;
                 }
+
                 return true;
             }
-            else if constexpr (std::is_same_v<std::decay_t<decltype(values)>, cValueArray>)
+            else if constexpr (std::is_same_v<Values, cValueArray>)
             {
-                const cValueArray& otherValueArray = std::get<cValueArray>(other.mValues);
-                if (values.size() != otherValueArray.size())
+                if (values.size() != otherValues.size())
                     return false;
+
                 for (size_t i = 0; i < values.size(); ++i)
                 {
-                    const cValue& value = values[i];
-                    const cValue& otherValue = otherValueArray[i];
-                    if(value.index() != otherValue.index())
+                    if (!valueEquals(values[i], otherValues[i]))
                         return false;
-                    if (std::holds_alternative<cConfigPtr>(values[i]))
-                    {
-                        if (!std::get<cConfigPtr>(values[i])->operator==(*std::get<cConfigPtr>(otherValueArray[i])))
-                            return false;
-                    }
-                    else
-                    {
-                        if (!std::visit([&values, i, &otherValueArray](const auto& value)
-                            {
-                                return std::get<std::decay_t<decltype(value)>>(otherValueArray[i])
-                                    == value;
-                            }
-                            , values[i]))
-                        {
-                            return false;
-                        }
-                    }
                 }
+
                 return true;
             }
             else // std::monostate
             {
                 return true;
             }
-        }, mValues);    
-} 
+        }, mValues, other.mValues);
+}
