@@ -33,12 +33,12 @@ void StandardLogPlugins::cEcho::Flush()
 void StandardLogPlugins::cFile::Open()
 {
 	FileHandle=CreateFile(AttachedLog->GetFileName().c_str(),GENERIC_WRITE,FILE_SHARE_READ,NULL,
-		AttachedLog->GetFlags()&cLog::TRUNCATE?CREATE_ALWAYS:OPEN_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
+		AttachedLog->GetFlags()&cLog::Flags::TRUNCATE?CREATE_ALWAYS:OPEN_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
 	if(FileHandle==INVALID_HANDLE_VALUE)
 	{
 		ThrowLastError(fmt::sprintf("CreateFile(\"%s\")",AttachedLog->GetFileName()));
 	}
-	if(!(AttachedLog->GetFlags()&cLog::NO_AUTO_SEEK_END))
+	if(!(AttachedLog->GetFlags()&cLog::Flags::NO_AUTO_SEEK_END))
 	{
 		LARGE_INTEGER EndPosition;
 		EndPosition.QuadPart=0;

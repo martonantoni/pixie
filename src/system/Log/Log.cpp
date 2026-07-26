@@ -3,17 +3,17 @@
 #include "LogChunk.h"
 #include "StandardLogPlugins.h"
 
-cLog::cLog(const cPath &pFileName,int pFlags): FileName(pFileName.toString()), Flags(pFlags)
+cLog::cLog(const cPath &pFileName,int pFlags): FileName(pFileName.toString()), mFlags(pFlags)
 {
 	ConstructionHelper();
 }
 
-cLog::cLog(int pFlags): FileName("N/A"), Flags(pFlags|NO_FILE)
+cLog::cLog(int pFlags): FileName("N/A"), mFlags(pFlags| Flags::NO_FILE)
 {
 	ConstructionHelper();
 }
 
-cLog::cLog(): FileName("N/A"), Flags(NO_FILE)
+cLog::cLog(): FileName("N/A"), mFlags(Flags::NO_FILE)
 {
 	ConstructionHelper();
 }
@@ -22,11 +22,11 @@ void cLog::ConstructionHelper()
 {
 	LoggedBytesCount=0;
 	ActiveChunk=new cChunk(DefaultChunkLength);
-	if(Flags&ECHO)
+	if(mFlags& Flags::ECHO)
 		AddPlugin(new StandardLogPlugins::cEcho);
-	if(!(Flags&NO_FILE))
+	if(!(mFlags& Flags::NO_FILE))
 		AddPlugin(new StandardLogPlugins::cFile);
-	if(Flags&FLUSH_OVER_TIME)
+	if(mFlags& Flags::FLUSH_OVER_TIME)
 	{
 		TimerThread=cThread::GetCurrentThread();
 		mTimerID=TimerThread->AddTimer([this]() { OnTimer(); }, cTimerRequest(5000));
@@ -51,7 +51,7 @@ cLog::~cLog()
 
 void cLog::AddPlugin(cPlugin *Plugin)
 {
-	cMutexGuard Guard(Mutex,Flags&USE_MUTEX);
+	cMutexGuard Guard(Mutex,mFlags& Flags::USE_MUTEX);
 
 	Plugin->SetLog(this);
 	Plugin->Open();
@@ -64,7 +64,7 @@ void cLog::AddPlugin(cPlugin *Plugin)
 
 void cLog::RemovePlugin(cPlugin *Plugin)
 {
-	cMutexGuard Guard(Mutex,Flags&USE_MUTEX);
+	cMutexGuard Guard(Mutex,mFlags& Flags::USE_MUTEX);
 
 	for(cPlugins::iterator i=Plugins.begin(),iend=Plugins.end();i!=iend;++i)
 	{
@@ -80,7 +80,7 @@ void cLog::RemovePlugin(cPlugin *Plugin)
 
 void cLog::OnTimer()
 {
-	cMutexGuard Guard(Mutex,Flags&USE_MUTEX);
+	cMutexGuard Guard(Mutex,mFlags & Flags::USE_MUTEX);
 
 	WriteOutActiveChunk();
 }
@@ -91,13 +91,13 @@ void cLog::Log(const char *FormatString,...)
 	va_start(Args,FormatString);
 	LogArgs(FormatString,Args);
 	va_end(Args);
-	if(Flags&AUTO_FLUSH)
+	if(mFlags & Flags::AUTO_FLUSH)
 		Flush();
 }
 
 void cLog::Flush()
 {
-	cMutexGuard Guard(Mutex,Flags&USE_MUTEX);
+	cMutexGuard Guard(Mutex,mFlags & Flags::USE_MUTEX);
 
 	WriteOutActiveChunk();
 	for(cPlugins::iterator i=Plugins.begin(),iend=Plugins.end();i!=iend;++i)
@@ -130,13 +130,13 @@ void cLog::WriteOutActiveChunk()
 
 void cLog::LogArgs(const char *FormatString,va_list Args)
 {
-	cMutexGuard Guard(Mutex,Flags&USE_MUTEX);
+	cMutexGuard Guard(Mutex,mFlags & Flags::USE_MUTEX);
 
 	int WrittenLength,Offset;
 	for(;;)
 	{
 		Offset=ActiveChunk->GetOffset();
-		WrittenLength=ActiveChunk->LogArgs(FormatString,Args,Flags);
+		WrittenLength=ActiveChunk->LogArgs(FormatString,Args,mFlags);
 		if(WrittenLength!=-1)
 			break;
 		WriteOutActiveChunk();
@@ -154,7 +154,7 @@ void cLog::LogArgs(const char *FormatString,va_list Args)
 
 void cLog::LogBinary(const void *Data,int Length)
 {
-	cMutexGuard Guard(Mutex,Flags&USE_MUTEX);
+	cMutexGuard Guard(Mutex,mFlags & Flags::USE_MUTEX);
 
 	if(ActiveChunk->LogBinary((const char *)Data,Length)==-1)
 	{
@@ -176,7 +176,7 @@ void cLog::LogBinary(const void *Data,int Length)
 
 void cLog::Seek(__int64 Offset,int Method)
 {
-	cMutexGuard Guard(Mutex,Flags&USE_MUTEX);
+	cMutexGuard Guard(Mutex,mFlags & Flags::USE_MUTEX);
 
 	Flush();
 	cPlugin::cSeekParameters SeekParameters(Offset,Method);
@@ -189,7 +189,7 @@ void cLog::Seek(__int64 Offset,int Method)
 
 __int64 cLog::Tell()
 {
-	cMutexGuard Guard(Mutex,Flags&USE_MUTEX);
+	cMutexGuard Guard(Mutex,mFlags & Flags::USE_MUTEX);
 
 	WriteOutActiveChunk();
 	__int64 Position=-1;
@@ -207,7 +207,7 @@ __int64 cLog::Tell()
 void cLog::cPlugin::SetLog(cLog *pLog)
 { 
 	AttachedLog=pLog; 
-	if(!(AttachedLog->GetFlags()&cLog::SINGLE_THREAD)&&PreferredThreadName)
+	if(!(AttachedLog->GetFlags()&cLog::Flags::SINGLE_THREAD)&&PreferredThreadName)
 		Thread=theThreadServer->GetThread(PreferredThreadName);
 	else
 		Thread=cThread::GetCurrentThread();

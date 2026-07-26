@@ -5,18 +5,18 @@ class cTimerHandlerData;
 class cLog
 {
 public:
-	enum eFlags
+	struct Flags
 	{
-		FLUSH_OVER_TIME		= 0x001,
-		USE_MUTEX			= 0x002,
-		TRUNCATE			= 0x004,
-		ECHO				= 0x008,
-		NO_LINE_FEED		= 0x010,
-		TIME_STAMP			= 0x020,
-		NO_FILE				= 0x040,
-		SINGLE_THREAD		= 0x080,
-		NO_AUTO_SEEK_END	= 0x100,
-		AUTO_FLUSH          = 0x200,
+		static constexpr int FLUSH_OVER_TIME = 0x001;
+        static constexpr int USE_MUTEX = 0x002;
+        static constexpr int TRUNCATE = 0x004;
+        static constexpr int ECHO = 0x008;
+        static constexpr int NO_LINE_FEED = 0x010;
+        static constexpr int TIME_STAMP = 0x020;
+        static constexpr int NO_FILE = 0x040;
+        static constexpr int SINGLE_THREAD = 0x080;
+        static constexpr int NO_AUTO_SEEK_END = 0x100;
+        static constexpr int AUTO_FLUSH = 0x200;
 	};
 	class cPlugin;
 	class cChunk;
@@ -26,7 +26,7 @@ private:
 	cChunk *ActiveChunk;
 	cThread *TimerThread;
 	cMutex Mutex;
-	int Flags;
+	int mFlags;
 	std::string FileName;
 	typedef std::list<cPlugin *> cPlugins;
 	cPlugins Plugins,ChunkLoggingPlugins,ChunkPartLoggingPlugins;
@@ -42,7 +42,7 @@ public:
 	cLog();
 	virtual ~cLog();
 
-	int GetFlags() const { return Flags; }
+	int GetFlags() const { return mFlags; }
 	const std::string &GetFileName() const { return FileName; }
 	void AddPlugin(cPlugin *Plugin);
 	void RemovePlugin(cPlugin *Plugin);

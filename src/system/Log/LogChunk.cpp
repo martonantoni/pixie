@@ -82,16 +82,16 @@ int cLog::cChunk::LogArgs(const char *FormatString,va_list Args,int Flags)
 {
 	if(!SharedData)
 		return -1;
-	int HeaderLength=(Flags&cLog::TIME_STAMP)?9:0;
+	int HeaderLength=(Flags&cLog::Flags::TIME_STAMP)?9:0;
 	int FullOffset=Offset+HeaderLength;
-	int BackPaddingLength=(Flags&cLog::NO_LINE_FEED)?0:2;
+	int BackPaddingLength=(Flags&cLog::Flags::NO_LINE_FEED)?0:2;
 	if(SharedData->Length-FullOffset-BackPaddingLength<=0)
 		return -1;
 	int Written=vsnprintf_s(SharedData->Data+FullOffset,SharedData->Length-FullOffset+1,
 		SharedData->Length-FullOffset-BackPaddingLength,FormatString,Args);
 	if(Written==-1)
 		return -1;
-	if(Flags&cLog::TIME_STAMP)
+	if(Flags&cLog::Flags::TIME_STAMP)
 	{
 		time_t CurrentTime=time(0);
 		tm LocalTime;
@@ -107,7 +107,7 @@ int cLog::cChunk::LogArgs(const char *FormatString,va_list Args,int Flags)
 		TimeStampPos[7]='0'+LocalTime.tm_sec%10;
 		TimeStampPos[8]=' ';
 	}
-	if(!(Flags&cLog::NO_LINE_FEED))
+	if(!(Flags&cLog::Flags::NO_LINE_FEED))
 	{
 		SharedData->Data[FullOffset+Written]=0xd;
 		SharedData->Data[FullOffset+Written+1]=0xa;
