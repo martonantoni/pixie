@@ -30,7 +30,8 @@ class cTextureManager2
 	std::unordered_map<std::string, std::string> mTextureAliases;
 	bool AddEntire(const std::string &Name, cImageFile *ImageFile);
 	void ProcessInfoFile(const std::string &Path, const cPath &TextureFilePath);
-	static IDirect3DTexture9 *LoadTexture(const cPath &FileName, D3DXIMAGE_INFO *SrcInfo);
+	static IDirect3DTexture9 *LoadTexture(const cPath &FileName, cPoint *Size);
+	static IDirect3DTexture9 *CreateTexture(const unsigned char *Pixels, int Width, int Height);
 public:
 	cTextureManager2()=default;
 	~cTextureManager2()=default;
