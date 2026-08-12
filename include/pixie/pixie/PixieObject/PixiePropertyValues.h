@@ -19,5 +19,5 @@ struct cPixieObject::cPropertyValues
 	int ToInt() const;
 	cPoint ToPoint() const;
 	cRect ToRect() const;
-	D3DCOLOR ToRGBColor() const;
+	uint32_t ToRGBColor() const;
 };

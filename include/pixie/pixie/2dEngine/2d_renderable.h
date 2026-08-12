@@ -48,8 +48,8 @@ public:
 	void SetRotation(float Rotation);
 	void SetZOrder(int ZOrder);
 	void SetRGBColor(cColor Color);
-	void SetARGBColor(D3DCOLOR Color);
-	void SetARGBColor_ByPosition(unsigned int PositionFlags, D3DCOLOR Color);
+	void SetARGBColor(uint32_t Color);
+	void SetARGBColor_ByPosition(unsigned int PositionFlags, uint32_t Color);
 	void SetAlpha(DWORD Alpha); // 0 - 255, 0: solid, 255: transparent
 
 	void setClippingMode(eClippingMode ClippingMode);

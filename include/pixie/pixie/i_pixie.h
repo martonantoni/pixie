@@ -1,8 +1,15 @@
 #include "Window/i_window.h"
 
-#include <d3d9.h>
-#include <d3dx9.h>
 #include <math.h>
+
+#define PIXIE_ARGB(a, r, g, b) \
+    ((uint32_t(a) << 24) | \
+     (uint32_t(r) << 16) | \
+     (uint32_t(g) << 8)  | \
+      uint32_t(b))
+
+#define PIXIE_XRGB(r, g, b) \
+    PIXIE_ARGB(0xff, r, g, b)
 
 #include "system/ColorInfo.h"
 #include "system/PixieEvents.h"

@@ -20,8 +20,11 @@ void cPixieDesktop::Init(const cInitData &InitData)
 	if(ASSERTFALSE(mRenderer.get()))
 		return;
 	cPixieWindow::Init(InitData);
-	SetPlacement(cRect(0, 0, theDevice->GetPresentParameters().BackBufferWidth, theDevice->GetPresentParameters().BackBufferHeight));
-
+	SetPlacement(cRect(
+		0,
+		0,
+		theDevice->GetBackBufferWidth(),
+		theDevice->GetBackBufferHeight()));
 	mRenderer=std::make_unique<cSpriteRenderer>(*this);
 	cDevice::Get()->AddMainRenderer(mRenderer.get());
 

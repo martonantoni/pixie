@@ -1,161 +1,188 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
 
-cDevice *theDevice=NULL;
+#pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "dxgi.lib")
 
+cDevice *theDevice = NULL;
 
 cDevice::cDevice()
-: mBackBufferSurface(NULL)
-, mDevice(NULL)
 {
-	mIsClosing=false;
-	theDevice=this;
+    mIsClosing = false;
+    theDevice = this;
 }
 
 cDevice::~cDevice()
 {
-	theDevice=NULL;
+    if (mDeviceContext)
+        mDeviceContext->ClearState();
+
+    if (mBackBufferSurface)
+        mBackBufferSurface->Release();
+    if (mBackBufferTexture)
+        mBackBufferTexture->Release();
+    if (mSwapChain)
+        mSwapChain->Release();
+    if (mDeviceContext)
+        mDeviceContext->Release();
+    if (mDevice)
+        mDevice->Release();
+
+    theDevice = NULL;
 }
 
 void cDevice::Init()
 {
+    ZeroMemory(&mPresentParameters, sizeof(mPresentParameters));
 
+    cPrimaryWindow &PrimaryWindow = cPrimaryWindow::Get();
 
-	IDirect3D9 *Direct3D=Direct3DCreate9(D3D_SDK_VERSION);
-	RELEASE_ASSERT_EXT(Direct3D,"Direct3DCreate9 failed");
+    mPresentParameters.BufferCount = 1;
+    mPresentParameters.BufferDesc.Width = 0;
+    mPresentParameters.BufferDesc.Height = 0;
+    mPresentParameters.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    mPresentParameters.BufferDesc.RefreshRate.Numerator = 0;
+    mPresentParameters.BufferDesc.RefreshRate.Denominator = 1;
+    mPresentParameters.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    mPresentParameters.OutputWindow = PrimaryWindow.mWindowHandle;
+    mPresentParameters.SampleDesc.Count = 1;
+    mPresentParameters.SampleDesc.Quality = 0;
+    mPresentParameters.Windowed = TRUE;
+    mPresentParameters.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+    mPresentParameters.Flags = 0;
 
-	D3DFORMAT format=D3DFMT_A8R8G8B8;// D3DFMT_R5G6B5; //For simplicity we'll hard-code this for now.
+    UINT deviceFlags = 0;
+#ifdef _DEBUG
+    deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
 
-	//Even though we set all of it's members, it's still good practice to zero it out
-	ZeroMemory(&mPresentParameters,sizeof(D3DPRESENT_PARAMETERS));
+    const D3D_FEATURE_LEVEL requestedFeatureLevels[] =
+    {
+        D3D_FEATURE_LEVEL_11_0,
+    };
+    D3D_FEATURE_LEVEL createdFeatureLevel = D3D_FEATURE_LEVEL_11_0;
 
-	mPresentParameters.BackBufferCount= 1;  //We only need a single back buffer
-	mPresentParameters.MultiSampleType=D3DMULTISAMPLE_NONE; //No multi-sampling
-	mPresentParameters.MultiSampleQuality=0;                //No multi-sampling
-	mPresentParameters.SwapEffect = D3DSWAPEFFECT_DISCARD;  // Throw away previous frames, we don't need them
-//	mPresentParameters.hDeviceWindow=cPrimaryWindow::Get()->m_hWnd;
-	mPresentParameters.Flags=0;            //No flags to set
-	mPresentParameters.FullScreen_RefreshRateInHz=D3DPRESENT_RATE_DEFAULT; //Default Refresh Rate
-	mPresentParameters.PresentationInterval=D3DPRESENT_INTERVAL_DEFAULT;   //Default Presentation rate
-	mPresentParameters.BackBufferFormat=format;      //Display format
-	mPresentParameters.EnableAutoDepthStencil=FALSE; //No depth/stencil buffer
+    HRESULT result = D3D11CreateDeviceAndSwapChain(
+        nullptr,
+        D3D_DRIVER_TYPE_HARDWARE,
+        nullptr,
+        deviceFlags,
+        requestedFeatureLevels,
+        static_cast<UINT>(sizeof(requestedFeatureLevels) / sizeof(requestedFeatureLevels[0])),
+        D3D11_SDK_VERSION,
+        &mPresentParameters,
+        &mSwapChain,
+        &mDevice,
+        &createdFeatureLevel,
+        &mDeviceContext);
 
-	/*	if(is_app_fullscreen){
-	mPresentParameters.Windowed          = FALSE;
-	mPresentParameters.BackBufferWidth   = 640;
-	mPresentParameters.BackBufferHeight  = 480;
-	}else{*/
- 	//mPresentParameters.BackBufferWidth   = 3840/2;
- 	//mPresentParameters.BackBufferHeight  = 2160/2;
-	mPresentParameters.Windowed          = TRUE;
+#ifdef _DEBUG
+    // The debug layer is optional on modern Windows installations.
+    if (result == DXGI_ERROR_SDK_COMPONENT_MISSING)
+    {
+        deviceFlags &= ~D3D11_CREATE_DEVICE_DEBUG;
+        result = D3D11CreateDeviceAndSwapChain(
+            nullptr,
+            D3D_DRIVER_TYPE_HARDWARE,
+            nullptr,
+            deviceFlags,
+            requestedFeatureLevels,
+            static_cast<UINT>(sizeof(requestedFeatureLevels) / sizeof(requestedFeatureLevels[0])),
+            D3D11_SDK_VERSION,
+            &mPresentParameters,
+            &mSwapChain,
+            &mDevice,
+            &createdFeatureLevel,
+            &mDeviceContext);
+    }
+#endif
 
+    StopOnError(result);
 
-// 	mPresentParameters.Windowed          = FALSE;
-// 	mPresentParameters.BackBufferWidth   = 1680;
-// 	mPresentParameters.BackBufferHeight  = 1050;
-// 
+    D3V(mSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void **>(&mBackBufferTexture)));
+    D3V(mDevice->CreateRenderTargetView(mBackBufferTexture, nullptr, &mBackBufferSurface));
+    mDeviceContext->OMSetRenderTargets(1, &mBackBufferSurface, nullptr);
 
-	//	}
-
-
-	// 	const D3DPRESENT_PARAMETERS &D3DPresentParams=mPixieDevice->GetPresenetParameters();
-	// 	float BackBufferWidthHalf=(float)(D3DPresentParams.BackBufferWidth/2);
-	// 	float BackBufferHeightHalf=(float)(D3DPresentParams.BackBufferHeight/2);
-
-	cPrimaryWindow &PrimaryWindow=cPrimaryWindow::Get();
-
-	StopOnError(Direct3D->CreateDevice(D3DADAPTER_DEFAULT, //The default adapter, on a multi-monitor system
-		//there can be more than one.
-		D3DDEVTYPE_HAL, //Use hardware acceleration rather than the software renderer
-		//Our Window
-		PrimaryWindow.mWindowHandle,
-		D3DCREATE_HARDWARE_VERTEXPROCESSING,
-		//Our D3DPRESENT_PARAMETERS structure, so it knows what we want to build
-		&mPresentParameters,
-		//This will be set to point to the new device
-		&mDevice));
-
-	mDevice->GetRenderTarget(0,&mBackBufferSurface);
-
-	mRenderingTimerID=theMainThread->AddTimer([this]() { RenderingLoop(); }, cTimerRequest(10));
-
-	mNeedClear= theGlobalConfig->get<bool>("pixie_system.clear_device_before_frame", false);
+    mRenderingTimerID = theMainThread->AddTimer([this]() { RenderingLoop(); }, cTimerRequest(10));
+    mNeedClear = theGlobalConfig->get<bool>("pixie_system.clear_device_before_frame", false);
 }
 
 void cDevice::Close()
 {
-	mIsClosing=true;
-//	mDevice->Reset();
+    mIsClosing = true;
 }
 
 void cDevice::RenderingLoop()
 {
-	if(mIsClosing)
-		return;
-	StopOnError(mDevice->BeginScene());
+    if (mIsClosing)
+        return;
 
-	theLogicServer.Tick();
+    theLogicServer.Tick();
 
-	theRenderers.Call();
+    theRenderers.Call();
 
-//	StopOnError(mDevice->SetRenderTarget(0,mBackBufferSurface));
+    if (mNeedClear && mDeviceClearer)
+        mDeviceClearer->ClearDevice(mDeviceContext);
 
-	if(mNeedClear&&mDeviceClearer)
-		mDeviceClearer->ClearDevice(mDevice);
+    for (cRendererList::iterator i = mRenderers.begin(), iend = mRenderers.end(); i != iend; ++i)
+        (*i)->Render();
 
-	for(cRendererList::iterator i=mRenderers.begin(),iend=mRenderers.end();i!=iend;++i)
-		(*i)->Render();
+    if (mMainRenderer)
+        mMainRenderer->Render();
 
-	if(mMainRenderer)
-		mMainRenderer->Render();
+    for (auto& window : thePixieDesktop.ownerlessWindows())
+        window->CheckOwnerlessSprites();
 
-	for (auto& window : thePixieDesktop.ownerlessWindows())
-	{
-		window->CheckOwnerlessSprites();
-	}
-
-	StopOnError(mDevice->EndScene());
-
-	//Show the results
-	StopOnError(mDevice->Present(NULL,  //Source rectangle to display, NULL for all of it
-		NULL,  //Destination rectangle, NULL to fill whole display
-		NULL,  //Target window, if NULL uses device window set in CreateDevice
-		NULL ));//Unused parameter, set it to NULL
+    StopOnError(mSwapChain->Present(1, 0));
 }
 
 cDevice *cDevice::Get()
 {
-	static cDevice *Instance=NULL;
-	if(!Instance)
-	{
-		Instance=new cDevice;
-		theMainThread->callback([]() {Instance->Init(); }, eCallbackType::Wait);
-	}
-	return Instance;
+    static cDevice *Instance = NULL;
+    if (!Instance)
+    {
+        Instance = new cDevice;
+        theMainThread->callback([]() { Instance->Init(); }, eCallbackType::Wait);
+    }
+    return Instance;
 }
 
 void cDevice::SetClearer(cDeviceClearer *pDeviceClearer)
 {
-	mDeviceClearer=pDeviceClearer;
+    mDeviceClearer = pDeviceClearer;
 }
 
 void cDevice::AddRenderer(cRenderer *Renderer)
 {
-	mRenderers.push_back(Renderer);
+    mRenderers.push_back(Renderer);
 }
 
 void cDevice::RemoveRenderer(cRenderer *Renderer)
 {
-	if(mMainRenderer==Renderer)
-	{
-		mMainRenderer=nullptr;
-		return;
-	}
-	mRenderers.remove(Renderer);
+    if (mMainRenderer == Renderer)
+    {
+        mMainRenderer = nullptr;
+        return;
+    }
+    mRenderers.remove(Renderer);
 }
 
 void cDevice::AddMainRenderer(cRenderer *MainRenderer)
 {
-	mMainRenderer=MainRenderer;
-	mMainRenderer->SetRenderSurface(mBackBufferSurface);
+    mMainRenderer = MainRenderer;
+    mMainRenderer->SetRenderSurface(mBackBufferSurface);
+}
+
+int cDevice::GetBackBufferWidth() const
+{
+    D3D11_TEXTURE2D_DESC desc;
+    mBackBufferTexture->GetDesc(&desc);
+    return static_cast<int>(desc.Width);
+}
+
+int cDevice::GetBackBufferHeight() const
+{
+    D3D11_TEXTURE2D_DESC desc;
+    mBackBufferTexture->GetDesc(&desc);
+    return static_cast<int>(desc.Height);
 }

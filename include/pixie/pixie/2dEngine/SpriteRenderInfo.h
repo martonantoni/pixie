@@ -9,9 +9,7 @@ struct cSpriteRenderInfo
 	enum eBlendingMode
 	{
 		Blend_Normal,
-		Blend_LikeLight,
 		Blend_CopySource,
-		Blend_Solid,
 		Invalid_Blend_Mode,
 	} mBlendingMode=Blend_Normal;
 	float mRotation=0; // in degrees

@@ -1,289 +1,463 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
 #include "pixie/pixie/2dEngine/sprite_renderer.h"
+#include <d3dcompiler.h>
+#include <vector>
+
+#pragma comment(lib, "d3dcompiler.lib")
+
+namespace
+{
+    const char *SpriteShaderSource = R"(
+cbuffer SpriteConstants : register(b0)
+{
+    float2 TargetSize;
+    float2 Padding;
+};
+
+Texture2D SpriteTexture : register(t0);
+SamplerState SpriteSampler : register(s0);
+
+struct VSInput
+{
+    float3 Position : POSITION;
+    uint Color : COLOR;
+    float2 TexCoord : TEXCOORD0;
+};
+
+struct VSOutput
+{
+    float4 Position : SV_POSITION;
+    float4 Color : COLOR;
+    float2 TexCoord : TEXCOORD0;
+};
+
+float4 UnpackARGB(uint color)
+{
+    return float4(
+        ((color >> 16) & 255) / 255.0f,
+        ((color >> 8) & 255) / 255.0f,
+        (color & 255) / 255.0f,
+        ((color >> 24) & 255) / 255.0f);
+}
+
+VSOutput VSMain(VSInput input)
+{
+    VSOutput output;
+    float2 clipPosition;
+    clipPosition.x = input.Position.x * (2.0f / TargetSize.x) - 1.0f;
+    clipPosition.y = 1.0f - input.Position.y * (2.0f / TargetSize.y);
+    output.Position = float4(clipPosition, input.Position.z, 1.0f);
+    output.Color = UnpackARGB(input.Color);
+    output.TexCoord = input.TexCoord;
+    return output;
+}
+
+float4 PSMain(VSOutput input) : SV_TARGET
+{
+    return SpriteTexture.Sample(SpriteSampler, input.TexCoord) * input.Color;
+}
+)";
+
+    ID3DBlob *CompileShader(const char *entryPoint, const char *target)
+    {
+        UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
+#ifdef _DEBUG
+        flags |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+
+        ID3DBlob *shader = nullptr;
+        ID3DBlob *errors = nullptr;
+        HRESULT result = D3DCompile(
+            SpriteShaderSource,
+            strlen(SpriteShaderSource),
+            "Pixie sprite shader",
+            nullptr,
+            nullptr,
+            entryPoint,
+            target,
+            flags,
+            0,
+            &shader,
+            &errors);
+
+        if (FAILED(result))
+        {
+            std::string errorText = errors
+                ? std::string(static_cast<const char *>(errors->GetBufferPointer()), errors->GetBufferSize())
+                : "Unknown shader compilation error";
+            if (errors)
+                errors->Release();
+            RELEASE_ASSERT_EXT(false, errorText);
+        }
+
+        if (errors)
+            errors->Release();
+        return shader;
+    }
+}
 
 void cSpriteRenderer::Init()
 {
-	mMaxSpritesPerFlush = theGlobalConfig->get<int>("pixie_system.sprite_renderer.max_sprites_per_flush");
-	ASSERT(mMaxSpritesPerFlush);
+    mMaxSpritesPerFlush = theGlobalConfig->get<int>("pixie_system.sprite_renderer.max_sprites_per_flush");
+    ASSERT(mMaxSpritesPerFlush);
 
-	mPixieDevice=cDevice::Get();
-	mDevice=mPixieDevice->GetD3DObject();
+    mPixieDevice = cDevice::Get();
+    mDevice = mPixieDevice->GetD3DObject();
+    mDeviceContext = mPixieDevice->GetDeviceContext();
 
-	//Create vertex buffer
-	D3V(mDevice->CreateVertexBuffer(mMaxSpritesPerFlush * 4 * sizeof(cSpriteVertexData),
-		D3DUSAGE_WRITEONLY, cSpriteVertexData::FVF, D3DPOOL_MANAGED, &mVertexBuffer, NULL));
-	D3V(mDevice->CreateIndexBuffer(mMaxSpritesPerFlush * 4 * 3, D3DUSAGE_WRITEONLY,
-		D3DFMT_INDEX16, D3DPOOL_MANAGED, &mIndexBuffer, NULL));
+    D3D11_BUFFER_DESC vertexBufferDesc = {};
+    vertexBufferDesc.ByteWidth = mMaxSpritesPerFlush * 4 * sizeof(cSpriteVertexData);
+    vertexBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    vertexBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    D3V(mDevice->CreateBuffer(&vertexBufferDesc, nullptr, &mVertexBuffer));
 
-	short *indices=NULL;
-	D3V(mIndexBuffer->Lock(0, mMaxSpritesPerFlush * 4  * 3, (void**)&indices, 0));
+    std::vector<uint16_t> indices(static_cast<size_t>(mMaxSpritesPerFlush) * 6);
+    for (int vertex = 0, index = 0; vertex < mMaxSpritesPerFlush * 4; vertex += 4, index += 6)
+    {
+        indices[index] = static_cast<uint16_t>(vertex);
+        indices[index + 1] = static_cast<uint16_t>(vertex + 2);
+        indices[index + 2] = static_cast<uint16_t>(vertex + 3);
+        indices[index + 3] = static_cast<uint16_t>(vertex);
+        indices[index + 4] = static_cast<uint16_t>(vertex + 1);
+        indices[index + 5] = static_cast<uint16_t>(vertex + 2);
+    }
 
-	for(int vertex = 0, index=0; vertex < mMaxSpritesPerFlush * 4; vertex += 4, index += 6)
-	{
-		indices[index] = vertex;
-		indices[index + 1] = vertex + 2;
-		indices[index + 2] = vertex + 3;
-		indices[index + 3] = vertex;
-		indices[index + 4] = vertex + 1;
-		indices[index + 5] = vertex + 2;
-	}
+    D3D11_BUFFER_DESC indexBufferDesc = {};
+    indexBufferDesc.ByteWidth = mMaxSpritesPerFlush * 6 * sizeof(uint16_t);
+    indexBufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
+    indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    D3D11_SUBRESOURCE_DATA indexData = {};
+    indexData.pSysMem = indices.data();
+    D3V(mDevice->CreateBuffer(&indexBufferDesc, &indexData, &mIndexBuffer));
 
-	//Unlock index buffer
-	D3V(mIndexBuffer->Unlock());
+    D3D11_BUFFER_DESC constantBufferDesc = {};
+    constantBufferDesc.ByteWidth = sizeof(cShaderConstants);
+    constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    constantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    D3V(mDevice->CreateBuffer(&constantBufferDesc, nullptr, &mShaderConstants));
 
-	mIsInitDone=true;
+    ID3DBlob *vertexShaderBlob = CompileShader("VSMain", "vs_5_0");
+    ID3DBlob *pixelShaderBlob = CompileShader("PSMain", "ps_5_0");
+
+    D3V(mDevice->CreateVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize(), nullptr, &mVertexShader));
+    D3V(mDevice->CreatePixelShader(pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize(), nullptr, &mPixelShader));
+
+    D3D11_INPUT_ELEMENT_DESC inputLayout[] =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(cSpriteVertexData, x), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "COLOR", 0, DXGI_FORMAT_R32_UINT, 0, offsetof(cSpriteVertexData, color), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, offsetof(cSpriteVertexData, u), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    };
+    D3V(mDevice->CreateInputLayout(
+        inputLayout,
+        static_cast<UINT>(sizeof(inputLayout) / sizeof(inputLayout[0])),
+        vertexShaderBlob->GetBufferPointer(),
+        vertexShaderBlob->GetBufferSize(),
+        &mInputLayout));
+
+    vertexShaderBlob->Release();
+    pixelShaderBlob->Release();
+
+    D3D11_SAMPLER_DESC samplerDesc = {};
+    samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.MaxAnisotropy = 16;
+    samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    samplerDesc.MinLOD = 0;
+    samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+    D3V(mDevice->CreateSamplerState(&samplerDesc, &mSamplerState));
+
+    D3D11_BLEND_DESC blendDesc = {};
+    blendDesc.RenderTarget[0].BlendEnable = TRUE;
+    blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+    blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+    blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+    blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+    blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+    blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    D3V(mDevice->CreateBlendState(&blendDesc, &mNormalBlendState));
+
+    blendDesc.RenderTarget[0].BlendEnable = FALSE;
+    D3V(mDevice->CreateBlendState(&blendDesc, &mCopySourceBlendState));
+
+    D3D11_RASTERIZER_DESC rasterizerDesc = {};
+    rasterizerDesc.FillMode = D3D11_FILL_SOLID;
+    rasterizerDesc.CullMode = D3D11_CULL_NONE;
+    rasterizerDesc.DepthClipEnable = TRUE;
+    rasterizerDesc.ScissorEnable = TRUE;
+    D3V(mDevice->CreateRasterizerState(&rasterizerDesc, &mRasterizerState));
+
+    mIsInitDone = true;
 }
 
 void cSpriteRenderer::UpdateBlending(cSpriteRenderInfo::eBlendingMode BlendingMode)
 {
-	D3V(mDevice->SetRenderState(D3DRS_LIGHTING, FALSE));
-	switch(BlendingMode)
-	{
-	case cSpriteRenderInfo::Blend_Normal:
-		D3V(mDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE));
-		D3V(mDevice->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, TRUE));
-		D3V(mDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA));
-		D3V(mDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA));
-		D3V(mDevice->SetRenderState(D3DRS_SRCBLENDALPHA, D3DBLEND_ONE));
-		D3V(mDevice->SetRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_ONE));
-		break;
-	case cSpriteRenderInfo::Blend_LikeLight:
-		D3V(mDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE));
-		D3V(mDevice->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, FALSE));
-		D3V(mDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA));
-		D3V(mDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_DESTALPHA));
-		break;
-	case cSpriteRenderInfo::Blend_CopySource:
-		D3V(mDevice->SetRenderState(D3DRS_SEPARATEALPHABLENDENABLE, FALSE));
-		D3V(mDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE));
-		break;
-	case cSpriteRenderInfo::Invalid_Blend_Mode:
-		ASSERT(false);
-		break;
-		//	case cSpriteRenderInfo::Blend_Solid:
+    ID3D11BlendState *blendState = nullptr;
+    switch (BlendingMode)
+    {
+    case cSpriteRenderInfo::Blend_Normal:
+        blendState = mNormalBlendState;
+        break;
+    case cSpriteRenderInfo::Blend_CopySource:
+        blendState = mCopySourceBlendState;
+        break;
+    case cSpriteRenderInfo::Invalid_Blend_Mode:
+        ASSERT(false);
+        return;
+    }
 
-	}
+    const float blendFactor[4] = { 0, 0, 0, 0 };
+    mDeviceContext->OMSetBlendState(blendState, blendFactor, 0xffffffff);
 }
 
 cSpriteRenderer::~cSpriteRenderer()
 {
-	mIsUnderDestruction=true;
-	if(mVertexBuffer)
-		mVertexBuffer->Release();
-	if(mIndexBuffer)
-		mIndexBuffer->Release();
+    mIsUnderDestruction = true;
+
+    if (mRasterizerState) mRasterizerState->Release();
+    if (mCopySourceBlendState) mCopySourceBlendState->Release();
+    if (mNormalBlendState) mNormalBlendState->Release();
+    if (mSamplerState) mSamplerState->Release();
+    if (mInputLayout) mInputLayout->Release();
+    if (mPixelShader) mPixelShader->Release();
+    if (mVertexShader) mVertexShader->Release();
+    if (mShaderConstants) mShaderConstants->Release();
+    if (mIndexBuffer) mIndexBuffer->Release();
+    if (mVertexBuffer) mVertexBuffer->Release();
 }
 
 void cSpriteRenderer::Rotate(cFloatPoint &Point, cFloatPoint Center, float s, float c)
 {
-	Point-=Center;
-	cFloatPoint Rotated(Point.x * c - Point.y * s, Point.x * s + Point.y * c);
-	Point=Rotated;
-	Point+=Center;
+    Point -= Center;
+    cFloatPoint Rotated(Point.x * c - Point.y * s, Point.x * s + Point.y * c);
+    Point = Rotated;
+    Point += Center;
 }
-
-// 				auto IsCCW=[](auto p1, auto p2, auto p3)
-// 				{
-// 					return (p2.x - p1.x)*(p3.y - p1.y) - (p2.y - p1.y)*(p3.x - p1.x) >0;
-// 				};
 
 void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderState)
 {
-	const auto [useClipping, clippingRect] = window.getSpriteClipping();
-	if (useClipping != mUseClipping || (useClipping && clippingRect != mClippingRect))
-	{
-		FlushBuffer(renderState.batchVertices, renderState.NumberOfBatchedVertices, true);
+    const auto [useClipping, clippingRect] = window.getSpriteClipping();
+    if (useClipping != mUseClipping || (useClipping && clippingRect != mClippingRect))
+    {
+        FlushBuffer(renderState.batchVertices, renderState.NumberOfBatchedVertices, true);
         mUseClipping = useClipping;
         mClippingRect = clippingRect;
+
+        D3D11_RECT rect = {};
         if (mUseClipping)
         {
-            D3V(mDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE));
-            RECT rect;
             rect.left = clippingRect.left();
             rect.right = clippingRect.right();
             rect.top = clippingRect.top();
             rect.bottom = clippingRect.bottom();
-            D3V(mDevice->SetScissorRect(&rect));
         }
         else
         {
-            D3V(mDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE));
+            rect.left = 0;
+            rect.top = 0;
+            rect.right = mRenderSurfaceWidth;
+            rect.bottom = mRenderSurfaceHeight;
         }
-	}
-	for (auto& sprite : window.mSprites) // smallest Z order first, those are the ones behind the others
-	{
-		const cSpriteRenderInfo RenderInfo = sprite->GetRenderInfo();
-		auto batchVertices = renderState.batchVertices;
-		auto& NumberOfBatchedVertices = renderState.NumberOfBatchedVertices;
-		float Z = 0.5f;
-		if (RenderInfo.mTexture)
-		{
-			if (RenderInfo.mBlendingMode != renderState.LastBlendingMode)
-			{
-				++renderState.StateChangeCount;
-				FlushBuffer(batchVertices, NumberOfBatchedVertices, true);
-				renderState.LastBlendingMode = RenderInfo.mBlendingMode;
-				UpdateBlending(renderState.LastBlendingMode);
-			}
-			if (RenderInfo.mTexture->mTexture != renderState.Texture)
-			{
-				++renderState.TextureChangeCount;
-				FlushBuffer(batchVertices, NumberOfBatchedVertices, true);
-				renderState.Texture = RenderInfo.mTexture->mTexture;
-				D3V(mDevice->SetTexture(0, renderState.Texture));
-			}
-			++renderState.SpriteCount;
-			cFloatPoint TopLeft(RenderInfo.mRect.topLeft());
-			cFloatPoint TopRight(RenderInfo.mRect.topRight());
-			cFloatPoint BottomLeft(RenderInfo.mRect.bottomLeft());
-			cFloatPoint BottomRight(RenderInfo.mRect.bottomRight());
-			TopLeft += cFloatPoint(-0.5, -0.5);       // https://msdn.microsoft.com/en-us/library/windows/desktop/bb219690%28v=vs.85%29.aspx
-			TopRight += cFloatPoint(-0.5 + 1.0, -0.5);   // (Directly Mapping Texels to Pixels (Direct3D 9))
-			BottomLeft += cFloatPoint(-0.5, -0.5 + 1.0);
-			BottomRight += cFloatPoint(-0.5 + 1.0, -0.5 + 1.0);
+        mDeviceContext->RSSetScissorRects(1, &rect);
+    }
 
-			if (RenderInfo.mRotation)
-			{
-				cFloatPoint Center(RenderInfo.mRect.center());
-				float Rad = RenderInfo.mRotation * 3.1415 / 180.0;
-				float s = sin(Rad);
-				float c = cos(Rad);
-				Rotate(TopLeft, Center, s, c);
-				Rotate(TopRight, Center, s, c);
-				Rotate(BottomLeft, Center, s, c);
-				Rotate(BottomRight, Center, s, c);
-			}
+    for (auto& sprite : window.mSprites)
+    {
+        const cSpriteRenderInfo RenderInfo = sprite->GetRenderInfo();
+        auto& batchVertices = renderState.batchVertices;
+        auto& NumberOfBatchedVertices = renderState.NumberOfBatchedVertices;
+        float Z = 0.5f;
 
-			//Setup vertices in buffer
+        if (RenderInfo.mTexture)
+        {
+            if (RenderInfo.mBlendingMode != renderState.LastBlendingMode)
+            {
+                ++renderState.StateChangeCount;
+                FlushBuffer(batchVertices, NumberOfBatchedVertices, true);
+                renderState.LastBlendingMode = RenderInfo.mBlendingMode;
+                UpdateBlending(renderState.LastBlendingMode);
+            }
 
-			batchVertices[NumberOfBatchedVertices].color = RenderInfo.mCornerColors[cSpriteColor::CornerPosition::TopLeft].GetARGBColor();
-			batchVertices[NumberOfBatchedVertices].x = TopLeft.x;
-			batchVertices[NumberOfBatchedVertices].y = TopLeft.y;
-			batchVertices[NumberOfBatchedVertices].z = Z;
-			batchVertices[NumberOfBatchedVertices].u = RenderInfo.mTexture->GetTextureInfo().mLeft;
-			batchVertices[NumberOfBatchedVertices].v = RenderInfo.mTexture->GetTextureInfo().mTop;
+            if (RenderInfo.mTexture->mShaderResourceView != renderState.Texture)
+            {
+                ++renderState.TextureChangeCount;
+                FlushBuffer(batchVertices, NumberOfBatchedVertices, true);
+                renderState.Texture = RenderInfo.mTexture->mShaderResourceView;
+                mDeviceContext->PSSetShaderResources(0, 1, &renderState.Texture);
+            }
+
+            ++renderState.SpriteCount;
+            cFloatPoint TopLeft(RenderInfo.mRect.topLeft());
+            cFloatPoint TopRight(RenderInfo.mRect.topRight());
+            cFloatPoint BottomLeft(RenderInfo.mRect.bottomLeft());
+            cFloatPoint BottomRight(RenderInfo.mRect.bottomRight());
+
+            // D3D11 pixel centers differ from D3D9. Keep the old inclusive cRect
+            // semantics, but remove the D3D9 -0.5 half-pixel correction.
+            TopRight += cFloatPoint(1.0f, 0.0f);
+            BottomLeft += cFloatPoint(0.0f, 1.0f);
+            BottomRight += cFloatPoint(1.0f, 1.0f);
+
+            if (RenderInfo.mRotation)
+            {
+                cFloatPoint Center(RenderInfo.mRect.center());
+                float Rad = RenderInfo.mRotation * 3.14159265358979323846f / 180.0f;
+                float s = sin(Rad);
+                float c = cos(Rad);
+                Rotate(TopLeft, Center, s, c);
+                Rotate(TopRight, Center, s, c);
+                Rotate(BottomLeft, Center, s, c);
+                Rotate(BottomRight, Center, s, c);
+            }
+
+            batchVertices[NumberOfBatchedVertices].color = RenderInfo.mCornerColors[cSpriteColor::CornerPosition::TopLeft].GetARGBColor();
+            batchVertices[NumberOfBatchedVertices].x = TopLeft.x;
+            batchVertices[NumberOfBatchedVertices].y = TopLeft.y;
+            batchVertices[NumberOfBatchedVertices].z = Z;
+            batchVertices[NumberOfBatchedVertices].u = RenderInfo.mTexture->GetTextureInfo().mLeft;
+            batchVertices[NumberOfBatchedVertices].v = RenderInfo.mTexture->GetTextureInfo().mTop;
 
             batchVertices[NumberOfBatchedVertices + 1].color = RenderInfo.mCornerColors[cSpriteColor::CornerPosition::TopRight].GetARGBColor();
-			batchVertices[NumberOfBatchedVertices + 1].x = TopRight.x;
-			batchVertices[NumberOfBatchedVertices + 1].y = TopRight.y;
-			batchVertices[NumberOfBatchedVertices + 1].z = Z;
-			batchVertices[NumberOfBatchedVertices + 1].u = RenderInfo.mTexture->GetTextureInfo().mRight;
-			batchVertices[NumberOfBatchedVertices + 1].v = RenderInfo.mTexture->GetTextureInfo().mTop;
+            batchVertices[NumberOfBatchedVertices + 1].x = TopRight.x;
+            batchVertices[NumberOfBatchedVertices + 1].y = TopRight.y;
+            batchVertices[NumberOfBatchedVertices + 1].z = Z;
+            batchVertices[NumberOfBatchedVertices + 1].u = RenderInfo.mTexture->GetTextureInfo().mRight;
+            batchVertices[NumberOfBatchedVertices + 1].v = RenderInfo.mTexture->GetTextureInfo().mTop;
 
             batchVertices[NumberOfBatchedVertices + 2].color = RenderInfo.mCornerColors[cSpriteColor::CornerPosition::BottomRight].GetARGBColor();
-			batchVertices[NumberOfBatchedVertices + 2].x = BottomRight.x;
-			batchVertices[NumberOfBatchedVertices + 2].y = BottomRight.y;
-			batchVertices[NumberOfBatchedVertices + 2].z = Z;
-			batchVertices[NumberOfBatchedVertices + 2].u = RenderInfo.mTexture->GetTextureInfo().mRight;
-			batchVertices[NumberOfBatchedVertices + 2].v = RenderInfo.mTexture->GetTextureInfo().mBottom;
+            batchVertices[NumberOfBatchedVertices + 2].x = BottomRight.x;
+            batchVertices[NumberOfBatchedVertices + 2].y = BottomRight.y;
+            batchVertices[NumberOfBatchedVertices + 2].z = Z;
+            batchVertices[NumberOfBatchedVertices + 2].u = RenderInfo.mTexture->GetTextureInfo().mRight;
+            batchVertices[NumberOfBatchedVertices + 2].v = RenderInfo.mTexture->GetTextureInfo().mBottom;
 
             batchVertices[NumberOfBatchedVertices + 3].color = RenderInfo.mCornerColors[cSpriteColor::CornerPosition::BottomLeft].GetARGBColor();
-			batchVertices[NumberOfBatchedVertices + 3].x = BottomLeft.x;
-			batchVertices[NumberOfBatchedVertices + 3].y = BottomLeft.y;
-			batchVertices[NumberOfBatchedVertices + 3].z = Z;
-			batchVertices[NumberOfBatchedVertices + 3].u = RenderInfo.mTexture->GetTextureInfo().mLeft;
-			batchVertices[NumberOfBatchedVertices + 3].v = RenderInfo.mTexture->GetTextureInfo().mBottom;
+            batchVertices[NumberOfBatchedVertices + 3].x = BottomLeft.x;
+            batchVertices[NumberOfBatchedVertices + 3].y = BottomLeft.y;
+            batchVertices[NumberOfBatchedVertices + 3].z = Z;
+            batchVertices[NumberOfBatchedVertices + 3].u = RenderInfo.mTexture->GetTextureInfo().mLeft;
+            batchVertices[NumberOfBatchedVertices + 3].v = RenderInfo.mTexture->GetTextureInfo().mBottom;
 
-			batchVertices[NumberOfBatchedVertices].rhw = 1.0f;
-			batchVertices[NumberOfBatchedVertices + 1].rhw = 1.0f;
-			batchVertices[NumberOfBatchedVertices + 2].rhw = 1.0f;
-			batchVertices[NumberOfBatchedVertices + 3].rhw = 1.0f;
-			//Increase vertex count
-			NumberOfBatchedVertices += 4;
-			//Flush buffer if it's full or no more sprite to draw
-		}
-		if (NumberOfBatchedVertices > (mMaxSpritesPerFlush - 1) * 4)
-		{
-			FlushBuffer(batchVertices, NumberOfBatchedVertices, true);
-		}
-	}
-	for (auto& subWindow : window.mSubWindows | std::views::reverse)
-	{
-		renderSprites(*subWindow, renderState);
-	}
+            NumberOfBatchedVertices += 4;
+        }
+
+        if (NumberOfBatchedVertices > (mMaxSpritesPerFlush - 1) * 4)
+            FlushBuffer(batchVertices, NumberOfBatchedVertices, true);
+    }
+
+    for (auto& subWindow : window.mSubWindows | std::views::reverse)
+        renderSprites(*subWindow, renderState);
 }
 
 void cSpriteRenderer::RenderSprites()
 {
-	cRenderState renderState;
-	D3V(mVertexBuffer->Lock(0, mMaxSpritesPerFlush * 4 * sizeof(cSpriteVertexData), (void **)&renderState.batchVertices, 0));
-	D3V(mDevice->SetStreamSource(0, mVertexBuffer, 0, sizeof(cSpriteVertexData)));
-	D3V(mDevice->SetIndices(mIndexBuffer));
-	renderSprites(mBaseWindow, renderState);
-	FlushBuffer(renderState.batchVertices, renderState.NumberOfBatchedVertices, false);
+    cRenderState renderState;
+
+    D3D11_MAPPED_SUBRESOURCE mapped = {};
+    D3V(mDeviceContext->Map(mVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped));
+    renderState.batchVertices = static_cast<cSpriteVertexData *>(mapped.pData);
+
+    UINT stride = sizeof(cSpriteVertexData);
+    UINT offset = 0;
+    mDeviceContext->IASetVertexBuffers(0, 1, &mVertexBuffer, &stride, &offset);
+    mDeviceContext->IASetIndexBuffer(mIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+    renderSprites(mBaseWindow, renderState);
+    FlushBuffer(renderState.batchVertices, renderState.NumberOfBatchedVertices, false);
 }
 
-void cSpriteRenderer::FlushBuffer(cSpriteVertexData* batchVertices, int &NumberOfBatchedVertices, bool RelockBuffer)
+void cSpriteRenderer::FlushBuffer(cSpriteVertexData*& batchVertices, int &NumberOfBatchedVertices, bool RelockBuffer)
 {
-	D3V(mVertexBuffer->Unlock());
+    mDeviceContext->Unmap(mVertexBuffer, 0);
+    batchVertices = nullptr;
 
-	if (NumberOfBatchedVertices)
-	{
-		//Draw quads in the buffer
-		D3V(mDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, NumberOfBatchedVertices, 0, NumberOfBatchedVertices / 2));
+    if (NumberOfBatchedVertices)
+    {
+        mDeviceContext->DrawIndexed(NumberOfBatchedVertices / 4 * 6, 0, 0);
+        NumberOfBatchedVertices = 0;
+    }
 
-		//Reset vertex count        
-		NumberOfBatchedVertices = 0;
-	}
-
-	//Lock vertex buffer again
-	if(RelockBuffer)
-	{
-		D3V(mVertexBuffer->Lock(0, mMaxSpritesPerFlush * 4 * sizeof(cSpriteVertexData), (void **)&batchVertices, 0));
-	}
+    if (RelockBuffer)
+    {
+        D3D11_MAPPED_SUBRESOURCE mapped = {};
+        D3V(mDeviceContext->Map(mVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped));
+        batchVertices = static_cast<cSpriteVertexData *>(mapped.pData);
+    }
 }
 
 void cSpriteRenderer::updateUsedTextures(cPixieWindow& window)
 {
     for (auto& sprite : window.mSprites)
     {
-		cSpriteRenderInfo RenderInfo = sprite->GetRenderInfo();
-		if (RenderInfo.mTexture && RenderInfo.mTexture->DoesNeedUpdateBeforeUse())
-		{
-			const_cast<cTexture*>(RenderInfo.mTexture)->Update();  // todo... this might be considered a late init pattern... 
-		}
+        cSpriteRenderInfo RenderInfo = sprite->GetRenderInfo();
+        if (RenderInfo.mTexture && RenderInfo.mTexture->DoesNeedUpdateBeforeUse())
+            const_cast<cTexture*>(RenderInfo.mTexture)->Update();
     }
+
     for (auto& subWindow : window.mSubWindows)
-    {
         updateUsedTextures(*subWindow);
-    }
+}
+
+void cSpriteRenderer::UpdateRenderTargetState()
+{
+    ASSERT(mRenderSurface);
+    ASSERT(mRenderSurfaceWidth > 0 && mRenderSurfaceHeight > 0);
+
+    ID3D11ShaderResourceView *nullView = nullptr;
+    mDeviceContext->PSSetShaderResources(0, 1, &nullView);
+    mDeviceContext->OMSetRenderTargets(1, &mRenderSurface, nullptr);
+
+    D3D11_VIEWPORT viewport = {};
+    viewport.TopLeftX = 0;
+    viewport.TopLeftY = 0;
+    viewport.Width = static_cast<float>(mRenderSurfaceWidth);
+    viewport.Height = static_cast<float>(mRenderSurfaceHeight);
+    viewport.MinDepth = 0.0f;
+    viewport.MaxDepth = 1.0f;
+    mDeviceContext->RSSetViewports(1, &viewport);
+
+    D3D11_RECT fullRect = { 0, 0, mRenderSurfaceWidth, mRenderSurfaceHeight };
+    mDeviceContext->RSSetScissorRects(1, &fullRect);
+    mUseClipping = false;
+
+    D3D11_MAPPED_SUBRESOURCE mapped = {};
+    D3V(mDeviceContext->Map(mShaderConstants, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped));
+    auto constants = static_cast<cShaderConstants *>(mapped.pData);
+    constants->TargetSize[0] = static_cast<float>(mRenderSurfaceWidth);
+    constants->TargetSize[1] = static_cast<float>(mRenderSurfaceHeight);
+    constants->Padding[0] = 0;
+    constants->Padding[1] = 0;
+    mDeviceContext->Unmap(mShaderConstants, 0);
 }
 
 void cSpriteRenderer::Render()
 {
-	if(!mIsInitDone)
-		Init();
-	
-	updateUsedTextures(mBaseWindow);
+    if (!mIsInitDone)
+        Init();
 
-	StopOnError(mDevice->SetRenderTarget(0, mRenderSurface));
-	if(mClearBeforeRender)
-	{
-		StopOnError(theDevice->GetD3DObject()->Clear(0,  //Number of rectangles to clear, we're clearing everything so set it to 0
-			nullptr, //Pointer to the rectangles to clear, NULL to clear whole display
-			D3DCLEAR_TARGET,   //What to clear.  We don't have a Z Buffer or Stencil Buffer
-			0, //Colour to clear to (AARRGGBB)
-			1.0f,  //Value to clear ZBuffer to, doesn't matter since we don't have one
-			0));   //Stencil clear value, again, we don't have one, this value doesn't matter
-	}
-	D3V(mDevice->SetVertexShader(NULL));
-	D3V(mDevice->SetFVF(cSpriteVertexData::FVF));
-	D3V(mDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE));
+    updateUsedTextures(mBaseWindow);
+    UpdateRenderTargetState();
 
-    // better for sprites (but blurrier when scaled):
+    if (mClearBeforeRender)
+    {
+        const float clearColor[4] = { 0, 0, 0, 0 };
+        mDeviceContext->ClearRenderTargetView(mRenderSurface, clearColor);
+    }
 
-	mDevice->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
- 	mDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC);
-	mDevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC);
+    mDeviceContext->IASetInputLayout(mInputLayout);
+    mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    mDeviceContext->VSSetShader(mVertexShader, nullptr, 0);
+    mDeviceContext->VSSetConstantBuffers(0, 1, &mShaderConstants);
+    mDeviceContext->PSSetShader(mPixelShader, nullptr, 0);
+    mDeviceContext->PSSetSamplers(0, 1, &mSamplerState);
+    mDeviceContext->RSSetState(mRasterizerState);
 
-	// better for UI:
-
-	//mDevice->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
-	//mDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-	//mDevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
-
-	mBaseWindow.CheckOwnerlessSprites();
-	RenderSprites();
+    mBaseWindow.CheckOwnerlessSprites();
+    RenderSprites();
 }
-

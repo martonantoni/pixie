@@ -1,5 +1,7 @@
 #pragma once
 
+struct ID3D11Texture2D;
+
 class cTextureManager2
 {
 	struct cImageFile
@@ -30,8 +32,8 @@ class cTextureManager2
 	std::unordered_map<std::string, std::string> mTextureAliases;
 	bool AddEntire(const std::string &Name, cImageFile *ImageFile);
 	void ProcessInfoFile(const std::string &Path, const cPath &TextureFilePath);
-	static IDirect3DTexture9 *LoadTexture(const cPath &FileName, cPoint *Size);
-	static IDirect3DTexture9 *CreateTexture(const unsigned char *Pixels, int Width, int Height);
+	static ID3D11Texture2D *LoadTexture(const cPath &FileName, cPoint *Size);
+	static ID3D11Texture2D *CreateTexture(const unsigned char *Pixels, int Width, int Height);
 public:
 	cTextureManager2()=default;
 	~cTextureManager2()=default;

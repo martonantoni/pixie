@@ -81,9 +81,13 @@ cRect cPixieObject::cPropertyValues::ToRect() const
 	return cRect(mProperties[0], mProperties[1], mProperties[2], mProperties[3]);
 }
 
-D3DCOLOR cPixieObject::cPropertyValues::ToRGBColor() const
+uint32_t cPixieObject::cPropertyValues::ToRGBColor() const
 {
-	ASSERT(mPropertyCount==3);
-	return D3DCOLOR_XRGB(mProperties[0], mProperties[1], mProperties[2]);
+	ASSERT(mPropertyCount == 3);
+
+	return 0xFF000000 |
+		(static_cast<uint32_t>(mProperties[0]) << 16) |
+		(static_cast<uint32_t>(mProperties[1]) << 8) |
+		static_cast<uint32_t>(mProperties[2]);
 }
 

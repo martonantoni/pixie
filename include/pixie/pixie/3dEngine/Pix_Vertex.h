@@ -1,9 +1,4 @@
 #pragma once
 
-struct cVertex
-{
-	FLOAT x, y, z;
-	DWORD Color;
-	enum { FVF = D3DFVF_DIFFUSE|D3DFVF_XYZ };
-};
-
+// cVertex used to contain the old fixed-function D3D9 vertex format.
+// It was dead code, so there is intentionally no DX11 replacement.

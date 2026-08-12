@@ -53,20 +53,35 @@ void registerGlobalPixieLuaFunctions(cLuaObject globalTable)
 	globalTable.registerFunction("RGB",
 		[](int red, int green, int blue) -> int
 		{
-            ASSERT(red >= 0 && red <= 255);
-            ASSERT(green >= 0 && green <= 255);
-            ASSERT(blue >= 0 && blue <= 255);
-            return D3DCOLOR_ARGB(0xff, red, green, blue);
+			ASSERT(red >= 0 && red <= 255);
+			ASSERT(green >= 0 && green <= 255);
+			ASSERT(blue >= 0 && blue <= 255);
+
+			uint32_t color =
+				(0xffu << 24) |
+				(static_cast<uint32_t>(red) << 16) |
+				(static_cast<uint32_t>(green) << 8) |
+				static_cast<uint32_t>(blue);
+
+			return static_cast<int>(color);
 		});
-    globalTable.registerFunction("ARGB",
-        [](int alpha, int red, int green, int blue) -> int
-        {
-            ASSERT(alpha >= 0 && alpha <= 255);
-            ASSERT(red >= 0 && red <= 255);
-            ASSERT(green >= 0 && green <= 255);
-            ASSERT(blue >= 0 && blue <= 255);
-            return D3DCOLOR_ARGB(alpha, red, green, blue);
-        });
+
+	globalTable.registerFunction("ARGB",
+		[](int alpha, int red, int green, int blue) -> int
+		{
+			ASSERT(alpha >= 0 && alpha <= 255);
+			ASSERT(red >= 0 && red <= 255);
+			ASSERT(green >= 0 && green <= 255);
+			ASSERT(blue >= 0 && blue <= 255);
+
+			uint32_t color =
+				(static_cast<uint32_t>(alpha) << 24) |
+				(static_cast<uint32_t>(red) << 16) |
+				(static_cast<uint32_t>(green) << 8) |
+				static_cast<uint32_t>(blue);
+
+			return static_cast<int>(color);
+		});
 	globalTable.registerFunction("XEnd",
 		[](cLuaObject object) -> int
 		{

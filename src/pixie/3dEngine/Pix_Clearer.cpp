@@ -1,25 +1,32 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
 
-void cBasicDeviceClearer::Init(const cConfig &Config)
+namespace
 {
-	// ARGB
-//	Color=0x40604000;
-//	Color=0x00808080;
-	Color=0;// 0xff0000;//0x00808080;//0x00202020;
-//	Color=0x102a08;  // darg greenish
-
-	Color = 0x282828;
-
-	cDevice::Get()->SetClearer(this);
+    void ArgbToFloat4(uint32_t color, float result[4])
+    {
+        result[0] = ((color >> 16) & 0xff) / 255.0f;
+        result[1] = ((color >> 8) & 0xff) / 255.0f;
+        result[2] = (color & 0xff) / 255.0f;
+        result[3] = ((color >> 24) & 0xff) / 255.0f;
+    }
 }
 
-void cBasicDeviceClearer::ClearDevice(IDirect3DDevice9 *Device)
+void cBasicDeviceClearer::Init(const cConfig &Config)
 {
-	StopOnError(Device->Clear(0,  //Number of rectangles to clear, we're clearing everything so set it to 0
-		NULL, //Pointer to the rectangles to clear, NULL to clear whole display
-		D3DCLEAR_TARGET,   //What to clear.  We don't have a Z Buffer or Stencil Buffer
-		Color, //Colour to clear to (AARRGGBB)
-		1.0f,  //Value to clear ZBuffer to, doesn't matter since we don't have one
-		0 ));   //Stencil clear value, again, we don't have one, this value doesn't matter
+    Color = 0x282828;
+    cDevice::Get()->SetClearer(this);
+}
+
+void cBasicDeviceClearer::ClearDevice(ID3D11DeviceContext *DeviceContext)
+{
+    ID3D11RenderTargetView *renderTarget = nullptr;
+    DeviceContext->OMGetRenderTargets(1, &renderTarget, nullptr);
+    if (!renderTarget)
+        return;
+
+    float color[4];
+    ArgbToFloat4(Color, color);
+    DeviceContext->ClearRenderTargetView(renderTarget, color);
+    renderTarget->Release();
 }

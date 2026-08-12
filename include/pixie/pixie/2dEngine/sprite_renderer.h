@@ -1,51 +1,72 @@
 #pragma once
 
+#include <d3d11.h>
+#include <cstdint>
+
 class cSpriteRenderer: public cRenderer
 {
-	struct cSpriteVertexData
-	{
-		float x;
-		float y;
-		float z;
-		float rhw;
-		D3DCOLOR color;
-		float u;
-		float v;
-		static const DWORD FVF = D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1;
-	};
-	struct cRenderState
-	{
-		int SpriteCount = 0, StateChangeCount = 0, TextureChangeCount = 0;
-		IDirect3DTexture9* Texture = nullptr;
-		cSpriteRenderInfo::eBlendingMode LastBlendingMode = cSpriteRenderInfo::Invalid_Blend_Mode;
-		int NumberOfBatchedVertices = 0;
-		cSpriteVertexData* batchVertices;
-	};
-	bool mIsUnderDestruction=false;
-	bool mIsInitDone=false;
-	cPixieWindow &mBaseWindow;
-	// Direct3D stuff:
-	IDirect3DDevice9 *mDevice=nullptr;
-	IDirect3DVertexBuffer9 *mVertexBuffer=nullptr;
-	IDirect3DIndexBuffer9 *mIndexBuffer=nullptr;
-	int mMaxSpritesPerFlush=0;
-	bool mClearBeforeRender=false;
-	bool mUseClipping = false;
-	cRect mClippingRect;
-	void UpdateBlending(cSpriteRenderInfo::eBlendingMode BlendingMode);
-	void FlushBuffer(cSpriteVertexData* batchVertices, int &NumberOfBatchedVertices, bool RelockBuffer);
-	void Init();
-	void renderSprites(cPixieWindow& window, cRenderState& renderState);
-	void RenderSprites();
-	void updateUsedTextures(cPixieWindow& window);
-	static void Rotate(cFloatPoint &Point, cFloatPoint Center, float s, float c);
+    struct cSpriteVertexData
+    {
+        float x;
+        float y;
+        float z;
+        uint32_t color;
+        float u;
+        float v;
+    };
+
+    struct cRenderState
+    {
+        int SpriteCount = 0, StateChangeCount = 0, TextureChangeCount = 0;
+        ID3D11ShaderResourceView* Texture = nullptr;
+        cSpriteRenderInfo::eBlendingMode LastBlendingMode = cSpriteRenderInfo::Invalid_Blend_Mode;
+        int NumberOfBatchedVertices = 0;
+        cSpriteVertexData* batchVertices = nullptr;
+    };
+
+    struct cShaderConstants
+    {
+        float TargetSize[2];
+        float Padding[2];
+    };
+
+    bool mIsUnderDestruction=false;
+    bool mIsInitDone=false;
+    cPixieWindow &mBaseWindow;
+
+    ID3D11Device *mDevice=nullptr;
+    ID3D11DeviceContext *mDeviceContext=nullptr;
+    ID3D11Buffer *mVertexBuffer=nullptr;
+    ID3D11Buffer *mIndexBuffer=nullptr;
+    ID3D11Buffer *mShaderConstants=nullptr;
+    ID3D11VertexShader *mVertexShader=nullptr;
+    ID3D11PixelShader *mPixelShader=nullptr;
+    ID3D11InputLayout *mInputLayout=nullptr;
+    ID3D11SamplerState *mSamplerState=nullptr;
+    ID3D11BlendState *mNormalBlendState=nullptr;
+    ID3D11BlendState *mCopySourceBlendState=nullptr;
+    ID3D11RasterizerState *mRasterizerState=nullptr;
+
+    int mMaxSpritesPerFlush=0;
+    bool mClearBeforeRender=false;
+    bool mUseClipping = false;
+    cRect mClippingRect;
+
+    void UpdateBlending(cSpriteRenderInfo::eBlendingMode BlendingMode);
+    void FlushBuffer(cSpriteVertexData*& batchVertices, int &NumberOfBatchedVertices, bool RelockBuffer);
+    void Init();
+    void renderSprites(cPixieWindow& window, cRenderState& renderState);
+    void RenderSprites();
+    void updateUsedTextures(cPixieWindow& window);
+    void UpdateRenderTargetState();
+    static void Rotate(cFloatPoint &Point, cFloatPoint Center, float s, float c);
+
 protected:
-	cDevice *mPixieDevice=nullptr;
+    cDevice *mPixieDevice=nullptr;
+
 public:
-	cSpriteRenderer(cPixieWindow &BaseWindow): mBaseWindow(BaseWindow) {}
-	~cSpriteRenderer();
-	//void AddSprite(cSprite *Sprite);
-	//void RemoveSprite(cSprite *Sprite);
-	void SetClearBeforeRender(bool ClearBeforeRender) { mClearBeforeRender=ClearBeforeRender; }
-	virtual void Render() override;
+    cSpriteRenderer(cPixieWindow &BaseWindow): mBaseWindow(BaseWindow) {}
+    ~cSpriteRenderer();
+    void SetClearBeforeRender(bool ClearBeforeRender) { mClearBeforeRender=ClearBeforeRender; }
+    virtual void Render() override;
 };

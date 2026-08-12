@@ -69,7 +69,7 @@ void c2DRenderable::SetRGBColor(cColor Color)
 	PropertiesSet(Property_Color);
 }
 
-void c2DRenderable::SetARGBColor(D3DCOLOR Color)
+void c2DRenderable::SetARGBColor(uint32_t Color)
 {
 	if(!CheckIfChangableProperty(Property_Color|Property_Alpha))
 		return;
@@ -78,7 +78,7 @@ void c2DRenderable::SetARGBColor(D3DCOLOR Color)
 	PropertiesSet(Property_Color|Property_Alpha);
 }
 
-void c2DRenderable::SetARGBColor_ByPosition(unsigned int PositionFlags,D3DCOLOR Color)
+void c2DRenderable::SetARGBColor_ByPosition(unsigned int PositionFlags, uint32_t Color)
 {
 	if(!CheckIfChangableProperty(Property_Color|Property_Alpha))
 		return;

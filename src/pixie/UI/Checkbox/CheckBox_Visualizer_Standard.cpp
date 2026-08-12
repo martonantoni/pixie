@@ -48,7 +48,7 @@ void cStandardCheckBoxVisualizer::Init(const cCheckBox::cInitData &InitData)
 	mTextSprite->SetFont("default");
 	mTextSprite->SetRect(TextRect);
 	mTextSprite->SetText(GetVisualizable().GetText());
-	mTextSprite->SetARGBColor(D3DCOLOR_ARGB(0xff,0xe0,0xe0,0xe0));
+	mTextSprite->SetARGBColor(PIXIE_ARGB(0xff,0xe0,0xe0,0xe0));
 	mTextSprite->SetAlignment(eHorizontalAlign::Left, eVerticalAlign::Center);
 	mTextSprite->SetZOrder(11);
 	mTextSprite->Show();

@@ -1,16 +1,19 @@
 #pragma once
 
+#include <d3d11.h>
+#include <cstdint>
+
 class cDeviceClearer abstract
 {
 public:
-	virtual ~cDeviceClearer() {}
-	virtual void ClearDevice(IDirect3DDevice9 *Device) abstract;
+    virtual ~cDeviceClearer() {}
+    virtual void ClearDevice(ID3D11DeviceContext *DeviceContext) abstract;
 };
 
 class cBasicDeviceClearer: public cDeviceClearer
 {
-	D3DCOLOR Color;
+    uint32_t Color = 0;
 public:
-	void Init(const cConfig &Config);
-	void ClearDevice(IDirect3DDevice9 *Device) override;
+    void Init(const cConfig &Config);
+    void ClearDevice(ID3D11DeviceContext *DeviceContext) override;
 };

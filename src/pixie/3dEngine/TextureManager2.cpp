@@ -24,110 +24,58 @@
 //
 // ignore_rest                            everything bellow this line is ignored
 
-namespace
+ID3D11Texture2D* cTextureManager2::CreateTexture(const unsigned char* Pixels, int Width, int Height)
 {
-void CopyPixelsToTextureLevel(IDirect3DTexture9* Texture, UINT Level, const unsigned char* Pixels, int Width, int Height)
-{
-	D3DLOCKED_RECT LockedRect;
-	if (FAILED(Texture->LockRect(Level, &LockedRect, nullptr, 0)))
+	D3D11_TEXTURE2D_DESC Desc = {};
+	Desc.Width = static_cast<UINT>(Width);
+	Desc.Height = static_cast<UINT>(Height);
+	Desc.MipLevels = 0; // allocate the full mip chain
+	Desc.ArraySize = 1;
+	Desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // stb_image gives us RGBA
+	Desc.SampleDesc.Count = 1;
+	Desc.Usage = D3D11_USAGE_DEFAULT;
+	Desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+	Desc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+
+	ID3D11Texture2D* Texture = nullptr;
+	HRESULT Result = theDevice->GetD3DObject()->CreateTexture2D(&Desc, nullptr, &Texture);
+	if (FAILED(Result))
 	{
-		return;
-	}
-
-	for (int y = 0; y < Height; ++y)
-	{
-		auto* Destination = reinterpret_cast<unsigned char*>(LockedRect.pBits) + y * LockedRect.Pitch;
-		const auto* Source = Pixels + y * Width * 4;
-
-		for (int x = 0; x < Width; ++x)
-		{
-			// stb_image returns RGBA. D3DFMT_A8R8G8B8 is BGRA in little-endian memory.
-			Destination[x * 4 + 0] = Source[x * 4 + 2];
-			Destination[x * 4 + 1] = Source[x * 4 + 1];
-			Destination[x * 4 + 2] = Source[x * 4 + 0];
-			Destination[x * 4 + 3] = Source[x * 4 + 3];
-		}
-	}
-
-	Texture->UnlockRect(Level);
-}
-
-std::vector<unsigned char> CreateNextMipLevel(const unsigned char* Pixels, int Width, int Height)
-{
-	const int NewWidth = std::max(1, Width / 2);
-	const int NewHeight = std::max(1, Height / 2);
-	std::vector<unsigned char> Result(NewWidth * NewHeight * 4);
-
-	for (int y = 0; y < NewHeight; ++y)
-	{
-		for (int x = 0; x < NewWidth; ++x)
-		{
-			for (int Channel = 0; Channel < 4; ++Channel)
-			{
-				unsigned int Sum = 0;
-				unsigned int Count = 0;
-				for (int OffsetY = 0; OffsetY < 2; ++OffsetY)
-				{
-					const int SourceY = y * 2 + OffsetY;
-					if (SourceY >= Height)
-						continue;
-					for (int OffsetX = 0; OffsetX < 2; ++OffsetX)
-					{
-						const int SourceX = x * 2 + OffsetX;
-						if (SourceX >= Width)
-							continue;
-						Sum += Pixels[(SourceY * Width + SourceX) * 4 + Channel];
-						++Count;
-					}
-				}
-				Result[(y * NewWidth + x) * 4 + Channel] = static_cast<unsigned char>(Sum / Count);
-			}
-		}
-	}
-
-	return Result;
-}
-}
-
-IDirect3DTexture9* cTextureManager2::CreateTexture(const unsigned char* Pixels, int Width, int Height)
-{
-	IDirect3DTexture9* Texture = nullptr;
-	if (FAILED(theDevice->GetD3DObject()->CreateTexture(
-		Width,
-		Height,
-		0, // full mip chain
-		0,
-		D3DFMT_A8R8G8B8,
-		D3DPOOL_MANAGED,
-		&Texture,
-		nullptr)))
-	{
-		MainLog->Log("Failed to create Direct3D texture (%dx%d)", Width, Height);
+		MainLog->Log("Failed to create Direct3D texture (%dx%d): %s",
+			Width, Height, Pixie_GetErrorCodeText(Result).c_str());
 		return nullptr;
 	}
 
-	const unsigned char* CurrentPixels = Pixels;
-	std::vector<unsigned char> MipPixels;
-	int CurrentWidth = Width;
-	int CurrentHeight = Height;
+	// Upload only the largest mip level. Direct3D will generate the rest.
+	theDevice->GetDeviceContext()->UpdateSubresource(
+		Texture,
+		0,
+		nullptr,
+		Pixels,
+		static_cast<UINT>(Width * 4),
+		0);
 
-	for (UINT Level = 0; Level < Texture->GetLevelCount(); ++Level)
+	ID3D11ShaderResourceView* ShaderResourceView = nullptr;
+	Result = theDevice->GetD3DObject()->CreateShaderResourceView(
+		Texture,
+		nullptr,
+		&ShaderResourceView);
+
+	if (FAILED(Result))
 	{
-		CopyPixelsToTextureLevel(Texture, Level, CurrentPixels, CurrentWidth, CurrentHeight);
-
-		if (Level + 1 < Texture->GetLevelCount())
-		{
-			MipPixels = CreateNextMipLevel(CurrentPixels, CurrentWidth, CurrentHeight);
-			CurrentPixels = MipPixels.data();
-			CurrentWidth = std::max(1, CurrentWidth / 2);
-			CurrentHeight = std::max(1, CurrentHeight / 2);
-		}
+		MainLog->Log("Failed to create shader resource view for texture (%dx%d): %s",
+			Width, Height, Pixie_GetErrorCodeText(Result).c_str());
+		Texture->Release();
+		return nullptr;
 	}
+
+	theDevice->GetDeviceContext()->GenerateMips(ShaderResourceView);
+	ShaderResourceView->Release();
 
 	return Texture;
 }
 
-IDirect3DTexture9* cTextureManager2::LoadTexture(const cPath& FileName, cPoint* Size)
+ID3D11Texture2D* cTextureManager2::LoadTexture(const cPath& FileName, cPoint* Size)
 {
 	int Width = 0;
 	int Height = 0;
@@ -139,7 +87,7 @@ IDirect3DTexture9* cTextureManager2::LoadTexture(const cPath& FileName, cPoint* 
 		return nullptr;
 	}
 
-	IDirect3DTexture9* Texture = CreateTexture(Pixels, Width, Height);
+	ID3D11Texture2D* Texture = CreateTexture(Pixels, Width, Height);
 	stbi_image_free(Pixels);
 
 	if (Texture && Size)
@@ -153,11 +101,12 @@ IDirect3DTexture9* cTextureManager2::LoadTexture(const cPath& FileName, cPoint* 
 tIntrusivePtr<cTexture> cTextureManager2::loadFromFile(const std::filesystem::path& path)
 {
 	cPoint Size;
-	IDirect3DTexture9* Direct3DTexture = LoadTexture(path, &Size);
+	ID3D11Texture2D* Direct3DTexture = LoadTexture(path, &Size);
 	if (!Direct3DTexture)
 	{
 		return {};
 	}
+
 	auto Texture = make_intrusive_ptr<cTexture>(Direct3DTexture, Size.x, Size.y);
 	Direct3DTexture->Release();
 	return Texture;
@@ -175,14 +124,16 @@ tIntrusivePtr<cTexture> cTextureManager2::LoadFromMemory(const void* memory, siz
 		&Height,
 		&Channels,
 		STBI_rgb_alpha);
+
 	if (!Pixels)
 	{
 		MainLog->Log("Failed to load texture from memory -- %s", stbi_failure_reason());
 		return {};
 	}
 
-	IDirect3DTexture9* Direct3DTexture = CreateTexture(Pixels, Width, Height);
+	ID3D11Texture2D* Direct3DTexture = CreateTexture(Pixels, Width, Height);
 	stbi_image_free(Pixels);
+
 	if (!Direct3DTexture)
 	{
 		return {};
@@ -218,7 +169,7 @@ bool cTextureManager2::AddEntire(const std::string& Name, cImageFile* ImageFile)
 void cTextureManager2::ProcessInfoFile(const std::string& Path, const cPath& TextureFilePath)
 {
 	cPoint SourceSize;
-	IDirect3DTexture9* Direct3DTexture = LoadTexture(TextureFilePath, &SourceSize);
+	ID3D11Texture2D* Direct3DTexture = LoadTexture(TextureFilePath, &SourceSize);
 	if (Direct3DTexture)
 	{
 		cImageFile* ImageFile = new cImageFile;
