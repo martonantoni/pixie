@@ -139,6 +139,8 @@ void InitPixieSystem()
 	theColorServer.Init();
 	(new cBasicDeviceClearer)->Init(cConfig());
 	cDevice::Get();
+    cShaderManager::get();
+    theShaderManager->init();
 	thePixieDesktop.Init(cPixieDesktop::cInitData());
 	theTextureManager.Initialize();
     theSoundPlayer.Initialize();

@@ -99,6 +99,8 @@ float4 PSMain(VSOutput input) : SV_TARGET
 
 void cSpriteRenderer::Init()
 {
+    mDefaultVertexShader = theShaderManager->vertexShader("sprite_vs");
+
     mMaxSpritesPerFlush = theGlobalConfig->get<int>("pixie_system.sprite_renderer.max_sprites_per_flush");
     ASSERT(mMaxSpritesPerFlush);
 

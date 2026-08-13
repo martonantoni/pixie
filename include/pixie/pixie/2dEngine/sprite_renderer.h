@@ -5,6 +5,7 @@
 
 class cSpriteRenderer: public cRenderer
 {
+public:
     struct cSpriteVertexData
     {
         float x;
@@ -14,6 +15,7 @@ class cSpriteRenderer: public cRenderer
         float u;
         float v;
     };
+private:
 
     struct cRenderState
     {
@@ -46,6 +48,8 @@ class cSpriteRenderer: public cRenderer
     ID3D11BlendState *mNormalBlendState=nullptr;
     ID3D11BlendState *mCopySourceBlendState=nullptr;
     ID3D11RasterizerState *mRasterizerState=nullptr;
+
+    std::shared_ptr<cVertexShader> mDefaultVertexShader;
 
     int mMaxSpritesPerFlush=0;
     bool mClearBeforeRender=false;

@@ -6,3 +6,8 @@
 #include "Pix_Effect.h"    // todo: check if private
 #include "Texture.h"
 #include "TextureManager2.h"
+
+#include "shader.h"
+#include "pixel_shader.h"
+#include "vertex_shader.h"
+#include "pixel_shader_manager.h"
