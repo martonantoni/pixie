@@ -41,4 +41,7 @@ BLEND_SPRITE_FUNCTION(CenterAndHSize, cPixieObject::Property_CenterAndHSize);
 BLEND_SPRITE_FUNCTION(Alpha, cPixieObject::Property_Alpha);
 BLEND_SPRITE_FUNCTION(RGBColor, cPixieObject::Property_Color);
 BLEND_SPRITE_FUNCTION(Center, cPixieObject::Property_Center);
-
+BLEND_SPRITE_FUNCTION(ShaderParam0, cPixieObject::Property_ShaderParam0);
+BLEND_SPRITE_FUNCTION(ShaderParam1, cPixieObject::Property_ShaderParam1);
+BLEND_SPRITE_FUNCTION(ShaderParam2, cPixieObject::Property_ShaderParam2);
+BLEND_SPRITE_FUNCTION(ShaderParam3, cPixieObject::Property_ShaderParam3);

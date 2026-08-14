@@ -6,6 +6,8 @@ struct cSpriteRenderInfo
 	cRect mRect;
     cSpriteColor::cCornerColors mCornerColors;
 	const cTexture *mTexture=nullptr;
+    cPixelShader* mShader = nullptr;
+    float mShaderParameters[4] = { 0, 0, 0, 0 };
 	enum eBlendingMode
 	{
 		Blend_Normal,

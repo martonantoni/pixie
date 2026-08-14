@@ -22,6 +22,7 @@ private:
     {
         int SpriteCount = 0, StateChangeCount = 0, TextureChangeCount = 0;
         ID3D11ShaderResourceView* Texture = nullptr;
+        ID3D11PixelShader* PixelShader = nullptr;
         cSpriteRenderInfo::eBlendingMode LastBlendingMode = cSpriteRenderInfo::Invalid_Blend_Mode;
         int NumberOfBatchedVertices = 0;
         cSpriteVertexData* batchVertices = nullptr;
@@ -42,9 +43,6 @@ private:
     ID3D11Buffer *mVertexBuffer=nullptr;
     ID3D11Buffer *mIndexBuffer=nullptr;
     ID3D11Buffer *mShaderConstants=nullptr;
-    //ID3D11VertexShader *mVertexShader=nullptr;
-    //ID3D11PixelShader *mPixelShader=nullptr;
-    //ID3D11InputLayout *mInputLayout=nullptr;
     ID3D11SamplerState *mSamplerState=nullptr;
     ID3D11BlendState *mNormalBlendState=nullptr;
     ID3D11BlendState *mCopySourceBlendState=nullptr;

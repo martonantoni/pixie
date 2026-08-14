@@ -109,6 +109,16 @@ void c2DRenderable::SetZOrder(int ZOrder)
 	PropertiesSet(Property_ZOrder);
 }
 
+void c2DRenderable::setShader(std::shared_ptr<cPixelShader> Shader)
+{
+    if (!CheckIfChangableProperty(Property_Shader))
+        return;
+    if (mProperties.mShader == Shader)
+        return;
+    mProperties.mShader = Shader;
+    PropertiesChanged(Property_Shader);
+}
+
 void c2DRenderable::Show()
 {
 	if(!CheckIfChangableProperty(Property_Visibility))
@@ -170,6 +180,24 @@ void c2DRenderable::DisableClipping()
 	PropertiesChanged(Property_ClippingMode);
 }
 
+void c2DRenderable::setShaderParam(int index, float value)
+{
+    ASSERT(index >= 0 && index < 4);
+    unsigned int flag = Property_ShaderParam0 << index;
+    if (!CheckIfChangableProperty(flag))
+        return;
+	if (mProperties.mShaderParameters[index] == value)
+		return;
+    mProperties.mShaderParameters[index] = value;
+    PropertiesChanged(flag);
+}
+
+float c2DRenderable::getShaderParam(int index) const 
+{
+    return mProperties.mShaderParameters[index];
+}
+
+
 bool c2DRenderable::GetProperty(unsigned int PropertyFlags,OUT cPropertyValues &PropertyValues) const
 {
 	switch(PropertyFlags)
@@ -179,6 +207,10 @@ bool c2DRenderable::GetProperty(unsigned int PropertyFlags,OUT cPropertyValues &
 	case Property_Alpha: PropertyValues=GetAlpha(); return true;
 	case Property_Color: PropertyValues=GetColor(); return true;
 	case Property_ValidRect: PropertyValues=GetValidRect(); return true;
+    //case Property_ShaderParam0: PropertyValues = GetShaderParam(0); return true;
+    //case Property_ShaderParam1: PropertyValues = GetShaderParam(1); return true;
+    //case Property_ShaderParam2: PropertyValues = GetShaderParam(2); return true;
+    //case Property_ShaderParam3: PropertyValues = GetShaderParam(3); return true;
 	}
 	ASSERT(false);
 	return false;
@@ -195,6 +227,10 @@ bool c2DRenderable::SetProperty(unsigned int PropertyFlags,const cPropertyValues
 	case Property_Alpha: SetAlpha(Value.ToInt()); return true;
 	case Property_Color: SetRGBColor(Value.ToRGBColor()); return true;
 	case Property_ValidRect: SetValidRect(Value.ToRect()); return true;
+    //case Property_ShaderParam0: setShaderParam(0, Value.ToFloat()); return true;
+    //case Property_ShaderParam1: setShaderParam(1, Value.ToFloat()); return true;
+    //case Property_ShaderParam2: setShaderParam(2, Value.ToFloat()); return true;
+    //case Property_ShaderParam3: setShaderParam(3, Value.ToFloat()); return true;
 	}
 	ASSERT(false);
 	return false;
@@ -205,6 +241,10 @@ bool c2DRenderable::GetFloatProperty(unsigned int PropertyFlags, OUT float &Valu
 	switch(PropertyFlags)
 	{
 	case Property_Rotation: Value=GetRotation(); return true;
+	case Property_ShaderParam0: Value = getShaderParam(0); return true;
+	case Property_ShaderParam1: Value = getShaderParam(1); return true;
+	case Property_ShaderParam2: Value = getShaderParam(2); return true;
+	case Property_ShaderParam3: Value = getShaderParam(3); return true;
 	}
 	ASSERT(false);
 	return false;
@@ -217,6 +257,10 @@ bool c2DRenderable::SetFloatProperty(unsigned int PropertyFlags, float Value)
 	switch(PropertyFlags)
 	{
 	case Property_Rotation: SetRotation(Value); return true;
+    case Property_ShaderParam0: setShaderParam(0, Value); return true;
+    case Property_ShaderParam1: setShaderParam(1, Value); return true;
+    case Property_ShaderParam2: setShaderParam(2, Value); return true;
+    case Property_ShaderParam3: setShaderParam(3, Value); return true;
 	}
 	ASSERT(false);
 	return false;

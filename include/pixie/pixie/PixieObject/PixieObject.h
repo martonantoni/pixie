@@ -6,33 +6,39 @@ enum class ePixieObjectAnimationDoneReason;
 class cPixieObject
 {
 public:
-	static constexpr unsigned int PropertyType_Text  = 0x80000000;
+	static constexpr unsigned int PropertyType_Text    =  0x8000'0000;
+    static constexpr unsigned int PropertyType_Float   =  0x4000'0000;
 	// all property flags are listed here, even those that are not available for all PixieObjects
 	// this is so that there is no accidental collision
-	static constexpr unsigned int Property_X           =  0x0001;
-	static constexpr unsigned int Property_Y           =  0x0002;
-	static constexpr unsigned int Property_W           =  0x0004;
-	static constexpr unsigned int Property_H           =  0x0008;
-	static constexpr unsigned int Property_XOffset     =  0x0010;
-	static constexpr unsigned int Property_YOffset     =  0x0020;
-	static constexpr unsigned int Property_ZOrder      =  0x0040;
-	static constexpr unsigned int Property_Color       =  0x0080;
-	static constexpr unsigned int Property_Alpha       =  0x0100;
-	static constexpr unsigned int Property_Texture     =  0x0200|PropertyType_Text;
-	static constexpr unsigned int Property_Text        =  0x0400|PropertyType_Text;
-	static constexpr unsigned int Property_Window      =  0x0800;
-	static constexpr unsigned int Property_Visibility  =  0x1000;
-	static constexpr unsigned int Property_Rotation    =  0x2000;
-	static constexpr unsigned int Property_CenterAndHSize = 0x4000|Property_X|Property_Y|Property_W|Property_H;
-	static constexpr unsigned int Property_Center      =  0x8000|Property_X|Property_Y;
-	static constexpr unsigned int Property_ValidRect   =  0x10000;
-	static constexpr unsigned int Property_ScreenX     =  0x20000;
-	static constexpr unsigned int Property_ScreenY     =  0x40000;
-	static constexpr unsigned int Property_TextureSize =  0x80000;  // cSprite & getter only
-	static constexpr unsigned int Property_ClippingMode= 0x100000;
-    static constexpr unsigned int Property_P1          = 0x200000;
-    static constexpr unsigned int Property_P2          = 0x40'0000;
-    static constexpr unsigned int Property_P3          = 0x80'0000;
+	static constexpr unsigned int Property_X           =	   0x0001;
+	static constexpr unsigned int Property_Y           =	   0x0002;
+	static constexpr unsigned int Property_W           =	   0x0004;
+	static constexpr unsigned int Property_H           =	   0x0008;
+	static constexpr unsigned int Property_XOffset     =	   0x0010;
+	static constexpr unsigned int Property_YOffset     =	   0x0020;
+	static constexpr unsigned int Property_ZOrder      =	   0x0040;
+	static constexpr unsigned int Property_Color       =	   0x0080;
+	static constexpr unsigned int Property_Alpha       =	   0x0100;
+	static constexpr unsigned int Property_Texture     =	   0x0200 | PropertyType_Text;
+	static constexpr unsigned int Property_Text        =	   0x0400 | PropertyType_Text;
+	static constexpr unsigned int Property_Window      =	   0x0800;
+	static constexpr unsigned int Property_Visibility  =	   0x1000;
+	static constexpr unsigned int Property_Rotation    =	   0x2000;
+	static constexpr unsigned int Property_CenterAndHSize =    0x4000 | Property_X | Property_Y | Property_W | Property_H;
+	static constexpr unsigned int Property_Center      =       0x8000 | Property_X | Property_Y;
+	static constexpr unsigned int Property_ValidRect   =     0x1'0000;
+	static constexpr unsigned int Property_ScreenX     =     0x2'0000;
+	static constexpr unsigned int Property_ScreenY     =     0x4'0000;
+	static constexpr unsigned int Property_TextureSize =     0x8'0000;  // cSprite & getter only
+	static constexpr unsigned int Property_ClippingMode=    0x10'0000;
+    static constexpr unsigned int Property_P1          =    0x20'0000;
+    static constexpr unsigned int Property_P2          =    0x40'0000;
+    static constexpr unsigned int Property_P3          =    0x80'0000;
+    static constexpr unsigned int Property_Shader      =   0x100'0000 | PropertyType_Text;  // renderable only
+    static constexpr unsigned int Property_ShaderParam0 =  0x200'0000 | PropertyType_Float; // renderable only
+    static constexpr unsigned int Property_ShaderParam1 =  0x400'0000 | PropertyType_Float; // renderable only
+    static constexpr unsigned int Property_ShaderParam2 =  0x800'0000 | PropertyType_Float; // renderable only
+    static constexpr unsigned int Property_ShaderParam3 = 0x1000'0000 | PropertyType_Float; // renderable only
 	// combinations:
 	static constexpr unsigned int Property_Position       = Property_X|Property_Y;
 	static constexpr unsigned int Property_ScreenPosition = Property_ScreenX|Property_ScreenY;

@@ -21,6 +21,8 @@ protected:
 		float mRotation = 0; // in degrees (because that's friendlier to work with)
 		cRect mValidRect;
 		eClippingMode mClippingMode = eClippingMode::None;
+        std::shared_ptr<cPixelShader> mShader;
+        float mShaderParameters[4] = { 0, 0, 0, 0 };
 	} mProperties;
 	bool mIsColorSet = false;
 	virtual ~c2DRenderable(); // use Drop() or Destroy()
@@ -51,6 +53,9 @@ public:
 	void SetARGBColor(uint32_t Color);
 	void SetARGBColor_ByPosition(unsigned int PositionFlags, uint32_t Color);
 	void SetAlpha(DWORD Alpha); // 0 - 255, 0: solid, 255: transparent
+    void setShader(std::shared_ptr<cPixelShader> Shader);
+	void setShaderParam(int index, float value);
+	float getShaderParam(int index) const;
 
 	void setClippingMode(eClippingMode ClippingMode);
 	eClippingMode getClippingMode() const { return mProperties.mClippingMode; }

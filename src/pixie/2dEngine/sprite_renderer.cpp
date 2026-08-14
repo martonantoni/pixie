@@ -167,6 +167,17 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
                 UpdateBlending(renderState.LastBlendingMode);
             }
 
+            ID3D11PixelShader* pixelShader = RenderInfo.mShader
+                ? RenderInfo.mShader->shader()
+                : mDefaultPixelShader->shader();
+            if (pixelShader != renderState.PixelShader)
+            {
+                ++renderState.StateChangeCount;
+                FlushBuffer(batchVertices, NumberOfBatchedVertices, true);
+                renderState.PixelShader = pixelShader;
+                mDeviceContext->PSSetShader(renderState.PixelShader, nullptr, 0);
+            }
+
             if (RenderInfo.mTexture->mShaderResourceView != renderState.Texture)
             {
                 ++renderState.TextureChangeCount;
@@ -205,6 +216,8 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
             batchVertices[NumberOfBatchedVertices].z = Z;
             batchVertices[NumberOfBatchedVertices].u = RenderInfo.mTexture->GetTextureInfo().mLeft;
             batchVertices[NumberOfBatchedVertices].v = RenderInfo.mTexture->GetTextureInfo().mTop;
+            std::copy(std::begin(RenderInfo.mShaderParameters), std::end(RenderInfo.mShaderParameters),
+                batchVertices[NumberOfBatchedVertices].mShaderParameters);
 
             batchVertices[NumberOfBatchedVertices + 1].color = RenderInfo.mCornerColors[cSpriteColor::CornerPosition::TopRight].GetARGBColor();
             batchVertices[NumberOfBatchedVertices + 1].x = TopRight.x;
@@ -212,6 +225,8 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
             batchVertices[NumberOfBatchedVertices + 1].z = Z;
             batchVertices[NumberOfBatchedVertices + 1].u = RenderInfo.mTexture->GetTextureInfo().mRight;
             batchVertices[NumberOfBatchedVertices + 1].v = RenderInfo.mTexture->GetTextureInfo().mTop;
+            std::copy(std::begin(RenderInfo.mShaderParameters), std::end(RenderInfo.mShaderParameters),
+                batchVertices[NumberOfBatchedVertices + 1].mShaderParameters);
 
             batchVertices[NumberOfBatchedVertices + 2].color = RenderInfo.mCornerColors[cSpriteColor::CornerPosition::BottomRight].GetARGBColor();
             batchVertices[NumberOfBatchedVertices + 2].x = BottomRight.x;
@@ -219,6 +234,8 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
             batchVertices[NumberOfBatchedVertices + 2].z = Z;
             batchVertices[NumberOfBatchedVertices + 2].u = RenderInfo.mTexture->GetTextureInfo().mRight;
             batchVertices[NumberOfBatchedVertices + 2].v = RenderInfo.mTexture->GetTextureInfo().mBottom;
+            std::copy(std::begin(RenderInfo.mShaderParameters), std::end(RenderInfo.mShaderParameters),
+                batchVertices[NumberOfBatchedVertices + 2].mShaderParameters);
 
             batchVertices[NumberOfBatchedVertices + 3].color = RenderInfo.mCornerColors[cSpriteColor::CornerPosition::BottomLeft].GetARGBColor();
             batchVertices[NumberOfBatchedVertices + 3].x = BottomLeft.x;
@@ -226,6 +243,8 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
             batchVertices[NumberOfBatchedVertices + 3].z = Z;
             batchVertices[NumberOfBatchedVertices + 3].u = RenderInfo.mTexture->GetTextureInfo().mLeft;
             batchVertices[NumberOfBatchedVertices + 3].v = RenderInfo.mTexture->GetTextureInfo().mBottom;
+            std::copy(std::begin(RenderInfo.mShaderParameters), std::end(RenderInfo.mShaderParameters),
+                batchVertices[NumberOfBatchedVertices + 3].mShaderParameters);
 
             NumberOfBatchedVertices += 4;
         }
@@ -241,6 +260,7 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
 void cSpriteRenderer::RenderSprites()
 {
     cRenderState renderState;
+    renderState.PixelShader = mDefaultPixelShader->shader();
 
     D3D11_MAPPED_SUBRESOURCE mapped = {};
     D3V(mDeviceContext->Map(mVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped));
