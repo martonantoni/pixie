@@ -2,22 +2,28 @@
 
 struct cPixieObject::cPropertyValues
 {
-	size_t mPropertyCount;
-	int mProperties[4];
+    std::variant<std::monostate, int, float, cPoint, cRect, cColor> mValue;
 
-	cPropertyValues(): mPropertyCount(0) {}
-	cPropertyValues(int Value): mPropertyCount(1) { mProperties[0]=Value; }
-	cPropertyValues(const cPoint &Point): mPropertyCount(2) { mProperties[0]=Point.x; mProperties[1]=Point.y; }
-	cPropertyValues(const cRect &Rect): mPropertyCount(4) { mProperties[0]=Rect.left(); mProperties[1]=Rect.top(); mProperties[2]=Rect.width(); mProperties[3]=Rect.height(); }
-	cPropertyValues(const cColor &ColorInfo): mPropertyCount(3) { mProperties[0]=ColorInfo.GetRed(); mProperties[1]=ColorInfo.GetGreen(); mProperties[2]=ColorInfo.GetBlue(); }
-	cPropertyValues(std::initializer_list<int> Initializer);
-	const cPropertyValues &operator=(int Value);
-	const cPropertyValues &operator=(const cPoint &Point);
-	const cPropertyValues &operator=(const cRect &Rect);
-	const cPropertyValues &operator=(const cColor &ColorInfo);
-	bool operator==(const cPropertyValues &Other) const;
-	int ToInt() const;
-	cPoint ToPoint() const;
-	cRect ToRect() const;
-	uint32_t ToRGBColor() const;
+    cPropertyValues() : mValue(std::monostate{}) {}
+    cPropertyValues(int value) : mValue(value) {}
+    cPropertyValues(unsigned int value) : mValue(static_cast<int>(value)) {}
+    cPropertyValues(float value) : mValue(value) {}
+    cPropertyValues(const cPoint& point) : mValue(point) {}
+    cPropertyValues(const cRect& rect) : mValue(rect) {}
+    cPropertyValues(const cColor& color) : mValue(color) {}
+    const cPropertyValues& operator=(int value) { mValue = value; return *this; }
+    const cPropertyValues& operator=(const cPropertyValues& other) { mValue = other.mValue; return *this; }
+    const cPropertyValues& operator=(unsigned int value) { mValue = static_cast<int>(value); return *this; }
+    const cPropertyValues& operator=(float value) { mValue = value; return *this; }
+    const cPropertyValues& operator=(const cPoint& point) { mValue = point; return *this; }
+    const cPropertyValues& operator=(const cRect& rect) { mValue = rect; return *this; }
+    const cPropertyValues& operator=(const cColor& color) { mValue = color; return *this; }
+    bool operator==(const cPropertyValues& other) const { return mValue == other.mValue; }
+    float ToFloat() const { return std::get<float>(mValue); }
+    int ToInt() const { return std::get<int>(mValue); }
+    cPoint ToPoint() const { return std::get<cPoint>(mValue); }
+    cRect ToRect() const { return std::get<cRect>(mValue); }
+    uint32_t ToRGBColor() const { return std::get<cColor>(mValue).GetRGBColor(); }
+
+    static cPropertyValues lerp(const cPropertyValues& a, const cPropertyValues& b, float t);
 };

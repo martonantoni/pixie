@@ -69,6 +69,7 @@ public:
 	cColor toGrayscale() const;
 
 	static cColor FromRGBColor(unsigned int Color) { return cColor(Color|0xff000000); }
+    bool operator==(const cColor& other) const { return mColor == other.mColor; }
 };
 
 template<class MODE> cColor cColor::adjusted(double amount) const

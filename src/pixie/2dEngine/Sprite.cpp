@@ -34,9 +34,11 @@ cSpriteRenderInfo cSprite::GetRenderInfo() const
 	renderInfo.mRotation = GetRotation();
     renderInfo.mBlendingMode = mBlendingMode;
     renderInfo.mShader = mProperties.mShader.get();
- //   if (mProperties.mShader)
-    //for (int i = 0; i < 4; ++i)
-    //    renderInfo.mShaderParameters[i] = mProperties.mShade
+	if (renderInfo.mShader)
+	{
+        for (int i = 0; i < 4; ++i)
+            renderInfo.mShaderParameters[i] = mProperties.mShaderParameters[i];
+	}
 	if(mProperties.mClippingMode == eClippingMode::None)
 	{
         renderInfo.mRect = GetRectForRendering();

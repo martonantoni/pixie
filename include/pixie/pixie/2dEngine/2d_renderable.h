@@ -45,7 +45,7 @@ public:
 	const cColor& GetColor() const { return mProperties.mColor; }
 	const cSpriteColor& GetSpriteColor() const { return mProperties.mColor; }
 
-	DWORD GetAlpha() const { return mProperties.mColor.GetAlpha(); }
+	auto GetAlpha() const { return mProperties.mColor.GetAlpha(); }
 
 	void SetRotation(float Rotation);
 	void SetZOrder(int ZOrder);
@@ -56,6 +56,7 @@ public:
     void setShader(std::shared_ptr<cPixelShader> Shader);
 	void setShaderParam(int index, float value);
 	float getShaderParam(int index) const;
+    int shaderParamIndex(std::string_view name) const; // throws if not found
 
 	void setClippingMode(eClippingMode ClippingMode);
 	eClippingMode getClippingMode() const { return mProperties.mClippingMode; }
@@ -79,3 +80,9 @@ public:
 };
 
 USE_DROP_INSTEAD_DELETE(c2DRenderable)
+
+tIntrusivePtr<cPixieObjectAnimator> blendShaderParam(
+	c2DRenderable& sprite, int paramOffset, float targetValue, int blendTime);
+
+tIntrusivePtr<cPixieObjectAnimator> blendShaderParam(
+	c2DRenderable& sprite, std::string_view paramID, float targetValue,	int blendTime);

@@ -197,8 +197,16 @@ float c2DRenderable::getShaderParam(int index) const
     return mProperties.mShaderParameters[index];
 }
 
+int c2DRenderable::shaderParamIndex(std::string_view name) const
+{
+    if (!mProperties.mShader)
+    {
+        throw std::runtime_error("No shader set for this renderable.");
+    }
+    return mProperties.mShader->parameterIndex(name);
+}
 
-bool c2DRenderable::GetProperty(unsigned int PropertyFlags,OUT cPropertyValues &PropertyValues) const
+bool c2DRenderable::GetProperty(unsigned int PropertyFlags, OUT cPropertyValues &PropertyValues) const
 {
 	switch(PropertyFlags)
 	{
@@ -207,10 +215,10 @@ bool c2DRenderable::GetProperty(unsigned int PropertyFlags,OUT cPropertyValues &
 	case Property_Alpha: PropertyValues=GetAlpha(); return true;
 	case Property_Color: PropertyValues=GetColor(); return true;
 	case Property_ValidRect: PropertyValues=GetValidRect(); return true;
-    //case Property_ShaderParam0: PropertyValues = GetShaderParam(0); return true;
-    //case Property_ShaderParam1: PropertyValues = GetShaderParam(1); return true;
-    //case Property_ShaderParam2: PropertyValues = GetShaderParam(2); return true;
-    //case Property_ShaderParam3: PropertyValues = GetShaderParam(3); return true;
+    case Property_ShaderParam0: PropertyValues = getShaderParam(0); return true;
+    case Property_ShaderParam1: PropertyValues = getShaderParam(1); return true;
+    case Property_ShaderParam2: PropertyValues = getShaderParam(2); return true;
+    case Property_ShaderParam3: PropertyValues = getShaderParam(3); return true;
 	}
 	ASSERT(false);
 	return false;
@@ -222,15 +230,15 @@ bool c2DRenderable::SetProperty(unsigned int PropertyFlags,const cPropertyValues
 		return false;
 	switch(PropertyFlags)
 	{
-	case Property_Rotation: SetRotation(Value.ToInt()); return true;
+	case Property_Rotation: SetRotation(Value.ToFloat()); return true;
 	case Property_ZOrder: SetZOrder(Value.ToInt()); return true;
 	case Property_Alpha: SetAlpha(Value.ToInt()); return true;
 	case Property_Color: SetRGBColor(Value.ToRGBColor()); return true;
 	case Property_ValidRect: SetValidRect(Value.ToRect()); return true;
-    //case Property_ShaderParam0: setShaderParam(0, Value.ToFloat()); return true;
-    //case Property_ShaderParam1: setShaderParam(1, Value.ToFloat()); return true;
-    //case Property_ShaderParam2: setShaderParam(2, Value.ToFloat()); return true;
-    //case Property_ShaderParam3: setShaderParam(3, Value.ToFloat()); return true;
+    case Property_ShaderParam0: setShaderParam(0, Value.ToFloat()); return true;
+    case Property_ShaderParam1: setShaderParam(1, Value.ToFloat()); return true;
+    case Property_ShaderParam2: setShaderParam(2, Value.ToFloat()); return true;
+    case Property_ShaderParam3: setShaderParam(3, Value.ToFloat()); return true;
 	}
 	ASSERT(false);
 	return false;
@@ -241,10 +249,6 @@ bool c2DRenderable::GetFloatProperty(unsigned int PropertyFlags, OUT float &Valu
 	switch(PropertyFlags)
 	{
 	case Property_Rotation: Value=GetRotation(); return true;
-	case Property_ShaderParam0: Value = getShaderParam(0); return true;
-	case Property_ShaderParam1: Value = getShaderParam(1); return true;
-	case Property_ShaderParam2: Value = getShaderParam(2); return true;
-	case Property_ShaderParam3: Value = getShaderParam(3); return true;
 	}
 	ASSERT(false);
 	return false;
@@ -257,10 +261,6 @@ bool c2DRenderable::SetFloatProperty(unsigned int PropertyFlags, float Value)
 	switch(PropertyFlags)
 	{
 	case Property_Rotation: SetRotation(Value); return true;
-    case Property_ShaderParam0: setShaderParam(0, Value); return true;
-    case Property_ShaderParam1: setShaderParam(1, Value); return true;
-    case Property_ShaderParam2: setShaderParam(2, Value); return true;
-    case Property_ShaderParam3: setShaderParam(3, Value); return true;
 	}
 	ASSERT(false);
 	return false;
@@ -291,4 +291,30 @@ void c2DRenderable::setClippingMode(eClippingMode ClippingMode)
 {
     mProperties.mClippingMode = ClippingMode;
 	PropertiesChanged(Property_ClippingMode);
+}
+
+
+tIntrusivePtr<cPixieObjectAnimator> blendShaderParam(
+	c2DRenderable& sprite,
+	int paramOffset,
+	float targetValue,
+	int blendTime)
+{
+	ASSERT(paramOffset >= 0 && paramOffset <= 3);
+	return cGeneralPixieObjectBlender::BlendObject(sprite, cPixieObject::cPropertyValues(targetValue), cPixieObject::Property_ShaderParam0 << paramOffset, blendTime);
+}
+
+tIntrusivePtr<cPixieObjectAnimator> blendShaderParam(
+	c2DRenderable& sprite,
+	std::string_view paramID,
+	float targetValue,
+	int blendTime)
+{
+	auto index = sprite.shaderParamIndex(paramID);
+	if (index < 0)
+	{
+		ASSERTFALSE("Invalid shader parameter ID");
+		return nullptr;
+	}
+	return cGeneralPixieObjectBlender::BlendObject(sprite, targetValue, cPixieObject::Property_ShaderParam0 << index, blendTime);
 }
