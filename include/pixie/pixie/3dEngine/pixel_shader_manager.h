@@ -10,6 +10,7 @@ public:
     ~cShaderManager();
 
     void init(); // loads and compiles all shaders from the "shaders" folder
+    void reloadShaders(); 
     std::shared_ptr<cPixelShader> pixelShader(const std::string& name) const;
     std::shared_ptr<cVertexShader> vertexShader(const std::string& name) const;
 };

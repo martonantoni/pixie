@@ -119,6 +119,12 @@ void c2DRenderable::setShader(std::shared_ptr<cPixelShader> Shader)
     PropertiesChanged(Property_Shader);
 }
 
+void c2DRenderable::setShader(const std::string& shaderId)
+{
+    auto shader = theShaderManager->pixelShader(shaderId);
+	setShader(std::move(shader));
+}
+
 void c2DRenderable::Show()
 {
 	if(!CheckIfChangableProperty(Property_Visibility))

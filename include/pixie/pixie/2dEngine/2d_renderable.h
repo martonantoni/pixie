@@ -54,6 +54,8 @@ public:
 	void SetARGBColor_ByPosition(unsigned int PositionFlags, uint32_t Color);
 	void SetAlpha(DWORD Alpha); // 0 - 255, 0: solid, 255: transparent
     void setShader(std::shared_ptr<cPixelShader> Shader);
+    void setShader(const std::string& shaderId);
+    std::shared_ptr<cPixelShader> getShader() const { return mProperties.mShader; }
 	void setShaderParam(int index, float value);
 	float getShaderParam(int index) const;
     int shaderParamIndex(std::string_view name) const; // throws if not found

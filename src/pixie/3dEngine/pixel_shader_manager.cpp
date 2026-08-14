@@ -64,6 +64,27 @@ void cShaderManager::init()
     }
 }
 
+void cShaderManager::reloadShaders()
+{
+    for (auto&& [name, shader] : mPixelShaders)
+    {
+        std::filesystem::path shaderFile = std::filesystem::current_path() / "shaders" / (name + "_ps.hlsl");
+        if (!std::filesystem::exists(shaderFile))
+        {
+            MainLog->Log("Shader file not found: %s", shaderFile.string().c_str());
+            continue;
+        }
+        std::ifstream shaderFileStream(shaderFile);
+        if (!shaderFileStream)
+        {
+            MainLog->Log("Failed to open shader file: %s", shaderFile.string().c_str());
+            continue;
+        }
+        std::string shaderSource((std::istreambuf_iterator<char>(shaderFileStream)), std::istreambuf_iterator<char>());
+        shader->compile(shaderSource);
+    }
+}
+
 std::shared_ptr<cPixelShader> cShaderManager::pixelShader(const std::string& name) const
 {
     auto it = mPixelShaders.find(name);
