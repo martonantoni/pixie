@@ -14,6 +14,7 @@ public:
         uint32_t color;
         float u;
         float v;
+        float mShaderParameters[4];
     };
 private:
 
@@ -41,15 +42,16 @@ private:
     ID3D11Buffer *mVertexBuffer=nullptr;
     ID3D11Buffer *mIndexBuffer=nullptr;
     ID3D11Buffer *mShaderConstants=nullptr;
-    ID3D11VertexShader *mVertexShader=nullptr;
-    ID3D11PixelShader *mPixelShader=nullptr;
-    ID3D11InputLayout *mInputLayout=nullptr;
+    //ID3D11VertexShader *mVertexShader=nullptr;
+    //ID3D11PixelShader *mPixelShader=nullptr;
+    //ID3D11InputLayout *mInputLayout=nullptr;
     ID3D11SamplerState *mSamplerState=nullptr;
     ID3D11BlendState *mNormalBlendState=nullptr;
     ID3D11BlendState *mCopySourceBlendState=nullptr;
     ID3D11RasterizerState *mRasterizerState=nullptr;
 
     std::shared_ptr<cVertexShader> mDefaultVertexShader;
+    std::shared_ptr<cPixelShader> mDefaultPixelShader;
 
     int mMaxSpritesPerFlush=0;
     bool mClearBeforeRender=false;

@@ -1,105 +1,11 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
 #include "pixie/pixie/2dEngine/sprite_renderer.h"
-#include <d3dcompiler.h>
-#include <vector>
-
-#pragma comment(lib, "d3dcompiler.lib")
-
-namespace
-{
-    const char *SpriteShaderSource = R"(
-cbuffer SpriteConstants : register(b0)
-{
-    float2 TargetSize;
-    float2 Padding;
-};
-
-Texture2D SpriteTexture : register(t0);
-SamplerState SpriteSampler : register(s0);
-
-struct VSInput
-{
-    float3 Position : POSITION;
-    uint Color : COLOR;
-    float2 TexCoord : TEXCOORD0;
-};
-
-struct VSOutput
-{
-    float4 Position : SV_POSITION;
-    float4 Color : COLOR;
-    float2 TexCoord : TEXCOORD0;
-};
-
-float4 UnpackARGB(uint color)
-{
-    return float4(
-        ((color >> 16) & 255) / 255.0f,
-        ((color >> 8) & 255) / 255.0f,
-        (color & 255) / 255.0f,
-        ((color >> 24) & 255) / 255.0f);
-}
-
-VSOutput VSMain(VSInput input)
-{
-    VSOutput output;
-    float2 clipPosition;
-    clipPosition.x = input.Position.x * (2.0f / TargetSize.x) - 1.0f;
-    clipPosition.y = 1.0f - input.Position.y * (2.0f / TargetSize.y);
-    output.Position = float4(clipPosition, input.Position.z, 1.0f);
-    output.Color = UnpackARGB(input.Color);
-    output.TexCoord = input.TexCoord;
-    return output;
-}
-
-float4 PSMain(VSOutput input) : SV_TARGET
-{
-    return SpriteTexture.Sample(SpriteSampler, input.TexCoord) * input.Color;
-}
-)";
-
-    ID3DBlob *CompileShader(const char *entryPoint, const char *target)
-    {
-        UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
-#ifdef _DEBUG
-        flags |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-#endif
-
-        ID3DBlob *shader = nullptr;
-        ID3DBlob *errors = nullptr;
-        HRESULT result = D3DCompile(
-            SpriteShaderSource,
-            strlen(SpriteShaderSource),
-            "Pixie sprite shader",
-            nullptr,
-            nullptr,
-            entryPoint,
-            target,
-            flags,
-            0,
-            &shader,
-            &errors);
-
-        if (FAILED(result))
-        {
-            std::string errorText = errors
-                ? std::string(static_cast<const char *>(errors->GetBufferPointer()), errors->GetBufferSize())
-                : "Unknown shader compilation error";
-            if (errors)
-                errors->Release();
-            RELEASE_ASSERT_EXT(false, errorText);
-        }
-
-        if (errors)
-            errors->Release();
-        return shader;
-    }
-}
 
 void cSpriteRenderer::Init()
 {
-    mDefaultVertexShader = theShaderManager->vertexShader("sprite_vs");
+    mDefaultVertexShader = theShaderManager->vertexShader("default");
+    mDefaultPixelShader = theShaderManager->pixelShader("default");
 
     mMaxSpritesPerFlush = theGlobalConfig->get<int>("pixie_system.sprite_renderer.max_sprites_per_flush");
     ASSERT(mMaxSpritesPerFlush);
@@ -140,28 +46,6 @@ void cSpriteRenderer::Init()
     constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     constantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     D3V(mDevice->CreateBuffer(&constantBufferDesc, nullptr, &mShaderConstants));
-
-    ID3DBlob *vertexShaderBlob = CompileShader("VSMain", "vs_5_0");
-    ID3DBlob *pixelShaderBlob = CompileShader("PSMain", "ps_5_0");
-
-    D3V(mDevice->CreateVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize(), nullptr, &mVertexShader));
-    D3V(mDevice->CreatePixelShader(pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize(), nullptr, &mPixelShader));
-
-    D3D11_INPUT_ELEMENT_DESC inputLayout[] =
-    {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(cSpriteVertexData, x), D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "COLOR", 0, DXGI_FORMAT_R32_UINT, 0, offsetof(cSpriteVertexData, color), D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, offsetof(cSpriteVertexData, u), D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    };
-    D3V(mDevice->CreateInputLayout(
-        inputLayout,
-        static_cast<UINT>(sizeof(inputLayout) / sizeof(inputLayout[0])),
-        vertexShaderBlob->GetBufferPointer(),
-        vertexShaderBlob->GetBufferSize(),
-        &mInputLayout));
-
-    vertexShaderBlob->Release();
-    pixelShaderBlob->Release();
 
     D3D11_SAMPLER_DESC samplerDesc = {};
     samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
@@ -226,9 +110,6 @@ cSpriteRenderer::~cSpriteRenderer()
     if (mCopySourceBlendState) mCopySourceBlendState->Release();
     if (mNormalBlendState) mNormalBlendState->Release();
     if (mSamplerState) mSamplerState->Release();
-    if (mInputLayout) mInputLayout->Release();
-    if (mPixelShader) mPixelShader->Release();
-    if (mVertexShader) mVertexShader->Release();
     if (mShaderConstants) mShaderConstants->Release();
     if (mIndexBuffer) mIndexBuffer->Release();
     if (mVertexBuffer) mVertexBuffer->Release();
@@ -452,11 +333,11 @@ void cSpriteRenderer::Render()
         mDeviceContext->ClearRenderTargetView(mRenderSurface, clearColor);
     }
 
-    mDeviceContext->IASetInputLayout(mInputLayout);
+    mDeviceContext->IASetInputLayout(mDefaultVertexShader->inputLayout());
     mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    mDeviceContext->VSSetShader(mVertexShader, nullptr, 0);
+    mDeviceContext->VSSetShader(mDefaultVertexShader->shader(), nullptr, 0);
     mDeviceContext->VSSetConstantBuffers(0, 1, &mShaderConstants);
-    mDeviceContext->PSSetShader(mPixelShader, nullptr, 0);
+    mDeviceContext->PSSetShader(mDefaultPixelShader->shader(), nullptr, 0);
     mDeviceContext->PSSetSamplers(0, 1, &mSamplerState);
     mDeviceContext->RSSetState(mRasterizerState);
 

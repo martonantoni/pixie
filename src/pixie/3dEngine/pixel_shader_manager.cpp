@@ -36,7 +36,9 @@ void cShaderManager::init()
                 continue;
             }
             std::string shaderSource((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
-            if (shaderName.ends_with("_ps"))
+            auto shaderTypeString = shaderName.substr(shaderName.find_last_of('_') + 1);
+            shaderName = shaderName.substr(0, shaderName.find_last_of('_'));
+            if (shaderTypeString == "ps")
             {
                 auto pixelShader = std::make_shared<cPixelShader>(shaderSource);
                 if (*pixelShader)
@@ -45,7 +47,7 @@ void cShaderManager::init()
                     MainLog->Log("Loaded pixel shader: %s", shaderName.c_str());
                 }
             }
-            else if (shaderName.ends_with("_vs"))
+            else if (shaderTypeString == "vs")
             {
                 auto vertexShader = std::make_shared<cVertexShader>(shaderSource);
                 if (*vertexShader)

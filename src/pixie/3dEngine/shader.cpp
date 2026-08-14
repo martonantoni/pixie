@@ -2,6 +2,7 @@
 #include "pixie/pixie/i_pixie.h"
 
 #include <d3dcompiler.h>
+#pragma comment(lib, "d3dcompiler.lib")
 
 
 cShader::~cShader()
