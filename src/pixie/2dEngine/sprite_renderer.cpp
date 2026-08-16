@@ -210,12 +210,19 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
                 Rotate(BottomRight, Center, s, c);
             }
 
+            float width = static_cast<float>(RenderInfo.mRect.width());
+            float height = static_cast<float>(RenderInfo.mRect.height());
+
             batchVertices[NumberOfBatchedVertices].color = RenderInfo.mCornerColors[cSpriteColor::CornerPosition::TopLeft].GetARGBColor();
             batchVertices[NumberOfBatchedVertices].x = TopLeft.x;
             batchVertices[NumberOfBatchedVertices].y = TopLeft.y;
             batchVertices[NumberOfBatchedVertices].z = Z;
             batchVertices[NumberOfBatchedVertices].u = RenderInfo.mTexture->GetTextureInfo().mLeft;
             batchVertices[NumberOfBatchedVertices].v = RenderInfo.mTexture->GetTextureInfo().mTop;
+            batchVertices[NumberOfBatchedVertices].edgeDistances[0] = 0.0f; // Top edge distance
+            batchVertices[NumberOfBatchedVertices].edgeDistances[1] = 0.0f; // Right edge distance
+            batchVertices[NumberOfBatchedVertices].edgeDistances[2] = width; // Bottom edge distance
+            batchVertices[NumberOfBatchedVertices].edgeDistances[3] = height; // Left edge distance 
             std::copy(std::begin(RenderInfo.mShaderParameters), std::end(RenderInfo.mShaderParameters),
                 batchVertices[NumberOfBatchedVertices].mShaderParameters);
 
@@ -225,6 +232,10 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
             batchVertices[NumberOfBatchedVertices + 1].z = Z;
             batchVertices[NumberOfBatchedVertices + 1].u = RenderInfo.mTexture->GetTextureInfo().mRight;
             batchVertices[NumberOfBatchedVertices + 1].v = RenderInfo.mTexture->GetTextureInfo().mTop;
+            batchVertices[NumberOfBatchedVertices + 1].edgeDistances[0] = width; // Top edge distance
+            batchVertices[NumberOfBatchedVertices + 1].edgeDistances[1] = 0.0f; // Right edge distance
+            batchVertices[NumberOfBatchedVertices + 1].edgeDistances[2] = 0.0f; // Bottom edge distance
+            batchVertices[NumberOfBatchedVertices + 1].edgeDistances[3] = height; // Left edge distance
             std::copy(std::begin(RenderInfo.mShaderParameters), std::end(RenderInfo.mShaderParameters),
                 batchVertices[NumberOfBatchedVertices + 1].mShaderParameters);
 
@@ -234,6 +245,10 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
             batchVertices[NumberOfBatchedVertices + 2].z = Z;
             batchVertices[NumberOfBatchedVertices + 2].u = RenderInfo.mTexture->GetTextureInfo().mRight;
             batchVertices[NumberOfBatchedVertices + 2].v = RenderInfo.mTexture->GetTextureInfo().mBottom;
+            batchVertices[NumberOfBatchedVertices + 2].edgeDistances[0] = width; // Top edge distance
+            batchVertices[NumberOfBatchedVertices + 2].edgeDistances[1] = height; // Right edge distance
+            batchVertices[NumberOfBatchedVertices + 2].edgeDistances[2] = 0.0f; // Bottom edge distance
+            batchVertices[NumberOfBatchedVertices + 2].edgeDistances[3] = 0.0f; // Left edge distance
             std::copy(std::begin(RenderInfo.mShaderParameters), std::end(RenderInfo.mShaderParameters),
                 batchVertices[NumberOfBatchedVertices + 2].mShaderParameters);
 
@@ -243,6 +258,10 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
             batchVertices[NumberOfBatchedVertices + 3].z = Z;
             batchVertices[NumberOfBatchedVertices + 3].u = RenderInfo.mTexture->GetTextureInfo().mLeft;
             batchVertices[NumberOfBatchedVertices + 3].v = RenderInfo.mTexture->GetTextureInfo().mBottom;
+            batchVertices[NumberOfBatchedVertices + 3].edgeDistances[0] = 0.0f; // Top edge distance
+            batchVertices[NumberOfBatchedVertices + 3].edgeDistances[1] = height; // Right edge distance
+            batchVertices[NumberOfBatchedVertices + 3].edgeDistances[2] = width; // Bottom edge distance
+            batchVertices[NumberOfBatchedVertices + 3].edgeDistances[3] = 0.0f; // Left edge distance
             std::copy(std::begin(RenderInfo.mShaderParameters), std::end(RenderInfo.mShaderParameters),
                 batchVertices[NumberOfBatchedVertices + 3].mShaderParameters);
 
@@ -270,6 +289,17 @@ void cSpriteRenderer::RenderSprites()
     UINT offset = 0;
     mDeviceContext->IASetVertexBuffers(0, 1, &mVertexBuffer, &stride, &offset);
     mDeviceContext->IASetIndexBuffer(mIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+    // Bind global pixel-shader constant buffers.
+    for (const auto& provider : theShaderConstantProviders)
+    {
+        ID3D11Buffer* buffer = provider->shaderConstantBuffer();
+
+        mDeviceContext->PSSetConstantBuffers(
+            provider->slot(),
+            1,
+            &buffer);
+    }
 
     renderSprites(mBaseWindow, renderState);
     FlushBuffer(renderState.batchVertices, renderState.NumberOfBatchedVertices, false);

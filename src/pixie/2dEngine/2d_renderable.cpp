@@ -306,6 +306,7 @@ tIntrusivePtr<cPixieObjectAnimator> blendShaderParam(
 	float targetValue,
 	int blendTime)
 {
+    std::print("blendShaderParam called with paramOffset: {}, targetValue: {}, blendTime: {}\n", paramOffset, targetValue, blendTime);
 	ASSERT(paramOffset >= 0 && paramOffset <= 3);
 	return cGeneralPixieObjectBlender::BlendObject(sprite, cPixieObject::cPropertyValues(targetValue), cPixieObject::Property_ShaderParam0 << paramOffset, blendTime);
 }

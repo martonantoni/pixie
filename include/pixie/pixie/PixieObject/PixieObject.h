@@ -7,7 +7,6 @@ class cPixieObject
 {
 public:
 	static constexpr unsigned int PropertyType_Text    =  0x8000'0000;
-    static constexpr unsigned int PropertyType_Float   =  0x4000'0000;
 	// all property flags are listed here, even those that are not available for all PixieObjects
 	// this is so that there is no accidental collision
 	static constexpr unsigned int Property_X           =	   0x0001;
@@ -35,10 +34,10 @@ public:
     static constexpr unsigned int Property_P2          =    0x40'0000;
     static constexpr unsigned int Property_P3          =    0x80'0000;
     static constexpr unsigned int Property_Shader      =   0x100'0000 | PropertyType_Text;  // renderable only
-    static constexpr unsigned int Property_ShaderParam0 =  0x200'0000 | PropertyType_Float; // renderable only
-    static constexpr unsigned int Property_ShaderParam1 =  0x400'0000 | PropertyType_Float; // renderable only
-    static constexpr unsigned int Property_ShaderParam2 =  0x800'0000 | PropertyType_Float; // renderable only
-    static constexpr unsigned int Property_ShaderParam3 = 0x1000'0000 | PropertyType_Float; // renderable only
+    static constexpr unsigned int Property_ShaderParam0 =  0x200'0000; // renderable only
+    static constexpr unsigned int Property_ShaderParam1 =  0x400'0000; // renderable only
+    static constexpr unsigned int Property_ShaderParam2 =  0x800'0000; // renderable only
+    static constexpr unsigned int Property_ShaderParam3 = 0x1000'0000; // renderable only
 	// combinations:
 	static constexpr unsigned int Property_Position       = Property_X|Property_Y;
 	static constexpr unsigned int Property_ScreenPosition = Property_ScreenX|Property_ScreenY;

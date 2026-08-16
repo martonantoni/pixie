@@ -14,6 +14,7 @@ public:
         uint32_t color;
         float u;
         float v;
+        float edgeDistances[4]; // distances to the edges of the sprite (left, top, right, bottom)
         float mShaderParameters[4];
     };
 private:
