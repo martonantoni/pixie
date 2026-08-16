@@ -4,6 +4,28 @@
 #include <d3dcompiler.h>
 #pragma comment(lib, "d3dcompiler.lib")
 
+class cShaderInclude : public ID3DInclude
+{
+public:
+    cShaderInclude() = default;
+
+    HRESULT Open(D3D_INCLUDE_TYPE, LPCSTR fileName, LPCVOID, LPCVOID* data, UINT* bytes) override
+    {
+        auto source = theShaderManager->shaderSource(fileName);
+        if (source.empty())
+            return E_FAIL;
+
+        *data = source.data();
+        *bytes = static_cast<UINT>(source.size());
+
+        return S_OK;
+    }
+
+    HRESULT Close(LPCVOID data) override
+    {
+         return S_OK;
+    }
+};
 
 cShader::~cShader()
 {
@@ -11,6 +33,8 @@ cShader::~cShader()
 
 ID3DBlob* cShader::compile(std::string_view sourceCode, const std::string& entryPoint, const std::string& target)
 {
+    cShaderInclude shaderInclude;
+
     ID3DBlob* shader = nullptr;
     ID3DBlob* errors = nullptr;
     HRESULT result = D3DCompile(
@@ -18,7 +42,7 @@ ID3DBlob* cShader::compile(std::string_view sourceCode, const std::string& entry
         sourceCode.size(),
         "Pixie pixel shader",
         nullptr,
-        nullptr,
+        &shaderInclude,
         entryPoint.c_str(),
         target.c_str(),
         0,

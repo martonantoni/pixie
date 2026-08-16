@@ -24,11 +24,16 @@ void cShaderManager::init()
         MainLog->Log("Shader folder not found: %s", shaderFolder.string().c_str());
         return;
     }
+    // first pass: gather the include files:
     for (const auto& entry : std::filesystem::directory_iterator(shaderFolder))
     {
         if (entry.is_regular_file() && entry.path().extension() == ".hlsl")
         {
             std::string shaderName = entry.path().stem().string();
+            auto shaderTypeString = shaderName.substr(shaderName.find_last_of('_') + 1);
+            if (shaderTypeString != "inc")
+                continue; // not an include file
+
             std::ifstream shaderFile(entry.path());
             if (!shaderFile)
             {
@@ -36,7 +41,28 @@ void cShaderManager::init()
                 continue;
             }
             std::string shaderSource((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
+            shaderName = shaderName.substr(0, shaderName.find_last_of('_'));
+            mShaderSources[shaderName] = shaderSource;
+        }
+    }
+    for (const auto& entry : std::filesystem::directory_iterator(shaderFolder))
+    {
+        if (entry.is_regular_file() && entry.path().extension() == ".hlsl")
+        {
+            std::string shaderName = entry.path().stem().string();
             auto shaderTypeString = shaderName.substr(shaderName.find_last_of('_') + 1);
+            if (shaderTypeString == "inc")
+            {
+                // include file, skip
+                continue;
+            }
+            std::ifstream shaderFile(entry.path());
+            if (!shaderFile)
+            {
+                MainLog->Log("Failed to open shader file: %s", entry.path().string().c_str());
+                continue;
+            }
+            std::string shaderSource((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
             shaderName = shaderName.substr(0, shaderName.find_last_of('_'));
             if (shaderTypeString == "ps")
             {
@@ -102,3 +128,10 @@ std::shared_ptr<cVertexShader> cShaderManager::vertexShader(const std::string& n
 }
 
 
+std::string_view cShaderManager::shaderSource(const std::string& name) const
+{
+    auto it = mShaderSources.find(name);
+    if (it == mShaderSources.end())
+        return {};
+    return it->second;
+}
