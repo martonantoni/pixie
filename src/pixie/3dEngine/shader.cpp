@@ -60,5 +60,29 @@ ID3DBlob* cShader::compile(std::string_view sourceCode, const std::string& entry
     if (errors)
         errors->Release();
 
+#ifdef _DEBUG
+    if (shader)
+    {
+        ID3DBlob* disassembly = nullptr;
+
+        if (SUCCEEDED(D3DDisassemble(
+            shader->GetBufferPointer(),
+            shader->GetBufferSize(),
+            0,
+            nullptr,
+            &disassembly)))
+        {
+            std::string text(
+                static_cast<const char*>(disassembly->GetBufferPointer()),
+                disassembly->GetBufferSize());
+
+            MainLog->Log("Shader disassembly:\n%s", text.c_str());
+
+            disassembly->Release();
+        }
+    }
+#endif
+
+
     return shader;
 }
