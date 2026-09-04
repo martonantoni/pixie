@@ -38,5 +38,6 @@ public:
     bool isTrackingActive() const { return IsMouseTrackingActive(); }
 
     static std::unique_ptr<cMouseTargetBridge> createOverWindow(cPixieWindow& window, const cMouseCallbacks& callbacks);
+    static std::unique_ptr<cMouseTargetBridge> createOverSprite(cSpriteBase& sprite, const cMouseCallbacks& callbacks);
 };
 

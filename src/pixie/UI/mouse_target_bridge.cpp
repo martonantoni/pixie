@@ -61,3 +61,14 @@ std::unique_ptr<cMouseTargetBridge> cMouseTargetBridge::createOverWindow(cPixieW
     target->init(initData);
     return target;
 }
+
+std::unique_ptr<cMouseTargetBridge> cMouseTargetBridge::createOverSprite(cSpriteBase& sprite, const cMouseCallbacks& callbacks)
+{
+    cMouseTargetBridge::cInitData initData;
+    initData.mParentWindow = sprite.GetWindow();
+    initData.mPlacement = sprite.GetRect();
+    initData.mCallbacks = callbacks;
+    auto target = std::make_unique<cMouseTargetBridge>();
+    target->init(initData);
+    return target;
+}
