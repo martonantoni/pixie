@@ -10,7 +10,7 @@ cRiffFile::cRiffFile(const cPath& path)
     mHeader.format = ntohl(mHeader.format);
     if (mHeader.id != 'RIFF')
     {
-        MainLog->Log("file id is not RIFF: %s", path.c_str());
+        MainLog->Log("file id is not RIFF: {}", path);
         mWasError = true;
         return;
     }

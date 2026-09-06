@@ -31,7 +31,7 @@ public:
 	c2DRenderable();
 	void Drop();
 	void Destroy();
-	std::string GetDebugID() const { return fmt::sprintf("sprite#%d", mDebugID); }
+	std::string GetDebugID() const { return std::format("sprite#{}", mDebugID); }
 
 	virtual bool GetProperty(unsigned int PropertyFlags, OUT cPropertyValues& Value) const override;
 	virtual bool SetProperty(unsigned int PropertyFlags, const cPropertyValues& Value) override;

@@ -93,7 +93,7 @@ public:
         auto i = mColorMap.find(std::forward<decltype(colorName)>(colorName));
 		if (ASSERTTRUE(i != mColorMap.end()))
             return i->second;
-        MainLog->Log("Unknown color name: %s", std::forward<decltype(colorName)>(colorName));
+        MainLog->Log("Unknown color name: {}", std::forward<decltype(colorName)>(colorName));
         return cColor(0xffff00ff); // magenta
     }
 };

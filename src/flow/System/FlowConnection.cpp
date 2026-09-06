@@ -52,7 +52,7 @@ void cFlowConnection::ResendMissingMessages(unsigned int LastKnownSeq)
 	auto MessagesToResend=mUnconfirmedMessages.size()-Offset;
 	if(!MessagesToResend)
 		return;
-	MainLog->Log("Resending messages: from %u, total messages: %u", LastKnownSeq+1, (unsigned int)MessagesToResend);
+	MainLog->Log("Resending messages: from {}, total messages: {}", LastKnownSeq+1, (unsigned int)MessagesToResend);
 	ASSERT(Offset==0); // we just called ConfirmDelivery with LastKnownSeq
 	for(auto i=mUnconfirmedMessages.begin()+Offset;i!=mUnconfirmedMessages.end();++i)
 	{
@@ -75,12 +75,12 @@ bool cFlowConnection::LoginReplyArrived(const cFlowLoginReplyMessage &LoginReply
 {
 	if(!LoginReplyMessage.mRejectReason.empty())
 	{
-		MainLog->Log("Login rejected: \"%s\"", LoginReplyMessage.mRejectReason.c_str());
+		MainLog->Log("Login rejected: \"{}\"", LoginReplyMessage.mRejectReason);
 		mStream.reset();
 		return false;
 	}
 	mID=LoginReplyMessage.mConnectionID;
-	MainLog->Log("Login accepted. LastKnownSeq: %u", LastKnownSequence);
+	MainLog->Log("Login accepted. LastKnownSeq: {}", LastKnownSequence);
 	if(ASSERTFALSE(LastKnownSequence+1<mSeqOfFirstUnconfirmedMessage||LastKnownSequence>mSeqOfFirstUnconfirmedMessage+mUnconfirmedMessages.size()))
 	{
 		mStream.reset();
@@ -120,7 +120,7 @@ cFlowServerConnection::~cFlowServerConnection()
 
 bool cFlowServerConnection::StreamConnected(std::unique_ptr<cFlowStream> Stream, const cFlowLoginMessage &LoginMessage, unsigned int LastKnownSequence)
 {
-	MainLog->Log("StreamConnected ... LastKnownSeq: %u", LastKnownSequence);
+	MainLog->Log("StreamConnected ... LastKnownSeq: {}", LastKnownSequence);
 	ASSERT(gNetworkThread->IsInThread());
 	mStream=std::move(Stream);
 	if(ASSERTTRUE(mStream))

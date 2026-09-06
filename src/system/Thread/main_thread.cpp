@@ -26,7 +26,7 @@ void cMainThread::processEventDispatch()
     }
     catch(std::runtime_error& e)
     {
-        MainLog->Log("Exception in main thread event dispatch: %s", e.what());
+        MainLog->Log("Exception in main thread event dispatch: {}", e.what());
     }
 }
 

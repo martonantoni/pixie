@@ -43,7 +43,7 @@ void cSocket::CreateEvent()
 	{ \
 		if(NetworkEvents.iErrorCode[FD_##Type##_BIT]==WSAEWOULDBLOCK) \
 		{ \
-			MainLog->Log("Warning: WSAEWOULDBLOCK received as an event for FD_"#Type); \
+			MainLog->Log("Warning: WSAEWOULDBLOCK received as an event for FD_{}", #Type); \
 			NetworkEvents.lNetworkEvents&=~FD_##Type; \
 		} \
 		else \
@@ -151,7 +151,7 @@ std::unique_ptr<cSocket> cSocket::Accept()
 	if(NewSocket==SOCKET_ERROR)
 		return std::unique_ptr<cSocket>();
 	cSocket *NewSocketObject=new cSocket(NewSocket);
-//	NewSocketObject->Name=fmt::sprintf("%s#client", Name); // a temporary name until BindToObject is called
+//	NewSocketObject->Name=std::format("{}#client", Name); // a temporary name until BindToObject is called
 	return std::unique_ptr<cSocket>(NewSocketObject);
 }
 

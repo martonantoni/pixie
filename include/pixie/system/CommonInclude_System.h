@@ -272,7 +272,7 @@ public:
 	{
 		auto EndTime=std::chrono::high_resolution_clock::now();
 		auto Elapsed=std::chrono::duration_cast<std::chrono::nanoseconds>(EndTime-mStartTime);
-		MainLog->Log("Elapsed %llu ns in %s\n", Elapsed.count(), mName);
+		MainLog->Log("Elapsed {} ns in {}\n", Elapsed.count(), mName);
 	}
 };
 

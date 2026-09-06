@@ -11,7 +11,7 @@ cFlowStream::cFlowStream(std::shared_ptr<cFlowConnection> Connection)
 void cFlowStream::FatalError(int id)
 {
 	mFatalErrorEncountered=true;
-	MainLog->Log("FatalError (%d)", id);
+	MainLog->Log("FatalError ({})", id);
 	mStream.reset();
 	auto Connection=mConnection.lock();
 	if(Connection)
@@ -35,7 +35,7 @@ void cFlowStream::ParseStream(const cMemoryStream &Stream)
 		auto MessageStartPosition=Stream.GetPosition();
 		if(!mFirstMessageReceived&&MessageHeader.mMessageLength>5000)
 		{
-			MainLog->Log("ERROR: %shello message too long (%u)", mDebugPrompt.c_str(), MessageHeader.mMessageLength);
+			MainLog->Log("ERROR: {}hello message too long ({})", mDebugPrompt, MessageHeader.mMessageLength);
 			FatalError(1);
 			return;
 		}
@@ -82,7 +82,7 @@ void cFlowStream::Close()
 
 void cFlowStream::Send(const cFlowRawMessage &RawMessage)
 {
-	MainLog->Log("Send: %.4s", (const char *)&RawMessage.mMessageType);
+	MainLog->Log("Send: {:.4s}", (const char *)&RawMessage.mMessageType);
 	cFlowMessageHeader Header;
 	auto Connection=mConnection.lock();
 	Header.mLastKnownSeq=Connection?Connection->GetLastKnownSeq():0;
@@ -132,7 +132,7 @@ bool cFlowClientStream::ProcessFirstMessage(const cMemoryStream &Stream, const c
 		return false;
 	if(ASSERTFALSE(Header.mMessageType!=cFlowLoginReplyMessage::MessageType()))
 	{
-		MainLog->Log("ERROR: First message (%.4s) is not LoginReply.", (const char *)&Header.mMessageType);
+		MainLog->Log("ERROR: First message ({:.4s}) is not LoginReply.", (const char *)&Header.mMessageType);
 		FatalError(6);
 		return false;
 	}
@@ -197,7 +197,7 @@ bool cFlowServerStream::ProcessFirstMessage(const cMemoryStream &Stream, const c
 	cFlowLoginMessage LoginMessage;
 	if(!LoginMessage.FromStream(Stream))
 		return false;
-	MainLog->Log("LoginMessage arrived -- %s", LoginMessage.toString().c_str());
+	MainLog->Log("LoginMessage arrived -- {}", LoginMessage.toString());
 	mIsConnected=true;
 
 	auto Connection=LoginMessage.mConnectionID.IsValid()?
@@ -207,7 +207,7 @@ bool cFlowServerStream::ProcessFirstMessage(const cMemoryStream &Stream, const c
 	{
 		if(LoginMessage.mConnectionID.IsValid())
 		{
-			MainLog->Log("ERROR: Player %s tried to login with expired/fake ConnectionID: %s", LoginMessage.mUserID.toString().c_str(), LoginMessage.mConnectionID.toString().c_str());
+			MainLog->Log("ERROR: Player {} tried to login with expired/fake ConnectionID: {}", LoginMessage.mUserID.toString(), LoginMessage.mConnectionID.toString());
 		}
 		return false;
 	}

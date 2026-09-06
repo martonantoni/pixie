@@ -5,10 +5,10 @@ cFileMapper::cFileMapper(const std::string &pFileName): FileName(pFileName)
 {
 	FileHandle=::CreateFile(pFileName.c_str(),GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,NULL);
 	if(FileHandle==INVALID_HANDLE_VALUE)
-		ThrowLastError(fmt::sprintf("CreateFile(\"%s\")",pFileName));
+		ThrowLastError(std::format("CreateFile(\"{}\")",pFileName));
 	FileMappingHandle=::CreateFileMapping(FileHandle,NULL,PAGE_WRITECOPY,0,0,NULL);
 	if(FileMappingHandle==INVALID_HANDLE_VALUE)
-		ThrowLastError(fmt::sprintf("CreateFileMapping(\"%s\")",pFileName));
+		ThrowLastError(std::format("CreateFileMapping(\"{}\")",pFileName));
 	GetFileSizeEx(FileHandle,(LARGE_INTEGER *)&FileSize);
 	SYSTEM_INFO SystemInfo;
 	::GetSystemInfo(&SystemInfo);
@@ -28,7 +28,7 @@ cFileMapper::~cFileMapper()
 	{
 		if(ViewPosition)
 			if(!::UnmapViewOfFile(ViewPosition))
-				ThrowLastError(fmt::sprintf("UnmapViewOfFile failed. File: %s",FileName));
+				ThrowLastError(std::format("UnmapViewOfFile failed. File: {}",FileName));
 		if(FileMappingHandle!=INVALID_HANDLE_VALUE)
 			CloseHandle(FileMappingHandle);
 		CloseHandle(FileHandle);
@@ -39,7 +39,7 @@ void cFileMapper::MoveView(unsigned MinimumViewSize)
 {
 	if(ViewPosition)
 		if(!::UnmapViewOfFile(ViewPosition))
-			ThrowLastError(fmt::sprintf("UnmapViewOfFile failed. File: %s",FileName));
+			ThrowLastError(std::format("UnmapViewOfFile failed. File: {}",FileName));
 
 	__int64 AlignError=VirtualPosition%SystemGranuality;
 	__int64 AlignedVirtualPosition=VirtualPosition-AlignError;
@@ -47,7 +47,7 @@ void cFileMapper::MoveView(unsigned MinimumViewSize)
 
 	ViewPosition=(char *)::MapViewOfFile(FileMappingHandle,FILE_MAP_READ,High32(AlignedVirtualPosition),Low32(AlignedVirtualPosition),MinimumViewSize);
 	if(!ViewPosition)
-		ThrowLastError(fmt::sprintf("MapViewOfFile failed (offset= %d, size: %d). File: %s",(int)ViewOffset,(int)ViewSize,FileName));
+		ThrowLastError(std::format("MapViewOfFile failed (offset= {}, size: {}). File: {}",(int)ViewOffset,(int)ViewSize,FileName));
 
 	MEMORY_BASIC_INFORMATION MemoryInfo;
 	::VirtualQuery(ViewPosition,&MemoryInfo,sizeof(MEMORY_BASIC_INFORMATION));
@@ -56,7 +56,7 @@ void cFileMapper::MoveView(unsigned MinimumViewSize)
 	ViewPosition=(const char *)MemoryInfo.AllocationBase;
 	ViewOffset=AlignedVirtualPosition-AllocationOffset;
 
-//	MainLog->Log("*MV* AllocOffset=%d, ViewSize=%d, ViewOffset=%d, AllocBase=0x%x\n",AllocationOffset,ViewSize,(int)ViewOffset,(int)ViewPosition);
+//	MainLog->Log("*MV* AllocOffset={}, ViewSize={}, ViewOffset={}, AllocBase=0x{:x}", AllocationOffset, ViewSize, (int)ViewOffset, (int)ViewPosition);
 }
 
 const char *cFileMapper::GetView(unsigned Length,int MovePosition)
@@ -85,7 +85,7 @@ _int64 cFileMapper::Seek(__int64 NewLocation,int MoveMethod)
 		VirtualPosition=NewLocation;
 		break;
 	default:
-		THROW_DETAILED_EXCEPTION(fmt::sprintf("Unknown seek method (%d)",MoveMethod));
+		THROW_DETAILED_EXCEPTION(std::format("Unknown seek method ({})",MoveMethod));
 	}
 	return VirtualPosition;
 }

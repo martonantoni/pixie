@@ -13,7 +13,7 @@ cProgramArguments::cProgramArguments(int ArgNo,char **Args)
 		cStringVector ArgTokens(Args[i],"=",false);
 		if(ArgTokens.size()!=2)
 		{
-			::MessageBox(NULL,fmt::sprintf("Invalid argument: %s",Args[i]).c_str(),ProgramName,MB_ICONSTOP|MB_OK);
+			::MessageBox(NULL,std::format("Invalid argument: {}",Args[i]).c_str(),ProgramName,MB_ICONSTOP|MB_OK);
 			::exit(0);
 		}
 		(*this)[ArgTokens[0]]=ArgTokens[1];

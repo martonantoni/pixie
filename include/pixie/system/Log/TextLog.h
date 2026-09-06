@@ -18,9 +18,9 @@ class cTextLog: public cRegistrationHandler
 	mutable std::mutex mMutex;
 	tSafeObjects<tIntrusivePtr<cTextLogPlugin>> mPlugins;
 public:
-	template<class... Ts> void Log(const char *Format, Ts &&...Args)
+	template<class... Ts> void Log(std::format_string<Ts...> format, Ts&&... args)
 	{
-		StringLog(fmt::sprintf(Format, std::forward<Ts>(Args)...));
+		StringLog(std::format(format, std::forward<Ts>(args)...));
 	}
 	void StringLog(const std::string &Text);
 	cRegisteredID RegisterPlugin(tIntrusivePtr<cTextLogPlugin> Plugin);

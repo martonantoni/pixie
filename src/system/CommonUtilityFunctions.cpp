@@ -18,11 +18,11 @@ void TruncateFileAt(const std::string &FileName,__int64 NewFileSize)
 {
 	HANDLE FileHandle=CreateFile(FileName.c_str(),GENERIC_READ|GENERIC_WRITE,FILE_SHARE_WRITE,NULL,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
 	if(FileHandle==INVALID_HANDLE_VALUE)
-		ThrowLastError(fmt::sprintf("CreateFile(\"%s\")",FileName));
+		ThrowLastError(std::format("CreateFile(\"{}\")",FileName));
 	if(!SetFilePointerEx(FileHandle,*(LARGE_INTEGER *)&NewFileSize,NULL,FILE_BEGIN))
-		ThrowLastError(fmt::sprintf("SetFilePointerEx(\"%s\")",FileName));
+		ThrowLastError(std::format("SetFilePointerEx(\"{}\")",FileName));
 	if(!SetEndOfFile(FileHandle))
-		ThrowLastError(fmt::sprintf("SetEndOfFile(\"%s\")",FileName));
+		ThrowLastError(std::format("SetEndOfFile(\"{}\")",FileName));
 	CloseHandle(FileHandle);
 }
 
@@ -30,10 +30,10 @@ __int64 fileSize(const std::string &FileName)
 {
 	HANDLE FileHandle=CreateFile(FileName.c_str(),GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0);
 	if(FileHandle==INVALID_HANDLE_VALUE)
-		ThrowLastError(fmt::sprintf("CreateFile(\"%s\")",FileName));
+		ThrowLastError(std::format("CreateFile(\"{}\")",FileName));
 	__int64 FileSize;
 	if(!GetFileSizeEx(FileHandle,(LARGE_INTEGER *)&FileSize))
-		ThrowLastError(fmt::sprintf("GetFileSizeEx(\"%s\")",FileName));
+		ThrowLastError(std::format("GetFileSizeEx(\"{}\")",FileName));
 	CloseHandle(FileHandle);
 	return FileSize;
 }

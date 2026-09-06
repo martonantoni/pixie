@@ -109,7 +109,7 @@ bool cAutoMultiSpriteBase::Init(cPixieWindow *Window, const std::string &Texture
 		tIntrusivePtr<cTexture> Texture=mTextureOverrides.size()>Index&&mTextureOverrides[Index]?
 			mTextureOverrides[Index]
 			:
-			(TextureManager.GetTexture(fmt::sprintf("%s_%s", TextureNameBase.c_str(), ThisPositionName), IsOptional));
+			(TextureManager.GetTexture(std::format("{}_{}", TextureNameBase, ThisPositionName), IsOptional));
 		if(!Texture.get()&&IsOptional)
 		{
 			mSprites.push_back(nullptr);

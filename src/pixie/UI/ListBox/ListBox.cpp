@@ -91,7 +91,7 @@ void cDragSpeedCalculator::DraggedToPosition(int Position)
 		double DeltaTimeSec=DeltaTimeMS/1000.0;
 		auto DeltaPosition=mPrevPosition-OldPosition;
 		mSpeed=DeltaPosition/DeltaTimeSec;
-		MainLog->Log("Speed: %.3f", mSpeed);
+		MainLog->Log("Speed: {:.3f}", mSpeed);
 	}
 }
 

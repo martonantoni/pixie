@@ -22,7 +22,7 @@ bool cFlowLoginMessage::FromStream(const cMemoryStream &Stream)
 
 std::string cFlowLoginMessage::toString() const
 {
-	return fmt::sprintf("ConnectionID: %s, UserID: %s, MessageSuiteID: %.4s", mConnectionID.toString().c_str(), mUserID.toString().c_str(), (const char *)&mMessageSuiteID);
+	return std::format("ConnectionID: {}, UserID: {}, MessageSuiteID: {:.4s}", mConnectionID.toString(), mUserID.toString(), (const char *)&mMessageSuiteID);
 }
 
 std::shared_ptr<cMemoryStream> cFlowLoginReplyMessage::ToStream() const

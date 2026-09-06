@@ -62,7 +62,7 @@ int cPixelShader::parameterIndex(std::string_view name) const
     auto it = std::find(mParameterNames.begin(), mParameterNames.end(), name);
     if (it == mParameterNames.end())
     {
-        throw std::runtime_error(fmt::sprintf("Parameter name '%s' not found in pixel shader", name));
+        throw std::runtime_error(std::format("Parameter name '{}' not found in pixel shader", name));
     }
     return static_cast<int>(std::distance(mParameterNames.begin(), it));
 }

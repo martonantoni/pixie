@@ -21,5 +21,5 @@ void cFlowConnectionID::FromStream(const cMemoryStream &Stream)
 
 std::string cFlowConnectionID::toString() const
 {
-	return fmt::sprintf("%llu", mID);
+	return std::format("{}", mID);
 }

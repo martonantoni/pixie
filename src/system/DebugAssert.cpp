@@ -22,5 +22,5 @@ bool Global_HandleAssert(const std::string &Text,int *Ignored)
 void ThrowLastError(const std::string &Text)
 {
 	DWORD Error=GetLastError();
-	RELEASE_ASSERT_EXT(false,fmt::sprintf("%s failed, errorcode: %u",Text,Error));
+	RELEASE_ASSERT_EXT(false,std::format("{} failed, errorcode: {}",Text,Error));
 }

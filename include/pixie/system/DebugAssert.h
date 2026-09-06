@@ -15,7 +15,7 @@ inline void throwLastError(const std::string& context)
 		static int Ignored=false;\
 		if(!Ignored&&!(x))\
 			{\
-			std::string DisplayedText=fmt::sprintf("Debug assertation failed\nFile: %s\nLine: %d\nCondition: "#x"\nInformation: %s\nSelect YES for break, NO for continue, CANCEL for ignoring this error",__FILE__,__LINE__,(Info)); \
+			std::string DisplayedText=std::format("Debug assertation failed\nFile: {}\nLine: {}\nCondition: {}\nInformation: {}\nSelect YES for break, NO for continue, CANCEL for ignoring this error", __FILE__, __LINE__, #x, (Info)); \
 			Global_HandleAssert(DisplayedText,&Ignored)&&(DebugBreak(),true); \
 			}\
 		}\

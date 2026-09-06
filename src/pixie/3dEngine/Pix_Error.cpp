@@ -25,5 +25,5 @@ std::string Pixie_GetErrorCodeText(HRESULT Result)
     case DXGI_ERROR_WAS_STILL_DRAWING: return "DXGI_ERROR_WAS_STILL_DRAWING";
     case DXGI_ERROR_SDK_COMPONENT_MISSING: return "DXGI_ERROR_SDK_COMPONENT_MISSING";
     }
-    return fmt::sprintf("Unknown error code (0x%08x)", static_cast<unsigned int>(Result));
+    return std::format("Unknown error code (0x{:08x})", static_cast<unsigned int>(Result));
 }

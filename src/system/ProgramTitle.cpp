@@ -8,10 +8,10 @@ cProgramTitle *cProgramTitle::Get()
 
 cProgramTitle::cProgramTitle()
 {
-	(std::string &)*this=fmt::sprintf("%s v%s, PID: %d",ProgramName,VersionString,GetCurrentProcessId());
+	(std::string &)*this=std::format("{} v{}, PID: {}",ProgramName,VersionString,GetCurrentProcessId());
 }
 
 void cProgramTitle::SetInstanceName(const std::string &InstanceName)
 {
-	(std::string &)*this=fmt::sprintf("%s(%s) v%s, PID: %d",ProgramName,InstanceName,VersionString,GetCurrentProcessId());
+	(std::string &)*this=std::format("{}({}) v{}, PID: {}",ProgramName,InstanceName,VersionString,GetCurrentProcessId());
 }

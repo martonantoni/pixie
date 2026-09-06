@@ -41,8 +41,7 @@ ID3D11Texture2D* cTextureManager2::CreateTexture(const unsigned char* Pixels, in
 	HRESULT Result = theDevice->GetD3DObject()->CreateTexture2D(&Desc, nullptr, &Texture);
 	if (FAILED(Result))
 	{
-		MainLog->Log("Failed to create Direct3D texture (%dx%d): %s",
-			Width, Height, Pixie_GetErrorCodeText(Result).c_str());
+		MainLog->Log("Failed to create Direct3D texture ({}x{}): {}", Width, Height, Pixie_GetErrorCodeText(Result));
 		return nullptr;
 	}
 
@@ -63,8 +62,7 @@ ID3D11Texture2D* cTextureManager2::CreateTexture(const unsigned char* Pixels, in
 
 	if (FAILED(Result))
 	{
-		MainLog->Log("Failed to create shader resource view for texture (%dx%d): %s",
-			Width, Height, Pixie_GetErrorCodeText(Result).c_str());
+		MainLog->Log("Failed to create shader resource view for texture ({}x{}): {}", Width, Height, Pixie_GetErrorCodeText(Result));
 		Texture->Release();
 		return nullptr;
 	}
@@ -83,7 +81,7 @@ ID3D11Texture2D* cTextureManager2::LoadTexture(const cPath& FileName, cPoint* Si
 	unsigned char* Pixels = stbi_load(FileName.c_str(), &Width, &Height, &Channels, STBI_rgb_alpha);
 	if (!Pixels)
 	{
-		MainLog->Log("Failed to load texture file: %s -- %s", FileName.c_str(), stbi_failure_reason());
+		MainLog->Log("Failed to load texture file: {} -- {}", FileName.c_str(), stbi_failure_reason());
 		return nullptr;
 	}
 
@@ -127,7 +125,7 @@ tIntrusivePtr<cTexture> cTextureManager2::LoadFromMemory(const void* memory, siz
 
 	if (!Pixels)
 	{
-		MainLog->Log("Failed to load texture from memory -- %s", stbi_failure_reason());
+		MainLog->Log("Failed to load texture from memory -- {}", stbi_failure_reason());
 		return {};
 	}
 
@@ -149,7 +147,7 @@ bool cTextureManager2::AddEntire(const std::string& Name, cImageFile* ImageFile)
 	auto& TextureData = mTextures[Name];
 	if (TextureData)
 	{
-		MainLog->Log("Warning! Duplicated texture (\"%s\") reference.", Name.c_str());
+		MainLog->Log("Warning! Duplicated texture (\"{}\") reference.", Name);
 		return false;
 	}
 	TextureData = std::make_unique<cTextureData>(cTextureInfo(ImageFile->mSize));
@@ -162,7 +160,7 @@ bool cTextureManager2::AddEntire(const std::string& Name, cImageFile* ImageFile)
 	if(Condition) \
 	{ \
 		ASSERT(false); \
-		MainLog->Log("Warning! Invalid line \"%.*s\" in %s (condition: %s)",line.size(),line.data(),Path.c_str(),#Condition); \
+		MainLog->Log("Warning! Invalid line \"{}\" in {} (condition: {})", std::string(line.data(), line.size()), Path, #Condition); \
 		continue; \
 	}
 
@@ -207,8 +205,7 @@ void cTextureManager2::ProcessInfoFile(const std::string& Path, const cPath& Tex
 				cTileSetData*& TileSetData = mTileSets[LineTokens[1]];
 				if (TileSetData)
 				{
-					MainLog->Log("Warning! Duplicated tileset (\"%s\") reference. Found in these files: %s and %s",
-						LineTokens[1].c_str(), TileSetData->mImageFile->mPath.c_str(), Path.c_str());
+					MainLog->Log("Warning! Duplicated tileset (\"{}\") reference. Found in these files: {} and {}", LineTokens[1], TileSetData->mImageFile->mPath, Path);
 					continue;
 				}
 				CurrentTileSet = TileSetData = new cTileSetData;
@@ -225,8 +222,7 @@ void cTextureManager2::ProcessInfoFile(const std::string& Path, const cPath& Tex
 				auto& TextureData = mTextures[LineTokens[1]];
 				if (TextureData)
 				{
-					MainLog->Log("Warning! Duplicated texture (\"%s\") reference. Found in these files: %s and %s",
-						LineTokens[1].c_str(), TextureData->mImageFile->mPath.c_str(), Path.c_str());
+					MainLog->Log("Warning! Duplicated texture (\"{}\") reference. Found in these files: {} and {}", LineTokens[1], TextureData->mImageFile->mPath, Path);
 					continue;
 				}
 				int TileX = atoi(LineTokens[2].c_str());
@@ -260,8 +256,7 @@ void cTextureManager2::ProcessInfoFile(const std::string& Path, const cPath& Tex
 				auto& TextureData = mTextures[LineTokens[1]];
 				if (TextureData)
 				{
-					MainLog->Log("Warning! Duplicated texture (\"%s\") reference. Found in these files: %s and %s",
-						LineTokens[1].c_str(), TextureData->mImageFile->mPath.c_str(), Path.c_str());
+					MainLog->Log("Warning! Duplicated texture (\"{}\") reference. Found in these files: {} and {}", LineTokens[1], TextureData->mImageFile->mPath, Path);
 					continue;
 				}
 				TextureData = std::make_unique<cTextureData>(cTextureInfo(cRect(PixelX, PixelY, PixelW, PixelH), ImageFile->mSize));
@@ -274,7 +269,7 @@ void cTextureManager2::ProcessInfoFile(const std::string& Path, const cPath& Tex
 			}
 			else
 			{
-				MainLog->Log("Warning! Invalid command \"%s\" in %s", LineTokens[0].c_str(), Path.c_str());
+				MainLog->Log("Warning! Invalid command \"{}\" in {}", LineTokens[0], Path);
 				ASSERT(false);
 			}
 		}
@@ -294,7 +289,7 @@ void cTextureManager2::Initialize()
 	{
 		WIN32_FIND_DATA FindData;
 		memset(&FindData, 0, sizeof(WIN32_FIND_DATA));
-		HANDLE FindHandle = ::FindFirstFile(fmt::sprintf("%s/*.*", TexturesFolder.c_str()).c_str(), &FindData);
+		HANDLE FindHandle = ::FindFirstFile(std::format("{}/*.*", TexturesFolder).c_str(), &FindData);
 		struct cFileNameData
 		{
 			bool mHasInfoFile = false;
@@ -319,7 +314,7 @@ void cTextureManager2::Initialize()
 						auto& FileData = Files[Path.GetFileNameWithoutExtension()];
 						if (ASSERTFALSE(!FileData.mExtension.empty()))
 						{
-							MainLog->Log("Warning: more than one extension for file \"%s\"", Path.GetFileNameWithoutExtension().c_str());
+							MainLog->Log("Warning: more than one extension for file \"{}\"", Path.GetFileNameWithoutExtension());
 						}
 						FileData.mExtension = Path.GetExtension();
 					}
@@ -331,12 +326,12 @@ void cTextureManager2::Initialize()
 		{
 			if (FileData.second.mHasInfoFile)
 			{
-				ProcessInfoFile(fmt::sprintf("%s/%s.info", TexturesFolder.c_str(), FileData.first.c_str())
-					, fmt::sprintf("%s/%s.%s", TexturesFolder.c_str(), FileData.first.c_str(), FileData.second.mExtension.c_str()));
+				ProcessInfoFile(std::format("{}/{}.info", TexturesFolder, FileData.first)
+					, std::format("{}/{}.{}", TexturesFolder, FileData.first, FileData.second.mExtension));
 			}
 			else
 			{
-				ProcessInfoFile({}, fmt::sprintf("%s/%s.%s", TexturesFolder.c_str(), FileData.first.c_str(), FileData.second.mExtension.c_str()));
+				ProcessInfoFile({}, std::format("{}/{}.{}", TexturesFolder, FileData.first, FileData.second.mExtension));
 			}
 		}
 	}
@@ -360,7 +355,7 @@ tIntrusivePtr<cTexture> cTextureManager2::GetTexture(const std::string& TextureN
 		return GetTexture(AliasIt->second);
 	if (!IsOptional)
 	{
-		MainLog->Log("Error! Texture not found: %s", TextureName.c_str());
+		MainLog->Log("Error! Texture not found: {}", TextureName);
 		ASSERT(false);
 	}
 	return nullptr;

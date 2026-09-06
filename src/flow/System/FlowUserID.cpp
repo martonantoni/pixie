@@ -19,7 +19,7 @@ void cFlowUniqueID::FromStream(const cMemoryStream &Stream)
 
 std::string cFlowUniqueID::toString() const
 {
-	return fmt::sprintf("%llx", mID);
+	return std::format("{:x}", mID);
 }
 
 cFlowUniqueID cFlowUniqueID::UnverifiedGenerate()

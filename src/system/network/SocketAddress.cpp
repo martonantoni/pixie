@@ -27,7 +27,7 @@ void cSocketAddress::SetSockaddr_in(const sockaddr_in &Address)
 	mResolvedAddress.mAddress=Address;
 	mResolvedAddress.mIsValid=true;
 	int Port=ntohs(Address.sin_port);
-	mUnresolvedAddress.mAddressString=fmt::sprintf("%d.%d.%d.%d:%d",
+	mUnresolvedAddress.mAddressString=std::format("{}.{}.{}.{}:{}", 
 		Address.sin_addr.S_un.S_un_b.s_b1, Address.sin_addr.S_un.S_un_b.s_b2,
 		Address.sin_addr.S_un.S_un_b.s_b3, Address.sin_addr.S_un.S_un_b.s_b4,
 		Port);
@@ -90,5 +90,5 @@ std::string cSocketAddress::GetHostName() const
 
 std::string cSocketAddress::toString() const
 { 
-	return mUnresolvedAddress.mIsValid?fmt::sprintf("%s:%d", mUnresolvedAddress.mAddressString.c_str(), mUnresolvedAddress.mPort):std::string(); 
+	return mUnresolvedAddress.mIsValid?std::format("{}:{}", mUnresolvedAddress.mAddressString, mUnresolvedAddress.mPort):std::string(); 
 }

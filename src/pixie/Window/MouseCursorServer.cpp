@@ -9,7 +9,7 @@ cMouseCursorServer::cMouseCursorServer()
 	//std::string CursorsFolder=Config->get<std::string>("cursors");
 	//WIN32_FIND_DATA FindData;
 	//memset(&FindData, 0, sizeof(WIN32_FIND_DATA));
-	//HANDLE FindHandle=::FindFirstFile(fmt::sprintf("%s/*.ani", CursorsFolder.c_str()).c_str(), &FindData);
+	//HANDLE FindHandle=::FindFirstFile(std::format("{}/*.ani", CursorsFolder).c_str(), &FindData);
 	//if(FindHandle!=INVALID_HANDLE_VALUE)
 	//{
 	//	do
@@ -22,7 +22,7 @@ cMouseCursorServer::cMouseCursorServer()
 	//		}
 	//		else
 	//		{
-	//			MainLog->Log("Warning: LoadCursorFromFile failed for \"%s\"", FindData.cFileName);
+	//			MainLog->Log("Warning: LoadCursorFromFile failed for \"{}\"", FindData.cFileName);
 	//		}
 	//	} while(::FindNextFile(FindHandle, &FindData));
 	//	::FindClose(FindHandle);
@@ -70,7 +70,7 @@ cRegisteredID cMouseCursorServer::SetCursor(const std::string& id)
 		mCursorStack.emplace_back(i->second, ++mIDCounter);
 		return cRegisteredID(this, mIDCounter);
 	}
-	MainLog->Log("Warning: Cursor \"%s\" is not available", id.c_str());
+	MainLog->Log("Warning: Cursor \"{}\" is not available", id);
 	return cRegisteredID();
 #endif
 }

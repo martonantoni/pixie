@@ -21,7 +21,7 @@ void cShaderManager::init()
     std::filesystem::path shaderFolder = std::filesystem::current_path() / "shaders";
     if (!std::filesystem::exists(shaderFolder) || !std::filesystem::is_directory(shaderFolder))
     {
-        MainLog->Log("Shader folder not found: %s", shaderFolder.string().c_str());
+        MainLog->Log("Shader folder not found: {}", shaderFolder.string());
         return;
     }
     // first pass: gather the include files:
@@ -37,7 +37,7 @@ void cShaderManager::init()
             std::ifstream shaderFile(entry.path());
             if (!shaderFile)
             {
-                MainLog->Log("Failed to open shader file: %s", entry.path().string().c_str());
+                MainLog->Log("Failed to open shader file: {}", entry.path().string());
                 continue;
             }
             std::string shaderSource((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
@@ -59,7 +59,7 @@ void cShaderManager::init()
             std::ifstream shaderFile(entry.path());
             if (!shaderFile)
             {
-                MainLog->Log("Failed to open shader file: %s", entry.path().string().c_str());
+                MainLog->Log("Failed to open shader file: {}", entry.path().string());
                 continue;
             }
             std::string shaderSource((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
@@ -70,7 +70,7 @@ void cShaderManager::init()
                 if (*pixelShader)
                 {
                     mPixelShaders[shaderName] = pixelShader;
-                    MainLog->Log("Loaded pixel shader: %s", shaderName.c_str());
+                    MainLog->Log("Loaded pixel shader: {}", shaderName);
                 }
             }
             else if (shaderTypeString == "vs")
@@ -79,12 +79,12 @@ void cShaderManager::init()
                 if (*vertexShader)
                 {
                     mVertexShaders[shaderName] = vertexShader;
-                    MainLog->Log("Loaded vertex shader: %s", shaderName.c_str());
+                    MainLog->Log("Loaded vertex shader: {}", shaderName);
                 }
             }
             else
             {
-                MainLog->Log("Unknown shader type for file: %s", entry.path().string().c_str());
+                MainLog->Log("Unknown shader type for file: {}", entry.path().string());
             }
         }
     }
@@ -97,13 +97,13 @@ void cShaderManager::reloadShaders()
         std::filesystem::path shaderFile = std::filesystem::current_path() / "shaders" / (name + "_ps.hlsl");
         if (!std::filesystem::exists(shaderFile))
         {
-            MainLog->Log("Shader file not found: %s", shaderFile.string().c_str());
+            MainLog->Log("Shader file not found: {}", shaderFile.string());
             continue;
         }
         std::ifstream shaderFileStream(shaderFile);
         if (!shaderFileStream)
         {
-            MainLog->Log("Failed to open shader file: %s", shaderFile.string().c_str());
+            MainLog->Log("Failed to open shader file: {}", shaderFile.string());
             continue;
         }
         std::string shaderSource((std::istreambuf_iterator<char>(shaderFileStream)), std::istreambuf_iterator<char>());

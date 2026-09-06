@@ -49,13 +49,13 @@ std::string cSimpleValue::GetDebugString() const
 	switch(mType)
 	{
 	case eType::String:
-		return fmt::sprintf("String (%s)", mStringValue.Get());
+		return std::format("String ({})", mStringValue.Get());
 	case eType::Double:
-		return fmt::sprintf("Double (%.5f)", mDoubleValue.Get());
+		return std::format("Double ({:.5f})", mDoubleValue.Get());
 	case eType::Int:
-		return fmt::sprintf("Int (%d)", mIntValue.Get());
+		return std::format("Int ({})", mIntValue.Get());
 	case eType::Bool:
-		return fmt::sprintf("Bool (%s)", mIntValue.Get()?"true":"false");
+		return std::format("Bool ({})", mIntValue.Get()?"true":"false");
 	}
 	return "Unknown";
 }

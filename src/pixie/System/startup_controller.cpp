@@ -17,7 +17,7 @@ void cStartupController::Start_MainThread()
         (mConfig.mainLog.writeToFile ? 0 : cLog::Flags::NO_FILE) |
         (mConfig.mainLog.useTimeStamp ? cLog::Flags::TIME_STAMP : 0));
     MainLog->Log("----------- START -----------");
-    MainLog->Log("working dir: \"%s\"", std::filesystem::current_path().string().c_str());
+    MainLog->Log("working dir: \"{}\"", std::filesystem::current_path().string());
 
     theProgramDirector->Start();
     theMainThread->callback(

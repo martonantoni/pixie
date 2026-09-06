@@ -189,7 +189,7 @@ std::shared_ptr<const cFont> cFontManager::createFont(const std::string& name, i
 	auto i = mVariableFonts.find(name);
 	if (i == mVariableFonts.end())
     {
-        MainLog->Log("FontManager: Font \"%s\" not found", name.c_str());
+        MainLog->Log("FontManager: Font \"{}\" not found", name);
         return nullptr;
     }
 	auto& fontData = i->second;
@@ -236,7 +236,7 @@ void cFontManager::Init()
                 }
                 else
                 {
-                    MainLog->Log("FontManager: Unable to initialize font: \"%s\"", name.c_str());
+                    MainLog->Log("FontManager: Unable to initialize font: \"{}\"", name);
                 }
             }
 		});
@@ -247,7 +247,7 @@ void cFontManager::Init()
         if(Font.mAliasOf.empty())
             totalTextureSize += Font.mFont->atlasTexture()->GetSurfaceWidth() * Font.mFont->atlasTexture()->GetSurfaceHeight();
     }
-	MainLog->Log("FontManager: %d fonts initialized. Total texture size: %d kb", mFonts.size(), totalTextureSize / 1024);
+	MainLog->Log("FontManager: {} fonts initialized. Total texture size: {} kb", mFonts.size(), totalTextureSize / 1024);
 }
 
 cFontManager theFontManager;

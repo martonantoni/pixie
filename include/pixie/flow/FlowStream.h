@@ -25,7 +25,7 @@ protected:
 	virtual ~cFlowStream()=default;
 public:
 	void Close();
-	void SetDebugName(const std::string &DebugName) { mDebugPrompt=fmt::sprintf("[%s] ", DebugName.c_str()); }
+	void SetDebugName(const std::string &DebugName) { mDebugPrompt=std::format("[{}] ", DebugName); }
 	void SetLog(std::shared_ptr<cTextLog> Log);
 	static std::shared_ptr<cMemoryStream> CreateMemoryStreamForWriting();
 	void Send(const cFlowRawMessage &RawMessage);
