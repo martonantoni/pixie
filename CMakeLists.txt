@@ -29,8 +29,6 @@ find_package(Freetype REQUIRED)
 
 file(GLOB_RECURSE PIXIE_SOURCES src/*.cpp)
 
-message(STATUS "FREETYPE_INCLUDE_DIRS: ${FREETYPE_INCLUDE_DIRS}")
-
 add_library(Pixie STATIC ${PIXIE_SOURCES})
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
