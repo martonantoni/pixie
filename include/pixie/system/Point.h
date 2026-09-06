@@ -15,12 +15,17 @@ struct tPoint
 	void FromConfig_Size(const cConfig &Config);
 	void FromConfig_Pair(const cConfig &Config);
 	void toConfig_pair(cConfig& config) const;
-	tPoint &operator-=(const tPoint &Other) { x-=Other.x; y-=Other.y; return *this; }
-	tPoint &operator+=(const tPoint &Other) { x+=Other.x; y+=Other.y; return *this; }
+	tPoint& operator-=(const tPoint& other) { x-=other.x; y-=other.y; return *this; }
+	tPoint& operator+=(const tPoint& other) { x+=other.x; y+=other.y; return *this; }
+	tPoint& operator*=(const tPoint& other) { x *= other.x; y *= other.y; return *this; }
+	tPoint& operator/=(const tPoint& other) { x /= other.x; y /= other.y; return *this; }
+	tPoint& operator*=(T m) { x *= m; y *= m; return *this; }
+	tPoint& operator/=(T d) { x /= d; y /= d; return *this; }
 	tPoint operator+(const tPoint &Offset) const { return tPoint(x+Offset.x, y+Offset.y); }
 	tPoint operator-(const tPoint &Offset) const { return tPoint(x-Offset.x, y-Offset.y); }
 	tPoint operator-() const { return tPoint(-x, -y); }
-	tPoint operator/(const tPoint &Other) const { return tPoint(x/Other.x, y/Other.y); }
+    tPoint operator*(const tPoint& Other) const { return tPoint(x * Other.x, y * Other.y); }
+	tPoint operator/(const tPoint &Other) const { return tPoint(x / Other.x, y / Other.y); }
 	template<class M> tPoint operator*(M m) const { return tPoint(x*m, y*m); }
 	template<class D> tPoint operator/(D d) const { return tPoint(x/d, y/d); }
 	template<class U> tPoint &operator=(const tPoint<U> &Other) { x=Other.x;  y=Other.y; }
