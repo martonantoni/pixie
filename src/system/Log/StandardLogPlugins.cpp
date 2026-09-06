@@ -36,7 +36,7 @@ void StandardLogPlugins::cFile::Open()
 		AttachedLog->GetFlags()&cLog::Flags::TRUNCATE?CREATE_ALWAYS:OPEN_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
 	if(FileHandle==INVALID_HANDLE_VALUE)
 	{
-		ThrowLastError(fmt::sprintf("CreateFile(\"%s\")",AttachedLog->GetFileName()));
+		ThrowLastError(std::format("CreateFile(\"{}\")",AttachedLog->GetFileName()));
 	}
 	if(!(AttachedLog->GetFlags()&cLog::Flags::NO_AUTO_SEEK_END))
 	{
@@ -101,7 +101,7 @@ void StandardLogPlugins::cFile::Tell(__int64 *Position)
 // 		AttachedLog->GetFlags()&cLog::TRUNCATE?CREATE_ALWAYS:OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 // 	if(FileHandle==INVALID_HANDLE_VALUE)
 // 	{
-// 		ThrowLastError(fmt::sprintf("CreateFile(\"%s\")", AttachedLog->GetFileName()));
+// 		ThrowLastError(std::format("CreateFile(\"{}\")", AttachedLog->GetFileName()));
 // 	}
 // 	if(!(AttachedLog->GetFlags()&cLog::NO_AUTO_SEEK_END))
 // 	{

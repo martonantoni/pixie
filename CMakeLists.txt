@@ -21,7 +21,6 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /FC")
 
-find_package(fmt CONFIG REQUIRED)
 find_package(Lua REQUIRED)
 enable_testing()
 find_package(GTest CONFIG REQUIRED)
@@ -45,7 +44,6 @@ target_include_directories(Pixie
 
 target_link_libraries(Pixie PUBLIC
     Freetype::Freetype
-    fmt::fmt
     lua
     d3d11
     dxgi

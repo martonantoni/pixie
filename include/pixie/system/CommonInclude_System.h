@@ -49,9 +49,6 @@
 #include <expected>
 #include <print>
 
-#include "fmt/core.h"
-#include "fmt/printf.h"
-
 using namespace std::string_literals; // enables s-suffix for std::string literals
 using namespace std::literals; // enables sv for std::string_view literals and time literals
 
