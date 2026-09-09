@@ -27,6 +27,7 @@ public:
 	void SetFont(const std::string &FontName);
 	void SetAlignment(eHorizontalAlign Horizontal, eVerticalAlign Vertical);
 	void SetText(const std::string &Text);
+    const std::string& text() const { return mText; }
     void SetSizeToTextureSize();
     void SetResizable(bool Resizable = true);
 
