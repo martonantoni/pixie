@@ -85,16 +85,6 @@ void cLog::OnTimer()
 	WriteOutActiveChunk();
 }
 
-void cLog::Log(const char *FormatString,...)
-{
-	va_list Args;
-	va_start(Args,FormatString);
-	LogArgs(FormatString,Args);
-	va_end(Args);
-	if(mFlags & Flags::AUTO_FLUSH)
-		Flush();
-}
-
 void cLog::Flush()
 {
 	cMutexGuard Guard(Mutex,mFlags & Flags::USE_MUTEX);
@@ -128,15 +118,15 @@ void cLog::WriteOutActiveChunk()
 	ActiveChunk=new cChunk(DefaultChunkLength);
 }
 
-void cLog::LogArgs(const char *FormatString,va_list Args)
+void cLog::logText(const char *text, int length)
 {
 	cMutexGuard Guard(Mutex,mFlags & Flags::USE_MUTEX);
 
 	int WrittenLength,Offset;
 	for(;;)
-	{
+	{ 
 		Offset=ActiveChunk->GetOffset();
-		WrittenLength=ActiveChunk->LogArgs(FormatString,Args,mFlags);
+		WrittenLength=ActiveChunk->logText(text, length, mFlags);
 		if(WrittenLength!=-1)
 			break;
 		WriteOutActiveChunk();

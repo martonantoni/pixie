@@ -47,8 +47,11 @@ public:
 	void AddPlugin(cPlugin *Plugin);
 	void RemovePlugin(cPlugin *Plugin);
 
-	void Log(const char *FormatString,...);
-	void LogArgs(const char *FormatString,va_list Args);
+	template<typename... Args>
+	void Log(std::format_string<Args...> Format, Args&&... args);
+private:
+	void logText(const char* text, int length);
+public:
 	void LogBinary(const void *Data,int Length);
 	void Flush();
 
@@ -62,6 +65,13 @@ public:
 	// Neither it is how long the log file is, because it doesn't count the original size of the file
 	// It includes size that was not even sent to the plugins yet (in the active chunk)
 };
+
+template<typename... Args>
+void cLog::Log(std::format_string<Args...> Format, Args&&... args)
+{
+    auto text = std::format(Format, std::forward<Args>(args)...);
+    logText(text.c_str(), static_cast<int>(text.size()));
+}
 
 class cLog::cPlugin
 {

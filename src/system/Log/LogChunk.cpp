@@ -116,6 +116,43 @@ int cLog::cChunk::LogArgs(const char *FormatString,va_list Args,int Flags)
 	return Written+HeaderLength+BackPaddingLength;
 }
 
+int cLog::cChunk::logText(const char* Text, int Length, int Flags)
+{
+    if (!SharedData)
+        return -1;
+    int HeaderLength = (Flags & cLog::Flags::TIME_STAMP) ? 9 : 0;
+    int FullOffset = Offset + HeaderLength;
+    int BackPaddingLength = (Flags & cLog::Flags::NO_LINE_FEED) ? 0 : 2;
+    if (SharedData->Length - FullOffset - BackPaddingLength <= 0)
+        return -1;
+    if (Length > SharedData->Length - FullOffset - BackPaddingLength)
+        Length = SharedData->Length - FullOffset - BackPaddingLength;
+    memcpy(SharedData->Data + FullOffset, Text, Length);
+    if (Flags & cLog::Flags::TIME_STAMP)
+    {
+        time_t CurrentTime = time(0);
+        tm LocalTime;
+        localtime_s(&LocalTime, &CurrentTime);
+        char* TimeStampPos = SharedData->Data + Offset;
+        TimeStampPos[0] = '0' + LocalTime.tm_hour / 10;
+        TimeStampPos[1] = '0' + LocalTime.tm_hour % 10;
+        TimeStampPos[2] = ':';
+        TimeStampPos[3] = '0' + LocalTime.tm_min / 10;
+        TimeStampPos[4] = '0' + LocalTime.tm_min % 10;
+        TimeStampPos[5] = ':';
+        TimeStampPos[6] = '0' + LocalTime.tm_sec / 10;
+        TimeStampPos[7] = '0' + LocalTime.tm_sec % 10;
+        TimeStampPos[8] = ' ';
+    }
+    if (!(Flags & cLog::Flags::NO_LINE_FEED))
+    {
+        SharedData->Data[FullOffset + Length] = 0xd;
+        SharedData->Data[FullOffset + Length + 1] = 0xa;
+    }
+    Offset = FullOffset + Length + BackPaddingLength;
+    return Length + HeaderLength + BackPaddingLength;
+}
+
 int cLog::cChunk::LogBinary(const char *Data,int Length)
 {
 	if(!SharedData||SharedData->Length-Offset<Length)

@@ -32,6 +32,7 @@ public:
 //////////
 	void ResetOffset();
 	int LogArgs(const char *FormatString,va_list Args,int Flags); // returns written length, -1 on error
+    int logText(const char* Text, int Length, int Flags); // returns written length, -1 on error
 	int LogBinary(const char *Data,int Length);			// returns written length, -1 on error
 };
 
