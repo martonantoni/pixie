@@ -54,33 +54,33 @@ ID3DBlob* cShader::compile(std::string_view sourceCode, const std::string& entry
         std::string errorText = errors
             ? std::string(static_cast<const char*>(errors->GetBufferPointer()), errors->GetBufferSize())
             : "Unknown shader compilation error";
-        MainLog->Log("Pixel shader compilation error: {}", errorText);
+        MainLog->Log("Pixel shader compilation error: %s", errorText.c_str());
         shader = nullptr;
     }
     if (errors)
         errors->Release();
 
 #ifdef _DEBUG
-    if (shader)
-    {
-        ID3DBlob* disassembly = nullptr;
+    //if (shader)
+    //{
+    //    ID3DBlob* disassembly = nullptr;
 
-        if (SUCCEEDED(D3DDisassemble(
-            shader->GetBufferPointer(),
-            shader->GetBufferSize(),
-            0,
-            nullptr,
-            &disassembly)))
-        {
-            std::string text(
-                static_cast<const char*>(disassembly->GetBufferPointer()),
-                disassembly->GetBufferSize());
+    //    if (SUCCEEDED(D3DDisassemble(
+    //        shader->GetBufferPointer(),
+    //        shader->GetBufferSize(),
+    //        0,
+    //        nullptr,
+    //        &disassembly)))
+    //    {
+    //        std::string text(
+    //            static_cast<const char*>(disassembly->GetBufferPointer()),
+    //            disassembly->GetBufferSize());
 
-            MainLog->Log("Shader disassembly:\n{}", text);
+    //        MainLog->Log("Shader disassembly:\n%s", text.c_str());
 
-            disassembly->Release();
-        }
-    }
+    //        disassembly->Release();
+    //    }
+    //}
 #endif
 
 
