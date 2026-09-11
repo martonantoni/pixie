@@ -7,6 +7,12 @@ class cShaderManager final: public tSingleton<cShaderManager>
     std::unordered_map<std::string, std::shared_ptr<cVertexShader>> mVertexShaders;
     using cShaderSources = std::unordered_map<std::string, std::string>; // shader name -> source code
     cShaderSources mShaderSources;  // for include
+    std::filesystem::path mShaderFolder;
+#ifdef _DEBUG
+    cRegisteredID mReloadTimerID;
+    std::filesystem::file_time_type mLastShaderWriteTime;
+    bool checkIfReloadNeeded();
+#endif
 public:
     cShaderManager();
     ~cShaderManager();
