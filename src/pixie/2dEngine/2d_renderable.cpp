@@ -122,6 +122,10 @@ void c2DRenderable::setShader(std::shared_ptr<cPixelShader> Shader)
 void c2DRenderable::setShader(const std::string& shaderId)
 {
     auto shader = theShaderManager->pixelShader(shaderId);
+	if (!shader)
+	{
+		MainLog->Log("Warning: Shader '{}' not found.", shaderId);
+	}
 	setShader(std::move(shader));
 }
 
