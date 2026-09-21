@@ -13,6 +13,7 @@ class cShaderManager final: public tSingleton<cShaderManager>
     std::filesystem::file_time_type mLastShaderWriteTime;
     bool checkIfReloadNeeded();
 #endif
+    void loadIncludes();
 public:
     cShaderManager();
     ~cShaderManager();

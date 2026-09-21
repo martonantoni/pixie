@@ -22,6 +22,7 @@ void cShaderManager::init()
         { 
             if(checkIfReloadNeeded()) 
             {
+                loadIncludes(); // first pass: gather the include files
                 reloadShaders();
             }
         }, cTimerRequest(1000, true));
@@ -34,27 +35,9 @@ void cShaderManager::init()
         MainLog->Log("Shader folder not found: {}", shaderFolder.string());
         return;
     }
-    // first pass: gather the include files:
-    for (const auto& entry : std::filesystem::directory_iterator(shaderFolder))
-    {
-        if (entry.is_regular_file() && entry.path().extension() == ".hlsl")
-        {
-            std::string shaderName = entry.path().stem().string();
-            auto shaderTypeString = shaderName.substr(shaderName.find_last_of('_') + 1);
-            if (shaderTypeString != "inc")
-                continue; // not an include file
+    
+    loadIncludes(); // first pass: gather the include files
 
-            std::ifstream shaderFile(entry.path());
-            if (!shaderFile)
-            {
-                MainLog->Log("Failed to open shader file: {}", entry.path().string());
-                continue;
-            }
-            std::string shaderSource((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
-            shaderName = shaderName.substr(0, shaderName.find_last_of('_'));
-            mShaderSources[shaderName] = shaderSource;
-        }
-    }
     for (const auto& entry : std::filesystem::directory_iterator(shaderFolder))
     {
         if (entry.is_regular_file() && entry.path().extension() == ".hlsl")
@@ -99,6 +82,31 @@ void cShaderManager::init()
         }
     }
 }
+
+void cShaderManager::loadIncludes()
+{
+    for (const auto& entry : std::filesystem::directory_iterator(mShaderFolder))
+    {
+        if (entry.is_regular_file() && entry.path().extension() == ".hlsl")
+        {
+            std::string shaderName = entry.path().stem().string();
+            auto shaderTypeString = shaderName.substr(shaderName.find_last_of('_') + 1);
+            if (shaderTypeString != "inc")
+                continue; // not an include file
+
+            std::ifstream shaderFile(entry.path());
+            if (!shaderFile)
+            {
+                MainLog->Log("Failed to open shader file: {}", entry.path().string());
+                continue;
+            }
+            std::string shaderSource((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
+            shaderName = shaderName.substr(0, shaderName.find_last_of('_'));
+            mShaderSources[shaderName] = shaderSource;
+        }
+    }
+}
+
 
 void cShaderManager::reloadShaders()
 {
