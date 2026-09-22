@@ -307,6 +307,9 @@ void cSpriteRenderer::RenderSprites()
 
 void cSpriteRenderer::FlushBuffer(cSpriteVertexData*& batchVertices, int &NumberOfBatchedVertices, bool RelockBuffer)
 {
+    if (NumberOfBatchedVertices == 0)
+        return;
+
     mDeviceContext->Unmap(mVertexBuffer, 0);
     batchVertices = nullptr;
 
