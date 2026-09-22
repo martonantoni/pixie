@@ -4,7 +4,7 @@
 struct cSpriteRenderInfo
 {
 	cRect mRect;
-    cSpriteColor::cCornerColors mCornerColors;
+	cColor mColor;
 	const cTexture *mTexture=nullptr;
     cPixelShader* mShader = nullptr;
     float mShaderParameters[4] = { 0, 0, 0, 0 };

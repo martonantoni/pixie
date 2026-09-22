@@ -213,7 +213,7 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
             float width = static_cast<float>(RenderInfo.mRect.width());
             float height = static_cast<float>(RenderInfo.mRect.height());
 
-            batchVertices[NumberOfBatchedVertices].color = RenderInfo.mCornerColors[cSpriteColor::CornerPosition::TopLeft].GetARGBColor();
+            batchVertices[NumberOfBatchedVertices].color = RenderInfo.mColor.GetARGBColor();
             batchVertices[NumberOfBatchedVertices].x = TopLeft.x;
             batchVertices[NumberOfBatchedVertices].y = TopLeft.y;
             batchVertices[NumberOfBatchedVertices].z = Z;
@@ -226,7 +226,7 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
             std::copy(std::begin(RenderInfo.mShaderParameters), std::end(RenderInfo.mShaderParameters),
                 batchVertices[NumberOfBatchedVertices].mShaderParameters);
 
-            batchVertices[NumberOfBatchedVertices + 1].color = RenderInfo.mCornerColors[cSpriteColor::CornerPosition::TopRight].GetARGBColor();
+            batchVertices[NumberOfBatchedVertices + 1].color = RenderInfo.mColor.GetARGBColor();
             batchVertices[NumberOfBatchedVertices + 1].x = TopRight.x;
             batchVertices[NumberOfBatchedVertices + 1].y = TopRight.y;
             batchVertices[NumberOfBatchedVertices + 1].z = Z;
@@ -239,7 +239,7 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
             std::copy(std::begin(RenderInfo.mShaderParameters), std::end(RenderInfo.mShaderParameters),
                 batchVertices[NumberOfBatchedVertices + 1].mShaderParameters);
 
-            batchVertices[NumberOfBatchedVertices + 2].color = RenderInfo.mCornerColors[cSpriteColor::CornerPosition::BottomRight].GetARGBColor();
+            batchVertices[NumberOfBatchedVertices + 2].color = RenderInfo.mColor.GetARGBColor();
             batchVertices[NumberOfBatchedVertices + 2].x = BottomRight.x;
             batchVertices[NumberOfBatchedVertices + 2].y = BottomRight.y;
             batchVertices[NumberOfBatchedVertices + 2].z = Z;
@@ -252,7 +252,7 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
             std::copy(std::begin(RenderInfo.mShaderParameters), std::end(RenderInfo.mShaderParameters),
                 batchVertices[NumberOfBatchedVertices + 2].mShaderParameters);
 
-            batchVertices[NumberOfBatchedVertices + 3].color = RenderInfo.mCornerColors[cSpriteColor::CornerPosition::BottomLeft].GetARGBColor();
+            batchVertices[NumberOfBatchedVertices + 3].color = RenderInfo.mColor.GetARGBColor();
             batchVertices[NumberOfBatchedVertices + 3].x = BottomLeft.x;
             batchVertices[NumberOfBatchedVertices + 3].y = BottomLeft.y;
             batchVertices[NumberOfBatchedVertices + 3].z = Z;

@@ -78,15 +78,6 @@ void c2DRenderable::SetARGBColor(uint32_t Color)
 	PropertiesSet(Property_Color|Property_Alpha);
 }
 
-void c2DRenderable::SetARGBColor_ByPosition(unsigned int PositionFlags, uint32_t Color)
-{
-	if(!CheckIfChangableProperty(Property_Color|Property_Alpha))
-		return;
-	mIsColorSet=true;
-	mProperties.mColor.SetARGBColor_ByPosition(PositionFlags,Color);
-	PropertiesSet(Property_Color|Property_Alpha);
-}
-
 void c2DRenderable::SetAlpha(DWORD Alpha)
 {
 	if(!CheckIfChangableProperty(Property_Alpha))

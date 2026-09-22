@@ -17,7 +17,7 @@ protected:
 	{
 		int mZOrder = 100;
 		bool mVisible = false;
-		cSpriteColor mColor;
+		cColor mColor;
 		float mRotation = 0; // in degrees (because that's friendlier to work with)
 		cRect mValidRect;
 		eClippingMode mClippingMode = eClippingMode::None;
@@ -43,7 +43,6 @@ public:
 	float GetRotation() const { return mProperties.mRotation; }
 
 	const cColor& GetColor() const { return mProperties.mColor; }
-	const cSpriteColor& GetSpriteColor() const { return mProperties.mColor; }
 
 	auto GetAlpha() const { return mProperties.mColor.GetAlpha(); }
 
@@ -51,8 +50,8 @@ public:
 	void SetZOrder(int ZOrder);
 	void SetRGBColor(cColor Color);
 	void SetARGBColor(uint32_t Color);
-	void SetARGBColor_ByPosition(unsigned int PositionFlags, uint32_t Color);
 	void SetAlpha(DWORD Alpha); // 0 - 255, 0: solid, 255: transparent
+
     void setShader(std::shared_ptr<cPixelShader> Shader);
     void setShader(const std::string& shaderId);
     std::shared_ptr<cPixelShader> getShader() const { return mProperties.mShader; }
