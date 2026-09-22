@@ -1,22 +1,18 @@
 #pragma once
 
-#include <d3d11.h>
-#include <cstdint>
-#include <vector>
-
 struct cTextureFile;
 class cTextureManager;
 class cSpriteRenderer;
 struct cSpriteRenderInfo;
 
-struct cTextureInfo
+struct cTextureRect
 {
     float mTop, mLeft, mBottom, mRight;
     cRect mRect;
     bool mIsWholeSurface = false;
-    cTextureInfo(const cRect& Rect, cPoint SurfaceSize);
-    cTextureInfo(cPoint SurfaceSize);
-    cTextureInfo() = default;
+    cTextureRect(const cRect& Rect, cPoint SurfaceSize);
+    cTextureRect(cPoint SurfaceSize);
+    cTextureRect() = default;
 
     cFloatPoint topLeft() const { return cFloatPoint(mLeft, mTop); }
     cFloatPoint bottomRight() const { return cFloatPoint(mRight, mBottom); }
@@ -33,7 +29,7 @@ class cTexture: public cIntrusiveRefCount
     ID3D11Texture2D *mTexture = nullptr;
     ID3D11ShaderResourceView *mShaderResourceView = nullptr;
     int mSurfaceWidth,mSurfaceHeight;
-    cTextureInfo mTextureInfo;
+    cTextureRect mTextureInfo;
 
     bool mIsWritable = false;
     bool mWritableLockIsReadOnly = false;
@@ -42,13 +38,13 @@ class cTexture: public cIntrusiveRefCount
 protected:
     bool mNeedUpdateBeforeUse=false;
     ID3D11RenderTargetView *mSurface = nullptr; // render-target view for renderable textures
-    cTexture(const cTextureInfo &TextureInfo): mTextureInfo(TextureInfo) {}
+    cTexture(const cTextureRect &TextureInfo): mTextureInfo(TextureInfo) {}
     ~cTexture();
     void InitForRenderTarget(cPoint Size);
     void InitForWritable(cPoint Size);
 
 public:
-    cTexture(const cTexture &BaseTexture,const cTextureInfo &TextureInfo);
+    cTexture(const cTexture &BaseTexture,const cTextureRect &TextureInfo);
     cTexture(ID3D11Texture2D *BaseTexture,int TextureWidth,int TextureHeight);
 
 // functions for creating new Texture objects:
@@ -61,7 +57,7 @@ public:
     tIntrusivePtr<cTexture> CreateFlipped(unsigned int FlipFlags) const;
 
 // Property querying:
-    const cTextureInfo &GetTextureInfo() const { return mTextureInfo; }
+    const cTextureRect &GetTextureInfo() const { return mTextureInfo; }
     int GetSurfaceWidth() const { return mSurfaceWidth; }
     int GetSurfaceHeight() const { return mSurfaceHeight; }
     int GetTextureWidth() const { return mTextureInfo.mRect.width(); }

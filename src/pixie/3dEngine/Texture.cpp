@@ -14,7 +14,7 @@ namespace
     }
 }
 
-cTextureInfo::cTextureInfo(const cRect &Rect, cPoint SurfaceSize)
+cTextureRect::cTextureRect(const cRect &Rect, cPoint SurfaceSize)
     : mTop(Rect.top()/(float)SurfaceSize.y)
     , mLeft(Rect.left()/(float)SurfaceSize.x)
     , mBottom((1+Rect.bottom())/(float)SurfaceSize.y)
@@ -24,12 +24,12 @@ cTextureInfo::cTextureInfo(const cRect &Rect, cPoint SurfaceSize)
     mIsWholeSurface=mTop==0.0f&&mLeft==0.0f&&mBottom==1.0f&&mRight==1.0f;
 }
 
-cTextureInfo::cTextureInfo(cPoint SurfaceSize)
-    : cTextureInfo(cRect({ 0,0 }, SurfaceSize), SurfaceSize)
+cTextureRect::cTextureRect(cPoint SurfaceSize)
+    : cTextureRect(cRect({ 0,0 }, SurfaceSize), SurfaceSize)
 {
 }
 
-cTexture::cTexture(const cTexture &BaseTexture,const cTextureInfo &TextureInfo)
+cTexture::cTexture(const cTexture &BaseTexture,const cTextureRect &TextureInfo)
     : mTexture(BaseTexture.mTexture)
     , mShaderResourceView(BaseTexture.mShaderResourceView)
     , mSurface(BaseTexture.mSurface)
@@ -58,13 +58,13 @@ cTexture::cTexture(ID3D11Texture2D *BaseTexture,int TextureWidth,int TextureHeig
 
 tIntrusivePtr<cTexture> cTexture::CreateSubTexture(const cRect &SubRect) const
 {
-    cTextureInfo SubTextureInfo(SubRect, { mSurfaceWidth, mSurfaceHeight });
+    cTextureRect SubTextureInfo(SubRect, { mSurfaceWidth, mSurfaceHeight });
     return tIntrusivePtr<cTexture>(new cTexture(*this, SubTextureInfo));
 }
 
 tIntrusivePtr<cTexture> cTexture::CreateFlipped(unsigned int FlipFlags) const
 {
-    cTextureInfo FlippedInfo=mTextureInfo;
+    cTextureRect FlippedInfo=mTextureInfo;
     if(FlipFlags&Flip_Horizontal)
         std::swap(FlippedInfo.mLeft, FlippedInfo.mRight);
     if(FlipFlags&Flip_Vertical)
@@ -88,7 +88,7 @@ cTexture::~cTexture()
 
 void cTexture::InitForRenderTarget(cPoint Size)
 {
-    mTextureInfo=cTextureInfo(Size);
+    mTextureInfo=cTextureRect(Size);
     mSurfaceWidth=Size.x;
     mSurfaceHeight=Size.y;
 
@@ -110,7 +110,7 @@ void cTexture::InitForRenderTarget(cPoint Size)
 
 void cTexture::InitForWritable(cPoint Size)
 {
-    mTextureInfo=cTextureInfo(Size);
+    mTextureInfo=cTextureRect(Size);
     mSurfaceWidth=Size.x;
     mSurfaceHeight=Size.y;
     mIsWritable = true;
@@ -164,14 +164,14 @@ void cTexture::UnlockSurface()
 
 tIntrusivePtr<cTexture> cTexture::CreateRenderTarget(cPoint Size)
 {
-    tIntrusivePtr<cTexture> NewTexture(new cTexture(cTextureInfo(Size)));
+    tIntrusivePtr<cTexture> NewTexture(new cTexture(cTextureRect(Size)));
     NewTexture->InitForRenderTarget(Size);
     return NewTexture;
 }
 
 tIntrusivePtr<cTexture> cTexture::CreateWriteable(cPoint Size)
 {
-    tIntrusivePtr<cTexture> NewTexture(new cTexture(cTextureInfo(Size)));
+    tIntrusivePtr<cTexture> NewTexture(new cTexture(cTextureRect(Size)));
     NewTexture->InitForWritable(Size);
     return NewTexture;
 }

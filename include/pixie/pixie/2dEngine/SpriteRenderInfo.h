@@ -6,7 +6,7 @@ struct cSpriteRenderInfo
 	cRect mRect;
 	cColor mColor;
     ID3D11ShaderResourceView* mTextures[4] = { nullptr, nullptr, nullptr, nullptr };
-	cTextureInfo mTextureRects[4];
+	cTextureRect mTextureRects[4];
 	cPixelShader* mShader = nullptr;
     float mShaderParameters[4] = { 0, 0, 0, 0 };
 	enum eBlendingMode
@@ -20,7 +20,7 @@ struct cSpriteRenderInfo
 		mRect(Rect), 
 		mRotation(Rotation), 
 		mTextures{Texture ? Texture->shaderResourceView() : nullptr, nullptr, nullptr, nullptr}, 
-        mTextureRects{ Texture ? Texture->GetTextureInfo() : cTextureInfo(), cTextureInfo(), cTextureInfo(), cTextureInfo() },
+        mTextureRects{ Texture ? Texture->GetTextureInfo() : cTextureRect(), cTextureRect(), cTextureRect(), cTextureRect() },
 		mBlendingMode(BlendingMode) {}
 	cSpriteRenderInfo()=default;
 	ID3D11ShaderResourceView* shaderResourceView(int index) const

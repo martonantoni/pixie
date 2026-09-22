@@ -150,7 +150,7 @@ bool cTextureManager2::AddEntire(const std::string& Name, cImageFile* ImageFile)
 		MainLog->Log("Warning! Duplicated texture (\"{}\") reference.", Name);
 		return false;
 	}
-	TextureData = std::make_unique<cTextureData>(cTextureInfo(ImageFile->mSize));
+	TextureData = std::make_unique<cTextureData>(cTextureRect(ImageFile->mSize));
 	TextureData->mImageFile = ImageFile;
 	TextureData->mTexture = ImageFile->mTexture;
 	return true;
@@ -227,7 +227,7 @@ void cTextureManager2::ProcessInfoFile(const std::string& Path, const cPath& Tex
 				}
 				int TileX = atoi(LineTokens[2].c_str());
 				int TileY = atoi(LineTokens[3].c_str());
-				TextureData = std::make_unique<cTextureData>(cTextureInfo(
+				TextureData = std::make_unique<cTextureData>(cTextureRect(
 					cRect(TileX * CurrentTileSet->mTileSize.x, TileY * CurrentTileSet->mTileSize.y,
 						CurrentTileSet->mTileSize.x, CurrentTileSet->mTileSize.y),
 					CurrentTileSet->mImageFile->mSize));
@@ -259,7 +259,7 @@ void cTextureManager2::ProcessInfoFile(const std::string& Path, const cPath& Tex
 					MainLog->Log("Warning! Duplicated texture (\"{}\") reference. Found in these files: {} and {}", LineTokens[1], TextureData->mImageFile->mPath, Path);
 					continue;
 				}
-				TextureData = std::make_unique<cTextureData>(cTextureInfo(cRect(PixelX, PixelY, PixelW, PixelH), ImageFile->mSize));
+				TextureData = std::make_unique<cTextureData>(cTextureRect(cRect(PixelX, PixelY, PixelW, PixelH), ImageFile->mSize));
 				ASSERT(LineTokens[1] != "archer");
 				TextureData->mTexture = make_intrusive_ptr<cTexture>(*ImageFile->mTexture, TextureData->mTextureInfo);
 			}
@@ -368,7 +368,7 @@ tIntrusivePtr<cTexture> cTextureManager2::GetTileTexture(const std::string& Tile
 	{
 		cTileSetData* TileSetData = i->second;
 		return make_intrusive_ptr<cTexture>(*TileSetData->mImageFile->mTexture,
-			cTextureInfo(cRect(TileX * TileSetData->mTileSize.x, TileY * TileSetData->mTileSize.y,
+			cTextureRect(cRect(TileX * TileSetData->mTileSize.x, TileY * TileSetData->mTileSize.y,
 				TileSetData->mTileSize.x, TileSetData->mTileSize.y), TileSetData->mImageFile->mSize));
 	}
 	return nullptr;

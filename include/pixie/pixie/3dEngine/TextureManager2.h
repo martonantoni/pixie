@@ -20,8 +20,8 @@ class cTextureManager2
 	{
 		cImageFile *mImageFile=nullptr;
 		tIntrusivePtr<cTexture> mTexture;
-		cTextureInfo mTextureInfo;
-		cTextureData(const cTextureInfo &TextureInfo): mTextureInfo(TextureInfo) {}
+		cTextureRect mTextureInfo;
+		cTextureData(const cTextureRect &TextureInfo): mTextureInfo(TextureInfo) {}
 	};
 	typedef std::unordered_map<std::string, cTileSetData *> cTileSetMap;
 	cTileSetMap mTileSets;
