@@ -28,7 +28,7 @@ struct tPoint
 	tPoint operator/(const tPoint &Other) const { return tPoint(x / Other.x, y / Other.y); }
 	template<class M> tPoint operator*(M m) const { return tPoint(x*m, y*m); }
 	template<class D> tPoint operator/(D d) const { return tPoint(x/d, y/d); }
-	template<class U> tPoint &operator=(const tPoint<U> &Other) { x=Other.x;  y=Other.y; }
+//	template<class U> tPoint& operator=(const tPoint<U>& Other) { x = Other.x;  y = Other.y; return *this; }
 	bool operator==(const tPoint &Other) const { return x==Other.x&&y==Other.y; }
 	bool operator!=(const tPoint &Other) const { return x!=Other.x||y!=Other.y; }
 	float DistanceFrom(tPoint Other) const

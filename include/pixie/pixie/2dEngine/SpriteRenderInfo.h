@@ -5,9 +5,9 @@ struct cSpriteRenderInfo
 {
 	cRect mRect;
 	cColor mColor;
-	const cTexture *mTextures[4] = { nullptr, nullptr, nullptr, nullptr };
-    int mNumberOfTextures = 1;
-    cPixelShader* mShader = nullptr;
+    ID3D11ShaderResourceView* mTextures[4] = { nullptr, nullptr, nullptr, nullptr };
+	cTextureInfo mTextureRects[4];
+	cPixelShader* mShader = nullptr;
     float mShaderParameters[4] = { 0, 0, 0, 0 };
 	enum eBlendingMode
 	{
@@ -19,14 +19,14 @@ struct cSpriteRenderInfo
 	cSpriteRenderInfo(const cRect &Rect, float Rotation, const cTexture *Texture, eBlendingMode BlendingMode): 
 		mRect(Rect), 
 		mRotation(Rotation), 
-		mTextures{Texture, nullptr, nullptr, nullptr}, 
-		mNumberOfTextures(1), 
+		mTextures{Texture ? Texture->shaderResourceView() : nullptr, nullptr, nullptr, nullptr}, 
+        mTextureRects{ Texture ? Texture->GetTextureInfo() : cTextureInfo(), cTextureInfo(), cTextureInfo(), cTextureInfo() },
 		mBlendingMode(BlendingMode) {}
 	cSpriteRenderInfo()=default;
-    decltype(mTextures[0]->mShaderResourceView) shaderResourceView(int index) const
+	ID3D11ShaderResourceView* shaderResourceView(int index) const
     {
-        if (index < 0 || index >= mNumberOfTextures)
-            return nullptr;
-        return mTextures[index] ? mTextures[index]->mShaderResourceView : nullptr;
+        if (index < 0 || index >= 4)
+			return nullptr;
+        return mTextures[index];
     }
 };

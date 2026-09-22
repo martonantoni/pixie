@@ -42,8 +42,8 @@ cSpriteRenderInfo cSprite::GetRenderInfo() const
 	if(mProperties.mClippingMode == eClippingMode::None)
 	{
         renderInfo.mRect = GetRectForRendering();
-        renderInfo.mTextures[0] = mTexture.get();
-        renderInfo.mNumberOfTextures = 1;
+        renderInfo.mTextures[0] = mTexture.get()->shaderResourceView();
+        renderInfo.mTextureRects[0] = mTexture->GetTextureInfo();
         return renderInfo;
 	}
 // clipping is enabled:
@@ -66,6 +66,7 @@ cSpriteRenderInfo cSprite::GetRenderInfo() const
 	}
 	if (validRect.isPointInside(OriginalRect.topLeft()) && validRect.isPointInside(OriginalRect.bottomRight()))
 		return { GetRectForRendering(), GetRotation(), mTexture.get(), mBlendingMode };
+
 	int Top = std::max(validRect.top(), OriginalRect.top());
 	int Left = std::max(validRect.left(), OriginalRect.left());
 	int Bottom = std::min(validRect.bottom(), OriginalRect.bottom());
@@ -83,9 +84,17 @@ cSpriteRenderInfo cSprite::GetRenderInfo() const
 	mClippedTexture = mTexture->CreateSubTexture(cRect{ ClippedTextureLeft, ClippedTextureTop, ClippedTextureRight - ClippedTextureLeft + 1, ClippedTextureBottom - ClippedTextureTop + 1 });
 
     renderInfo.mRect = RenderedRect;
-    renderInfo.mTextures[0] = mClippedTexture.get();
-    renderInfo.mNumberOfTextures = 1;
+    renderInfo.mTextures[0] = mClippedTexture.get()->shaderResourceView();
+    renderInfo.mTextureRects[0] = mClippedTexture->GetTextureInfo();
     return renderInfo;
+}
+
+void cSprite::updateTextures()
+{
+    if (mTexture && mTexture->DoesNeedUpdateBeforeUse())
+    {
+        mTexture->Update();
+    }
 }
 
 bool cSprite::SetStringProperty(unsigned int PropertyFlags, const std::string &Value)

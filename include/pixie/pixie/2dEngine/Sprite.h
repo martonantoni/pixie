@@ -23,6 +23,7 @@ public:
 	virtual bool SetStringProperty(unsigned int PropertyFlags, const std::string &Value) override;
 	virtual bool GetProperty(unsigned int PropertyFlags, OUT cPropertyValues &Value) const override;
     virtual std::unique_ptr<cSpriteBase> Clone() const override;
+	virtual void updateTextures() override;
 };
 
 USE_DROP_INSTEAD_DELETE_PARENT(cSprite, cSpriteBase)

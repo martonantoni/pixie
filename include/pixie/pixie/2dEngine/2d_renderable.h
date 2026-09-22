@@ -78,6 +78,7 @@ public:
 	bool IsDestroyable() const;
 
 	virtual cSpriteRenderInfo GetRenderInfo() const { return cSpriteRenderInfo(); }
+	virtual void updateTextures() {}
 };
 
 USE_DROP_INSTEAD_DELETE(c2DRenderable)

@@ -16,6 +16,7 @@ struct cTextureInfo
     bool mIsWholeSurface = false;
     cTextureInfo(const cRect& Rect, cPoint SurfaceSize);
     cTextureInfo(cPoint SurfaceSize);
+    cTextureInfo() = default;
 
     cFloatPoint topLeft() const { return cFloatPoint(mLeft, mTop); }
     cFloatPoint bottomRight() const { return cFloatPoint(mRight, mBottom); }
@@ -83,4 +84,7 @@ public:
     enum class IsReadOnly { yes, no };
     cLockInfo LockSurface(IsReadOnly isReadOnly);
     void UnlockSurface();
+
+// for the renderer engine:
+    auto shaderResourceView() const { return mShaderResourceView; }
 };

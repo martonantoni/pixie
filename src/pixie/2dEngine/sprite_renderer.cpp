@@ -193,105 +193,78 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
 
         updateRenderState(renderState, RenderInfo);
 
-            //if (RenderInfo.mBlendingMode != renderState.LastBlendingMode)
-            //{
-            //    ++renderState.StateChangeCount;
-            //    flushBuffer(batchVertices, NumberOfBatchedVertices, true);
-            //    renderState.LastBlendingMode = RenderInfo.mBlendingMode;
-            //    UpdateBlending(renderState.LastBlendingMode);
-            //}
+        ++renderState.SpriteCount;
+        cFloatPoint TopLeft(RenderInfo.mRect.topLeft());
+        cFloatPoint TopRight(RenderInfo.mRect.topRight());
+        cFloatPoint BottomLeft(RenderInfo.mRect.bottomLeft());
+        cFloatPoint BottomRight(RenderInfo.mRect.bottomRight());
 
-            //ID3D11PixelShader* pixelShader = RenderInfo.mShader
-            //    ? RenderInfo.mShader->shader()
-            //    : mDefaultPixelShader->shader();
-            //if (pixelShader != renderState.PixelShader)
-            //{
-            //    ++renderState.StateChangeCount;
-            //    flushBuffer(batchVertices, NumberOfBatchedVertices, true);
-            //    renderState.PixelShader = pixelShader;
-            //    mDeviceContext->PSSetShader(renderState.PixelShader, nullptr, 0);
-            //}
+        // D3D11 pixel centers differ from D3D9. Keep the old inclusive cRect
+        // semantics, but remove the D3D9 -0.5 half-pixel correction.
+        TopRight += cFloatPoint(1.0f, 0.0f);
+        BottomLeft += cFloatPoint(0.0f, 1.0f);
+        BottomRight += cFloatPoint(1.0f, 1.0f);
 
-            //if (RenderInfo.mTexture->mShaderResourceView != renderState.Texture)
-            //{
-            //    ++renderState.TextureChangeCount;
-            //    flushBuffer(batchVertices, NumberOfBatchedVertices, true);
-            //    renderState.Texture = RenderInfo.mTexture->mShaderResourceView;
-            //    mDeviceContext->PSSetShaderResources(0, 1, &renderState.Texture);
-            //}
+        if (RenderInfo.mRotation)
+        {
+            cFloatPoint Center(RenderInfo.mRect.center());
+            float Rad = RenderInfo.mRotation * 3.14159265358979323846f / 180.0f;
+            float s = sin(Rad);
+            float c = cos(Rad);
+            Rotate(TopLeft, Center, s, c);
+            Rotate(TopRight, Center, s, c);
+            Rotate(BottomLeft, Center, s, c);
+            Rotate(BottomRight, Center, s, c);
+        }
 
-            ++renderState.SpriteCount;
-            cFloatPoint TopLeft(RenderInfo.mRect.topLeft());
-            cFloatPoint TopRight(RenderInfo.mRect.topRight());
-            cFloatPoint BottomLeft(RenderInfo.mRect.bottomLeft());
-            cFloatPoint BottomRight(RenderInfo.mRect.bottomRight());
+        float width = static_cast<float>(RenderInfo.mRect.width());
+        float height = static_cast<float>(RenderInfo.mRect.height());
 
-            // D3D11 pixel centers differ from D3D9. Keep the old inclusive cRect
-            // semantics, but remove the D3D9 -0.5 half-pixel correction.
-            TopRight += cFloatPoint(1.0f, 0.0f);
-            BottomLeft += cFloatPoint(0.0f, 1.0f);
-            BottomRight += cFloatPoint(1.0f, 1.0f);
+        batchVertices[NumberOfBatchedVertices].color = RenderInfo.mColor.GetARGBColor();
+        batchVertices[NumberOfBatchedVertices].x = TopLeft.x;
+        batchVertices[NumberOfBatchedVertices].y = TopLeft.y;
+        batchVertices[NumberOfBatchedVertices].textureCoord = RenderInfo.mTextureRects[0].topLeft();
+        batchVertices[NumberOfBatchedVertices].edgeDistances[0] = 0.0f; // Top edge distance
+        batchVertices[NumberOfBatchedVertices].edgeDistances[1] = 0.0f; // Right edge distance
+        batchVertices[NumberOfBatchedVertices].edgeDistances[2] = width; // Bottom edge distance
+        batchVertices[NumberOfBatchedVertices].edgeDistances[3] = height; // Left edge distance 
+        std::copy(std::begin(RenderInfo.mShaderParameters), std::end(RenderInfo.mShaderParameters),
+            batchVertices[NumberOfBatchedVertices].mShaderParameters);
 
-            if (RenderInfo.mRotation)
-            {
-                cFloatPoint Center(RenderInfo.mRect.center());
-                float Rad = RenderInfo.mRotation * 3.14159265358979323846f / 180.0f;
-                float s = sin(Rad);
-                float c = cos(Rad);
-                Rotate(TopLeft, Center, s, c);
-                Rotate(TopRight, Center, s, c);
-                Rotate(BottomLeft, Center, s, c);
-                Rotate(BottomRight, Center, s, c);
-            }
+        batchVertices[NumberOfBatchedVertices + 1].color = RenderInfo.mColor.GetARGBColor();
+        batchVertices[NumberOfBatchedVertices + 1].x = TopRight.x;
+        batchVertices[NumberOfBatchedVertices + 1].y = TopRight.y;
+        batchVertices[NumberOfBatchedVertices + 1].textureCoord = RenderInfo.mTextureRects[0].topRight();
+        batchVertices[NumberOfBatchedVertices + 1].edgeDistances[0] = width; // Top edge distance
+        batchVertices[NumberOfBatchedVertices + 1].edgeDistances[1] = 0.0f; // Right edge distance
+        batchVertices[NumberOfBatchedVertices + 1].edgeDistances[2] = 0.0f; // Bottom edge distance
+        batchVertices[NumberOfBatchedVertices + 1].edgeDistances[3] = height; // Left edge distance
+        std::copy(std::begin(RenderInfo.mShaderParameters), std::end(RenderInfo.mShaderParameters),
+            batchVertices[NumberOfBatchedVertices + 1].mShaderParameters);
 
-            float width = static_cast<float>(RenderInfo.mRect.width());
-            float height = static_cast<float>(RenderInfo.mRect.height());
+        batchVertices[NumberOfBatchedVertices + 2].color = RenderInfo.mColor.GetARGBColor();
+        batchVertices[NumberOfBatchedVertices + 2].x = BottomRight.x;
+        batchVertices[NumberOfBatchedVertices + 2].y = BottomRight.y;
+        batchVertices[NumberOfBatchedVertices + 2].textureCoord = RenderInfo.mTextureRects[0].bottomRight();
+        batchVertices[NumberOfBatchedVertices + 2].edgeDistances[0] = width; // Top edge distance
+        batchVertices[NumberOfBatchedVertices + 2].edgeDistances[1] = height; // Right edge distance
+        batchVertices[NumberOfBatchedVertices + 2].edgeDistances[2] = 0.0f; // Bottom edge distance
+        batchVertices[NumberOfBatchedVertices + 2].edgeDistances[3] = 0.0f; // Left edge distance
+        std::copy(std::begin(RenderInfo.mShaderParameters), std::end(RenderInfo.mShaderParameters),
+            batchVertices[NumberOfBatchedVertices + 2].mShaderParameters);
 
-            batchVertices[NumberOfBatchedVertices].color = RenderInfo.mColor.GetARGBColor();
-            batchVertices[NumberOfBatchedVertices].x = TopLeft.x;
-            batchVertices[NumberOfBatchedVertices].y = TopLeft.y;
-            batchVertices[NumberOfBatchedVertices].textureCoord = RenderInfo.mTextures[0]->GetTextureInfo().topLeft();
-            batchVertices[NumberOfBatchedVertices].edgeDistances[0] = 0.0f; // Top edge distance
-            batchVertices[NumberOfBatchedVertices].edgeDistances[1] = 0.0f; // Right edge distance
-            batchVertices[NumberOfBatchedVertices].edgeDistances[2] = width; // Bottom edge distance
-            batchVertices[NumberOfBatchedVertices].edgeDistances[3] = height; // Left edge distance 
-            std::copy(std::begin(RenderInfo.mShaderParameters), std::end(RenderInfo.mShaderParameters),
-                batchVertices[NumberOfBatchedVertices].mShaderParameters);
+        batchVertices[NumberOfBatchedVertices + 3].color = RenderInfo.mColor.GetARGBColor();
+        batchVertices[NumberOfBatchedVertices + 3].x = BottomLeft.x;
+        batchVertices[NumberOfBatchedVertices + 3].y = BottomLeft.y;
+        batchVertices[NumberOfBatchedVertices + 3].textureCoord = RenderInfo.mTextureRects[0].bottomLeft();
+        batchVertices[NumberOfBatchedVertices + 3].edgeDistances[0] = 0.0f; // Top edge distance
+        batchVertices[NumberOfBatchedVertices + 3].edgeDistances[1] = height; // Right edge distance
+        batchVertices[NumberOfBatchedVertices + 3].edgeDistances[2] = width; // Bottom edge distance
+        batchVertices[NumberOfBatchedVertices + 3].edgeDistances[3] = 0.0f; // Left edge distance
+        std::copy(std::begin(RenderInfo.mShaderParameters), std::end(RenderInfo.mShaderParameters),
+            batchVertices[NumberOfBatchedVertices + 3].mShaderParameters);
 
-            batchVertices[NumberOfBatchedVertices + 1].color = RenderInfo.mColor.GetARGBColor();
-            batchVertices[NumberOfBatchedVertices + 1].x = TopRight.x;
-            batchVertices[NumberOfBatchedVertices + 1].y = TopRight.y;
-            batchVertices[NumberOfBatchedVertices + 1].textureCoord = RenderInfo.mTextures[0]->GetTextureInfo().topRight();
-            batchVertices[NumberOfBatchedVertices + 1].edgeDistances[0] = width; // Top edge distance
-            batchVertices[NumberOfBatchedVertices + 1].edgeDistances[1] = 0.0f; // Right edge distance
-            batchVertices[NumberOfBatchedVertices + 1].edgeDistances[2] = 0.0f; // Bottom edge distance
-            batchVertices[NumberOfBatchedVertices + 1].edgeDistances[3] = height; // Left edge distance
-            std::copy(std::begin(RenderInfo.mShaderParameters), std::end(RenderInfo.mShaderParameters),
-                batchVertices[NumberOfBatchedVertices + 1].mShaderParameters);
-
-            batchVertices[NumberOfBatchedVertices + 2].color = RenderInfo.mColor.GetARGBColor();
-            batchVertices[NumberOfBatchedVertices + 2].x = BottomRight.x;
-            batchVertices[NumberOfBatchedVertices + 2].y = BottomRight.y;
-            batchVertices[NumberOfBatchedVertices + 2].textureCoord = RenderInfo.mTextures[0]->GetTextureInfo().bottomRight();
-            batchVertices[NumberOfBatchedVertices + 2].edgeDistances[0] = width; // Top edge distance
-            batchVertices[NumberOfBatchedVertices + 2].edgeDistances[1] = height; // Right edge distance
-            batchVertices[NumberOfBatchedVertices + 2].edgeDistances[2] = 0.0f; // Bottom edge distance
-            batchVertices[NumberOfBatchedVertices + 2].edgeDistances[3] = 0.0f; // Left edge distance
-            std::copy(std::begin(RenderInfo.mShaderParameters), std::end(RenderInfo.mShaderParameters),
-                batchVertices[NumberOfBatchedVertices + 2].mShaderParameters);
-
-            batchVertices[NumberOfBatchedVertices + 3].color = RenderInfo.mColor.GetARGBColor();
-            batchVertices[NumberOfBatchedVertices + 3].x = BottomLeft.x;
-            batchVertices[NumberOfBatchedVertices + 3].y = BottomLeft.y;
-            batchVertices[NumberOfBatchedVertices + 3].textureCoord = RenderInfo.mTextures[0]->GetTextureInfo().bottomLeft();
-            batchVertices[NumberOfBatchedVertices + 3].edgeDistances[0] = 0.0f; // Top edge distance
-            batchVertices[NumberOfBatchedVertices + 3].edgeDistances[1] = height; // Right edge distance
-            batchVertices[NumberOfBatchedVertices + 3].edgeDistances[2] = width; // Bottom edge distance
-            batchVertices[NumberOfBatchedVertices + 3].edgeDistances[3] = 0.0f; // Left edge distance
-            std::copy(std::begin(RenderInfo.mShaderParameters), std::end(RenderInfo.mShaderParameters),
-                batchVertices[NumberOfBatchedVertices + 3].mShaderParameters);
-
-            NumberOfBatchedVertices += 4;
+        NumberOfBatchedVertices += 4;
 
         if (NumberOfBatchedVertices > (mMaxSpritesPerFlush - 1) * 4)
             flushBuffer(batchVertices, NumberOfBatchedVertices, true);
@@ -356,9 +329,10 @@ void cSpriteRenderer::updateUsedTextures(cPixieWindow& window)
 {
     for (auto& sprite : window.mSprites)
     {
-        cSpriteRenderInfo renderInfo = sprite->GetRenderInfo();
-        if (renderInfo.mTextures[0] && renderInfo.mTextures[0]->DoesNeedUpdateBeforeUse())
-            const_cast<cTexture*>(renderInfo.mTextures[0])->Update();
+        sprite->updateTextures();
+        //cSpriteRenderInfo renderInfo = sprite->GetRenderInfo();
+        //if (renderInfo.mTextures[0] && renderInfo.mTextures[0]->DoesNeedUpdateBeforeUse())
+        //    const_cast<cTexture*>(renderInfo.mTextures[0])->Update();
     }
 
     for (auto& subWindow : window.mSubWindows)
