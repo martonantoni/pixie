@@ -123,12 +123,44 @@ void cSpriteRenderer::Rotate(cFloatPoint &Point, cFloatPoint Center, float s, fl
     Point += Center;
 }
 
+void cSpriteRenderer::updateRenderState(cRenderState& renderState, const cSpriteRenderInfo& renderInfo)
+{
+    if(renderInfo.mBlendingMode != renderState.LastBlendingMode)
+    {
+        ++renderState.StateChangeCount;
+        flushBuffer(renderState.batchVertices, renderState.NumberOfBatchedVertices, true);
+        renderState.LastBlendingMode = renderInfo.mBlendingMode;
+        UpdateBlending(renderState.LastBlendingMode);
+    }
+    ID3D11PixelShader* pixelShader = renderInfo.mShader
+        ? renderInfo.mShader->shader()
+        : mDefaultPixelShader->shader();
+    if(pixelShader != renderState.PixelShader)
+    {
+        ++renderState.StateChangeCount;
+        flushBuffer(renderState.batchVertices, renderState.NumberOfBatchedVertices, true);
+        renderState.PixelShader = pixelShader;
+        mDeviceContext->PSSetShader(renderState.PixelShader, nullptr, 0);
+    }
+    for (int i = 0; i < 4; ++i)
+    {        
+        if (renderInfo.shaderResourceView(i) != renderState.Textures[i])
+        {
+            ++renderState.TextureChangeCount;
+            flushBuffer(renderState.batchVertices, renderState.NumberOfBatchedVertices, true);
+            renderState.Textures[i] = renderInfo.shaderResourceView(i);
+            mDeviceContext->PSSetShaderResources(i, 1, &renderState.Textures[i]);
+        }
+    }
+}
+
+
 void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderState)
 {
     const auto [useClipping, clippingRect] = window.getSpriteClipping();
     if (useClipping != mUseClipping || (useClipping && clippingRect != mClippingRect))
     {
-        FlushBuffer(renderState.batchVertices, renderState.NumberOfBatchedVertices, true);
+        flushBuffer(renderState.batchVertices, renderState.NumberOfBatchedVertices, true);
         mUseClipping = useClipping;
         mClippingRect = clippingRect;
 
@@ -153,37 +185,40 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
     for (auto& sprite : window.mSprites)
     {
         const cSpriteRenderInfo RenderInfo = sprite->GetRenderInfo();
+        if (RenderInfo.mTextures[0] == nullptr)
+            continue;
         auto& batchVertices = renderState.batchVertices;
         auto& NumberOfBatchedVertices = renderState.NumberOfBatchedVertices;
 
-        if (RenderInfo.mTexture)
-        {
-            if (RenderInfo.mBlendingMode != renderState.LastBlendingMode)
-            {
-                ++renderState.StateChangeCount;
-                FlushBuffer(batchVertices, NumberOfBatchedVertices, true);
-                renderState.LastBlendingMode = RenderInfo.mBlendingMode;
-                UpdateBlending(renderState.LastBlendingMode);
-            }
 
-            ID3D11PixelShader* pixelShader = RenderInfo.mShader
-                ? RenderInfo.mShader->shader()
-                : mDefaultPixelShader->shader();
-            if (pixelShader != renderState.PixelShader)
-            {
-                ++renderState.StateChangeCount;
-                FlushBuffer(batchVertices, NumberOfBatchedVertices, true);
-                renderState.PixelShader = pixelShader;
-                mDeviceContext->PSSetShader(renderState.PixelShader, nullptr, 0);
-            }
+        updateRenderState(renderState, RenderInfo);
 
-            if (RenderInfo.mTexture->mShaderResourceView != renderState.Texture)
-            {
-                ++renderState.TextureChangeCount;
-                FlushBuffer(batchVertices, NumberOfBatchedVertices, true);
-                renderState.Texture = RenderInfo.mTexture->mShaderResourceView;
-                mDeviceContext->PSSetShaderResources(0, 1, &renderState.Texture);
-            }
+            //if (RenderInfo.mBlendingMode != renderState.LastBlendingMode)
+            //{
+            //    ++renderState.StateChangeCount;
+            //    flushBuffer(batchVertices, NumberOfBatchedVertices, true);
+            //    renderState.LastBlendingMode = RenderInfo.mBlendingMode;
+            //    UpdateBlending(renderState.LastBlendingMode);
+            //}
+
+            //ID3D11PixelShader* pixelShader = RenderInfo.mShader
+            //    ? RenderInfo.mShader->shader()
+            //    : mDefaultPixelShader->shader();
+            //if (pixelShader != renderState.PixelShader)
+            //{
+            //    ++renderState.StateChangeCount;
+            //    flushBuffer(batchVertices, NumberOfBatchedVertices, true);
+            //    renderState.PixelShader = pixelShader;
+            //    mDeviceContext->PSSetShader(renderState.PixelShader, nullptr, 0);
+            //}
+
+            //if (RenderInfo.mTexture->mShaderResourceView != renderState.Texture)
+            //{
+            //    ++renderState.TextureChangeCount;
+            //    flushBuffer(batchVertices, NumberOfBatchedVertices, true);
+            //    renderState.Texture = RenderInfo.mTexture->mShaderResourceView;
+            //    mDeviceContext->PSSetShaderResources(0, 1, &renderState.Texture);
+            //}
 
             ++renderState.SpriteCount;
             cFloatPoint TopLeft(RenderInfo.mRect.topLeft());
@@ -215,7 +250,7 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
             batchVertices[NumberOfBatchedVertices].color = RenderInfo.mColor.GetARGBColor();
             batchVertices[NumberOfBatchedVertices].x = TopLeft.x;
             batchVertices[NumberOfBatchedVertices].y = TopLeft.y;
-            batchVertices[NumberOfBatchedVertices].textureCoord = RenderInfo.mTexture->GetTextureInfo().topLeft();
+            batchVertices[NumberOfBatchedVertices].textureCoord = RenderInfo.mTextures[0]->GetTextureInfo().topLeft();
             batchVertices[NumberOfBatchedVertices].edgeDistances[0] = 0.0f; // Top edge distance
             batchVertices[NumberOfBatchedVertices].edgeDistances[1] = 0.0f; // Right edge distance
             batchVertices[NumberOfBatchedVertices].edgeDistances[2] = width; // Bottom edge distance
@@ -226,7 +261,7 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
             batchVertices[NumberOfBatchedVertices + 1].color = RenderInfo.mColor.GetARGBColor();
             batchVertices[NumberOfBatchedVertices + 1].x = TopRight.x;
             batchVertices[NumberOfBatchedVertices + 1].y = TopRight.y;
-            batchVertices[NumberOfBatchedVertices + 1].textureCoord = RenderInfo.mTexture->GetTextureInfo().topRight();
+            batchVertices[NumberOfBatchedVertices + 1].textureCoord = RenderInfo.mTextures[0]->GetTextureInfo().topRight();
             batchVertices[NumberOfBatchedVertices + 1].edgeDistances[0] = width; // Top edge distance
             batchVertices[NumberOfBatchedVertices + 1].edgeDistances[1] = 0.0f; // Right edge distance
             batchVertices[NumberOfBatchedVertices + 1].edgeDistances[2] = 0.0f; // Bottom edge distance
@@ -237,7 +272,7 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
             batchVertices[NumberOfBatchedVertices + 2].color = RenderInfo.mColor.GetARGBColor();
             batchVertices[NumberOfBatchedVertices + 2].x = BottomRight.x;
             batchVertices[NumberOfBatchedVertices + 2].y = BottomRight.y;
-            batchVertices[NumberOfBatchedVertices + 2].textureCoord = RenderInfo.mTexture->GetTextureInfo().bottomRight();
+            batchVertices[NumberOfBatchedVertices + 2].textureCoord = RenderInfo.mTextures[0]->GetTextureInfo().bottomRight();
             batchVertices[NumberOfBatchedVertices + 2].edgeDistances[0] = width; // Top edge distance
             batchVertices[NumberOfBatchedVertices + 2].edgeDistances[1] = height; // Right edge distance
             batchVertices[NumberOfBatchedVertices + 2].edgeDistances[2] = 0.0f; // Bottom edge distance
@@ -248,7 +283,7 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
             batchVertices[NumberOfBatchedVertices + 3].color = RenderInfo.mColor.GetARGBColor();
             batchVertices[NumberOfBatchedVertices + 3].x = BottomLeft.x;
             batchVertices[NumberOfBatchedVertices + 3].y = BottomLeft.y;
-            batchVertices[NumberOfBatchedVertices + 3].textureCoord = RenderInfo.mTexture->GetTextureInfo().bottomLeft();
+            batchVertices[NumberOfBatchedVertices + 3].textureCoord = RenderInfo.mTextures[0]->GetTextureInfo().bottomLeft();
             batchVertices[NumberOfBatchedVertices + 3].edgeDistances[0] = 0.0f; // Top edge distance
             batchVertices[NumberOfBatchedVertices + 3].edgeDistances[1] = height; // Right edge distance
             batchVertices[NumberOfBatchedVertices + 3].edgeDistances[2] = width; // Bottom edge distance
@@ -257,10 +292,9 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
                 batchVertices[NumberOfBatchedVertices + 3].mShaderParameters);
 
             NumberOfBatchedVertices += 4;
-        }
 
         if (NumberOfBatchedVertices > (mMaxSpritesPerFlush - 1) * 4)
-            FlushBuffer(batchVertices, NumberOfBatchedVertices, true);
+            flushBuffer(batchVertices, NumberOfBatchedVertices, true);
     }
 
     for (auto& subWindow : window.mSubWindows | std::views::reverse)
@@ -293,10 +327,10 @@ void cSpriteRenderer::RenderSprites()
     }
 
     renderSprites(mBaseWindow, renderState);
-    FlushBuffer(renderState.batchVertices, renderState.NumberOfBatchedVertices, false);
+    flushBuffer(renderState.batchVertices, renderState.NumberOfBatchedVertices, false);
 }
 
-void cSpriteRenderer::FlushBuffer(cSpriteVertexData*& batchVertices, int &NumberOfBatchedVertices, bool RelockBuffer)
+void cSpriteRenderer::flushBuffer(cSpriteVertexData*& batchVertices, int &NumberOfBatchedVertices, bool RelockBuffer)
 {
     if (NumberOfBatchedVertices == 0)
         return;
@@ -322,9 +356,9 @@ void cSpriteRenderer::updateUsedTextures(cPixieWindow& window)
 {
     for (auto& sprite : window.mSprites)
     {
-        cSpriteRenderInfo RenderInfo = sprite->GetRenderInfo();
-        if (RenderInfo.mTexture && RenderInfo.mTexture->DoesNeedUpdateBeforeUse())
-            const_cast<cTexture*>(RenderInfo.mTexture)->Update();
+        cSpriteRenderInfo renderInfo = sprite->GetRenderInfo();
+        if (renderInfo.mTextures[0] && renderInfo.mTextures[0]->DoesNeedUpdateBeforeUse())
+            const_cast<cTexture*>(renderInfo.mTextures[0])->Update();
     }
 
     for (auto& subWindow : window.mSubWindows)

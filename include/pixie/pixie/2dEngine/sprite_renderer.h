@@ -21,7 +21,8 @@ private:
     struct cRenderState
     {
         int SpriteCount = 0, StateChangeCount = 0, TextureChangeCount = 0;
-        ID3D11ShaderResourceView* Texture = nullptr;
+        ID3D11ShaderResourceView* Textures[4] = { nullptr, nullptr, nullptr, nullptr };
+        int mNumberOfTextures = 0;
         ID3D11PixelShader* PixelShader = nullptr;
         cSpriteRenderInfo::eBlendingMode LastBlendingMode = cSpriteRenderInfo::Invalid_Blend_Mode;
         int NumberOfBatchedVertices = 0;
@@ -57,12 +58,13 @@ private:
     cRect mClippingRect;
 
     void UpdateBlending(cSpriteRenderInfo::eBlendingMode BlendingMode);
-    void FlushBuffer(cSpriteVertexData*& batchVertices, int &NumberOfBatchedVertices, bool RelockBuffer);
+    void flushBuffer(cSpriteVertexData*& batchVertices, int &NumberOfBatchedVertices, bool RelockBuffer);
     void Init();
     void renderSprites(cPixieWindow& window, cRenderState& renderState);
     void RenderSprites();
     void updateUsedTextures(cPixieWindow& window);
     void UpdateRenderTargetState();
+    void updateRenderState(cRenderState& renderState, const cSpriteRenderInfo& renderInfo);
     static void Rotate(cFloatPoint &Point, cFloatPoint Center, float s, float c);
 
 protected:

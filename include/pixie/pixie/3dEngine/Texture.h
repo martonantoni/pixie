@@ -7,6 +7,7 @@
 struct cTextureFile;
 class cTextureManager;
 class cSpriteRenderer;
+struct cSpriteRenderInfo;
 
 struct cTextureInfo
 {
@@ -26,6 +27,7 @@ class cTexture: public cIntrusiveRefCount
 {
     friend cTextureManager;
     friend cSpriteRenderer;
+    friend cSpriteRenderInfo;
 
     ID3D11Texture2D *mTexture = nullptr;
     ID3D11ShaderResourceView *mShaderResourceView = nullptr;

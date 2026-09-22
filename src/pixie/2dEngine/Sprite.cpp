@@ -42,7 +42,8 @@ cSpriteRenderInfo cSprite::GetRenderInfo() const
 	if(mProperties.mClippingMode == eClippingMode::None)
 	{
         renderInfo.mRect = GetRectForRendering();
-        renderInfo.mTexture = mTexture.get();
+        renderInfo.mTextures[0] = mTexture.get();
+        renderInfo.mNumberOfTextures = 1;
         return renderInfo;
 	}
 // clipping is enabled:
@@ -82,7 +83,8 @@ cSpriteRenderInfo cSprite::GetRenderInfo() const
 	mClippedTexture = mTexture->CreateSubTexture(cRect{ ClippedTextureLeft, ClippedTextureTop, ClippedTextureRight - ClippedTextureLeft + 1, ClippedTextureBottom - ClippedTextureTop + 1 });
 
     renderInfo.mRect = RenderedRect;
-    renderInfo.mTexture = mClippedTexture.get();
+    renderInfo.mTextures[0] = mClippedTexture.get();
+    renderInfo.mNumberOfTextures = 1;
     return renderInfo;
 }
 
