@@ -155,7 +155,6 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
         const cSpriteRenderInfo RenderInfo = sprite->GetRenderInfo();
         auto& batchVertices = renderState.batchVertices;
         auto& NumberOfBatchedVertices = renderState.NumberOfBatchedVertices;
-        float Z = 0.5f;
 
         if (RenderInfo.mTexture)
         {
@@ -216,9 +215,7 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
             batchVertices[NumberOfBatchedVertices].color = RenderInfo.mColor.GetARGBColor();
             batchVertices[NumberOfBatchedVertices].x = TopLeft.x;
             batchVertices[NumberOfBatchedVertices].y = TopLeft.y;
-            batchVertices[NumberOfBatchedVertices].z = Z;
-            batchVertices[NumberOfBatchedVertices].u = RenderInfo.mTexture->GetTextureInfo().mLeft;
-            batchVertices[NumberOfBatchedVertices].v = RenderInfo.mTexture->GetTextureInfo().mTop;
+            batchVertices[NumberOfBatchedVertices].textureCoord = RenderInfo.mTexture->GetTextureInfo().topLeft();
             batchVertices[NumberOfBatchedVertices].edgeDistances[0] = 0.0f; // Top edge distance
             batchVertices[NumberOfBatchedVertices].edgeDistances[1] = 0.0f; // Right edge distance
             batchVertices[NumberOfBatchedVertices].edgeDistances[2] = width; // Bottom edge distance
@@ -229,9 +226,7 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
             batchVertices[NumberOfBatchedVertices + 1].color = RenderInfo.mColor.GetARGBColor();
             batchVertices[NumberOfBatchedVertices + 1].x = TopRight.x;
             batchVertices[NumberOfBatchedVertices + 1].y = TopRight.y;
-            batchVertices[NumberOfBatchedVertices + 1].z = Z;
-            batchVertices[NumberOfBatchedVertices + 1].u = RenderInfo.mTexture->GetTextureInfo().mRight;
-            batchVertices[NumberOfBatchedVertices + 1].v = RenderInfo.mTexture->GetTextureInfo().mTop;
+            batchVertices[NumberOfBatchedVertices + 1].textureCoord = RenderInfo.mTexture->GetTextureInfo().topRight();
             batchVertices[NumberOfBatchedVertices + 1].edgeDistances[0] = width; // Top edge distance
             batchVertices[NumberOfBatchedVertices + 1].edgeDistances[1] = 0.0f; // Right edge distance
             batchVertices[NumberOfBatchedVertices + 1].edgeDistances[2] = 0.0f; // Bottom edge distance
@@ -242,9 +237,7 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
             batchVertices[NumberOfBatchedVertices + 2].color = RenderInfo.mColor.GetARGBColor();
             batchVertices[NumberOfBatchedVertices + 2].x = BottomRight.x;
             batchVertices[NumberOfBatchedVertices + 2].y = BottomRight.y;
-            batchVertices[NumberOfBatchedVertices + 2].z = Z;
-            batchVertices[NumberOfBatchedVertices + 2].u = RenderInfo.mTexture->GetTextureInfo().mRight;
-            batchVertices[NumberOfBatchedVertices + 2].v = RenderInfo.mTexture->GetTextureInfo().mBottom;
+            batchVertices[NumberOfBatchedVertices + 2].textureCoord = RenderInfo.mTexture->GetTextureInfo().bottomRight();
             batchVertices[NumberOfBatchedVertices + 2].edgeDistances[0] = width; // Top edge distance
             batchVertices[NumberOfBatchedVertices + 2].edgeDistances[1] = height; // Right edge distance
             batchVertices[NumberOfBatchedVertices + 2].edgeDistances[2] = 0.0f; // Bottom edge distance
@@ -255,9 +248,7 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
             batchVertices[NumberOfBatchedVertices + 3].color = RenderInfo.mColor.GetARGBColor();
             batchVertices[NumberOfBatchedVertices + 3].x = BottomLeft.x;
             batchVertices[NumberOfBatchedVertices + 3].y = BottomLeft.y;
-            batchVertices[NumberOfBatchedVertices + 3].z = Z;
-            batchVertices[NumberOfBatchedVertices + 3].u = RenderInfo.mTexture->GetTextureInfo().mLeft;
-            batchVertices[NumberOfBatchedVertices + 3].v = RenderInfo.mTexture->GetTextureInfo().mBottom;
+            batchVertices[NumberOfBatchedVertices + 3].textureCoord = RenderInfo.mTexture->GetTextureInfo().bottomLeft();
             batchVertices[NumberOfBatchedVertices + 3].edgeDistances[0] = 0.0f; // Top edge distance
             batchVertices[NumberOfBatchedVertices + 3].edgeDistances[1] = height; // Right edge distance
             batchVertices[NumberOfBatchedVertices + 3].edgeDistances[2] = width; // Bottom edge distance

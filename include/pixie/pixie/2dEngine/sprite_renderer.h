@@ -10,13 +10,12 @@ public:
     {
         float x;
         float y;
-        float z;
         uint32_t color;
-        float u;
-        float v;
+        cFloatPoint textureCoord;
         float edgeDistances[4]; // distances to the edges of the sprite (left, top, right, bottom)
         float mShaderParameters[4];
     };
+    static_assert(sizeof(cFloatPoint) == sizeof(float) * 2);
 private:
 
     struct cRenderState

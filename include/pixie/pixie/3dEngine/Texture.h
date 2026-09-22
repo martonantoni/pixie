@@ -10,11 +10,16 @@ class cSpriteRenderer;
 
 struct cTextureInfo
 {
-    float mTop,mLeft,mBottom,mRight;
+    float mTop, mLeft, mBottom, mRight;
     cRect mRect;
-    BOOL mIsWholeSurface=false;
-    cTextureInfo(const cRect &Rect, cPoint SurfaceSize);
+    bool mIsWholeSurface = false;
+    cTextureInfo(const cRect& Rect, cPoint SurfaceSize);
     cTextureInfo(cPoint SurfaceSize);
+
+    cFloatPoint topLeft() const { return cFloatPoint(mLeft, mTop); }
+    cFloatPoint bottomRight() const { return cFloatPoint(mRight, mBottom); }
+    cFloatPoint topRight() const { return cFloatPoint(mRight, mTop); }
+    cFloatPoint bottomLeft() const { return cFloatPoint(mLeft, mBottom); }
 };
 
 class cTexture: public cIntrusiveRefCount
