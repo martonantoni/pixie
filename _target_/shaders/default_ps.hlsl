@@ -7,6 +7,7 @@ struct PSInput
     float4 Color : COLOR;
     float2 TexCoord : TEXCOORD0;
 	float4 Parameters : TEXCOORD1;
+    float4 PixelPos : TEXCOORD4;
 };
 
 float4 PSMain(PSInput input) : SV_TARGET

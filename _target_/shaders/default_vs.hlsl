@@ -18,6 +18,7 @@ struct VSOutput
     float4 Color : COLOR;
     float2 TexCoord : TEXCOORD0;
     float4 Parameters : TEXCOORD1;
+    float4 PixelPos : TEXCOORD4;
 };
 
 float4 UnpackARGB(uint color)
