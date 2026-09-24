@@ -1,3 +1,5 @@
+#include "renderer_handles.h"
+
 #include "Renderers.h"
 #include "Pix_Error.h"
 #include "Pix_Device.h"

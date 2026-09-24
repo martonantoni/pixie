@@ -4,7 +4,6 @@ class cSprite: public cSpriteBase, public tIntrusiveListItemBase<cSprite>
 {
 	friend class cSpriteRenderer;
 protected:
-	mutable tIntrusivePtr<cTexture> mClippedTexture;
 	tIntrusivePtr<cTexture> mTexture;
 	cSpriteRenderInfo::eBlendingMode mBlendingMode=cSpriteRenderInfo::Blend_Normal;
     void CopyProperties(const cSprite& source);
