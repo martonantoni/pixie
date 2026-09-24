@@ -77,7 +77,7 @@ std::vector<std::unique_ptr<cSpriteBase>> cFont::CreateTextSprites
 				continue;
 			auto LetterSprite=std::make_unique<cSprite>();
 			LetterSprite->SetPosition(LetterPos + cPoint(LetterData.mXOffset, LetterData.mYOffset));
-			LetterSprite->SetTextureAndSize(LetterData.mTexture);
+			LetterSprite->setTextureAndSize(LetterData.mTexture);
 			TextSprites.emplace_back(std::move(LetterSprite));
 			LetterPos.x+=LetterData.mAdvance>>6;
 		}

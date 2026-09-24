@@ -3,13 +3,13 @@
 cMultiSprite_1PixRect::cMultiSprite_1PixRect(const std::string &ColorNameBase, eOnlyBorder OnlyBorder)
 	: mOnlyBorders(OnlyBorder)
 {
-	auto Texture=theTextureManager.GetTexture("1pix");
+	auto Texture=theTextureManager.getTexture("1pix");
 	mSprites.reserve(NumberOfSprites);
 	cColor BorderColor(ColorNameBase+"_border");
 	for(int i=0; i<(OnlyBorder==eOnlyBorder::No?NumberOfSprites:NumberOfSprites-1); ++i)
 	{
 		auto Sprite=std::make_unique<cSprite>();
-		Sprite->SetTexture(Texture);
+		Sprite->setTexture(Texture);
 		mSprites.emplace_back(std::move(Sprite));
 	}
 	mSprites[Sprite_Top]->SetRGBColor(BorderColor);

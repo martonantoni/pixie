@@ -41,7 +41,7 @@ public:
 
 	tIntrusivePtr<cTexture> loadFromFile(const std::filesystem::path &path);
 
-	tIntrusivePtr<cTexture> GetTexture(const std::string &TextureName, bool IsOptional=false) const;
+	tIntrusivePtr<cTexture> getTexture(const std::string &TextureName, bool IsOptional=false) const;
 	tIntrusivePtr<cTexture> texture(const std::string &TextureName, bool IsOptional=false) const;
 	tIntrusivePtr<cTexture> GetTileTexture(const std::string &TileSetName, int TileX, int TileY) const;
 	tIntrusivePtr<cTexture> GetTileSetTexture(const std::string &TileSetName) const; // when you want to get the entire texture of a tileset
@@ -54,5 +54,5 @@ extern cTextureManager2 theTextureManager;
 
 inline tIntrusivePtr<cTexture> cTextureManager2::texture(const std::string& textureName, bool isOptional) const
 {
-    return GetTexture(textureName, isOptional);
+    return getTexture(textureName, isOptional);
 }

@@ -24,11 +24,11 @@ void cTextSprite::NeedTextureUpdate()
 
 void cTextSprite::HandleAlignment()
 {
-	if(mTexture)
+	if(mTextures[0])
 	{
 		cRect AlignedRect = cRect::alignedRect(
 			cRect{ {0,0}, GetSize() }, 
-			cRect{ {0,0}, mTexture->GetSize() },
+			cRect{ {0,0}, mTextures[0]->GetSize() },
 			mHorizontalAlign, mVeritcalAlign);
 		mPositionOffset=AlignedRect.position();
 	}
@@ -37,8 +37,8 @@ void cTextSprite::HandleAlignment()
 cSpriteRenderInfo cTextSprite::GetRenderInfo() const
 {
 	auto RenderInfo=cSprite::GetRenderInfo();
-	if(mTexture && !mIsResizable)
-		RenderInfo.mRect.size() = mTexture->GetSize();
+	if(mTextures[0] && !mIsResizable)
+		RenderInfo.mRect.size() = mTextures[0]->GetSize();
 	return RenderInfo;
 }
 
@@ -46,9 +46,9 @@ void cTextSprite::SetResizable(bool Resizable)
 {
     if (Resizable && !mIsResizable)
     {
-        if (mTexture)
+        if (mTextures[0])
         {
-            SetSize(mTexture->GetSize());
+            SetSize(mTextures[0]->GetSize());
         }
     }
     mIsResizable = Resizable;
@@ -57,7 +57,7 @@ void cTextSprite::SetResizable(bool Resizable)
 void cTextSprite::SetSizeToTextureSize()
 {
     UpdateTexture();
-    SetSize(mTexture->GetSize());
+    SetSize(mTextures[0]->GetSize());
 }
 
 void cTextSprite::SetFont(std::shared_ptr<const cFont> Font)
@@ -66,7 +66,7 @@ void cTextSprite::SetFont(std::shared_ptr<const cFont> Font)
 	if(mVisible&&mWindow)
 		NeedTextureUpdate();
 	else
-		SetTexture(tIntrusivePtr<cTexture>());
+		setTexture(tIntrusivePtr<cTexture>());
 }
 
 void cTextSprite::SetFont(const std::string &FontName)
@@ -87,21 +87,21 @@ void cTextSprite::SetText(const std::string &Text)
 	if(mVisible&&mWindow)
 		NeedTextureUpdate();
 	else
-		SetTexture(tIntrusivePtr<cTexture>());
+		setTexture(tIntrusivePtr<cTexture>());
 }
 
 void cTextSprite::UpdateTexture()
 {
 	if(mFont)
 	{
-		SetTexture(mFont->CreateTexture(mText));
+		setTexture(mFont->CreateTexture(mText));
 		HandleAlignment();
 	}
 }
 
 void cTextSprite::PropertiesChanged(unsigned int Properties)
 {
-	if(Properties&Property_Visibility&&IsVisible()&&!mTexture)
+	if(Properties&Property_Visibility&&IsVisible()&&!mTextures[0])
 		NeedTextureUpdate();
 }
 

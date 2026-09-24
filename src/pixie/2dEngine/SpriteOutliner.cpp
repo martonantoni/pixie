@@ -18,7 +18,7 @@ cSpriteOutliner::cSpriteOutliner(cSpriteBase& outlinedSprite)
     mOutline->SetWindow(outlinedSprite.GetWindow());
     mOutline->SetZOrder(outlinedSprite.GetZOrder() - 1);
     mOutline->SetPosition(outlinedSprite.GetPosition() - cPoint { 1, 1 });
-    mOutline->SetTextureAndSize(std::move(targetTexture));
+    mOutline->setTextureAndSize(std::move(targetTexture));
     mOutline->Show();
 
 }

@@ -101,7 +101,7 @@ bool cAutoMultiSpriteBase::Init(cPixieWindow *Window, const std::string &Texture
 		tIntrusivePtr<cTexture> Texture=mTextureOverrides.size()>Index&&mTextureOverrides[Index]?
 			mTextureOverrides[Index]
 			:
-			(TextureManager.GetTexture(std::format("{}_{}", TextureNameBase, ThisPositionName), IsOptional));
+			(TextureManager.getTexture(std::format("{}_{}", TextureNameBase, ThisPositionName), IsOptional));
 		if(!Texture.get()&&IsOptional)
 		{
 			mSprites.push_back(nullptr);
@@ -112,7 +112,7 @@ bool cAutoMultiSpriteBase::Init(cPixieWindow *Window, const std::string &Texture
 		{
 			auto Sprite=make_unique<cSprite>();
 			Sprite->SetWindow(Window);
-			Sprite->SetTextureAndSize(Texture);
+			Sprite->setTextureAndSize(Texture);
 			mSprites.push_back(std::move(Sprite));
 		}
 		else
@@ -200,7 +200,7 @@ cRectBorderMultiSprite::cRectBorderMultiSprite(int borderWidth):
 	for (int i = 0; i < 4; ++i)
 	{
 		auto sprite = std::make_unique<cSprite>();
-		sprite->SetTexture("1pix");
+		sprite->setTexture("1pix");
 		mSprites.emplace_back(std::move(sprite));
 	}
 }

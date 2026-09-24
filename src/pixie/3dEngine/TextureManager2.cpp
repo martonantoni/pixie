@@ -343,7 +343,7 @@ void cTextureManager2::Initialize()
 		});
 }
 
-tIntrusivePtr<cTexture> cTextureManager2::GetTexture(const std::string& TextureName, bool IsOptional) const
+tIntrusivePtr<cTexture> cTextureManager2::getTexture(const std::string& TextureName, bool IsOptional) const
 {
 	cTextureMap::const_iterator i = mTextures.find(TextureName);
 	if (i != mTextures.end())
@@ -352,7 +352,7 @@ tIntrusivePtr<cTexture> cTextureManager2::GetTexture(const std::string& TextureN
 	}
 	auto AliasIt = mTextureAliases.find(TextureName);
 	if (AliasIt != mTextureAliases.end())
-		return GetTexture(AliasIt->second);
+		return getTexture(AliasIt->second);
 	if (!IsOptional)
 	{
 		MainLog->Log("Error! Texture not found: {}", TextureName);

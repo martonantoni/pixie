@@ -27,7 +27,7 @@ cPixieObjectAnimator::eAnimateResult cTextureAnimator::Animate(cPixieObject &Obj
 				}
 				else if constexpr (std::is_same_v<std::vector<tIntrusivePtr<cTexture>>, std::decay_t<decltype(textures)>>)
 				{
-                    sprite->SetTexture(textures[std::min<size_t>(textures.size() - 1, Frame)]);
+                    sprite->setTexture(textures[std::min<size_t>(textures.size() - 1, Frame)]);
 					return textures.size();
 				}
 				return 0;

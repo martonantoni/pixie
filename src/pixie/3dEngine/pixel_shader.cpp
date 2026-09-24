@@ -41,7 +41,7 @@ void cPixelShader::extractMetaInfo(std::string_view sourceCode)
         std::string id;
         input >> id;
 
-        if (id == "@param")
+        if (id == "@param" || id == "@texture")
         {
             std::string name;
             int index;
@@ -50,12 +50,14 @@ void cPixelShader::extractMetaInfo(std::string_view sourceCode)
                 index >= 0 &&
                 index < static_cast<int>(mParameterNames.size()))
             {
-                mParameterNames[index] = std::move(name);
+                if (id == "@param")
+                    mParameterNames[index] = std::move(name);
+                else if (id == "@texture")
+                    mTextureSlotNames[index] = std::move(name);
             }
-        }
+        }        
     }
 }
-
 
 int cPixelShader::parameterIndex(std::string_view name) const
 {
@@ -65,4 +67,14 @@ int cPixelShader::parameterIndex(std::string_view name) const
         throw std::runtime_error(std::format("Parameter name '{}' not found in pixel shader", name));
     }
     return static_cast<int>(std::distance(mParameterNames.begin(), it));
+}
+
+int cPixelShader::textureSlotIndex(std::string_view name) const
+{
+    auto it = std::find(mTextureSlotNames.begin(), mTextureSlotNames.end(), name);
+    if (it == mTextureSlotNames.end())
+    {
+        throw std::runtime_error(std::format("Texture slot name '{}' not found in pixel shader", name));
+    }
+    return static_cast<int>(std::distance(mTextureSlotNames.begin(), it));
 }

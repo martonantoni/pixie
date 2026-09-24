@@ -4,7 +4,7 @@
 
 cStandardListBoxVisualizer::cStandardListBoxVisualizer()
 {
-	mBackgroundTexture=theTextureManager.GetTexture("listbox_background");
+	mBackgroundTexture=theTextureManager.getTexture("listbox_background");
 }
 
 cStandardListBoxVisualizer::~cStandardListBoxVisualizer()

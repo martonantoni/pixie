@@ -30,9 +30,9 @@ void cStandardEditFieldVisualizer::Redraw()
 
 	if(!mCursorSprite)
 	{
-		auto Texture=theTextureManager.GetTexture("1pix");
+		auto Texture=theTextureManager.getTexture("1pix");
 		mCursorSprite=std::make_unique<cSprite>();
-		mCursorSprite->SetTexture(Texture);
+		mCursorSprite->setTexture(Texture);
 		mCursorSprite->SetSize({ 2, theFontManager.font(mTextStyle)->GetHeight() });
 		mCursorSprite->SetRGBColor("editfield_cursor");
 		auto TimedAnimators=make_intrusive_ptr<cTimedAnimators>();

@@ -219,7 +219,7 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
                         wchar_t decodedChar = UTF8::popCharacter(textWord);
                         auto& letterData = font.letterData(decodedChar);
                         auto sprite = std::make_unique<cSprite>();
-                        sprite->SetTextureAndSize(letterData.mTexture);
+                        sprite->setTextureAndSize(letterData.mTexture);
                         sprite->SetWindow(mTarget.mWindow);
                         sprite->SetRGBColor(color);
                         sprite->SetPosition(position + letterData.offset());
@@ -301,7 +301,7 @@ cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
         auto headerFont = *mConfig.mFonts.mHeadings[2];
         headerHeight = headerFont.height() * 3 / 2;
         auto headerBackgroundSprite = std::make_unique<cSprite>();
-        headerBackgroundSprite->SetTexture("1pix");
+        headerBackgroundSprite->setTexture("1pix");
         headerBackgroundSprite->SetZOrder(99);
         headerBackgroundSprite->SetWindow(mTarget.mWindow);
         headerBackgroundSprite->SetRGBColor("dark_gray");
@@ -316,7 +316,7 @@ cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
             wchar_t decodedChar = UTF8::popCharacter(headerText);
             auto& letterData = headerFont.letterData(decodedChar);
             auto sprite = std::make_unique<cSprite>();
-            sprite->SetTextureAndSize(letterData.mTexture);
+            sprite->setTextureAndSize(letterData.mTexture);
             sprite->SetZOrder(100);
             sprite->SetWindow(mTarget.mWindow);
             sprite->SetRGBColor("white");
@@ -340,7 +340,7 @@ cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
             wchar_t decodedChar = UTF8::popCharacter(line);
             auto& letterData = font.letterData(decodedChar);
             auto sprite = std::make_unique<cSprite>();
-            sprite->SetTextureAndSize(letterData.mTexture);
+            sprite->setTextureAndSize(letterData.mTexture);
             sprite->SetZOrder(100);
             sprite->SetWindow(mTarget.mWindow);
             sprite->SetRGBColor(mConfig.mColors.mDefaultColor);
@@ -354,7 +354,7 @@ cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
     position.y += font.height() / 2;
     // ---- background ----
     auto backgroundSprite = std::make_unique<cSprite>();
-    backgroundSprite->SetTexture("1pix");
+    backgroundSprite->setTexture("1pix");
     backgroundSprite->SetZOrder(98);
     backgroundSprite->SetWindow(mTarget.mWindow);
     backgroundSprite->SetRGBColor(mConfig.mColors.mCodeBlockBG);

@@ -1,15 +1,24 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
 
-void cSprite::SetTexture(tIntrusivePtr<cTexture> Texture)
+void cSprite::setTexture(int index, tIntrusivePtr<cTexture> Texture)
 {
-	if (!CheckIfChangableProperty(Property_Texture))
-		return;
-	mTexture=std::move(Texture);
+    if (index < 0 || index >= 4)
+    {
+        throw std::out_of_range(std::format("Texture index {} is out of range [0, 3]", index));
+    }
+    if (!CheckIfChangableProperty(Property_Texture))
+        return;
+    mTextures[index] = std::move(Texture);
 	PropertiesSet(Property_Texture);
 }
 
-void cSprite::SetTextureAndSize(tIntrusivePtr<cTexture> Texture)
+void cSprite::setTexture(std::string_view slotID, tIntrusivePtr<cTexture> Texture)
+{
+    setTexture(mShader->textureSlotIndex(slotID), std::move(Texture));
+}
+
+void cSprite::setTextureAndSize(tIntrusivePtr<cTexture> Texture)
 {
 	if(!Texture)
 	{
@@ -19,7 +28,7 @@ void cSprite::SetTextureAndSize(tIntrusivePtr<cTexture> Texture)
 	{
 		SetSize({ Texture->GetTextureWidth(), Texture->GetTextureHeight() });
 	}
-	SetTexture(std::move(Texture));
+	setTexture(0, std::move(Texture));
 }
 
 void cSprite::SetBlendingMode(cSpriteRenderInfo::eBlendingMode BlendingFlags)
@@ -40,17 +49,23 @@ cSpriteRenderInfo cSprite::GetRenderInfo() const
             renderInfo.mShaderParameters[i] = mShaderParameters[i];
 	}
     renderInfo.mRect = GetRectForRendering();
-    renderInfo.mTextures[0] = mTexture.get()->shaderResourceView();
-    renderInfo.mTextureRects[0] = mTexture->GetTextureInfo();
+    for (int i = 0; i < 4; ++i)
+    {
+        renderInfo.mTextures[i] = mTextures[i] ? mTextures[i]->shaderResourceView() : nullptr;
+        renderInfo.mTextureRects[i] = mTextures[i] ? mTextures[i]->GetTextureInfo() : cTextureRect();
+    }
     return renderInfo;
 }
 
 void cSprite::updateTextures()
 {
-    if (mTexture && mTexture->DoesNeedUpdateBeforeUse())
-    {
-        mTexture->Update();
-    }
+	for (int i = 0; i < 4; ++i)
+	{
+		if (mTextures[i] && mTextures[i]->DoesNeedUpdateBeforeUse())
+		{
+			mTextures[i]->Update();
+		}
+	}
 }
 
 bool cSprite::SetStringProperty(unsigned int PropertyFlags, const std::string &Value)
@@ -59,10 +74,10 @@ bool cSprite::SetStringProperty(unsigned int PropertyFlags, const std::string &V
 		return false;
 	if(PropertyFlags==Property_Texture)
 	{
-		auto Texture=theTextureManager.GetTexture(Value);
+		auto Texture=theTextureManager.getTexture(Value);
 		if(ASSERTTRUE(Texture))
 		{
-			SetTexture(Texture);
+			setTexture(Texture);
 		}
 		return true;
 	}
@@ -88,9 +103,9 @@ bool cSprite::GetProperty(unsigned int PropertyFlags, OUT cPropertyValues &Prope
 	switch(PropertyFlags)
 	{
 	case Property_TextureSize: 
-		if(mTexture)
+		if(mTextures[0])
 		{
-			PropertyValues=mTexture->GetSize();
+			PropertyValues=mTextures[0]->GetSize();
 			return true;
 		}
 		return false;

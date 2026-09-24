@@ -5,6 +5,7 @@ class cPixelShader final: public cShader
 {
     ID3D11PixelShader* mShader = nullptr;
     std::array<std::string, 4> mParameterNames;
+    std::array<std::string, 4> mTextureSlotNames;
     void extractMetaInfo(std::string_view sourceCode);
 public:
     cPixelShader(std::string_view sourceCode) { compile(sourceCode); }
@@ -21,4 +22,5 @@ public:
     }
 
     int parameterIndex(std::string_view name) const; // throws if not found
+    int textureSlotIndex(std::string_view name) const; // throws if not found
 };

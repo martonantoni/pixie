@@ -16,7 +16,7 @@ std::vector<std::unique_ptr<cSpriteBase>> CreateTileFillSprites(const tIntrusive
 			int Height=std::min(th, Size.y-y);
 			Sprite->SetPosition({ x, y });
 			Sprite->SetSize(Width, Height);
-			Sprite->SetTexture(Width==tw&&Height==th?Texture:Texture->CreateSubTexture(cRect(0,0,Width,Height)));
+			Sprite->setTexture(Width==tw&&Height==th?Texture:Texture->CreateSubTexture(cRect(0,0,Width,Height)));
 			Sprites.emplace_back(std::move(Sprite));
 		}
 	}
@@ -45,7 +45,7 @@ std::vector<std::unique_ptr<cSpriteBase>> CreateTileFillSprites(const tIntrusive
 			int Height=std::min(TextureHeightToUse, Size.y-y);
 			Sprite->SetPosition({ x, y });
 			Sprite->SetSize(Width, Height);
-			Sprite->SetTexture(Width==tw&&Height==th?Texture:Texture->CreateSubTexture(cRect(TextureXOffset, TextureYOffset, Width, Height)));
+			Sprite->setTexture(Width==tw&&Height==th?Texture:Texture->CreateSubTexture(cRect(TextureXOffset, TextureYOffset, Width, Height)));
 			y+=TextureHeightToUse;
 			TextureHeightToUse=th;
 			TextureYOffset=0;

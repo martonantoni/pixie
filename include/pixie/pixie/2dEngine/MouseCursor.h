@@ -11,7 +11,7 @@ class cMouseCursor: public tSingleton<cMouseCursor>
 public:
 	cMouseCursor();
 	~cMouseCursor();
-	void SetTexture(tIntrusivePtr<cTexture> Texture); // NULL to set it back to default
+	void setTexture(tIntrusivePtr<cTexture> Texture); // NULL to set it back to default
 
 	void Show();
 	void Hide();

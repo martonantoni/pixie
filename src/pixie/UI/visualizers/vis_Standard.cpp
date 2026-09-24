@@ -17,7 +17,7 @@ void cVisualizer_Standard::Redraw()
 		mBorderSprite=std::make_unique<cMultiSprite_Simple9Patch>();
 		if(!mBackgroundTextureName.empty())
 		{
-			mBorderSprite->OverrideTexture(cMultiSprite_Simple9Patch::Sprite_Middle, theTextureManager.GetTexture(mBackgroundTextureName));
+			mBorderSprite->OverrideTexture(cMultiSprite_Simple9Patch::Sprite_Middle, theTextureManager.getTexture(mBackgroundTextureName));
 			mBorderSprite->SetCenterSpriteMode(cMultiSprite_Simple9Patch::eCenterSpriteMode::Entire);
 		}
 		mBorderSprite->Init(mWindow, "simple_window");

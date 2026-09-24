@@ -3,10 +3,10 @@
 cMouseCursor::cMouseCursor()
 	: mMoveListener("pixie.mouse.move", [this](const auto &Event) {OnMouseMove(Event); })
 {
-	mDefaultCursorTexture=theTextureManager.GetTexture("cursor_arrow");
+	mDefaultCursorTexture=theTextureManager.getTexture("cursor_arrow");
 	mSprite=std::make_unique<cSprite>();
 	mSprite->SetWindow(&thePixieDesktop.GetTopLayer());
-	mSprite->SetTexture(mDefaultCursorTexture);
+	mSprite->setTexture(mDefaultCursorTexture);
 	mSprite->SetPosition(20,20);
 	mSprite->SetSize(32,32);
 	mSprite->SetZOrder(1000);
@@ -48,12 +48,12 @@ cWindowsMessageResult cMouseCursor::OnSetCursor(WPARAM wParam,LPARAM lParam)
 	return cWindowsMessageResult(FALSE);
 }
 
-void cMouseCursor::SetTexture(tIntrusivePtr<cTexture> Texture)
+void cMouseCursor::setTexture(tIntrusivePtr<cTexture> Texture)
 {
 	if(Texture)
-		mSprite->SetTexture(Texture);
+		mSprite->setTexture(Texture);
 	else
-		mSprite->SetTexture(mDefaultCursorTexture);
+		mSprite->setTexture(mDefaultCursorTexture);
 }
 
 void cMouseCursor::Show()

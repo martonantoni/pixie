@@ -4,7 +4,7 @@ class cSprite: public cSpriteBase, public tIntrusiveListItemBase<cSprite>
 {
 	friend class cSpriteRenderer;
 protected:
-	tIntrusivePtr<cTexture> mTexture;
+	std::array<tIntrusivePtr<cTexture>, 4> mTextures;
 	std::shared_ptr<cPixelShader> mShader;
 	float mShaderParameters[4] = { 0, 0, 0, 0 };
 	cSpriteRenderInfo::eBlendingMode mBlendingMode=cSpriteRenderInfo::Blend_Normal;
@@ -12,14 +12,16 @@ protected:
 public:
 	cSprite()=default; 
 	void SetBlendingMode(cSpriteRenderInfo::eBlendingMode BlendingMode);
-	void SetTexture(const std::string &TextureName) { SetTexture(theTextureManager.GetTexture(TextureName)); }
-	void SetTexture(tIntrusivePtr<cTexture> Texture);
-	void SetTextureAndSize(tIntrusivePtr<cTexture> Texture);
-	void SetTextureAndSize(const std::string &TextureName) { SetTextureAndSize(theTextureManager.GetTexture(TextureName)); }
-	const tIntrusivePtr<cTexture> &GetTexture() const { return mTexture; }
+    void setTexture(int index, tIntrusivePtr<cTexture> Texture);
+    void setTexture(std::string_view slotID, tIntrusivePtr<cTexture> Texture);
+	void setTexture(const std::string &TextureName) { setTexture(0, theTextureManager.getTexture(TextureName)); }
+    void setTexture(tIntrusivePtr<cTexture> Texture) { setTexture(0, std::move(Texture)); }
+	void setTextureAndSize(tIntrusivePtr<cTexture> Texture);
+	void setTextureAndSize(const std::string &TextureName) { setTextureAndSize(theTextureManager.getTexture(TextureName)); }
+	const tIntrusivePtr<cTexture> &getTexture() const { return mTextures[0]; }
 	cSpriteRenderInfo::eBlendingMode GetBlendingMode() const { return mBlendingMode; }
 	virtual cSpriteRenderInfo GetRenderInfo() const override;
-	virtual cPoint GetPrefferedSize() const override { return mTexture?mTexture->GetSize():cPoint {1, 1}; }
+	virtual cPoint GetPrefferedSize() const override { return mTextures[0]?mTextures[0]->GetSize():cPoint {1, 1}; }
 	virtual bool SetStringProperty(unsigned int PropertyFlags, const std::string &Value) override;
 	virtual bool GetProperty(unsigned int PropertyFlags, OUT cPropertyValues &Value) const override;
 	virtual bool SetProperty(unsigned int PropertyFlags, const cPropertyValues& Value) override;

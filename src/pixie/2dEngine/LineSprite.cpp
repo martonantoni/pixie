@@ -16,7 +16,7 @@ void SpriteBetweenPoints(cSprite &Sprite, cPoint a, cPoint b, int width)
 std::unique_ptr<cSprite> CreateLineSprite(cPoint a, cPoint b, int width)
 {
 	auto LineSprite=std::make_unique<cSprite>();
-	LineSprite->SetTexture(theTextureManager.GetTexture("1pix"));
+	LineSprite->setTexture(theTextureManager.getTexture("1pix"));
 	SpriteBetweenPoints(*LineSprite, a, b, width);
 	return LineSprite;
 }

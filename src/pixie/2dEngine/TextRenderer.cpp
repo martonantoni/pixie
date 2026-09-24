@@ -139,11 +139,11 @@ void cTextRenderer::cDocument::EndOfDocument()
 
 cTextRenderer::cWord cTextRenderer::CreateWordFromTexture(const std::string &TextureName)
 {
-    auto Texture=theTextureManager.GetTexture(TextureName);
+    auto Texture=theTextureManager.getTexture(TextureName);
     if(ASSERTFALSE(!Texture)) // {i:texture_name} texture is not found
         return cWord(cWord::eType::Invalid);
     auto Sprite=std::make_unique<cSprite>();
-    Sprite->SetTextureAndSize(Texture);
+    Sprite->setTextureAndSize(Texture);
     cWord Word(cWord::eType::Word);
     Word.mSprites.emplace_back(std::move(Sprite));
     Word.mHeight=Word.mAscender=Texture->GetTextureHeight();
@@ -177,7 +177,7 @@ std::vector<std::unique_ptr<cSpriteBase>> cTextRenderer::render(const std::strin
             if(ASSERTFALSE(!LetterData.mTexture))
                 continue;
             auto Sprite=std::make_unique<cSprite>();
-            Sprite->SetTextureAndSize(LetterData.mTexture);
+            Sprite->setTextureAndSize(LetterData.mTexture);
             Sprite->SetPosition(Position+cPoint{LetterData.mXOffset, LetterData.mYOffset});
             Sprite->SetRGBColor(Document.mColorStack.back());
             LetterSprites.emplace_back(std::move(Sprite));

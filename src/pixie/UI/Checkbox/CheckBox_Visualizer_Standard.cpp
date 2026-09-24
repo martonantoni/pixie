@@ -22,9 +22,9 @@ void cStandardCheckBoxVisualizer::Init(const cCheckBox::cInitData &InitData)
 {
 	mUncheckedSprite=new cSprite;
 	mUncheckedSprite->SetWindow(GetWindow());
-	tIntrusivePtr<cTexture> UncheckedTexture(theTextureManager.GetTexture("ui_checkbox_w_arrow_mark"));
+	tIntrusivePtr<cTexture> UncheckedTexture(theTextureManager.getTexture("ui_checkbox_w_arrow_mark"));
 	mUncheckedSprite->SetZOrder(100);
-	mUncheckedSprite->SetTexture(UncheckedTexture);
+	mUncheckedSprite->setTexture(UncheckedTexture);
 	mUncheckedSprite->SetPosition(GetPlacement().position());
 	mUncheckedSprite->SetSize(UncheckedTexture->GetSurfaceWidth(),UncheckedTexture->GetSurfaceHeight());
 	mUncheckedSprite->SetBlendingMode(cSpriteRenderInfo::Blend_Normal);
@@ -32,9 +32,9 @@ void cStandardCheckBoxVisualizer::Init(const cCheckBox::cInitData &InitData)
 
 	mCheckMarkSprite=new cSprite;
 	mCheckMarkSprite->SetWindow(GetWindow());
-	tIntrusivePtr<cTexture> CheckMarkTexture(theTextureManager.GetTexture("ui_checkbox_arrow_mark"));
+	tIntrusivePtr<cTexture> CheckMarkTexture(theTextureManager.getTexture("ui_checkbox_arrow_mark"));
 	mCheckMarkSprite->SetZOrder(101);
-	mCheckMarkSprite->SetTexture(CheckMarkTexture);
+	mCheckMarkSprite->setTexture(CheckMarkTexture);
 	mCheckMarkSprite->SetPosition(GetPlacement().position());
 	mCheckMarkSprite->SetSize(CheckMarkTexture->GetSurfaceWidth(),CheckMarkTexture->GetSurfaceHeight());
 	mCheckMarkSprite->SetBlendingMode(cSpriteRenderInfo::Blend_Normal);
