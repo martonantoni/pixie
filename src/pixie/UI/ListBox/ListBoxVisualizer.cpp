@@ -49,10 +49,9 @@ void cListBox::cVisualizer::RedrawItems()
 				// create new ItemData
 				UpdatedVisibleItems.emplace_back(mItemHandler->GetItem(i), nullptr);// CreateCellSprite(i, CellRect.GetSize()));
 				auto &Item=UpdatedVisibleItems.back();
-				Item.mItem->Show(GetWindow(), ItemsRect, mZOrder_Items);
+				Item.mItem->Show(GetWindow(), mZOrder_Items);
 				if(Item.mCellSprite)
 				{
-					Item.mCellSprite->SetValidRect(ItemsRect);
 					Item.mCellSprite->Show();
 				}
 			}

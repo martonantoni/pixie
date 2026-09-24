@@ -19,8 +19,6 @@ protected:
 		bool mVisible = false;
 		cColor mColor;
 		float mRotation = 0; // in degrees (because that's friendlier to work with)
-		cRect mValidRect;
-		eClippingMode mClippingMode = eClippingMode::None;
         std::shared_ptr<cPixelShader> mShader;
         float mShaderParameters[4] = { 0, 0, 0, 0 };
 	} mProperties;
@@ -58,12 +56,6 @@ public:
 	void setShaderParam(int index, float value);
 	float getShaderParam(int index) const;
     int shaderParamIndex(std::string_view name) const; // throws if not found
-
-	void setClippingMode(eClippingMode ClippingMode);
-	eClippingMode getClippingMode() const { return mProperties.mClippingMode; }
-	void SetValidRect(const cRect& ValidRect); // for clipping
-	cRect GetValidRect() const { return mProperties.mValidRect; }
-	void DisableClipping();
 
 	void Show();
 	void Hide();

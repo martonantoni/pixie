@@ -38,7 +38,6 @@ bool cSpriteBase::SetProperty(unsigned int PropertyFlags, const cPropertyValues&
 	case Property_Center: SetCenter(Value.ToPoint()); return true;
 	case Property_Size: SetSize(Value.ToPoint()); return true;
 	case Property_Rect: SetRect(Value.ToRect()); return true;
-	case Property_ValidRect: SetValidRect(Value.ToRect()); return true;
 	}
     return c2DRenderable::SetProperty(PropertyFlags, Value);
 }

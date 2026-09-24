@@ -18,38 +18,27 @@ void tStandardPushButtonVisualizer<T>::Init()
 {
 	mInitDone=true;
 
-	cRect ValidRect=GetVisualizable().GetValidRect();
-	bool UseClipping=GetVisualizable().GetUseClipping();
-
 	mDepthSprite=std::make_unique<T>();
 	mDepthSprite->Init(mWindow, mTextureBaseName+"_depth");
 	mDepthSprite->SetPlacement(GetPlacement());
 	mDepthSprite->SetZOrder(mBaseZ);
-	if(UseClipping) 
-		mDepthSprite->SetValidRect(ValidRect);
 	mDepthSprite->SetRGBColor(0u);
 
 	mBaseSprite=std::make_unique<T>();
 	mBaseSprite->Init(mWindow, mTextureBaseName+"_base");
 	mBaseSprite->SetPlacement(GetPlacement());
-	if(UseClipping) 
-		mBaseSprite->SetValidRect(ValidRect);
 	mBaseSprite->SetZOrder(mBaseZ+1);
 
 	mHoverSprite=std::make_unique<T>();
 	mHoverSprite->Init(mWindow, mTextureBaseName+"_hover");
 	mHoverSprite->SetPlacement(GetPlacement());
 	mHoverSprite->SetZOrder(mBaseZ+2);
-	if(UseClipping) 
-		mHoverSprite->SetValidRect(ValidRect);
 	mHoverSprite->SetAlpha(255);
 
 	mPushedSprite=std::make_unique<T>();
 	mPushedSprite->Init(mWindow, mTextureBaseName+"_pushed");
 	mPushedSprite->SetPlacement(GetPlacement());
 	mPushedSprite->SetZOrder(mBaseZ+3);
-	if(UseClipping) 
-		mPushedSprite->SetValidRect(ValidRect);
 	mPushedSprite->SetAlpha(255);
 
 	CreateTextSprite();
@@ -72,8 +61,6 @@ void tStandardPushButtonVisualizer<T>::CreateTextSprite()
 		auto VerticalAlignedPlacement = cRect::alignedRect(Placement, mTextSprite_TR->GetRect(), eHorizontalAlign::Left, eVerticalAlign::Center);
 		mTextSprite_TR->SetPlacement(VerticalAlignedPlacement);
 
-		if(UseClipping)
-			mTextSprite_TR->SetValidRect(ValidRect);
 		mTextSprite_TR->SetZOrder(mBaseZ+4);
 	}
 	else
@@ -85,8 +72,6 @@ void tStandardPushButtonVisualizer<T>::CreateTextSprite()
 		mTextSprite->SetRGBColor(GetTextColor());
 		mTextSprite->SetPlacement(GetPlacement());
 		mTextSprite->SetAlignment(eHorizontalAlign::Center, eVerticalAlign::Center);
-		if(UseClipping)
-			mTextSprite->SetValidRect(ValidRect);
 		mTextSprite->SetZOrder(mBaseZ+4);
 	}
 }

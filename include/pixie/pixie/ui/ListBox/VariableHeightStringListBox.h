@@ -11,7 +11,7 @@ public:
 	cVariableHeightStringListBoxItem(std::shared_ptr<cTextRenderer> TextRenderer, const std::string &Text);
 	void Render(int MaxWidth);
 	virtual void SetPosition(cPoint Position) override;
-	virtual void Show(cPixieWindow *Window, const cRect &ValidRect, int ZOrder) override;
+	virtual void Show(cPixieWindow *Window, int ZOrder) override;
 	virtual void Hide() override;
 	const std::string &GetText() const { return mText; }
 	int GetHeight() const { return mHeight; }

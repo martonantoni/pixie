@@ -19,11 +19,10 @@ void cVariableHeightStringListBoxItem::SetPosition(cPoint Position)
 	mSprite->SetPosition(Position+cPoint { 3,3 });
 }
 
-void cVariableHeightStringListBoxItem::Show(cPixieWindow *Window, const cRect &ValidRect, int ZOrder)
+void cVariableHeightStringListBoxItem::Show(cPixieWindow *Window, int ZOrder)
 {
 	mSprite->SetWindow(Window);
 	mSprite->SetZOrder(ZOrder);
-	mSprite->SetValidRect(ValidRect);
 	mSprite->Show();
 }
 

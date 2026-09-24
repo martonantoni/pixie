@@ -12,13 +12,12 @@ void cSimpleStringListBoxItem::SetPosition(cPoint Position)
 	mSprite->SetPosition(Position);
 }
 
-void cSimpleStringListBoxItem::Show(cPixieWindow *Window, const cRect &ValidRect, int ZOrder)
+void cSimpleStringListBoxItem::Show(cPixieWindow *Window, int ZOrder)
 {
 	cTextRenderer TextRenderer(mFont);
 	mSprite=std::make_unique<cSimpleMultiSprite>(TextRenderer.render(mText), cSimpleMultiSprite::eBasePosition::Zero);
 	mSprite->SetWindow(Window);
 	mSprite->SetZOrder(ZOrder);
-	mSprite->SetValidRect(ValidRect);
 	mSprite->Show();
 }
 

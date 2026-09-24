@@ -38,7 +38,6 @@ std::unique_ptr<cSpriteBase> cStandardListBoxVisualizer::CreateMarkerSprite(cons
 	auto CellSprite=std::make_unique<cMultiSprite_Simple9Patch>();
 	CellSprite->Init(GetWindow(), "ui_lb_item_bg");
 	CellSprite->SetSize(Rect.size());
-	CellSprite->SetValidRect(GetItemsRect());
 	CellSprite->SetZOrder(301);
 	CellSprite->Show();
 	return CellSprite;

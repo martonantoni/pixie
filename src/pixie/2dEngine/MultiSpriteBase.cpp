@@ -49,14 +49,6 @@ void cMultiSpriteBase::PropertiesChanged(unsigned int Properties)
 			ForEachSprite([](cSpriteBase &Sprite) { Sprite.Hide(); });
 		}
 	}
-	if(Properties&Property_ValidRect)
-	{
-		ForEachSprite([ValidRect = mProperties.mValidRect](cSpriteBase& Sprite) { Sprite.SetValidRect(ValidRect); });
-	}
-	if (Properties & Property_ClippingMode)
-	{
-		ForEachSprite([ClippingMode = mProperties.mClippingMode](cSpriteBase& Sprite) { Sprite.setClippingMode(ClippingMode); });    
-	}
 }
 
 cSimpleMultiSprite::cSimpleMultiSprite(std::vector<std::unique_ptr<cSpriteBase>> &&Sprites, eBasePosition basePosition)

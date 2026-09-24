@@ -8,7 +8,7 @@ class cSimpleStringListBoxItem: public cListBoxItem
 public:
 	cSimpleStringListBoxItem(std::string Text, std::shared_ptr<const cFont> Font);
 	virtual void SetPosition(cPoint Position) override;
-	virtual void Show(cPixieWindow *Window, const cRect &ValidRect, int ZOrder) override;
+	virtual void Show(cPixieWindow *Window, int ZOrder) override;
 	virtual void Hide() override;
 };
 

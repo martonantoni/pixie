@@ -39,53 +39,9 @@ cSpriteRenderInfo cSprite::GetRenderInfo() const
         for (int i = 0; i < 4; ++i)
             renderInfo.mShaderParameters[i] = mProperties.mShaderParameters[i];
 	}
-	if(mProperties.mClippingMode == eClippingMode::None)
-	{
-        renderInfo.mRect = GetRectForRendering();
-        renderInfo.mTextures[0] = mTexture.get()->shaderResourceView();
-        renderInfo.mTextureRects[0] = mTexture->GetTextureInfo();
-        return renderInfo;
-	}
-// clipping is enabled:
-	cRect OriginalRect = GetRect();
-	OriginalRect.position() += GetPositionOffset();
-	if (mWindow)
-	{
-		OriginalRect.position() += mWindow->GetScreenRect().position();
-	}
-
-	cRect validRect = mProperties.mValidRect;
-
-	if (mWindow && mProperties.mClippingMode == eClippingMode::Parent)
-	{
-		validRect.position() += mWindow->GetScreenRect().position();
-	}
-	if (mWindow && mWindow->GetParentWindow() && mProperties.mClippingMode == eClippingMode::ParentParent)
-	{
-		validRect.position() += mWindow->GetParentWindow()->GetScreenRect().position();
-	}
-	if (validRect.isPointInside(OriginalRect.topLeft()) && validRect.isPointInside(OriginalRect.bottomRight()))
-		return { GetRectForRendering(), GetRotation(), mTexture.get(), mBlendingMode };
-
-	int Top = std::max(validRect.top(), OriginalRect.top());
-	int Left = std::max(validRect.left(), OriginalRect.left());
-	int Bottom = std::min(validRect.bottom(), OriginalRect.bottom());
-	int Right = std::min(validRect.right(), OriginalRect.right());
-	const cRect RenderedRect{ Left, Top, Right - Left + 1, Bottom - Top + 1 };
-	if (RenderedRect.width() <= 0 || RenderedRect.height() <= 0)
-	{
-		return { RenderedRect, 0.0, nullptr, mBlendingMode };
-	}
-	const cRect TextureRect = mTexture->GetTextureRect();
-	int ClippedTextureTop = TextureRect.top() + (RenderedRect.top() - OriginalRect.top()) * TextureRect.height() / OriginalRect.height();
-	int ClippedTextureLeft = TextureRect.left() + (RenderedRect.left() - OriginalRect.left()) * TextureRect.width() / OriginalRect.width();
-	int ClippedTextureBottom = TextureRect.bottom() - (OriginalRect.bottom() - RenderedRect.bottom()) * TextureRect.height() / OriginalRect.height();
-	int ClippedTextureRight = TextureRect.right() - (OriginalRect.right() - RenderedRect.right()) * TextureRect.width() / OriginalRect.width();
-	mClippedTexture = mTexture->CreateSubTexture(cRect{ ClippedTextureLeft, ClippedTextureTop, ClippedTextureRight - ClippedTextureLeft + 1, ClippedTextureBottom - ClippedTextureTop + 1 });
-
-    renderInfo.mRect = RenderedRect;
-    renderInfo.mTextures[0] = mClippedTexture.get()->shaderResourceView();
-    renderInfo.mTextureRects[0] = mClippedTexture->GetTextureInfo();
+    renderInfo.mRect = GetRectForRendering();
+    renderInfo.mTextures[0] = mTexture.get()->shaderResourceView();
+    renderInfo.mTextureRects[0] = mTexture->GetTextureInfo();
     return renderInfo;
 }
 

@@ -164,23 +164,6 @@ void c2DRenderable::SetWindow(cPixieWindow *Window)
 	PropertiesChanged(Property_Window);
 }
 
-void c2DRenderable::SetValidRect(const cRect &ValidRect)
-{
-	mProperties.mValidRect=ValidRect;
-	if (ValidRect.width() >= 0 && ValidRect.height() >= 0 && mProperties.mClippingMode == eClippingMode::None) // backward compatibility
-	{
-		mProperties.mClippingMode = eClippingMode::Parent;
-		PropertiesChanged(Property_ClippingMode);
-	}
-	PropertiesChanged(Property_ValidRect);
-}
-
-void c2DRenderable::DisableClipping()
-{
-	mProperties.mClippingMode = eClippingMode::None;
-	PropertiesChanged(Property_ClippingMode);
-}
-
 void c2DRenderable::setShaderParam(int index, float value)
 {
     ASSERT(index >= 0 && index < 4);
@@ -215,7 +198,6 @@ bool c2DRenderable::GetProperty(unsigned int PropertyFlags, OUT cPropertyValues 
 	case Property_ZOrder: PropertyValues=GetZOrder(); return true;
 	case Property_Alpha: PropertyValues=GetAlpha(); return true;
 	case Property_Color: PropertyValues=GetColor(); return true;
-	case Property_ValidRect: PropertyValues=GetValidRect(); return true;
     case Property_ShaderParam0: PropertyValues = getShaderParam(0); return true;
     case Property_ShaderParam1: PropertyValues = getShaderParam(1); return true;
     case Property_ShaderParam2: PropertyValues = getShaderParam(2); return true;
@@ -235,7 +217,6 @@ bool c2DRenderable::SetProperty(unsigned int PropertyFlags,const cPropertyValues
 	case Property_ZOrder: SetZOrder(Value.ToInt()); return true;
 	case Property_Alpha: SetAlpha(Value.ToInt()); return true;
 	case Property_Color: SetRGBColor(Value.ToRGBColor()); return true;
-	case Property_ValidRect: SetValidRect(Value.ToRect()); return true;
     case Property_ShaderParam0: setShaderParam(0, Value.ToFloat()); return true;
     case Property_ShaderParam1: setShaderParam(1, Value.ToFloat()); return true;
     case Property_ShaderParam2: setShaderParam(2, Value.ToFloat()); return true;
@@ -287,13 +268,6 @@ void c2DRenderable::CopyProperties(const c2DRenderable& source)
 	if (mWindow && mProperties.mVisible)
         mWindow->AddSprite(this);
 }
-
-void c2DRenderable::setClippingMode(eClippingMode ClippingMode)
-{
-    mProperties.mClippingMode = ClippingMode;
-	PropertiesChanged(Property_ClippingMode);
-}
-
 
 tIntrusivePtr<cPixieObjectAnimator> blendShaderParam(
 	c2DRenderable& sprite,

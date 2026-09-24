@@ -6,7 +6,7 @@ class cListBoxItem
 {
 public:
 	virtual void SetPosition(cPoint Position)=0;
-	virtual void Show(cPixieWindow *Window, const cRect &ValidRect, int ZOrder)=0;
+	virtual void Show(cPixieWindow *Window, int ZOrder)=0;
 	virtual void Hide()=0;
 };
 
