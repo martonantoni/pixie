@@ -367,19 +367,6 @@ bool cSpriteBase::SetStringProperty(unsigned int PropertyFlags, const std::strin
 	return false;
 }
 
-void cSpriteBase::CopyProperties(const cSpriteBase& source)
-{
-	mProperties = source.mProperties;
-	mIsColorSet = source.mIsColorSet;
-	mWindow = source.mWindow;
-	// visibility is tricky: when the properties are copied, mVisibility is also copied, but that
-	// does not mean that the sprite is visible. It is only visible if it is added to a window.
-	//
-	// check if visible, add to window
-	if (mWindow && mProperties.mVisible)
-		mWindow->AddSprite(this);
-}
-
 tIntrusivePtr<cPixieObjectAnimator> blendShaderParam(
 	cSpriteBase& sprite,
 	int paramOffset,

@@ -24,17 +24,16 @@ protected:
 	} mProperties;
 	bool mIsColorSet = false;
 	virtual ~cSpriteBase(); // use Drop() or Destroy()
-	void CopyProperties(const cSpriteBase& source); // used by Clone()
 
 	cRect mRect;
 	cPoint mPositionOffset;
+
 public:
     cSpriteBase();
 	void Drop();
 	void Destroy();
 	std::string GetDebugID() const { return std::format("sprite#{}", mDebugID); }
 
-	virtual std::unique_ptr<cSpriteBase> Clone() const = 0;
 
 	virtual bool GetProperty(unsigned int PropertyFlags, OUT cPropertyValues& Value) const override;
 	virtual bool SetProperty(unsigned int PropertyFlags, const cPropertyValues& Value) override;

@@ -8,7 +8,6 @@ protected:
 	virtual void ArrangeSprites() {}
 	virtual void PropertiesChanged(unsigned int Properties) override;
 	virtual ~cMultiSpriteBase()=default;
-    void CopyProperties(const cMultiSpriteBase& source);
 public:
 	cMultiSpriteBase()=default;
 
@@ -25,7 +24,6 @@ public:
 	{
 		StretchSpriteBetween(Sprite, SpriteTopLeft.GetRect(), SpriteBottomRight.GetRect(), Inclusion);
 	}
-    virtual std::unique_ptr<cSpriteBase> Clone() const override;
 };
 
 USE_DROP_INSTEAD_DELETE_PARENT(cMultiSpriteBase, cSpriteBase);
@@ -36,12 +34,10 @@ class cSimpleMultiSprite: public cMultiSpriteBase
 	virtual void ArrangeSprites() override;
 protected:
 	virtual ~cSimpleMultiSprite()=default;
-    void CopyProperties(const cSimpleMultiSprite& source);
 public:
     enum class eBasePosition { Zero, AdjustedToBoundingBox };
 	cSimpleMultiSprite(std::vector<std::unique_ptr<cSpriteBase>> &&Sprites, eBasePosition basePosition = eBasePosition::AdjustedToBoundingBox);
     cSimpleMultiSprite() = default; // used by Clone, must be public because of make_unique
-    virtual std::unique_ptr<cSpriteBase> Clone() const override;
 };
 
 USE_DROP_INSTEAD_DELETE_PARENT(cSimpleMultiSprite, cMultiSpriteBase);
