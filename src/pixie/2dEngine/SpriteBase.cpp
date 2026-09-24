@@ -143,7 +143,7 @@ int cSpriteBase::mDebugIDCounter = 0;
 cSpriteBase::cSpriteBase()
 	: mDebugID(++mDebugIDCounter)
 {
-	mProperties.mColor.SetRGBColor(~0);
+	mColor.SetRGBColor(~0);
 }
 
 cSpriteBase::~cSpriteBase()
@@ -193,7 +193,7 @@ void cSpriteBase::SetRotation(float Rotation)
 	// 		Rotation%=360;
 	// 	else if(Rotation<0)
 	// 		Rotation=360+(Rotation%360);
-	mProperties.mRotation = Rotation;
+	mRotation = Rotation;
 	PropertiesSet(Property_Rotation);
 }
 
@@ -201,7 +201,7 @@ void cSpriteBase::SetRGBColor(cColor Color)
 {
 	if (!CheckIfChangableProperty(Property_Color))
 		return;
-	mProperties.mColor.SetRGBColor(Color.GetRGBColor());
+	mColor.SetRGBColor(Color.GetRGBColor());
 	PropertiesSet(Property_Color);
 }
 
@@ -209,7 +209,7 @@ void cSpriteBase::SetARGBColor(uint32_t Color)
 {
 	if (!CheckIfChangableProperty(Property_Color | Property_Alpha))
 		return;
-	mProperties.mColor.SetRGBColor(Color);
+	mColor.SetRGBColor(Color);
 	PropertiesSet(Property_Color | Property_Alpha);
 }
 
@@ -217,7 +217,7 @@ void cSpriteBase::SetAlpha(DWORD Alpha)
 {
 	if (!CheckIfChangableProperty(Property_Alpha))
 		return;
-	mProperties.mColor.SetAlpha(Alpha);
+	mColor.SetAlpha(Alpha);
 	PropertiesSet(Property_Alpha);
 }
 
@@ -225,11 +225,11 @@ void cSpriteBase::SetZOrder(int ZOrder)
 {
 	if (!CheckIfChangableProperty(Property_ZOrder))
 		return;
-	if (mProperties.mZOrder == ZOrder)
+	if (mZOrder == ZOrder)
 		return;
 	if (mWindow && IsVisible())
 		mWindow->RemoveSprite(this);
-	mProperties.mZOrder = ZOrder;
+	mZOrder = ZOrder;
 	if (mWindow && IsVisible())
 		mWindow->AddSprite(this);
 	PropertiesSet(Property_ZOrder);
@@ -239,9 +239,9 @@ void cSpriteBase::Show()
 {
 	if (!CheckIfChangableProperty(Property_Visibility))
 		return;
-	if (mProperties.mVisible)
+	if (mVisible)
 		return;
-	mProperties.mVisible = true;
+	mVisible = true;
 	if (mWindow)
 		mWindow->AddSprite(this);
 	PropertiesSet(Property_Visibility);
@@ -251,9 +251,9 @@ void cSpriteBase::Hide()
 {
 	if (!CheckIfChangableProperty(Property_Visibility))
 		return;
-	if (!mProperties.mVisible)
+	if (!mVisible)
 		return;
-	mProperties.mVisible = false;
+	mVisible = false;
 	if (mWindow)
 		mWindow->RemoveSprite(this);
 	PropertiesSet(Property_Visibility);

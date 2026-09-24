@@ -30,7 +30,7 @@ void cSprite::SetBlendingMode(cSpriteRenderInfo::eBlendingMode BlendingFlags)
 cSpriteRenderInfo cSprite::GetRenderInfo() const
 {
     cSpriteRenderInfo renderInfo;
-	renderInfo.mColor = mProperties.mColor;
+	renderInfo.mColor = mColor;
 	renderInfo.mRotation = GetRotation();
     renderInfo.mBlendingMode = mBlendingMode;
     renderInfo.mShader = mShader.get();

@@ -13,13 +13,10 @@ class cSpriteBase : public cPixieObject
 	static int mDebugIDCounter;
 protected:
 	cPixieWindow* mWindow = nullptr;
-	struct cProperties
-	{
-		int mZOrder = 100;
-		bool mVisible = false;
-		cColor mColor;
-		float mRotation = 0; // in degrees (because that's friendlier to work with)
-	} mProperties;
+    int mZOrder = 100;
+	bool mVisible = false;
+	cColor mColor;
+	float mRotation = 0; // in degrees (because that's friendlier to work with)
 	virtual ~cSpriteBase(); // use Drop() or Destroy()
 
 	cRect mRect;
@@ -64,12 +61,12 @@ public:
 	cRect GetRectForRendering() const; // this one includes X and Y offset
 
 
-	int GetZOrder() const { return mProperties.mZOrder; }
-	float GetRotation() const { return mProperties.mRotation; }
+	int GetZOrder() const { return mZOrder; }
+	float GetRotation() const { return mRotation; }
 
-	const cColor& GetColor() const { return mProperties.mColor; }
+	const cColor& GetColor() const { return mColor; }
 
-	auto GetAlpha() const { return mProperties.mColor.GetAlpha(); }
+	auto GetAlpha() const { return mColor.GetAlpha(); }
 
 	void SetRotation(float Rotation);
 	void SetZOrder(int ZOrder);
@@ -79,7 +76,7 @@ public:
 
 	void Show();
 	void Hide();
-	bool IsVisible() const { return mProperties.mVisible; }
+	bool IsVisible() const { return mVisible; }
 	void SetVisible(bool IsVisible);
 	void SetWindow(cPixieWindow* Window);
 	cPixieWindow* GetWindow() const { return mWindow; }

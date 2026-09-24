@@ -63,7 +63,7 @@ void cTextSprite::SetSizeToTextureSize()
 void cTextSprite::SetFont(std::shared_ptr<const cFont> Font)
 {
 	mFont=std::move(Font);
-	if(mProperties.mVisible&&mWindow)
+	if(mVisible&&mWindow)
 		NeedTextureUpdate();
 	else
 		SetTexture(tIntrusivePtr<cTexture>());
@@ -84,7 +84,7 @@ void cTextSprite::SetAlignment(eHorizontalAlign Horizontal, eVerticalAlign Verti
 void cTextSprite::SetText(const std::string &Text)
 {
 	mText=Text;
-	if(mProperties.mVisible&&mWindow)
+	if(mVisible&&mWindow)
 		NeedTextureUpdate();
 	else
 		SetTexture(tIntrusivePtr<cTexture>());

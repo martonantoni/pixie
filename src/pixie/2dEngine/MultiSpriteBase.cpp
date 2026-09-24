@@ -23,15 +23,15 @@ void cMultiSpriteBase::PropertiesChanged(unsigned int Properties)
 	}
 	if(Properties&Property_Color)
 	{
-		ForEachSprite([NewColor=mProperties.mColor.GetRGBColor()](cSpriteBase &Sprite) { Sprite.SetRGBColor(NewColor); });
+		ForEachSprite([NewColor=mColor.GetRGBColor()](cSpriteBase &Sprite) { Sprite.SetRGBColor(NewColor); });
 	}
 	if(Properties&Property_Alpha)
 	{
-		ForEachSprite([Alpha=mProperties.mColor.GetAlpha()](cSpriteBase &Sprite) { Sprite.SetAlpha(Alpha); });
+		ForEachSprite([Alpha=mColor.GetAlpha()](cSpriteBase &Sprite) { Sprite.SetAlpha(Alpha); });
 	}
 	if(Properties&Property_ZOrder)
 	{
-		auto Change=mProperties.mZOrder-mSprites.front()->GetZOrder();
+		auto Change=mZOrder-mSprites.front()->GetZOrder();
 		ForEachSprite([Change](cSpriteBase &Sprite) { Sprite.SetZOrder(Sprite.GetZOrder()+Change); });
 	}
 	if(Properties&Property_Window)
