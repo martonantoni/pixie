@@ -20,7 +20,6 @@ protected:
 		cColor mColor;
 		float mRotation = 0; // in degrees (because that's friendlier to work with)
 	} mProperties;
-	bool mIsColorSet = false;
 	virtual ~cSpriteBase(); // use Drop() or Destroy()
 
 	cRect mRect;

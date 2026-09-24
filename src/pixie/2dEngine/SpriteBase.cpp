@@ -202,7 +202,6 @@ void cSpriteBase::SetRGBColor(cColor Color)
 	if (!CheckIfChangableProperty(Property_Color))
 		return;
 	mProperties.mColor.SetRGBColor(Color.GetRGBColor());
-	mIsColorSet = true;
 	PropertiesSet(Property_Color);
 }
 
@@ -211,7 +210,6 @@ void cSpriteBase::SetARGBColor(uint32_t Color)
 	if (!CheckIfChangableProperty(Property_Color | Property_Alpha))
 		return;
 	mProperties.mColor.SetRGBColor(Color);
-	mIsColorSet = true;
 	PropertiesSet(Property_Color | Property_Alpha);
 }
 

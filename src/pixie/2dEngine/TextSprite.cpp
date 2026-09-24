@@ -3,8 +3,6 @@
 void cTextSprite::ConstructorCommon()
 {
 	mLockedProperties|=Property_PositionOffset;
-// 	mProperties.mColor.SetRGBColor(0);
-// 	mIsColorSet=false;
 }
 
 cTextSprite::cTextSprite()
