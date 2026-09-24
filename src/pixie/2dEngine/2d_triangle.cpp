@@ -9,7 +9,7 @@ bool c2DTriangle::GetProperty(unsigned int PropertyFlags, OUT cPropertyValues& V
     case Property_P2: Value = mPoints[1]; return true;
     case Property_P3: Value = mPoints[2]; return true;
     }
-    return c2DRenderable::GetProperty(PropertyFlags, Value);
+    return cSpriteBase::GetProperty(PropertyFlags, Value);
 }
 
 bool c2DTriangle::SetProperty(unsigned int PropertyFlags, const cPropertyValues& Value)
@@ -22,7 +22,7 @@ bool c2DTriangle::SetProperty(unsigned int PropertyFlags, const cPropertyValues&
     case Property_P2: mPoints[1] = Value.ToPoint(); return true;
     case Property_P3: mPoints[2] = Value.ToPoint(); return true;
     }
-    return c2DRenderable::SetProperty(PropertyFlags, Value);
+    return cSpriteBase::SetProperty(PropertyFlags, Value);
 }
 
 void c2DTriangle::setPoints(const cPoint& p1, const cPoint& p2, const cPoint& p3)

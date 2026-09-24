@@ -1,6 +1,6 @@
 #pragma once
 
-class c2DTriangle : public c2DRenderable
+class c2DTriangle : public cSpriteBase
 {
 protected:
     std::array<cPoint, 3> mPoints;
@@ -19,6 +19,6 @@ void c2DTriangle::setPoints(const auto& points)
     mPoints = points;
 }
 
-USE_DROP_INSTEAD_DELETE_PARENT(c2DTriangle, c2DRenderable);
+USE_DROP_INSTEAD_DELETE_PARENT(c2DTriangle, cSpriteBase);
 
 
