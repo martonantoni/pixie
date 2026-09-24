@@ -20,10 +20,6 @@ bool cSpriteBase::GetProperty(unsigned int PropertyFlags, OUT cPropertyValues& P
 	case Property_ZOrder: PropertyValues = GetZOrder(); return true;
 	case Property_Alpha: PropertyValues = GetAlpha(); return true;
 	case Property_Color: PropertyValues = GetColor(); return true;
-	case Property_ShaderParam0: PropertyValues = getShaderParam(0); return true;
-	case Property_ShaderParam1: PropertyValues = getShaderParam(1); return true;
-	case Property_ShaderParam2: PropertyValues = getShaderParam(2); return true;
-	case Property_ShaderParam3: PropertyValues = getShaderParam(3); return true;
 	}
 	ASSERT(false);
 	return false;
@@ -39,10 +35,6 @@ bool cSpriteBase::SetProperty(unsigned int PropertyFlags, const cPropertyValues&
 	case Property_ZOrder: SetZOrder(Value.ToInt()); return true;
 	case Property_Alpha: SetAlpha(Value.ToInt()); return true;
 	case Property_Color: SetRGBColor(Value.ToRGBColor()); return true;
-	case Property_ShaderParam0: setShaderParam(0, Value.ToFloat()); return true;
-	case Property_ShaderParam1: setShaderParam(1, Value.ToFloat()); return true;
-	case Property_ShaderParam2: setShaderParam(2, Value.ToFloat()); return true;
-	case Property_ShaderParam3: setShaderParam(3, Value.ToFloat()); return true;
 	case Property_X: SetPosition(Value.ToInt(), GetY()); return true;
 	case Property_Y: SetPosition(GetX(), Value.ToInt()); return true;
 	case Property_W: SetSize(Value.ToInt(), GetHeight()); return true;
@@ -245,26 +237,6 @@ void cSpriteBase::SetZOrder(int ZOrder)
 	PropertiesSet(Property_ZOrder);
 }
 
-void cSpriteBase::setShader(std::shared_ptr<cPixelShader> Shader)
-{
-	if (!CheckIfChangableProperty(Property_Shader))
-		return;
-	if (mProperties.mShader == Shader)
-		return;
-	mProperties.mShader = Shader;
-	PropertiesChanged(Property_Shader);
-}
-
-void cSpriteBase::setShader(const std::string& shaderId)
-{
-	auto shader = theShaderManager->pixelShader(shaderId);
-	if (!shader)
-	{
-		MainLog->Log("Warning: Shader '{}' not found.", shaderId);
-	}
-	setShader(std::move(shader));
-}
-
 void cSpriteBase::Show()
 {
 	if (!CheckIfChangableProperty(Property_Visibility))
@@ -309,31 +281,7 @@ void cSpriteBase::SetWindow(cPixieWindow* Window)
 	PropertiesChanged(Property_Window);
 }
 
-void cSpriteBase::setShaderParam(int index, float value)
-{
-	ASSERT(index >= 0 && index < 4);
-	unsigned int flag = Property_ShaderParam0 << index;
-	if (!CheckIfChangableProperty(flag))
-		return;
-	if (mProperties.mShaderParameters[index] == value)
-		return;
-	mProperties.mShaderParameters[index] = value;
-	PropertiesChanged(flag);
-}
 
-float cSpriteBase::getShaderParam(int index) const
-{
-	return mProperties.mShaderParameters[index];
-}
-
-int cSpriteBase::shaderParamIndex(std::string_view name) const
-{
-	if (!mProperties.mShader)
-	{
-		throw std::runtime_error("No shader set for this renderable.");
-	}
-	return mProperties.mShader->parameterIndex(name);
-}
 
 
 
@@ -367,28 +315,3 @@ bool cSpriteBase::SetStringProperty(unsigned int PropertyFlags, const std::strin
 	return false;
 }
 
-tIntrusivePtr<cPixieObjectAnimator> blendShaderParam(
-	cSpriteBase& sprite,
-	int paramOffset,
-	float targetValue,
-	int blendTime)
-{
-	std::print("blendShaderParam called with paramOffset: {}, targetValue: {}, blendTime: {}\n", paramOffset, targetValue, blendTime);
-	ASSERT(paramOffset >= 0 && paramOffset <= 3);
-	return cGeneralPixieObjectBlender::BlendObject(sprite, cPixieObject::cPropertyValues(targetValue), cPixieObject::Property_ShaderParam0 << paramOffset, blendTime);
-}
-
-tIntrusivePtr<cPixieObjectAnimator> blendShaderParam(
-	cSpriteBase& sprite,
-	std::string_view paramID,
-	float targetValue,
-	int blendTime)
-{
-	auto index = sprite.shaderParamIndex(paramID);
-	if (index < 0)
-	{
-		ASSERTFALSE("Invalid shader parameter ID");
-		return nullptr;
-	}
-	return cGeneralPixieObjectBlender::BlendObject(sprite, targetValue, cPixieObject::Property_ShaderParam0 << index, blendTime);
-}

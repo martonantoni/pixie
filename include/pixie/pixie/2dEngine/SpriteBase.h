@@ -19,8 +19,6 @@ protected:
 		bool mVisible = false;
 		cColor mColor;
 		float mRotation = 0; // in degrees (because that's friendlier to work with)
-		std::shared_ptr<cPixelShader> mShader;
-		float mShaderParameters[4] = { 0, 0, 0, 0 };
 	} mProperties;
 	bool mIsColorSet = false;
 	virtual ~cSpriteBase(); // use Drop() or Destroy()
@@ -80,13 +78,6 @@ public:
 	void SetARGBColor(uint32_t Color);
 	void SetAlpha(DWORD Alpha); // 0 - 255, 0: solid, 255: transparent
 
-	void setShader(std::shared_ptr<cPixelShader> Shader);
-	void setShader(const std::string& shaderId);
-	std::shared_ptr<cPixelShader> getShader() const { return mProperties.mShader; }
-	void setShaderParam(int index, float value);
-	float getShaderParam(int index) const;
-	int shaderParamIndex(std::string_view name) const; // throws if not found
-
 	void Show();
 	void Hide();
 	bool IsVisible() const { return mProperties.mVisible; }
@@ -101,15 +92,7 @@ public:
 
 	virtual cSpriteRenderInfo GetRenderInfo() const { return cSpriteRenderInfo(); }
 	virtual void updateTextures() {}
-
 };
 
 USE_DROP_INSTEAD_DELETE(cSpriteBase);
-
-tIntrusivePtr<cPixieObjectAnimator> blendShaderParam(
-	cSpriteBase& sprite, int paramOffset, float targetValue, int blendTime);
-
-tIntrusivePtr<cPixieObjectAnimator> blendShaderParam(
-	cSpriteBase& sprite, std::string_view paramID, float targetValue, int blendTime);
-
 
