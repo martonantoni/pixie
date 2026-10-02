@@ -33,6 +33,9 @@ void cPixelShader::extractMetaInfo(std::string_view sourceCode)
 
     mParameterNames.fill({});
 
+    std::string configSource;
+    bool inConfig = false;
+
     for (auto&& lineRange : sourceCode | std::views::split('\n'))
     {
         std::string line(lineRange.begin(), lineRange.end());
@@ -41,27 +44,59 @@ void cPixelShader::extractMetaInfo(std::string_view sourceCode)
         if (commentPos == std::string::npos)
             continue;
 
-        std::istringstream input(line.substr(commentPos + 2));
+        std::string_view comment(line.data() + commentPos + 2, line.size() - commentPos - 2);
 
-        std::string id;
-        input >> id;
-
-        if (id == "@param" || id == "@texture")
+        if (comment.find("@cfg") != std::string_view::npos)
         {
-            std::string name;
-            int index;
+            inConfig = true;
+            continue;
+        }
 
-            if (input >> name >> index &&
-                index >= 0 &&
-                index < static_cast<int>(mParameterNames.size()))
-            {
-                if (id == "@param")
-                    mParameterNames[index] = std::move(name);
-                else if (id == "@texture")
-                    mTextureSlotNames[index] = std::move(name);
-            }
-        }        
+        if (comment.find("@endcfg") != std::string_view::npos)
+            break;
+
+        if (inConfig)
+        {
+            configSource.append(comment);
+            configSource += '\n';
+        }
     }
+
+    auto config = cLuaState::stringToConfig(configSource);
+    mConstants = config->getSubOrEmptyConfig("constants");
+    config->forEachSubConfig([&](const std::string& key, const cConfig& subConfig)
+        {
+            if (key == "texture_slots")
+            {
+                subConfig.forEachString([&](int idx, const std::string& slotName)
+                    {
+                        if (idx >= 0 && idx < mTextureSlotNames.size())
+                        {
+                            mTextureSlotNames[idx] = slotName;
+                        }
+                    });
+            }
+            else if(key == "parameters")
+            {
+                subConfig.forEachString([&](int idx, const std::string& paramName)
+                    {
+                        if (idx >= 0 && idx < mParameterNames.size())
+                        {
+                            mParameterNames[idx] = paramName;
+                        }
+                    });
+            }
+            else if (key == "textures")
+            {
+                subConfig.forEachString([&](int idx, const std::string& textureName)
+                    {
+                        if (idx >= 0 && idx < mDefaultTextures.size())
+                        {
+                            mDefaultTextures[idx] = textureName;
+                        }
+                    });
+            }
+        });
 }
 
 int cPixelShader::parameterIndex(std::string_view name) const
