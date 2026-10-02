@@ -310,30 +310,41 @@ void cSpriteRenderer::RenderSprites()
             1,
             &buffer);
     }
+    ID3D11ShaderResourceView* nullTextures[4] = {};
+    mDeviceContext->PSSetShaderResources(0, 4, nullTextures);
 
     renderSprites(mBaseWindow, renderState);
     flushBuffer(renderState.batchVertices, renderState.NumberOfBatchedVertices, false);
 }
 
-void cSpriteRenderer::flushBuffer(cSpriteVertexData*& batchVertices, int &NumberOfBatchedVertices, bool RelockBuffer)
+void cSpriteRenderer::flushBuffer(cSpriteVertexData*& batchVertices, int &numberOfBatchedVertices, bool relockBuffer)
 {
-    if (NumberOfBatchedVertices == 0)
-        return;
-
-    mDeviceContext->Unmap(mVertexBuffer, 0);
-    batchVertices = nullptr;
-
-    if (NumberOfBatchedVertices)
+    if (batchVertices)
     {
-        mDeviceContext->DrawIndexed(NumberOfBatchedVertices / 4 * 6, 0, 0);
-        NumberOfBatchedVertices = 0;
+        mDeviceContext->Unmap(mVertexBuffer, 0);
+        batchVertices = nullptr;
     }
 
-    if (RelockBuffer)
+    if (numberOfBatchedVertices)
+    {
+        mDeviceContext->DrawIndexed(
+            numberOfBatchedVertices / 4 * 6, 0, 0);
+
+        numberOfBatchedVertices = 0;
+    }
+
+    if (relockBuffer)
     {
         D3D11_MAPPED_SUBRESOURCE mapped = {};
-        D3V(mDeviceContext->Map(mVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped));
-        batchVertices = static_cast<cSpriteVertexData *>(mapped.pData);
+        D3V(mDeviceContext->Map(
+            mVertexBuffer,
+            0,
+            D3D11_MAP_WRITE_DISCARD,
+            0,
+            &mapped));
+
+        batchVertices =
+            static_cast<cSpriteVertexData*>(mapped.pData);
     }
 }
 
@@ -356,8 +367,8 @@ void cSpriteRenderer::UpdateRenderTargetState()
     ASSERT(mRenderSurface);
     ASSERT(mRenderSurfaceWidth > 0 && mRenderSurfaceHeight > 0);
 
-    ID3D11ShaderResourceView *nullView = nullptr;
-    mDeviceContext->PSSetShaderResources(0, 1, &nullView);
+    ID3D11ShaderResourceView* nullViews[4] = {};
+    mDeviceContext->PSSetShaderResources(0, 4, nullViews);
     mDeviceContext->OMSetRenderTargets(1, &mRenderSurface, nullptr);
 
     D3D11_VIEWPORT viewport = {};
