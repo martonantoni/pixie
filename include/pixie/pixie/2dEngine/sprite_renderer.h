@@ -11,7 +11,7 @@ public:
         float x;
         float y;
         uint32_t color;
-        cFloatPoint textureCoord;
+        cFloatPoint textureCoord[4];
         float edgeDistances[4]; // distances to the edges of the sprite (left, top, right, bottom)
         float mShaderParameters[4];
     };

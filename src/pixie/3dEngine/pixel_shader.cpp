@@ -14,7 +14,12 @@ void cPixelShader::compile(std::string_view sourceCode)
         auto device = cDevice::Get();
         if(mShader)
             mShader->Release();
+        mShader = nullptr;
         D3V(device->GetD3DObject()->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &mShader));
+        {
+            cLog debugLog(std::format("debug/{}_ps.txt", name()), cLog::Flags::TRUNCATE);
+            dumpDebugInfo(debugLog, blob, true);
+        }
         extractMetaInfo(sourceCode);
     }
 }

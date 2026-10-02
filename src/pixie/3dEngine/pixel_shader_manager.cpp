@@ -59,7 +59,7 @@ void cShaderManager::init()
             shaderName = shaderName.substr(0, shaderName.find_last_of('_'));
             if (shaderTypeString == "ps")
             {
-                auto pixelShader = std::make_shared<cPixelShader>(shaderSource);
+                auto pixelShader = std::make_shared<cPixelShader>(shaderName, shaderSource);
                 if (*pixelShader)
                 {
                     mPixelShaders[shaderName] = pixelShader;
@@ -68,7 +68,7 @@ void cShaderManager::init()
             }
             else if (shaderTypeString == "vs")
             {
-                auto vertexShader = std::make_shared<cVertexShader>(shaderSource);
+                auto vertexShader = std::make_shared<cVertexShader>(shaderName, shaderSource);
                 if (*vertexShader)
                 {
                     mVertexShaders[shaderName] = vertexShader;

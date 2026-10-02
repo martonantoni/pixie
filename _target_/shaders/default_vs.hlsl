@@ -38,10 +38,10 @@ VSOutput VSMain(VSInput input)
     clipPosition.x = input.Position.x * (2.0f / TargetSize.x) - 1.0f;
     clipPosition.y = 1.0f - input.Position.y * (2.0f / TargetSize.y);
 
-    output.Position = float4(clipPosition, input.Position.z, 1.0f);
-    output.Color = UnpackARGB(input.Color);
-    output.TexCoord = input.TexCoord;
-	output.Parameters = input.Parameters;
+    output.position = float4(clipPosition, input.Position.z, 1.0f);
+    output.color = UnpackARGB(input.Color);
+    output.texCoord = input.TexCoord;
+	output.parameters = input.Parameters;
 
     return output;
 }

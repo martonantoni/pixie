@@ -8,7 +8,7 @@ class cPixelShader final: public cShader
     std::array<std::string, 4> mTextureSlotNames;
     void extractMetaInfo(std::string_view sourceCode);
 public:
-    cPixelShader(std::string_view sourceCode) { compile(sourceCode); }
+    cPixelShader(const std::string& name, std::string_view sourceCode) : cShader(name) { compile(sourceCode); }
     virtual ~cPixelShader();
     void compile(std::string_view sourceCode);
 

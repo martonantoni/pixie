@@ -223,7 +223,10 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
         batchVertices[NumberOfBatchedVertices].color = RenderInfo.mColor.GetARGBColor();
         batchVertices[NumberOfBatchedVertices].x = TopLeft.x;
         batchVertices[NumberOfBatchedVertices].y = TopLeft.y;
-        batchVertices[NumberOfBatchedVertices].textureCoord = RenderInfo.mTextureRects[0].topLeft();
+        for (int i = 0; i < 4; ++i)
+        {
+            batchVertices[NumberOfBatchedVertices].textureCoord[i] = RenderInfo.mTextureRects[i].topLeft();
+        }
         batchVertices[NumberOfBatchedVertices].edgeDistances[0] = 0.0f; // Top edge distance
         batchVertices[NumberOfBatchedVertices].edgeDistances[1] = 0.0f; // Right edge distance
         batchVertices[NumberOfBatchedVertices].edgeDistances[2] = width; // Bottom edge distance
@@ -234,7 +237,10 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
         batchVertices[NumberOfBatchedVertices + 1].color = RenderInfo.mColor.GetARGBColor();
         batchVertices[NumberOfBatchedVertices + 1].x = TopRight.x;
         batchVertices[NumberOfBatchedVertices + 1].y = TopRight.y;
-        batchVertices[NumberOfBatchedVertices + 1].textureCoord = RenderInfo.mTextureRects[0].topRight();
+        for (int i = 0; i < 4; ++i)
+        {
+            batchVertices[NumberOfBatchedVertices + 1].textureCoord[i] = RenderInfo.mTextureRects[i].topRight();
+        }
         batchVertices[NumberOfBatchedVertices + 1].edgeDistances[0] = width; // Top edge distance
         batchVertices[NumberOfBatchedVertices + 1].edgeDistances[1] = 0.0f; // Right edge distance
         batchVertices[NumberOfBatchedVertices + 1].edgeDistances[2] = 0.0f; // Bottom edge distance
@@ -245,7 +251,10 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
         batchVertices[NumberOfBatchedVertices + 2].color = RenderInfo.mColor.GetARGBColor();
         batchVertices[NumberOfBatchedVertices + 2].x = BottomRight.x;
         batchVertices[NumberOfBatchedVertices + 2].y = BottomRight.y;
-        batchVertices[NumberOfBatchedVertices + 2].textureCoord = RenderInfo.mTextureRects[0].bottomRight();
+        for (int i = 0; i < 4; ++i)
+        {
+            batchVertices[NumberOfBatchedVertices + 2].textureCoord[i] = RenderInfo.mTextureRects[i].bottomRight();
+        }
         batchVertices[NumberOfBatchedVertices + 2].edgeDistances[0] = width; // Top edge distance
         batchVertices[NumberOfBatchedVertices + 2].edgeDistances[1] = height; // Right edge distance
         batchVertices[NumberOfBatchedVertices + 2].edgeDistances[2] = 0.0f; // Bottom edge distance
@@ -256,7 +265,10 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
         batchVertices[NumberOfBatchedVertices + 3].color = RenderInfo.mColor.GetARGBColor();
         batchVertices[NumberOfBatchedVertices + 3].x = BottomLeft.x;
         batchVertices[NumberOfBatchedVertices + 3].y = BottomLeft.y;
-        batchVertices[NumberOfBatchedVertices + 3].textureCoord = RenderInfo.mTextureRects[0].bottomLeft();
+        for (int i = 0; i < 4; ++i)
+        {
+            batchVertices[NumberOfBatchedVertices + 3].textureCoord[i] = RenderInfo.mTextureRects[i].bottomLeft();
+        }
         batchVertices[NumberOfBatchedVertices + 3].edgeDistances[0] = 0.0f; // Top edge distance
         batchVertices[NumberOfBatchedVertices + 3].edgeDistances[1] = height; // Right edge distance
         batchVertices[NumberOfBatchedVertices + 3].edgeDistances[2] = width; // Bottom edge distance

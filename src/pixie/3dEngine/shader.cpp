@@ -60,29 +60,68 @@ ID3DBlob* cShader::compile(std::string_view sourceCode, const std::string& entry
     if (errors)
         errors->Release();
 
-#ifdef _DEBUG
-    //if (shader)
-    //{
-    //    ID3DBlob* disassembly = nullptr;
-
-    //    if (SUCCEEDED(D3DDisassemble(
-    //        shader->GetBufferPointer(),
-    //        shader->GetBufferSize(),
-    //        0,
-    //        nullptr,
-    //        &disassembly)))
-    //    {
-    //        std::string text(
-    //            static_cast<const char*>(disassembly->GetBufferPointer()),
-    //            disassembly->GetBufferSize());
-
-    //        MainLog->Log("Shader disassembly:\n%s", text.c_str());
-
-    //        disassembly->Release();
-    //    }
-    //}
-#endif
-
-
     return shader;
+}
+
+void cShader::dumpDebugInfo(cLog& log, ID3DBlob* blob, bool input)
+{
+    {
+        ID3D11ShaderReflection* reflection = nullptr;
+
+        D3DReflect(
+            blob->GetBufferPointer(),
+            blob->GetBufferSize(),
+            __uuidof(ID3D11ShaderReflection),
+            reinterpret_cast<void**>(&reflection));
+
+        D3D11_SHADER_DESC shaderDesc;
+        reflection->GetDesc(&shaderDesc);
+
+        const UINT count = input
+            ? shaderDesc.InputParameters
+            : shaderDesc.OutputParameters;
+
+        for (UINT i = 0; i < count; ++i)
+        {
+            D3D11_SIGNATURE_PARAMETER_DESC desc;
+
+            if (input)
+                reflection->GetInputParameterDesc(i, &desc);
+            else
+                reflection->GetOutputParameterDesc(i, &desc);
+
+            log.Log(
+                "{}{} register={} mask={:x} type={}",
+                desc.SemanticName,
+                desc.SemanticIndex,
+                desc.Register,
+                desc.Mask,
+                static_cast<int>(desc.ComponentType));
+        }
+
+        reflection->Release();
+    }
+
+
+    //if (shader)
+    {
+        ID3DBlob* disassembly = nullptr;
+
+        if (SUCCEEDED(D3DDisassemble(
+        blob->GetBufferPointer(),
+            blob->GetBufferSize(),
+                    0,
+            nullptr,
+            &disassembly)))
+        {
+            std::string text(
+                static_cast<const char*>(disassembly->GetBufferPointer()),
+                disassembly->GetBufferSize());
+
+            log.Log("\n\n------------------ Shader disassembly ------------------\n\n\n{}", text.c_str());
+
+            disassembly->Release();
+        }
+    }
+
 }

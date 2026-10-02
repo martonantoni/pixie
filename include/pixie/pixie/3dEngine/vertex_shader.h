@@ -6,7 +6,7 @@ class cVertexShader final : public cShader
     ID3D11VertexShader* mShader = nullptr;
     ID3D11InputLayout* mInputLayout = nullptr;
 public:
-    cVertexShader(std::string_view sourceCode) { compile(sourceCode); }
+    cVertexShader(const std::string& name, std::string_view sourceCode) : cShader(name) { compile(sourceCode); }
     virtual ~cVertexShader();
     void compile(std::string_view sourceCode);
 
