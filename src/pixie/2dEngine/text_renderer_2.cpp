@@ -220,6 +220,7 @@ cTextRenderer2BlockResult cTextRenderer2::render(const cTextRenderer2Block& bloc
                         auto& letterData = font.letterData(decodedChar);
                         auto sprite = std::make_unique<cSprite>();
                         sprite->setTextureAndSize(letterData.mTexture);
+                        sprite->setShader("default_text");
                         sprite->SetWindow(mTarget.mWindow);
                         sprite->SetRGBColor(color);
                         sprite->SetPosition(position + letterData.offset());
@@ -317,6 +318,7 @@ cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
             auto& letterData = headerFont.letterData(decodedChar);
             auto sprite = std::make_unique<cSprite>();
             sprite->setTextureAndSize(letterData.mTexture);
+            sprite->setShader("default_text");
             sprite->SetZOrder(100);
             sprite->SetWindow(mTarget.mWindow);
             sprite->SetRGBColor("white");
@@ -341,6 +343,7 @@ cTextRenderer2BlockResult cTextRenderer2::renderCodeBlock(const cBlock& block)
             auto& letterData = font.letterData(decodedChar);
             auto sprite = std::make_unique<cSprite>();
             sprite->setTextureAndSize(letterData.mTexture);
+            sprite->setShader("default_text");
             sprite->SetZOrder(100);
             sprite->SetWindow(mTarget.mWindow);
             sprite->SetRGBColor(mConfig.mColors.mDefaultColor);

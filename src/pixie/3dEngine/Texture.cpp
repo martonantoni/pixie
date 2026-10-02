@@ -176,6 +176,84 @@ tIntrusivePtr<cTexture> cTexture::CreateWriteable(cPoint Size)
     return NewTexture;
 }
 
+tIntrusivePtr<cTexture> cTexture::CreateFromData(cPoint size, std::span<const float> data)
+{
+    ASSERT(data.size() == static_cast<size_t>(size.x * size.y));
+
+    auto texture = tIntrusivePtr<cTexture>(
+        new cTexture(cTextureRect(size)));
+
+    texture->mSurfaceWidth = size.x;
+    texture->mSurfaceHeight = size.y;
+
+    D3D11_TEXTURE2D_DESC desc = {};
+    desc.Width = size.x;
+    desc.Height = size.y;
+    desc.MipLevels = 1;
+    desc.ArraySize = 1;
+    desc.Format = DXGI_FORMAT_R32_FLOAT;
+    desc.SampleDesc.Count = 1;
+    desc.Usage = D3D11_USAGE_IMMUTABLE;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+    D3D11_SUBRESOURCE_DATA initialData = {};
+    initialData.pSysMem = data.data();
+    initialData.SysMemPitch = size.x * sizeof(float);
+
+    auto device = cDevice::Get()->GetD3DObject();
+
+    D3V(device->CreateTexture2D(
+        &desc,
+        &initialData,
+        &texture->mTexture));
+
+    D3V(device->CreateShaderResourceView(
+        texture->mTexture,
+        nullptr,
+        &texture->mShaderResourceView));
+
+    return texture;
+}
+
+tIntrusivePtr<cTexture> cTexture::CreateFromData(cPoint size, std::span<const uint8_t> data)
+{
+    ASSERT(data.size() == static_cast<size_t>(size.x) * size.y);
+
+    tIntrusivePtr<cTexture> texture(
+        new cTexture(cTextureRect(size)));
+
+    texture->mSurfaceWidth = size.x;
+    texture->mSurfaceHeight = size.y;
+
+    D3D11_TEXTURE2D_DESC desc = {};
+    desc.Width = size.x;
+    desc.Height = size.y;
+    desc.MipLevels = 1;
+    desc.ArraySize = 1;
+    desc.Format = DXGI_FORMAT_R8_UNORM;
+    desc.SampleDesc.Count = 1;
+    desc.Usage = D3D11_USAGE_IMMUTABLE;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+    D3D11_SUBRESOURCE_DATA initialData = {};
+    initialData.pSysMem = data.data();
+    initialData.SysMemPitch = size.x;
+
+    auto device = cDevice::Get()->GetD3DObject();
+
+    D3V(device->CreateTexture2D(
+        &desc,
+        &initialData,
+        &texture->mTexture));
+
+    D3V(device->CreateShaderResourceView(
+        texture->mTexture,
+        nullptr,
+        &texture->mShaderResourceView));
+
+    return texture;
+}
+
 void cTexture::SetAsRenderTarget()
 {
     ASSERT(mSurface);

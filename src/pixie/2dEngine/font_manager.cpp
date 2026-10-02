@@ -43,6 +43,7 @@ std::shared_ptr<const cFont> cFontManager::makeFont(const std::string& fileName,
 	struct cLetterData
 	{
 		cPoint mPos;
+		cRect mRect;
 	};
 	std::vector<cLetterData> LetterData;
 	std::vector<int> Sizes;
@@ -119,15 +120,16 @@ std::shared_ptr<const cFont> cFontManager::makeFont(const std::string& fileName,
 		});
 		break;
 	}
-	cTexture::cLockInfo LockInfo=Font.mAtlasTexture->LockSurface(cTexture::IsReadOnly::no);
-	for (int y = 0; y < Font.mAtlasTexture->GetSurfaceHeight(); ++y)
-	{
-		memset(LockInfo.mBytes + y * LockInfo.mPitch, 0xff, Font.mAtlasTexture->GetSurfaceWidth() * 4);
-		for (int x = 0; x < Font.mAtlasTexture->GetSurfaceWidth(); ++x)
-		{
-			*(LockInfo.mBytes + y * LockInfo.mPitch + x*4 + 3) = 0;
-		}
-	}
+	std::vector<uint8_t> atlasPixels(static_cast<size_t>(textureSize)* textureSize, 0);
+	//cTexture::cLockInfo LockInfo=Font.mAtlasTexture->LockSurface(cTexture::IsReadOnly::no);
+	//for (int y = 0; y < Font.mAtlasTexture->GetSurfaceHeight(); ++y)
+	//{
+	//	memset(LockInfo.mBytes + y * LockInfo.mPitch, 0xff, Font.mAtlasTexture->GetSurfaceWidth() * 4);
+	//	for (int x = 0; x < Font.mAtlasTexture->GetSurfaceWidth(); ++x)
+	//	{
+	//		*(LockInfo.mBytes + y * LockInfo.mPitch + x*4 + 3) = 0;
+	//	}
+	//}
 
 	Index=-1;
 
@@ -142,26 +144,50 @@ std::shared_ptr<const cFont> cFontManager::makeFont(const std::string& fileName,
 
 		cLetterData &ThisLetterData=LetterData[Index];
 
-		for(int row=0; row<bitmap->bitmap.rows; ++row)
+		for (int row = 0; row < bitmap->bitmap.rows; ++row)
 		{
-			char *dest=LockInfo.mBytes+ThisLetterData.mPos.x*4+(ThisLetterData.mPos.y+row)*LockInfo.mPitch;
-			unsigned char *source=bitmap->bitmap.buffer+row*bitmap->bitmap.pitch;
-			for(int x=0; x<bitmap->bitmap.width; ++x)
-			{
-				*(unsigned int*)dest = (((unsigned int)*source) << 24) | 0xff'ff'ff;
-				dest+=4;
-				++source;
-			}
+			auto* dest =
+				atlasPixels.data() +
+				ThisLetterData.mPos.x +
+				(ThisLetterData.mPos.y + row) * textureSize;
+
+			auto* source =
+				bitmap->bitmap.buffer +
+				row * bitmap->bitmap.pitch;
+
+			std::memcpy(
+				dest,
+				source,
+				bitmap->bitmap.width);
 		}
 		FontLetterData.mXOffset=bitmap->left;
 		FontLetterData.mYOffset=YMaxMax-bitmap->top;
+		LetterData[Index].mRect = cRect(
+			ThisLetterData.mPos,
+			{
+				static_cast<int>(bitmap->bitmap.width),
+				static_cast<int>(bitmap->bitmap.rows)
+			});
 		ASSERT(FontLetterData.mYOffset>=0);
 		FontLetterData.mTexture=Font.mAtlasTexture->CreateSubTexture(
 			cRect(ThisLetterData.mPos, { (int)bitmap->bitmap.width, (int)bitmap->bitmap.rows }));
 
 		FT_Done_Glyph(Glyphs[Index]);
 	});
-	Font.mAtlasTexture->UnlockSurface();
+//	Font.mAtlasTexture->UnlockSurface();
+	Font.mAtlasTexture = cTexture::CreateFromData(
+		{ textureSize, textureSize },
+		atlasPixels);
+	Index = -1;
+
+	ForEachLetter([&](auto Letter, auto& FontLetterData)
+		{
+			++Index;
+
+			FontLetterData.mTexture =
+				Font.mAtlasTexture->CreateSubTexture(
+					LetterData[Index].mRect);
+		});
 	FT_Done_Face(face);
 	FT_Done_Library(library);
 

@@ -1,3 +1,5 @@
+#include "ps_input"
+
 cbuffer SpriteConstants : register(b0)
 {
     float2 TargetSize;
@@ -6,19 +8,16 @@ cbuffer SpriteConstants : register(b0)
 
 struct VSInput
 {
-    float3 Position : POSITION;
+    float2 ScreenPos : POSITION; // Screen position in pixels
     uint Color : COLOR;
-    float2 TexCoord : TEXCOORD0;
-    float4 Parameters : PARAM;
-};
 
-struct VSOutput
-{
-    float4 Position : SV_POSITION;
-    float4 Color : COLOR;
-    float2 TexCoord : TEXCOORD0;
-    float4 Parameters : TEXCOORD1;
-    float4 PixelPos : TEXCOORD4;
+    float2 TexCoord0 : TEXCOORD0;
+    float2 TexCoord1 : TEXCOORD1;
+    float2 TexCoord2 : TEXCOORD2;
+    float2 TexCoord3 : TEXCOORD3;
+
+    float4 PixelPos : TEXCOORD4; // Position within the sprite in pixels from each border (left, top, right, bottom)
+    float4 Parameters : PARAM;
 };
 
 float4 UnpackARGB(uint color)
@@ -35,13 +34,19 @@ VSOutput VSMain(VSInput input)
     VSOutput output;
 
     float2 clipPosition;
-    clipPosition.x = input.Position.x * (2.0f / TargetSize.x) - 1.0f;
-    clipPosition.y = 1.0f - input.Position.y * (2.0f / TargetSize.y);
+    clipPosition.x = input.ScreenPos.x * (2.0f / TargetSize.x) - 1.0f;
+    clipPosition.y = 1.0f - input.ScreenPos.y * (2.0f / TargetSize.y);
 
-    output.position = float4(clipPosition, input.Position.z, 1.0f);
+    output.screenPosition = float4(clipPosition, 0.5f, 1.0f);
     output.color = UnpackARGB(input.Color);
-    output.texCoord = input.TexCoord;
-	output.parameters = input.Parameters;
+
+    output.texCoord = input.TexCoord0;
+    output.texCoord1 = input.TexCoord1;
+    output.texCoord2 = input.TexCoord2;
+    output.texCoord3 = input.TexCoord3;
+
+    output.params = input.Parameters;
+    output.pixelPos = input.PixelPos;
 
     return output;
 }

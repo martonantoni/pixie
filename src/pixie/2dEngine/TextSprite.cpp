@@ -3,6 +3,7 @@
 void cTextSprite::ConstructorCommon()
 {
 	mLockedProperties|=Property_PositionOffset;
+    mShader = theShaderManager->pixelShader("default_text");
 }
 
 cTextSprite::cTextSprite()

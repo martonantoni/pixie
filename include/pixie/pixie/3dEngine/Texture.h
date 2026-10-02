@@ -51,6 +51,8 @@ public:
     static tIntrusivePtr<cTexture> CreateRenderTarget(unsigned int Width, unsigned int Height) { return CreateRenderTarget(cPoint(Width, Height)); }
     static tIntrusivePtr<cTexture> CreateRenderTarget(cPoint Size);
     static tIntrusivePtr<cTexture> CreateWriteable(cPoint Size);
+    static tIntrusivePtr<cTexture> CreateFromData(cPoint size, std::span<const float> data);
+    static tIntrusivePtr<cTexture> CreateFromData(cPoint size, std::span<const uint8_t> data);
     tIntrusivePtr<cTexture> CreateSubTexture(const cRect &SubRect) const;
     static const unsigned int Flip_Horizontal = 1;
     static const unsigned int Flip_Vertical = 2;
