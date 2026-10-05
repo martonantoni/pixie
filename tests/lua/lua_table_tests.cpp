@@ -232,6 +232,25 @@ TEST(lua_object, toStringMixed)
     ASSERT_EQ(script->stackSize(), 0);
 }
 
+TEST(lua_object, compare_with_string)
+{
+    auto script = std::make_shared<cLuaState>();
+    script->executeString("alma = \"alma\"\nkorte = \"hello\"\ncitrom = 11");
+    cLuaObject globalTable = script->globalTable();
+    auto almaValue = globalTable.get<cLuaObject>("alma");
+    ASSERT_TRUE(almaValue == "alma");
+    ASSERT_TRUE(almaValue != "korte");
+    ASSERT_TRUE(almaValue == "alma"sv);
+    ASSERT_TRUE(almaValue != "korte"sv);
+    ASSERT_TRUE(almaValue == "alma"s);
+    ASSERT_TRUE(almaValue != "korte"s);
+    auto citromValue = globalTable.get<cLuaObject>("citrom");
+    ASSERT_TRUE(citromValue != "citrom");
+    ASSERT_TRUE(citromValue == "11");
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
 TEST(lua_object, visit_single_variable)
 {
     auto script = std::make_shared<cLuaState>();

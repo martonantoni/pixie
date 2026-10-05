@@ -154,10 +154,17 @@ void cSprite::setShader(std::shared_ptr<cPixelShader> Shader)
 	PropertiesChanged(Property_Shader);
     for (int i = 0; i < 4; ++i)
     {
-        if (!mTextures[i] && !mShader->defaultTextureName(i).empty())
-        {
-            setTexture(i, theTextureManager.getTexture(mShader->defaultTextureName(i)));
-        }
+		if (!mTextures[i])
+		{
+			if (!mShader->defaultTextureName(i).empty())
+			{
+				setTexture(i, theTextureManager.getTexture(mShader->defaultTextureName(i)));
+			}
+			else if (auto dataTexture = mShader->dataTexture(i))
+			{
+                setTexture(i, dataTexture);
+			}
+		}
     }
 }
 

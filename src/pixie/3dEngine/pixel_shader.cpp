@@ -67,11 +67,11 @@ void cPixelShader::extractMetaInfo(std::string_view sourceCode)
     auto rootTable = state->globalTable();
     for (auto&& [key, value] : rootTable)
     {
-        if (key.toString() == "constants")
+        if (key == "constants")
         {
             mConstants = Pixie::toConfig(value);
         }
-        else if (key.toString() == "texture_slots")
+        else if (key == "texture_slots")
         {
             for (auto&& [idx, slotValue] : value | std::views::values | std::views::enumerate)
             {
@@ -81,7 +81,7 @@ void cPixelShader::extractMetaInfo(std::string_view sourceCode)
                 }
             }
         }
-        else if (key.toString() == "parameters")
+        else if (key == "parameters")
         {
             for (auto&& [idx, paramValue] : value | std::views::values | std::views::enumerate)
             {
@@ -91,13 +91,32 @@ void cPixelShader::extractMetaInfo(std::string_view sourceCode)
                 }
             }
         }
-        else if (key.toString() == "textures")
+        else if (key == "textures")
         {
             for (auto&& [idx, textureValue] : value | std::views::values | std::views::enumerate)
             {
                 if (idx >= 0 && idx < mDefaultTextures.size())
                 {
                     mDefaultTextures[idx] = textureValue.toString();
+                }
+            }
+        }
+        else if (key == "data")
+        {
+            auto slot = value.get<int>("slot");
+            if (value.has("floats"))
+            {
+                auto floatsTable = value.get("floats");
+                auto tableSize = floatsTable.arraySize();
+                std::vector<float> floats(tableSize);
+                for (int i = 0; i < tableSize; ++i)
+                {
+                    floats[i] = floatsTable.get<double>(i + 1);
+                }
+                auto texture = cTexture::CreateFromData(cPoint(floats.size(), 1), floats);
+                if (slot >= 0 && slot < mDataTextures.size())
+                {
+                    mDataTextures[slot] = texture;
                 }
             }
         }
