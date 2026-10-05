@@ -82,6 +82,7 @@ public:
     bool toBool() const;
     bool isNumber() const;
     bool isString() const;
+    bool operator==(std::string_view str) const;
     std::string toString() const;
     bool isFunction() const;
     bool isTable() const;

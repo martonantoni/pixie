@@ -412,3 +412,17 @@ void cLuaObject::deserialize(const std::string& scriptText)
     }
     mReference = luaL_ref(L, LUA_REGISTRYINDEX);
 }
+
+bool cLuaObject::operator==(std::string_view str) const
+{
+    if (auto L = retrieveSelf())
+    {
+        if (lua_isstring(L, -1))
+        {
+            size_t len;
+            const char* luaStr = lua_tolstring(L, -1, &len);
+            return str == std::string_view(luaStr, len);
+        }
+    }
+    return false;
+}
