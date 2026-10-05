@@ -62,41 +62,46 @@ void cPixelShader::extractMetaInfo(std::string_view sourceCode)
         }
     }
 
-    auto config = cLuaState::stringToConfig(configSource);
-    mConstants = config->getSubOrEmptyConfig("constants");
-    config->forEachSubConfig([&](const std::string& key, const cConfig& subConfig)
+    auto state = std::make_shared<cLuaState>();
+    state->executeString(configSource);
+    auto rootTable = state->globalTable();
+    for (auto&& [key, value] : rootTable)
+    {
+        if (key.toString() == "constants")
         {
-            if (key == "texture_slots")
+            mConstants = Pixie::toConfig(value);
+        }
+        else if (key.toString() == "texture_slots")
+        {
+            for (auto&& [idx, slotValue] : value | std::views::values | std::views::enumerate)
             {
-                subConfig.forEachString([&](int idx, const std::string& slotName)
-                    {
-                        if (idx >= 0 && idx < mTextureSlotNames.size())
-                        {
-                            mTextureSlotNames[idx] = slotName;
-                        }
-                    });
+                if (idx >= 0 && idx < mTextureSlotNames.size())
+                {
+                    mTextureSlotNames[idx] = slotValue.toString();
+                }
             }
-            else if(key == "parameters")
+        }
+        else if (key.toString() == "parameters")
+        {
+            for (auto&& [idx, paramValue] : value | std::views::values | std::views::enumerate)
             {
-                subConfig.forEachString([&](int idx, const std::string& paramName)
-                    {
-                        if (idx >= 0 && idx < mParameterNames.size())
-                        {
-                            mParameterNames[idx] = paramName;
-                        }
-                    });
+                if (idx >= 0 && idx < mParameterNames.size())
+                {
+                    mParameterNames[idx] = paramValue.toString();
+                }
             }
-            else if (key == "textures")
+        }
+        else if (key.toString() == "textures")
+        {
+            for (auto&& [idx, textureValue] : value | std::views::values | std::views::enumerate)
             {
-                subConfig.forEachString([&](int idx, const std::string& textureName)
-                    {
-                        if (idx >= 0 && idx < mDefaultTextures.size())
-                        {
-                            mDefaultTextures[idx] = textureName;
-                        }
-                    });
+                if (idx >= 0 && idx < mDefaultTextures.size())
+                {
+                    mDefaultTextures[idx] = textureValue.toString();
+                }
             }
-        });
+        }
+    }
 }
 
 int cPixelShader::parameterIndex(std::string_view name) const

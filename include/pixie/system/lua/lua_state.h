@@ -33,8 +33,10 @@ public:
     cLuaState(const cLuaState&) = delete;
     cLuaState& operator=(const cLuaState&) = delete;
     virtual ~cLuaState();
+
     void executeFile(const std::filesystem::path& scriptPath);
     void executeString(const std::string& script);
+
     std::shared_ptr<cLuaState> shareSelf() { return shared_from_this(); }
     static std::string valueToString(lua_State* L, int index);
     static bool isGlobalInternalElement(const std::string& key);
