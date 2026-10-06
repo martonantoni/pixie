@@ -9,7 +9,8 @@ cPixelShader::~cPixelShader()
 
 void cPixelShader::compile(std::string_view sourceCode)
 {
-    if (auto blob =cShader::compile(sourceCode, "PSMain", "ps_5_0"))
+    std::string finalSourceCode = extractMetaInfo(sourceCode);
+    if (auto blob =cShader::compile(finalSourceCode, "PSMain", "ps_5_0"))
     {
         auto device = cDevice::Get();
         if(mShader)
@@ -20,16 +21,17 @@ void cPixelShader::compile(std::string_view sourceCode)
             cLog debugLog(std::format("debug/{}_ps.txt", name()), cLog::Flags::TRUNCATE);
             dumpDebugInfo(debugLog, blob, true);
         }
-        extractMetaInfo(sourceCode);
     }
 }
-
-void cPixelShader::extractMetaInfo(std::string_view sourceCode)
+ 
+std::string cPixelShader::extractMetaInfo(std::string_view sourceCode)
 {
+    std::string finalSourceCode;
+
     // meta data is in the form of comments like this:
-    // @<id> <name> [data]
-    // currently we only support parameter names / indexes:
-    // @param <name> <index>
+    // @cfg
+    // lua code (dose not need leading //)
+    // @endcfg
 
     mParameterNames.fill({});
 
@@ -41,24 +43,39 @@ void cPixelShader::extractMetaInfo(std::string_view sourceCode)
         std::string line(lineRange.begin(), lineRange.end());
 
         auto commentPos = line.find("//");
-        if (commentPos == std::string::npos)
-            continue;
-
-        std::string_view comment(line.data() + commentPos + 2, line.size() - commentPos - 2);
-
-        if (comment.find("@cfg") != std::string_view::npos)
+        if (commentPos != std::string::npos)
         {
-            inConfig = true;
-            continue;
+            std::string_view comment(line.data() + commentPos + 2, line.size() - commentPos - 2);
+
+            if (comment.find("@cfg") != std::string_view::npos)
+            {
+                inConfig = true;
+                continue;
+            }
+
+            if (comment.find("@endcfg") != std::string_view::npos)
+            {
+                inConfig = false;
+                continue;
+            }
+            if (inConfig)
+            {
+                configSource.append(comment);
+                configSource += '\n';
+            }
         }
-
-        if (comment.find("@endcfg") != std::string_view::npos)
-            break;
-
-        if (inConfig)
+        else
         {
-            configSource.append(comment);
-            configSource += '\n';
+            if (inConfig)
+            {
+                configSource.append(line);
+                configSource += '\n';
+            }
+            else
+            {
+                finalSourceCode.append(line);
+                finalSourceCode += '\n';
+            }
         }
     }
 
@@ -121,6 +138,7 @@ void cPixelShader::extractMetaInfo(std::string_view sourceCode)
             }
         }
     }
+    return finalSourceCode;
 }
 
 int cPixelShader::parameterIndex(std::string_view name) const

@@ -9,7 +9,7 @@ class cPixelShader final: public cShader
     std::array<std::string, 4> mDefaultTextures;
     std::array<tIntrusivePtr<cTexture>, 4> mDataTextures;
     std::shared_ptr<cConfig> mConstants;
-    void extractMetaInfo(std::string_view sourceCode);
+    std::string extractMetaInfo(std::string_view sourceCode);
 public:
     cPixelShader(const std::string& name, std::string_view sourceCode) : cShader(name) { compile(sourceCode); }
     virtual ~cPixelShader();
