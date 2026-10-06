@@ -16,8 +16,6 @@ class cDevice
     ID3D11RenderTargetView *mBackBufferSurface = nullptr;
     DXGI_SWAP_CHAIN_DESC mPresentParameters = {};
     volatile int mIsClosing = false;
-    typedef std::list<cRenderer *> cRendererList;
-    cRendererList mRenderers;
     cRenderer *mMainRenderer = nullptr;
     cDeviceClearer *mDeviceClearer = nullptr;
     bool mNeedClear = false;
@@ -37,8 +35,6 @@ public:
     ID3D11RenderTargetView *GetBackBufferSurface() { return mBackBufferSurface; }
 
     void SetClearer(cDeviceClearer *pDeviceClearer);
-    void AddRenderer(cRenderer *Renderer);
-    void RemoveRenderer(cRenderer *Renderer);
     void AddMainRenderer(cRenderer *MainRenderer);
     const DXGI_SWAP_CHAIN_DESC &GetPresentParameters() const { return mPresentParameters; }
 

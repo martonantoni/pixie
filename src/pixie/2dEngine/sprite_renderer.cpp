@@ -353,9 +353,6 @@ void cSpriteRenderer::updateUsedTextures(cPixieWindow& window)
     for (auto& sprite : window.mSprites)
     {
         sprite->updateTextures();
-        //cSpriteRenderInfo renderInfo = sprite->GetRenderInfo();
-        //if (renderInfo.mTextures[0] && renderInfo.mTextures[0]->DoesNeedUpdateBeforeUse())
-        //    const_cast<cTexture*>(renderInfo.mTextures[0])->Update();
     }
 
     for (auto& subWindow : window.mSubWindows)

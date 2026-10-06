@@ -124,9 +124,6 @@ void cDevice::RenderingLoop()
     if (mNeedClear && mDeviceClearer)
         mDeviceClearer->ClearDevice(mDeviceContext);
 
-    for (cRendererList::iterator i = mRenderers.begin(), iend = mRenderers.end(); i != iend; ++i)
-        (*i)->Render();
-
     if (mMainRenderer)
         mMainRenderer->Render();
 
@@ -150,21 +147,6 @@ cDevice *cDevice::Get()
 void cDevice::SetClearer(cDeviceClearer *pDeviceClearer)
 {
     mDeviceClearer = pDeviceClearer;
-}
-
-void cDevice::AddRenderer(cRenderer *Renderer)
-{
-    mRenderers.push_back(Renderer);
-}
-
-void cDevice::RemoveRenderer(cRenderer *Renderer)
-{
-    if (mMainRenderer == Renderer)
-    {
-        mMainRenderer = nullptr;
-        return;
-    }
-    mRenderers.remove(Renderer);
 }
 
 void cDevice::AddMainRenderer(cRenderer *MainRenderer)
