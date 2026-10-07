@@ -1,7 +1,8 @@
 #pragma once
 
 #include <d3d11.h>
-#include <cstdint>
+
+class cRootWindow;
 
 class cSpriteRenderer: public cRenderer
 {
@@ -37,7 +38,7 @@ private:
 
     bool mIsUnderDestruction=false;
     bool mIsInitDone=false;
-    cPixieWindow &mBaseWindow;
+    cRootWindow &mBaseWindow;
 
     ID3D11Device *mDevice=nullptr;
     ID3D11DeviceContext *mDeviceContext=nullptr;
@@ -71,7 +72,7 @@ protected:
     cDevice *mPixieDevice=nullptr;
 
 public:
-    cSpriteRenderer(cPixieWindow &BaseWindow): mBaseWindow(BaseWindow) {}
+    cSpriteRenderer(cRootWindow &BaseWindow): mBaseWindow(BaseWindow) {}
     ~cSpriteRenderer();
     void SetClearBeforeRender(bool ClearBeforeRender) { mClearBeforeRender=ClearBeforeRender; }
     virtual void Render() override;

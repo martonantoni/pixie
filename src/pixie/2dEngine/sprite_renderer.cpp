@@ -361,6 +361,10 @@ void cSpriteRenderer::updateUsedTextures(cPixieWindow& window)
 
 void cSpriteRenderer::UpdateRenderTargetState()
 {
+    if (!mRenderSurface) // temp hack, need proper initialiation of theDesktop to solve this
+    {
+        SetRenderSurface(theDevice->backBufferSurface());
+    }
     ASSERT(mRenderSurface);
     ASSERT(mRenderSurfaceWidth > 0 && mRenderSurfaceHeight > 0);
 

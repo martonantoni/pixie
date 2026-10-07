@@ -4,10 +4,6 @@
 
 cPixieDesktop thePixieDesktop;
 
-cPixieDesktop::cPixieDesktop()
-{
-}
-
 extern bool g_IsExitActive;
 
 cPixieDesktop::~cPixieDesktop()
@@ -17,16 +13,13 @@ cPixieDesktop::~cPixieDesktop()
 
 void cPixieDesktop::Init(const cInitData &InitData)
 {
-	if(ASSERTFALSE(mRenderer.get()))
-		return;
 	cPixieWindow::Init(InitData);
 	SetPlacement(cRect(
 		0,
 		0,
 		theDevice->GetBackBufferWidth(),
 		theDevice->GetBackBufferHeight()));
-	mRenderer=std::make_unique<cSpriteRenderer>(*this);
-	cDevice::Get()->AddMainRenderer(mRenderer.get());
+//	cDevice::Get()->AddMainRenderer(mRenderer.get());
 
 	cPixieWindow::cInitData TopLayerInit;
 	TopLayerInit.mZOrder=1'000'000;

@@ -16,11 +16,10 @@ class cDevice
     ID3D11RenderTargetView *mBackBufferSurface = nullptr;
     DXGI_SWAP_CHAIN_DESC mPresentParameters = {};
     volatile int mIsClosing = false;
-    cRenderer *mMainRenderer = nullptr;
     cDeviceClearer *mDeviceClearer = nullptr;
     bool mNeedClear = false;
     void Init();
-    void Close();
+//    void Close();
     cRegisteredID mRenderingTimerID;
     void RenderingLoop();
     cDevice();
@@ -33,10 +32,14 @@ public:
     ID3D11DeviceContext *GetDeviceContext() { return mDeviceContext; }
     IDXGISwapChain *GetSwapChain() { return mSwapChain; }
     ID3D11RenderTargetView *GetBackBufferSurface() { return mBackBufferSurface; }
+    auto backBufferSurface() const { return mBackBufferSurface; }
 
     void SetClearer(cDeviceClearer *pDeviceClearer);
-    void AddMainRenderer(cRenderer *MainRenderer);
+ //   void AddMainRenderer(cRenderer *MainRenderer);
     const DXGI_SWAP_CHAIN_DESC &GetPresentParameters() const { return mPresentParameters; }
+
+    void clearDevice();
+    void present();
 
     int GetBackBufferWidth() const;
     int GetBackBufferHeight() const;

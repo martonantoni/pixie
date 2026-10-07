@@ -1,8 +1,10 @@
 #pragma once
 
+class cRootWindow;
+
 class cSpriteRenderedTexture: public cTexture
 {
-	std::unique_ptr<cPixieWindow> mSpriteContainerWindow;
+	std::unique_ptr<cRootWindow> mSpriteContainerWindow;
 	std::unique_ptr<cSpriteRenderer> mSpriteRenderer;
 	typedef std::vector<std::unique_ptr<cSpriteBase>> cOwnedSprites;
 	cOwnedSprites mOwnedSprites;

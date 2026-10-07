@@ -2,7 +2,7 @@
 #include "pixie/pixie/i_pixie.h"
 cSpriteRenderedTexture::cSpriteRenderedTexture(cPoint Size)
 	: cTexture(Size)
-	, mSpriteContainerWindow(std::make_unique<cPixieWindow>())
+	, mSpriteContainerWindow(std::make_unique<cRootWindow>())
 {
 	mNeedUpdateBeforeUse=true;
 	mSpriteRenderer=std::make_unique<cSpriteRenderer>(*mSpriteContainerWindow);

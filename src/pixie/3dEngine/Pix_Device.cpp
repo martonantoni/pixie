@@ -103,35 +103,48 @@ void cDevice::Init()
     D3V(mDevice->CreateRenderTargetView(mBackBufferTexture, nullptr, &mBackBufferSurface));
     mDeviceContext->OMSetRenderTargets(1, &mBackBufferSurface, nullptr);
 
-    mRenderingTimerID = theMainThread->AddTimer([this]() { RenderingLoop(); }, cTimerRequest(10));
+//    mRenderingTimerID = theMainThread->AddTimer([this]() { RenderingLoop(); }, cTimerRequest(10));
     mNeedClear = theGlobalConfig->get<bool>("pixie_system.clear_device_before_frame", false);
 }
 
-void cDevice::Close()
+//void cDevice::Close()
+//{
+//    mIsClosing = true;
+//}
+//
+//void cDevice::RenderingLoop()
+//{
+//    if (mIsClosing)
+//        return;
+//
+//    theLogicServer.Tick();
+//
+//    theRenderers.Call();
+//
+//    theDevice->clearDevice();
+//    //if (mNeedClear && mDeviceClearer)
+//    //    mDeviceClearer->ClearDevice(mDeviceContext);
+//
+//    if (mMainRenderer)
+//        mMainRenderer->Render();
+//
+//    for (auto& window : thePixieDesktop.ownerlessWindows())
+//        window->CheckOwnerlessSprites();
+//
+//    StopOnError(mSwapChain->Present(1, 0));
+//}
+
+void cDevice::present()
 {
-    mIsClosing = true;
-}
-
-void cDevice::RenderingLoop()
-{
-    if (mIsClosing)
-        return;
-
-    theLogicServer.Tick();
-
-    theRenderers.Call();
-
-    if (mNeedClear && mDeviceClearer)
-        mDeviceClearer->ClearDevice(mDeviceContext);
-
-    if (mMainRenderer)
-        mMainRenderer->Render();
-
-    for (auto& window : thePixieDesktop.ownerlessWindows())
-        window->CheckOwnerlessSprites();
-
     StopOnError(mSwapChain->Present(1, 0));
 }
+
+void cDevice::clearDevice()
+{
+    if (mNeedClear && mDeviceClearer)
+        mDeviceClearer->ClearDevice(mDeviceContext);
+}
+
 
 cDevice *cDevice::Get()
 {
@@ -149,11 +162,11 @@ void cDevice::SetClearer(cDeviceClearer *pDeviceClearer)
     mDeviceClearer = pDeviceClearer;
 }
 
-void cDevice::AddMainRenderer(cRenderer *MainRenderer)
-{
-    mMainRenderer = MainRenderer;
-    mMainRenderer->SetRenderSurface(mBackBufferSurface);
-}
+//void cDevice::AddMainRenderer(cRenderer *MainRenderer)
+//{
+//    mMainRenderer = MainRenderer;
+//    mMainRenderer->SetRenderSurface(mBackBufferSurface);
+//}
 
 int cDevice::GetBackBufferWidth() const
 {

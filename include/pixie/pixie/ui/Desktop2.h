@@ -2,9 +2,8 @@
 
 class cSpriteRenderer;
 
-class cPixieDesktop: public cPixieWindow
+class cPixieDesktop: public cRootWindow
 {
-	std::unique_ptr<cSpriteRenderer> mRenderer;
 	cPixieWindow mTopLayer;
 	cRegisteredIDList mMouseEventListeners;
 	tRegisteredObjects<cMouseTarget *> mMouseTrackers;
@@ -18,8 +17,8 @@ class cPixieDesktop: public cPixieWindow
 public:
 	typedef tPixieSimpleInitData<cPixieWindow> cInitData;
 	void Init(const cInitData &InitData);
-	cPixieDesktop();
-	~cPixieDesktop();
+    cPixieDesktop() = default;
+	virtual ~cPixieDesktop();
 	cPixieWindow &GetTopLayer() { return mTopLayer; }
 	cRegisteredID RegisterMouseTracker(cMouseTarget *MouseTarget);
 	void MouseTargetRemoved(cMouseTarget *MouseTarget);
