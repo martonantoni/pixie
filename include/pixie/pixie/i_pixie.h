@@ -19,6 +19,8 @@
 #include "system/PixieInitializer.h"
 #include "system/Spline.h"
 #include "system/startup_controller.h"
+#include "system/PixieMainLoop.h"
+#include "system/pixie_system.h"
 
 
 #include "FreeTypeIntegration/FreeTypeIntegration.h"

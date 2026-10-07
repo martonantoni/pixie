@@ -1,28 +1,13 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
 
-//cRootWindow* mMainRenderer = nullptr;
-
-class cPixieMainLoop
-{
-    cRegisteredID mRenderingTimerID;
-    cRegisteredID mLogicID;
-	void OnLogic();
-    bool mIsClosing = false;
-    void mainLoop();
-public:
-	void Init();
-    void Close();
-
-};
-
-void cPixieMainLoop::Init()
+void cPixieMainLoop::init()
 {
     mRenderingTimerID = theMainThread->AddTimer([this]() { mainLoop(); }, cTimerRequest(10));
-    mLogicID = theLogicServer.AddLogic([this]() { OnLogic(); }, cLogicServer::LogicOrders::messaging);
+    mLogicID = theLogicServer.AddLogic([this]() { onLogic(); }, cLogicServer::LogicOrders::messaging);
 }
 
-void cPixieMainLoop::OnLogic()
+void cPixieMainLoop::onLogic()
 {
 	theEventCenter->DispatchEvents();
 	theMessageCenter.dispatch();
@@ -44,18 +29,10 @@ void cPixieMainLoop::mainLoop()
 
     theDevice->clearDevice();
 
-//    if (thePixieDesktop)
     thePixieDesktop.render();
 
     for (auto& window : thePixieDesktop.ownerlessWindows())
         window->CheckOwnerlessSprites();
 
     theDevice->present();
-}
-
-
-
-void InitPixieSystemMainLoop()
-{
-	(new cPixieMainLoop)->Init();
 }
