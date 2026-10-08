@@ -27,8 +27,6 @@ void cPixieMainLoop::mainLoop()
 
     theRenderers.Call();
 
-    theDevice->clearDevice();
-
     thePixieDesktop.render();
 
     for (auto& window : thePixieDesktop.ownerlessWindows())

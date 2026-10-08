@@ -315,6 +315,11 @@ void cSpriteRenderer::RenderSprites()
 
     renderSprites(mBaseWindow, renderState);
     flushBuffer(renderState.batchVertices, renderState.NumberOfBatchedVertices, false);
+
+    //MainLog->Log(
+    //    "renderer: {}, sprites drawn: {}",
+    //    reinterpret_cast<uint64_t>(this),
+    //    renderState.SpriteCount);
 }
 
 void cSpriteRenderer::flushBuffer(cSpriteVertexData*& batchVertices, int &numberOfBatchedVertices, bool relockBuffer)
@@ -393,6 +398,13 @@ void cSpriteRenderer::UpdateRenderTargetState()
 
 void cSpriteRenderer::Render()
 {
+    //MainLog->Log(
+    //    "render, renderer: {}, RTV: {}, size: {}x{}",
+    //    reinterpret_cast<uint64_t>(this),
+    //    reinterpret_cast<uint64_t>(mRenderSurface),
+    //    mRenderSurfaceWidth,
+    //    mRenderSurfaceHeight);
+
     if (!mIsInitDone)
         Init();
 

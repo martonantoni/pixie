@@ -72,7 +72,6 @@ void InitPixieSystem()
 {
 	cPrimaryWindow::get();
 	theColorServer.Init();
-	(new cBasicDeviceClearer)->Init(cConfig());
 	cDevice::Get();
     cShaderManager::get();
     theShaderManager->init();

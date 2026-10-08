@@ -4,7 +4,6 @@
 #include <dxgi.h>
 
 class cRenderer;
-class cDeviceClearer;
 class cTexture;
 
 class cDevice
@@ -16,10 +15,7 @@ class cDevice
     ID3D11RenderTargetView *mBackBufferSurface = nullptr;
     DXGI_SWAP_CHAIN_DESC mPresentParameters = {};
     volatile int mIsClosing = false;
-    cDeviceClearer *mDeviceClearer = nullptr;
-    bool mNeedClear = false;
     void Init();
-//    void Close();
     cRegisteredID mRenderingTimerID;
     void RenderingLoop();
     cDevice();
@@ -34,11 +30,8 @@ public:
     ID3D11RenderTargetView *GetBackBufferSurface() { return mBackBufferSurface; }
     auto backBufferSurface() const { return mBackBufferSurface; }
 
-    void SetClearer(cDeviceClearer *pDeviceClearer);
- //   void AddMainRenderer(cRenderer *MainRenderer);
     const DXGI_SWAP_CHAIN_DESC &GetPresentParameters() const { return mPresentParameters; }
 
-    void clearDevice();
     void present();
 
     int GetBackBufferWidth() const;

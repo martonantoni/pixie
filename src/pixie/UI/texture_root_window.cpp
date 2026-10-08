@@ -5,6 +5,7 @@ cTextureRootWindow::cTextureRootWindow()
 {
     mTexture = cTexture::CreateRenderTarget(1, 1);
     setRenderSurface(mTexture->renderTargetView());
+    mRendererId = theRenderers.Register([this]() { render(); });
 }
 
 void cTextureRootWindow::PropertiesChanged(unsigned int properties)
@@ -14,6 +15,6 @@ void cTextureRootWindow::PropertiesChanged(unsigned int properties)
     {
         auto size = GetPlacement().size();
         mTexture->resize(size);
-        renderSurfaceSizeChanged(size); // calls the same func in renderer
+        setRenderSurface(mTexture->renderTargetView());
     }
 }
