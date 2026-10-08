@@ -4,6 +4,7 @@
 #include "mouse_target_bridge.h"
 #include "Window2.h"
 #include "root_window.h"
+#include "texture_root_window.h"
 #include "Desktop2.h"
 
 #include "TextLinkHelper.h"
