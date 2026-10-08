@@ -13,6 +13,8 @@ cPixieDesktop::~cPixieDesktop()
 
 void cPixieDesktop::Init(const cInitData &InitData)
 {
+    setRenderSurface(theDevice->GetBackBufferSurface());
+
 	cPixieWindow::Init(InitData);
 	SetPlacement(cRect(
 		0,

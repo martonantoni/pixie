@@ -68,10 +68,11 @@ public:
     cPoint GetSize() const { return { GetTextureWidth(),GetTextureHeight() }; }
 
 // functions reserved for Textures created with CreateRenderTarget:
-    void SetAsRenderTarget();
+    bool isRenderTarget() const { return mSurface != nullptr; }
+    auto renderTargetView() const { return mSurface; }
     bool DoesNeedUpdateBeforeUse() const { return mNeedUpdateBeforeUse; }
     virtual void Update() {}
-    void Clear(uint32_t Color);
+    void resize(cPoint NewSize); // only supported for render targets
 
 // functions reserved for Textures created with CreateWritable:
     struct cLockInfo

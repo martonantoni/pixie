@@ -254,20 +254,25 @@ tIntrusivePtr<cTexture> cTexture::CreateFromData(cPoint size, std::span<const ui
     return texture;
 }
 
-void cTexture::SetAsRenderTarget()
+void cTexture::resize(cPoint NewSize)
 {
-    ASSERT(mSurface);
-    auto context = theDevice->GetDeviceContext();
-    ID3D11ShaderResourceView *nullView = nullptr;
-    context->PSSetShaderResources(0, 1, &nullView);
-    context->OMSetRenderTargets(1, &mSurface, nullptr);
-    Clear(0);
-}
-
-void cTexture::Clear(uint32_t Color)
-{
-    ASSERT(mSurface);
-    float color[4];
-    ArgbToFloat4(Color, color);
-    theDevice->GetDeviceContext()->ClearRenderTargetView(mSurface, color);
+    ASSERT(isRenderTarget());
+    if (NewSize.x == mSurfaceWidth && NewSize.y == mSurfaceHeight)
+        return;
+    if (mShaderResourceView)
+    {
+        mShaderResourceView->Release();
+        mShaderResourceView = nullptr;
+    }
+    if (mSurface)
+    {
+        mSurface->Release();
+        mSurface = nullptr;
+    }
+    if (mTexture)
+    {
+        mTexture->Release();
+        mTexture = nullptr;
+    }
+    InitForRenderTarget(NewSize);
 }

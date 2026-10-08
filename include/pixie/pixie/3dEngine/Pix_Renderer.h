@@ -37,4 +37,9 @@ public:
         }
         resource->Release();
     }
+    void renderSurfaceSizeChanged(cPoint size)
+    {
+        mRenderSurfaceWidth = size.x;
+        mRenderSurfaceHeight = size.y;
+    }
 };
