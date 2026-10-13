@@ -166,6 +166,9 @@ public:
     template<class... Ts> [[nodiscard]] auto sequence(const std::string& endpointID, Ts&&... messageData);
     struct NoFiltering {};
     template<class Options = void> [[nodiscard]] cRegisteredID registerListener(const std::string& endpointID, cCallable auto listener);
+    // alias:
+    template<class Options = void> [[nodiscard]] cRegisteredID listen(const std::string& endpointID, cCallable auto listener) { return registerListener<Options>(endpointID, std::move(listener)); }
+
     void dispatch();
     void setNeedDispatchProcessor(std::function<void()> needDispatchProcessor);
 };

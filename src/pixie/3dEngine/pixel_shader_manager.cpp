@@ -110,6 +110,7 @@ void cShaderManager::loadIncludes()
 
 void cShaderManager::reloadShaders()
 {
+    bool allSuccess = true;
     for (auto&& [name, shader] : mPixelShaders)
     {
         std::filesystem::path shaderFile = std::filesystem::current_path() / "shaders" / (name + "_ps.hlsl");
@@ -125,8 +126,18 @@ void cShaderManager::reloadShaders()
             continue;
         }
         std::string shaderSource((std::istreambuf_iterator<char>(shaderFileStream)), std::istreambuf_iterator<char>());
-        shader->compile(shaderSource);
+        if (!shader->compile(shaderSource))
+        {
+            allSuccess = false;
+        }
     }
+    if (allSuccess)
+    {
+        theMessageCenter.post("pixie.shaders_reloaded");
+        theMessageCenter.post("pixie.system_message", "info"s, "shaders reloaded"s);
+    }
+    else
+        theMessageCenter.post("pixie.system_message", "warning"s, "shader reload failed"s);
 }
 
 std::shared_ptr<cPixelShader> cShaderManager::pixelShader(const std::string& name) const

@@ -7,7 +7,7 @@ cPixelShader::~cPixelShader()
         mShader->Release();
 }
 
-void cPixelShader::compile(std::string_view sourceCode)
+bool cPixelShader::compile(std::string_view sourceCode)
 {
     std::string finalSourceCode = extractMetaInfo(sourceCode);
     if (auto blob =cShader::compile(finalSourceCode, "PSMain", "ps_5_0"))
@@ -21,7 +21,9 @@ void cPixelShader::compile(std::string_view sourceCode)
             cLog debugLog(std::format("debug/{}_ps.txt", name()), cLog::Flags::TRUNCATE);
             dumpDebugInfo(debugLog, blob, true);
         }
+        return true;
     }
+    return false;
 }
  
 std::string cPixelShader::extractMetaInfo(std::string_view sourceCode)
@@ -30,7 +32,7 @@ std::string cPixelShader::extractMetaInfo(std::string_view sourceCode)
 
     // meta data is in the form of comments like this:
     // @cfg
-    // lua code (dose not need leading //)
+    // lua code (does not need leading //)
     // @endcfg
 
     mParameterNames.fill({});

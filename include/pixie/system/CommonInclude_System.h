@@ -22,6 +22,7 @@
 #include <list>
 #include <vector>
 #include <map>
+#include <bitset>
 #include <unordered_map>
 #include <unordered_set>
 #include <set>

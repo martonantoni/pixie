@@ -144,6 +144,28 @@ int cSprite::shaderParamIndex(std::string_view name) const
 	return mShader->parameterIndex(name);
 }
 
+std::bitset<4> cSprite::retrieveTexturesFromShader()
+{
+	std::bitset<4> hasShaderDependentTextures(false);
+	for (int i = 0; i < 4; ++i)
+	{
+		if (!mTextures[i])
+		{
+			if (!mShader->defaultTextureName(i).empty())
+			{
+				setTexture(i, theTextureManager.getTexture(mShader->defaultTextureName(i)));
+				hasShaderDependentTextures[i] = true;
+			}
+			else if (auto dataTexture = mShader->dataTexture(i))
+			{
+				setTexture(i, dataTexture);
+				hasShaderDependentTextures[i] = true;
+			}
+		}
+	}
+	return hasShaderDependentTextures;
+}
+
 void cSprite::setShader(std::shared_ptr<cPixelShader> Shader)
 {
 	if (!CheckIfChangableProperty(Property_Shader))
@@ -152,19 +174,21 @@ void cSprite::setShader(std::shared_ptr<cPixelShader> Shader)
 		return;
 	mShader = Shader;
 	PropertiesChanged(Property_Shader);
-    for (int i = 0; i < 4; ++i)
+	auto hasShaderDependentTextures = retrieveTexturesFromShader();
+    if (hasShaderDependentTextures.any())
     {
-		if (!mTextures[i])
-		{
-			if (!mShader->defaultTextureName(i).empty())
+		mShaderReloadedListenerID = theMessageCenter.listen("pixie.shaders_reloaded",
+			[this, hasShaderDependentTextures]() mutable
 			{
-				setTexture(i, theTextureManager.getTexture(mShader->defaultTextureName(i)));
-			}
-			else if (auto dataTexture = mShader->dataTexture(i))
-			{
-                setTexture(i, dataTexture);
-			}
-		}
+                for (int i = 0; i < 4; ++i)
+                {
+                    if (hasShaderDependentTextures[i])
+                    {
+                        setTexture(i, nullptr);
+                    }
+                }
+				hasShaderDependentTextures = retrieveTexturesFromShader();
+			});
     }
 }
 

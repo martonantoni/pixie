@@ -8,7 +8,9 @@ protected:
 	std::shared_ptr<cPixelShader> mShader;
 	float mShaderParameters[4] = { 0, 0, 0, 0 };
 	cSpriteRenderInfo::eBlendingMode mBlendingMode=cSpriteRenderInfo::Blend_Normal;
+    cRegisteredID mShaderReloadedListenerID;
 	virtual ~cSprite()=default; // protected. use Drop
+	std::bitset<4> retrieveTexturesFromShader();
 public:
 	cSprite()=default; 
 	void SetBlendingMode(cSpriteRenderInfo::eBlendingMode BlendingMode);

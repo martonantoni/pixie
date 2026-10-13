@@ -13,7 +13,7 @@ class cPixelShader final: public cShader
 public:
     cPixelShader(const std::string& name, std::string_view sourceCode) : cShader(name) { compile(sourceCode); }
     virtual ~cPixelShader();
-    void compile(std::string_view sourceCode);
+    bool compile(std::string_view sourceCode);
 
     ID3D11PixelShader* shader() const
     {
