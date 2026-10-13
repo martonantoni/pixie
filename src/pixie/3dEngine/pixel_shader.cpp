@@ -92,51 +92,40 @@ std::string cPixelShader::extractMetaInfo(std::string_view sourceCode)
         }
         else if (key == "texture_slots")
         {
-            for (auto&& [idx, slotValue] : value | std::views::values | std::views::enumerate)
+            for (auto&& [idx, slotValue] : value | std::views::values | std::views::take(mTextureSlotNames.size()) | std::views::enumerate)
             {
-                if (idx >= 0 && idx < mTextureSlotNames.size())
-                {
-                    mTextureSlotNames[idx] = slotValue.toString();
-                }
+                mTextureSlotNames[idx] = slotValue.toString();
             }
         }
         else if (key == "parameters")
         {
-            for (auto&& [idx, paramValue] : value | std::views::values | std::views::enumerate)
+            for (auto&& [idx, paramValue] : value | std::views::values | std::views::take(mParameterNames.size()) | std::views::enumerate)
             {
-                if (idx >= 0 && idx < mParameterNames.size())
-                {
-                    mParameterNames[idx] = paramValue.toString();
-                }
+                mParameterNames[idx] = paramValue.toString();            
             }
         }
         else if (key == "textures")
         {
-            for (auto&& [idx, textureValue] : value | std::views::values | std::views::enumerate)
+            for (auto&& [idx, textureValue] : value | std::views::values | std::views::take(mDefaultTextures.size()) | std::views::enumerate)
             {
-                if (idx >= 0 && idx < mDefaultTextures.size())
-                {
-                    mDefaultTextures[idx] = textureValue.toString();
-                }
+                mDefaultTextures[idx] = textureValue.toString();
             }
         }
         else if (key == "data")
         {
             auto slot = value.get<int>("slot");
-            if (value.has("floats"))
+            if (slot >= 0 && slot < mDataTextures.size() && value.has("floats"))
             {
                 auto floatsTable = value.get("floats");
                 auto tableSize = floatsTable.arraySize();
+                if (tableSize == 0)
+                    continue;
                 std::vector<float> floats(tableSize);
                 for (int i = 0; i < tableSize; ++i)
                 {
                     floats[i] = floatsTable.get<double>(i + 1);
                 }
-                auto texture = cTexture::CreateFromData(cPoint(floats.size(), 1), floats);
-                if (slot >= 0 && slot < mDataTextures.size())
-                {
-                    mDataTextures[slot] = texture;
-                }
+                mDataTextures[slot] = cTexture::CreateFromData(cPoint(floats.size(), 1), floats);
             }
         }
     }
