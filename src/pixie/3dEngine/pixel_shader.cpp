@@ -54,7 +54,6 @@ std::string cPixelShader::extractMetaInfo(std::string_view sourceCode)
                 inConfig = true;
                 continue;
             }
-
             if (comment.find("@endcfg") != std::string_view::npos)
             {
                 inConfig = false;
@@ -62,22 +61,19 @@ std::string cPixelShader::extractMetaInfo(std::string_view sourceCode)
             }
             if (inConfig)
             {
-                configSource.append(comment);
-                configSource += '\n';
+                line = std::string(comment);
             }
+        }
+        if (inConfig)
+        {
+            configSource.append(line);
+            configSource += '\n';
+            finalSourceCode += '\n'; // keep line numbers consistent for error reporting
         }
         else
         {
-            if (inConfig)
-            {
-                configSource.append(line);
-                configSource += '\n';
-            }
-            else
-            {
-                finalSourceCode.append(line);
-                finalSourceCode += '\n';
-            }
+            finalSourceCode.append(line);
+            finalSourceCode += '\n';
         }
     }
 
