@@ -301,15 +301,15 @@ void cSpriteRenderer::RenderSprites()
     mDeviceContext->IASetIndexBuffer(mIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
     // Bind global pixel-shader constant buffers.
-    for (const auto& provider : theShaderConstantProviders)
-    {
-        ID3D11Buffer* buffer = provider->shaderConstantBuffer();
+    //for (const auto& provider : theShaderConstantProviders)
+    //{
+    //    ID3D11Buffer* buffer = provider->shaderConstantBuffer();
 
-        mDeviceContext->PSSetConstantBuffers(
-            provider->slot(),
-            1,
-            &buffer);
-    }
+    //    mDeviceContext->PSSetConstantBuffers(
+    //        provider->slot(),
+    //        1,
+    //        &buffer);
+    //}
     ID3D11ShaderResourceView* nullTextures[4] = {};
     mDeviceContext->PSSetShaderResources(0, 4, nullTextures);
 
@@ -391,8 +391,7 @@ void cSpriteRenderer::UpdateRenderTargetState()
     auto constants = static_cast<cShaderConstants *>(mapped.pData);
     constants->TargetSize[0] = static_cast<float>(mRenderSurfaceWidth);
     constants->TargetSize[1] = static_cast<float>(mRenderSurfaceHeight);
-    constants->Padding[0] = 0;
-    constants->Padding[1] = 0;
+    constants->Time = gFrameTime * 0.001f;
     mDeviceContext->Unmap(mShaderConstants, 0);
 }
 
@@ -421,6 +420,7 @@ void cSpriteRenderer::Render()
     mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     mDeviceContext->VSSetShader(mDefaultVertexShader->shader(), nullptr, 0);
     mDeviceContext->VSSetConstantBuffers(0, 1, &mShaderConstants);
+    mDeviceContext->PSSetConstantBuffers(0, 1, &mShaderConstants);
     mDeviceContext->PSSetShader(mDefaultPixelShader->shader(), nullptr, 0);
     mDeviceContext->PSSetSamplers(0, 1, &mSamplerState);
     mDeviceContext->RSSetState(mRasterizerState);

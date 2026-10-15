@@ -33,7 +33,8 @@ private:
     struct cShaderConstants
     {
         float TargetSize[2];
-        float Padding[2];
+        float Time;
+        float Padding[1];
     };
 
     bool mIsUnderDestruction=false;
