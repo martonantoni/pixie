@@ -1,9 +1,14 @@
 #pragma once
 
 class cSpriteRenderer;
+class cGlowPostProcessor;
+
+enum class eDisplayMode { Color, Glow, Emission };
 
 class cPixieDesktop: public cRootWindow
 {
+    std::unique_ptr<cGlowPostProcessor> mGlowPostProcessor;
+    eDisplayMode mDisplayMode = eDisplayMode::Glow;
 	cPixieWindow mTopLayer;
 	cRegisteredIDList mMouseEventListeners;
 	tRegisteredObjects<cMouseTarget *> mMouseTrackers;
@@ -18,6 +23,9 @@ public:
 	typedef tPixieSimpleInitData<cPixieWindow> cInitData;
 	void Init(const cInitData &InitData);
     cPixieDesktop() = default;
+    void render() override;
+    void setDisplayMode(eDisplayMode mode) { mDisplayMode = mode; }
+    eDisplayMode displayMode() const { return mDisplayMode; }
 	virtual ~cPixieDesktop();
 	cPixieWindow &GetTopLayer() { return mTopLayer; }
 	cRegisteredID RegisterMouseTracker(cMouseTarget *MouseTarget);

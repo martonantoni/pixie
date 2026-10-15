@@ -23,3 +23,8 @@ void cRootWindow::renderSurfaceSizeChanged(cPoint newSize)
     if (mRenderer)
         mRenderer->renderSurfaceSizeChanged(newSize);
 }
+
+cSpriteRenderer& cRootWindow::spriteRenderer()
+{
+    return *mRenderer;
+}

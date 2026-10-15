@@ -12,3 +12,5 @@
 #include "vertex_shader.h"
 #include "pixel_shader_manager.h"
 #include "shader_constant_provider.h"
+
+#include "glow_post_processor.h"

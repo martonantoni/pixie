@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
 #include "pixie/pixie/2dEngine/sprite_renderer.h"
+#include "pixie/pixie/3dEngine/glow_post_processor.h"
 
 cPixieDesktop thePixieDesktop;
 
@@ -14,6 +15,7 @@ cPixieDesktop::~cPixieDesktop()
 void cPixieDesktop::Init(const cInitData &InitData)
 {
     setRenderSurface(theDevice->GetBackBufferSurface());
+    mGlowPostProcessor = std::make_unique<cGlowPostProcessor>();
 
 	cPixieWindow::Init(InitData);
 	SetPlacement(cRect(
@@ -110,4 +112,34 @@ bool cPixieDesktop::IsReachable(const cPixieWindow *Window) const
 		return Window==this;
 	}
 	return false;
+}
+
+void cPixieDesktop::render()
+{
+    if (!gUseMRT)
+    {
+        spriteRenderer().setMRTEnabled(false);
+        setRenderSurface(theDevice->GetBackBufferSurface());
+        if (mGlowPostProcessor)
+            mGlowPostProcessor->releaseTargets();
+        spriteRenderer().SetClearBeforeRender(false);
+        cRootWindow::render();
+        return;
+    }
+
+    if (!mGlowPostProcessor)
+        mGlowPostProcessor = std::make_unique<cGlowPostProcessor>();
+
+    const int width = theDevice->GetBackBufferWidth();
+    const int height = theDevice->GetBackBufferHeight();
+    mGlowPostProcessor->ensureTargets(width, height);
+    setRenderSurface(mGlowPostProcessor->colorRenderTarget());
+    spriteRenderer().setMRTEnabled(true);
+    // The desktop has no previously rendered contents to preserve in RT0.
+    spriteRenderer().SetClearBeforeRender(true);
+    cRootWindow::render();
+    mGlowPostProcessor->present(
+        mGlowPostProcessor->colorShaderResourceView(),
+        spriteRenderer().emissionShaderResourceView(),
+        theDevice->GetBackBufferSurface(), mDisplayMode, width, height);
 }

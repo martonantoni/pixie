@@ -2,6 +2,8 @@
 #include "pixie/pixie/i_pixie.h"
 #include "pixie/pixie/2dEngine/sprite_renderer.h"
 
+bool gUseMRT = true;
+
 void cSpriteRenderer::Init()
 {
     mDefaultVertexShader = theShaderManager->vertexShader("default");
@@ -72,6 +74,23 @@ void cSpriteRenderer::Init()
     blendDesc.RenderTarget[0].BlendEnable = FALSE;
     D3V(mDevice->CreateBlendState(&blendDesc, &mCopySourceBlendState));
 
+    // When MRT is enabled, RT1 uses source alpha as sprite coverage.
+    // RT0's blending is deliberately left unchanged.
+    blendDesc.IndependentBlendEnable = TRUE;
+    blendDesc.RenderTarget[1] = blendDesc.RenderTarget[0];
+    auto& emission = blendDesc.RenderTarget[1];
+    emission.BlendEnable = TRUE;
+    emission.SrcBlend = D3D11_BLEND_SRC_ALPHA;
+    emission.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+    emission.BlendOp = D3D11_BLEND_OP_ADD;
+    emission.SrcBlendAlpha = D3D11_BLEND_ONE;
+    emission.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+    emission.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    D3V(mDevice->CreateBlendState(&blendDesc, &mMRTCopySourceBlendState));
+
+    blendDesc.RenderTarget[0].BlendEnable = TRUE;
+    D3V(mDevice->CreateBlendState(&blendDesc, &mMRTNormalBlendState));
+
     D3D11_RASTERIZER_DESC rasterizerDesc = {};
     rasterizerDesc.FillMode = D3D11_FILL_SOLID;
     rasterizerDesc.CullMode = D3D11_CULL_NONE;
@@ -88,10 +107,10 @@ void cSpriteRenderer::UpdateBlending(cSpriteRenderInfo::eBlendingMode BlendingMo
     switch (BlendingMode)
     {
     case cSpriteRenderInfo::Blend_Normal:
-        blendState = mNormalBlendState;
+        blendState = mMRTActive ? mMRTNormalBlendState : mNormalBlendState;
         break;
     case cSpriteRenderInfo::Blend_CopySource:
-        blendState = mCopySourceBlendState;
+        blendState = mMRTActive ? mMRTCopySourceBlendState : mCopySourceBlendState;
         break;
     case cSpriteRenderInfo::Invalid_Blend_Mode:
         ASSERT(false);
@@ -106,6 +125,9 @@ cSpriteRenderer::~cSpriteRenderer()
 {
     mIsUnderDestruction = true;
 
+    releaseEmissionTarget();
+    if (mMRTCopySourceBlendState) mMRTCopySourceBlendState->Release();
+    if (mMRTNormalBlendState) mMRTNormalBlendState->Release();
     if (mRasterizerState) mRasterizerState->Release();
     if (mCopySourceBlendState) mCopySourceBlendState->Release();
     if (mNormalBlendState) mNormalBlendState->Release();
@@ -364,6 +386,39 @@ void cSpriteRenderer::updateUsedTextures(cPixieWindow& window)
         updateUsedTextures(*subWindow);
 }
 
+void cSpriteRenderer::releaseEmissionTarget()
+{
+    if (mEmissionSRV) { mEmissionSRV->Release(); mEmissionSRV = nullptr; }
+    if (mEmissionRTV) { mEmissionRTV->Release(); mEmissionRTV = nullptr; }
+    if (mEmissionTexture) { mEmissionTexture->Release(); mEmissionTexture = nullptr; }
+    mEmissionWidth = 0;
+    mEmissionHeight = 0;
+}
+
+void cSpriteRenderer::ensureEmissionTarget()
+{
+    if (mEmissionTexture && mEmissionWidth == mRenderSurfaceWidth &&
+        mEmissionHeight == mRenderSurfaceHeight)
+        return;
+
+    // Call only when RT1 is unbound. Resource dimensions follow the destination.
+    releaseEmissionTarget();
+    D3D11_TEXTURE2D_DESC desc = {};
+    desc.Width = static_cast<UINT>(mRenderSurfaceWidth);
+    desc.Height = static_cast<UINT>(mRenderSurfaceHeight);
+    desc.MipLevels = 1;
+    desc.ArraySize = 1;
+    desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    desc.SampleDesc.Count = 1;
+    desc.Usage = D3D11_USAGE_DEFAULT;
+    desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+    D3V(mDevice->CreateTexture2D(&desc, nullptr, &mEmissionTexture));
+    D3V(mDevice->CreateRenderTargetView(mEmissionTexture, nullptr, &mEmissionRTV));
+    D3V(mDevice->CreateShaderResourceView(mEmissionTexture, nullptr, &mEmissionSRV));
+    mEmissionWidth = mRenderSurfaceWidth;
+    mEmissionHeight = mRenderSurfaceHeight;
+}
+
 void cSpriteRenderer::UpdateRenderTargetState()
 {
     ASSERT(mRenderSurface);
@@ -371,7 +426,25 @@ void cSpriteRenderer::UpdateRenderTargetState()
 
     ID3D11ShaderResourceView* nullViews[4] = {};
     mDeviceContext->PSSetShaderResources(0, 4, nullViews);
-    mDeviceContext->OMSetRenderTargets(1, &mRenderSurface, nullptr);
+    // Unbind previous targets before potentially releasing a resized RT1.
+    mDeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+    mMRTActive = gUseMRT && mEnableMRT;
+    if (mMRTActive)
+    {
+        // Avoid read/write hazards if postprocessing left RT1 bound as an SRV.
+        ID3D11ShaderResourceView* nullEmission = nullptr;
+        mDeviceContext->PSSetShaderResources(4, 1, &nullEmission);
+        ensureEmissionTarget();
+        ID3D11RenderTargetView* targets[] = { mRenderSurface, mEmissionRTV };
+        mDeviceContext->OMSetRenderTargets(2, targets, nullptr);
+    }
+    else
+    {
+        mDeviceContext->OMSetRenderTargets(1, &mRenderSurface, nullptr);
+        // RT1 is genuinely unused when disabled; release its GPU memory.
+        if (mEmissionTexture)
+            releaseEmissionTarget();
+    }
 
     D3D11_VIEWPORT viewport = {};
     viewport.TopLeftX = 0;
@@ -410,6 +483,13 @@ void cSpriteRenderer::Render()
     updateUsedTextures(mBaseWindow);
     UpdateRenderTargetState();
 
+    if (mMRTActive)
+    {
+        // RT1 must always be cleared, even when RT0 is not.
+        const float noEmission[4] = { 0, 0, 0, 0 };
+        mDeviceContext->ClearRenderTargetView(mEmissionRTV, noEmission);
+    }
+
     if (mClearBeforeRender)
     {
         const float clearColor[4] = { 0, 0, 0, 0 };
@@ -424,6 +504,7 @@ void cSpriteRenderer::Render()
     mDeviceContext->PSSetShader(mDefaultPixelShader->shader(), nullptr, 0);
     mDeviceContext->PSSetSamplers(0, 1, &mSamplerState);
     mDeviceContext->RSSetState(mRasterizerState);
+    // UpdateBlending() is called for the first sprite in each RenderSprites().
 
     mBaseWindow.CheckOwnerlessSprites();
     RenderSprites();

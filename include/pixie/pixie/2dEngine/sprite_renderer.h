@@ -4,6 +4,9 @@
 
 class cRootWindow;
 
+// Master switch: when false, sprite renderers use only RT0.
+extern bool gUseMRT;
+
 class cSpriteRenderer: public cRenderer
 {
 public:
@@ -49,6 +52,18 @@ private:
     ID3D11SamplerState *mSamplerState=nullptr;
     ID3D11BlendState *mNormalBlendState=nullptr;
     ID3D11BlendState *mCopySourceBlendState=nullptr;
+    ID3D11BlendState *mMRTNormalBlendState=nullptr;
+    ID3D11BlendState *mMRTCopySourceBlendState=nullptr;
+
+    bool mEnableMRT = false;
+    bool mMRTActive = false;
+    ID3D11Texture2D* mEmissionTexture = nullptr;
+    ID3D11RenderTargetView* mEmissionRTV = nullptr;
+    ID3D11ShaderResourceView* mEmissionSRV = nullptr;
+    int mEmissionWidth = 0;
+    int mEmissionHeight = 0;
+    void ensureEmissionTarget();
+    void releaseEmissionTarget();
     ID3D11RasterizerState *mRasterizerState=nullptr;
 
     std::shared_ptr<cVertexShader> mDefaultVertexShader;
@@ -75,6 +90,9 @@ protected:
 public:
     cSpriteRenderer(cRootWindow &BaseWindow): mBaseWindow(BaseWindow) {}
     ~cSpriteRenderer();
+    void setMRTEnabled(bool enabled) { mEnableMRT = enabled; }
+    bool mrtEnabled() const { return mEnableMRT; }
+    ID3D11ShaderResourceView* emissionShaderResourceView() const { return mEmissionSRV; }
     void SetClearBeforeRender(bool ClearBeforeRender) { mClearBeforeRender=ClearBeforeRender; }
     virtual void Render() override;
 };
