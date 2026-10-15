@@ -16,6 +16,10 @@ class cGlowPostProcessor
     ID3D11Texture2D* mBlur[2] = {};
     ID3D11RenderTargetView* mBlurRTV[2] = {};
     ID3D11ShaderResourceView* mBlurSRV[2] = {};
+    // Eighth-resolution wide glow; two extra separable blur passes.
+    ID3D11Texture2D* mWideBlur[2] = {};
+    ID3D11RenderTargetView* mWideBlurRTV[2] = {};
+    ID3D11ShaderResourceView* mWideBlurSRV[2] = {};
     ID3D11VertexShader* mFullscreenVS = nullptr;
     ID3D11SamplerState* mLinearSampler = nullptr;
     ID3D11BlendState* mOpaqueBlend = nullptr;
@@ -27,7 +31,8 @@ class cGlowPostProcessor
     void init();
     void draw(ID3D11RenderTargetView* output, int width, int height,
               ID3D11PixelShader* shader, ID3D11ShaderResourceView* source0,
-              ID3D11ShaderResourceView* source1, float dx, float dy,
+              ID3D11ShaderResourceView* source1, ID3D11ShaderResourceView* source2,
+              float dx, float dy,
               float mode, float exposure);
 public:
     ~cGlowPostProcessor();

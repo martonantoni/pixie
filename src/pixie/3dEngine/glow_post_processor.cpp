@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
-#include "pixie/pixie/3dEngine/i_3DEngine.h"
 #include "pixie/pixie/ui/Desktop2.h"
 #include <d3dcompiler.h>
 
@@ -40,8 +39,8 @@ cGlowPostProcessor::~cGlowPostProcessor()
     if (mContext)
     {
         mContext->OMSetRenderTargets(0, nullptr, nullptr);
-        ID3D11ShaderResourceView* nullViews[2] = {};
-        mContext->PSSetShaderResources(0, 2, nullViews);
+        ID3D11ShaderResourceView* nullViews[3] = {};
+        mContext->PSSetShaderResources(0, 3, nullViews);
     }
     releaseTargets();
     release(mConstants);
@@ -108,13 +107,14 @@ void cGlowPostProcessor::releaseTargets()
     if (mContext)
     {
         mContext->OMSetRenderTargets(0, nullptr, nullptr);
-        ID3D11ShaderResourceView* nullViews[2] = {};
-        mContext->PSSetShaderResources(0, 2, nullViews);
+        ID3D11ShaderResourceView* nullViews[3] = {};
+        mContext->PSSetShaderResources(0, 3, nullViews);
     }
     release(mColorSRV); release(mColorRTV); release(mColor);
     for (int i = 0; i < 2; ++i)
     {
         release(mBlurSRV[i]); release(mBlurRTV[i]); release(mBlur[i]);
+        release(mWideBlurSRV[i]); release(mWideBlurRTV[i]); release(mWideBlur[i]);
     }
     mWidth = mHeight = 0;
 }
@@ -131,18 +131,25 @@ void cGlowPostProcessor::ensureTargets(int width, int height)
         &mColor, &mColorRTV, &mColorSRV);
     const int halfWidth = (width + 1) / 2;
     const int halfHeight = (height + 1) / 2;
+    const int wideWidth = (width + 7) / 8;
+    const int wideHeight = (height + 7) / 8;
     for (int i = 0; i < 2; ++i)
+    {
         makeTexture(mDevice, halfWidth, halfHeight, DXGI_FORMAT_R16G16B16A16_FLOAT,
             &mBlur[i], &mBlurRTV[i], &mBlurSRV[i]);
+        makeTexture(mDevice, wideWidth, wideHeight, DXGI_FORMAT_R16G16B16A16_FLOAT,
+            &mWideBlur[i], &mWideBlurRTV[i], &mWideBlurSRV[i]);
+    }
 }
 
 void cGlowPostProcessor::draw(ID3D11RenderTargetView* output, int width, int height,
     ID3D11PixelShader* shader, ID3D11ShaderResourceView* source0,
-    ID3D11ShaderResourceView* source1, float dx, float dy, float mode, float exposure)
+    ID3D11ShaderResourceView* source1, ID3D11ShaderResourceView* source2,
+    float dx, float dy, float mode, float exposure)
 {
     // Remove SRV hazards before changing render targets.
-    ID3D11ShaderResourceView* nullViews[2] = {};
-    mContext->PSSetShaderResources(0, 2, nullViews);
+    ID3D11ShaderResourceView* nullViews[3] = {};
+    mContext->PSSetShaderResources(0, 3, nullViews);
     mContext->OMSetRenderTargets(1, &output, nullptr);
     D3D11_VIEWPORT vp = {};
     vp.Width = float(width); vp.Height = float(height); vp.MaxDepth = 1.0f;
@@ -157,8 +164,8 @@ void cGlowPostProcessor::draw(ID3D11RenderTargetView* output, int width, int hei
     mContext->Unmap(mConstants, 0);
     mContext->PSSetConstantBuffers(0, 1, &mConstants);
     mContext->PSSetSamplers(0, 1, &mLinearSampler);
-    ID3D11ShaderResourceView* sources[2] = { source0, source1 };
-    mContext->PSSetShaderResources(0, 2, sources);
+    ID3D11ShaderResourceView* sources[3] = { source0, source1, source2 };
+    mContext->PSSetShaderResources(0, 3, sources);
     mContext->IASetInputLayout(nullptr);
     mContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     ID3D11Buffer* noBuffer = nullptr;
@@ -167,7 +174,7 @@ void cGlowPostProcessor::draw(ID3D11RenderTargetView* output, int width, int hei
     mContext->VSSetShader(mFullscreenVS, nullptr, 0);
     mContext->PSSetShader(shader, nullptr, 0);
     mContext->Draw(3, 0);
-    mContext->PSSetShaderResources(0, 2, nullViews);
+    mContext->PSSetShaderResources(0, 3, nullViews);
 }
 
 void cGlowPostProcessor::present(ID3D11ShaderResourceView* color,
@@ -176,19 +183,34 @@ void cGlowPostProcessor::present(ID3D11ShaderResourceView* color,
 {
     init();
     if (!mPresentShader || !mPresentShader->shader()) return;
-    ID3D11ShaderResourceView* glow = emission;
+    ID3D11ShaderResourceView* tightGlow = emission;
+    ID3D11ShaderResourceView* wideGlow = nullptr;
+
     if (mode == eDisplayMode::Glow && mBlurShader && mBlurShader->shader() && emission)
     {
         const int halfWidth = (width + 1) / 2;
         const int halfHeight = (height + 1) / 2;
+        const int wideWidth = (width + 7) / 8;
+        const int wideHeight = (height + 7) / 8;
+
+        // Tight halo: half-resolution horizontal and vertical passes.
         draw(mBlurRTV[0], halfWidth, halfHeight, mBlurShader->shader(),
-             emission, nullptr, 1.0f / halfWidth, 0, 0, 1);
+             emission, nullptr, nullptr, 1.0f / halfWidth, 0, 0, 1);
         draw(mBlurRTV[1], halfWidth, halfHeight, mBlurShader->shader(),
-             mBlurSRV[0], nullptr, 0, 1.0f / halfHeight, 0, 1);
-        glow = mBlurSRV[1];
+             mBlurSRV[0], nullptr, nullptr, 0, 1.0f / halfHeight, 0, 1);
+        tightGlow = mBlurSRV[1];
+
+        // Wide halo: blur the already-filtered half-resolution result at 1/8 resolution.
+        // This prefiltering avoids skipping narrow, bright glyphs when downsampling.
+        draw(mWideBlurRTV[0], wideWidth, wideHeight, mBlurShader->shader(),
+             tightGlow, nullptr, nullptr, 1.0f / wideWidth, 0, 0, 1);
+        draw(mWideBlurRTV[1], wideWidth, wideHeight, mBlurShader->shader(),
+             mWideBlurSRV[0], nullptr, nullptr, 0, 1.0f / wideHeight, 0, 1);
+        wideGlow = mWideBlurSRV[1];
     }
+
     draw(destination, width, height, mPresentShader->shader(),
-         color, mode == eDisplayMode::Emission ? emission : glow,
+         color, mode == eDisplayMode::Emission ? emission : tightGlow, wideGlow,
          0, 0, static_cast<float>(mode), 1.0f);
     // The postprocess intentionally leaves the back buffer bound at frame end.
 }
