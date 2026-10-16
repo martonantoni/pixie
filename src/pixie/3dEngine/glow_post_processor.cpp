@@ -3,6 +3,8 @@
 #include "pixie/pixie/ui/Desktop2.h"
 #include <d3dcompiler.h>
 
+// Code by ChatGPT
+
 namespace
 {
     template<typename T> void release(T*& pointer)
@@ -122,7 +124,10 @@ void cGlowPostProcessor::releaseTargets()
 void cGlowPostProcessor::ensureTargets(int width, int height)
 {
     init();
-    if (mColor && width == mWidth && height == mHeight) return;
+    if (mColor && width == mWidth && height == mHeight)
+    {
+        return;
+    }
     releaseTargets();
     mWidth = width;
     mHeight = height;
@@ -182,7 +187,10 @@ void cGlowPostProcessor::present(ID3D11ShaderResourceView* color,
     eDisplayMode mode, int width, int height)
 {
     init();
-    if (!mPresentShader || !mPresentShader->shader()) return;
+    if (!mPresentShader || !mPresentShader->shader())
+    {
+        return;
+    }
     ID3D11ShaderResourceView* tightGlow = emission;
     ID3D11ShaderResourceView* wideGlow = nullptr;
 

@@ -34,6 +34,7 @@ public:
 	void setShader(const std::string& shaderId);
 	std::shared_ptr<cPixelShader> getShader() const { return mShader; }
 	void setShaderParam(int index, float value);
+    void setShaderParam(std::string_view paramID, float value) { setShaderParam(shaderParamIndex(paramID), value); }
 	float getShaderParam(int index) const;
 	int shaderParamIndex(std::string_view name) const; // throws if not found
 };

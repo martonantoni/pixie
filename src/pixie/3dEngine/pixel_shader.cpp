@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
 
+#include <regex>
+
 cPixelShader::~cPixelShader()
 {
     if (mShader)
@@ -10,7 +12,15 @@ cPixelShader::~cPixelShader()
 bool cPixelShader::compile(std::string_view sourceCode)
 {
     std::string finalSourceCode = extractMetaInfo(sourceCode);
-    if (auto blob =cShader::compile(finalSourceCode, "PSMain", "ps_5_0"))
+    for (auto&& [idx, paramName] : mParameterNames | std::views::enumerate)
+    {
+        if (paramName.empty())
+            continue;
+        const std::regex pattern("\\binput\\s*\\.\\s*" + paramName + "\\b");
+        auto replacement = "input.params."s + "xyzw"[idx];
+        finalSourceCode = std::regex_replace(finalSourceCode, pattern, replacement);
+    }
+    if (auto blob = cShader::compile(finalSourceCode, "PSMain", "ps_5_0"))
     {
         auto device = cDevice::Get();
         if(mShader)

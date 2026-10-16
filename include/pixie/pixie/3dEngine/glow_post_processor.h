@@ -1,6 +1,6 @@
 #pragma once
-#include <d3d11.h>
-#include <memory>
+
+// Code by ChatGPT
 
 class cPixelShader;
 enum class eDisplayMode;
