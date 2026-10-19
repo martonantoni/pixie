@@ -163,8 +163,8 @@ public:
 	{
 		if(CacheValidityCounter!=mCacheValidityCounter)
 		{
-			mCacheValidityCounter=CacheValidityCounter;
 			mValue=CalculatorFunction();
+			mCacheValidityCounter = CacheValidityCounter;
 		}
 		return mValue;
 	}

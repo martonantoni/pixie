@@ -31,6 +31,8 @@ public:
 	}
 	cRegisteredID &operator=(cRegisteredID &&Source) 
 	{
+        if (this == &Source)
+            return *this;
 		Unregister();
 		mID = Source.mID;
 		mRegistrationHandler=Source.mRegistrationHandler; 

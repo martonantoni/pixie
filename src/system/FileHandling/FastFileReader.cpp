@@ -10,7 +10,7 @@ cFastFileReader::cFastFileReader(const std::filesystem::path& path) :
         throwLastError(std::format("CreateFile(\"{}\")", mPath.string()));
     }
     mFileMappingHandle = ::CreateFileMapping(mFileHandle, NULL, PAGE_WRITECOPY, 0, 0, NULL);
-    if (mFileMappingHandle == INVALID_HANDLE_VALUE)
+    if (!mFileMappingHandle)
     {
         ::CloseHandle(mFileHandle);
         throwLastError(std::format("CreateFileMapping(\"{}\")", mPath.string()));
@@ -29,8 +29,7 @@ cFastFileReader::~cFastFileReader()
     if (mFileHandle != INVALID_HANDLE_VALUE)
     {
         if (mViewPosition)
-            if (!::UnmapViewOfFile(mViewPosition))
-                throwLastError(std::format("UnmapViewOfFile failed. File: {}", mPath.string()));
+            ::UnmapViewOfFile(mViewPosition);
         if (mFileMappingHandle != INVALID_HANDLE_VALUE)
             CloseHandle(mFileMappingHandle);
         CloseHandle(mFileHandle);

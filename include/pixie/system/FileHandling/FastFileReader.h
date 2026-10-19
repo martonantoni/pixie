@@ -15,7 +15,7 @@ public:
     {
     public:
         // --- Iterator traits ---
-        using iterator_category = std::forward_iterator_tag;
+        using iterator_category = std::input_iterator_tag;
         using value_type = cLine;
         using difference_type = std::ptrdiff_t;
         using reference = cLine;
