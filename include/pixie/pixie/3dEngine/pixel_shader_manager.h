@@ -1,6 +1,5 @@
 #pragma once
 
-
 class cShaderManager final: public tSingleton<cShaderManager>
 {
     std::unordered_map<std::string, std::shared_ptr<cPixelShader>> mPixelShaders;
@@ -8,11 +7,7 @@ class cShaderManager final: public tSingleton<cShaderManager>
     using cShaderSources = std::unordered_map<std::string, std::string>; // shader name -> source code
     cShaderSources mShaderSources;  // for include
     std::filesystem::path mShaderFolder;
-#ifdef _DEBUG
-    cRegisteredID mReloadTimerID;
-    std::filesystem::file_time_type mLastShaderWriteTime;
-    bool checkIfReloadNeeded();
-#endif
+    std::unique_ptr<Pixie::cFileChangeNotifier> mFileChangeNotifier;
     void loadIncludes();
 public:
     cShaderManager();

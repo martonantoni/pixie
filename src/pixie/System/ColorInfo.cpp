@@ -5,7 +5,12 @@ cColorServer theColorServer;
 
 void cColorServer::Init()
 {
-	theGlobalConfig->createSubConfig("colors")->forEachInt([&](const std::string& name, int color)
+	loadColorsFromConfig(*theGlobalConfig->createSubConfig("colors"));
+}
+
+void cColorServer::loadColorsFromConfig(const cConfig& config)
+{
+    config.forEachInt([&](const std::string& name, int color)
     {
         mColorMap[name] = cColor(color);
     });

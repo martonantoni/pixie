@@ -17,20 +17,19 @@ cShaderManager::~cShaderManager()
 
 void cShaderManager::init()
 {
+    std::filesystem::path shaderFolder = std::filesystem::current_path() / "shaders";
 #ifdef _DEBUG
-    mReloadTimerID = theMainThread->AddTimer([this]() 
+    mFileChangeNotifier = std::make_unique<Pixie::cFileChangeNotifier>(
+        shaderFolder, "*.hlsl", 
+        [this]() 
         { 
-            if(checkIfReloadNeeded()) 
-            {
-                loadIncludes(); // first pass: gather the include files
-                reloadShaders();
-            }
-        }, cTimerRequest(1000, true));
+            loadIncludes(); 
+            reloadShaders(); 
+        });
 #endif
     // Load and compile all pixel shaders from the "shaders" folder
-    std::filesystem::path shaderFolder = std::filesystem::current_path() / "shaders";
     mShaderFolder = shaderFolder;
-    if (!std::filesystem::exists(shaderFolder) || !std::filesystem::is_directory(shaderFolder))
+    if (!std::filesystem::exists( shaderFolder) || !std::filesystem::is_directory(shaderFolder))
     {
         MainLog->Log("Shader folder not found: {}", shaderFolder.string());
         return;
@@ -163,32 +162,4 @@ std::string_view cShaderManager::shaderSource(const std::string& name) const
     if (it == mShaderSources.end())
         return {};
     return it->second;
-}
-
-bool cShaderManager::checkIfReloadNeeded()
-{
-    std::filesystem::file_time_type newestWriteTime{};
-
-    try
-    {
-        for (const auto& entry : std::filesystem::recursive_directory_iterator(mShaderFolder))
-        {
-            if (!entry.is_regular_file())
-                continue;
-
-            const auto writeTime = entry.last_write_time();
-
-            if (writeTime > newestWriteTime)
-                newestWriteTime = writeTime;
-        }
-    }
-    catch (const std::filesystem::filesystem_error&)
-    {
-        return false;
-    }
-    if (newestWriteTime <= mLastShaderWriteTime)
-        return false;
-
-    mLastShaderWriteTime = newestWriteTime;
-    return true;
 }

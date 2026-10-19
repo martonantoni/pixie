@@ -88,6 +88,7 @@ class cColorServer
 	std::map<std::string, cColor, std::less<>> mColorMap;
 public:
 	void Init();
+    void loadColorsFromConfig(const cConfig& config);
 	cColor GetColor(auto&& colorName) const requires std::totally_ordered_with<decltype(colorName), std::string>
 	{
         auto i = mColorMap.find(std::forward<decltype(colorName)>(colorName));

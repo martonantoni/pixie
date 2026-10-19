@@ -4,3 +4,4 @@
 #include "FileMapper.h"
 #include "FastFileReader.h"
 #include "File.h"
+#include "file_change_notifier.h"

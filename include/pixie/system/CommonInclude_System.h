@@ -49,14 +49,10 @@
 #include <any>
 #include <expected>
 #include <print>
+#include <regex>
 
 using namespace std::string_literals; // enables s-suffix for std::string literals
 using namespace std::literals; // enables sv for std::string_view literals and time literals
-
-
-//#ifndef _DEBUG
-//#define NO_CUSTOM_CURSORS
-//#endif
 
 using std::make_unique;
 using std::unique_ptr;
