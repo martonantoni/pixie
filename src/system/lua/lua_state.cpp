@@ -144,6 +144,18 @@ cLuaState::~cLuaState()
 
 void cLuaState::executeFile(const std::filesystem::path& scriptPath)
 {
+    std::string scriptDir = scriptPath.parent_path().generic_string();
+    if (scriptDir.empty()) 
+    {
+        scriptDir = "."; 
+    }
+    lua_getglobal(L, "package");
+    lua_getfield(L, -1, "path");
+    const char* current_path = lua_tostring(L, -1);
+    lua_pushfstring(L, "%s;%s/?.lua;%s/?/init.lua", current_path, scriptDir.c_str(), scriptDir.c_str());
+    lua_setfield(L, -3, "path");
+    lua_pop(L, 2);
+
     if (luaL_dofile(L, scriptPath.string().c_str()))
     {
         const char* errorMessage = lua_tostring(L, -1);
