@@ -5,22 +5,31 @@ cColorServer theColorServer;
 
 void cColorServer::Init()
 {
-    std::filesystem::path configFilePath = theConfigurationFolder / "colors.lua";
+    mConfigFilePath = theConfigurationFolder / "colors.lua";
 
-	loadColorsFromConfig(*cLuaState::fileToConfig(configFilePath, Pixie::commonConfigHelperFunctions()));
-    mConfigChangeListener = theMessageCenter.listen("pixie.config_file_changed", [this, configFilePath]()
+	loadColors();
+    mConfigChangeListener = theMessageCenter.listen("pixie.config_file_changed", [this]()
         {
-            loadColorsFromConfig(*cLuaState::fileToConfig(configFilePath, Pixie::commonConfigHelperFunctions()));
+            loadColors();
         });
 }
 
-void cColorServer::loadColorsFromConfig(const cConfig& config)
+void cColorServer::loadColors()
 {
-    auto colorsConfig = config.getSubConfig("colors");
-    colorsConfig->forEachInt([&](const std::string& name, int color)
-    {
-        mColorMap[name] = cColor(color);
-    });
+    auto config = cLuaState::fileToConfig(mConfigFilePath, Pixie::commonConfigHelperFunctions());
+    loadColorsFromConfig(*config->getSubOrEmptyConfig("colors"));
+}
+
+void cColorServer::loadColorsFromConfig(const cConfig& config, const std::string& prefix)
+{
+    config.forEachInt([&](const std::string& name, int color)
+        {
+            mColorMap[prefix + name] = cColor(color);
+        });
+    config.forEachSubConfig([&](const std::string& name, const cConfig& subConfig)
+        {
+            loadColorsFromConfig(subConfig, prefix + name + ".");
+        });
 }
 
 cColor cColor::toGrayscale() const
