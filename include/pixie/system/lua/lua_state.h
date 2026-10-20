@@ -65,11 +65,23 @@ public:
     }
 
 // shortcuts for creating config from lua script:
+    static std::shared_ptr<cConfig> objectToConfig(cLuaObject object);
     static std::shared_ptr<cConfig> stringToConfig(const std::string& scriptText);
-    static std::shared_ptr<cConfig> fileToConfig(const std::filesystem::path& scriptPath);
+    template<class... Ts>
+    static std::shared_ptr<cConfig> fileToConfig(const std::filesystem::path& scriptPath, Ts&&... args);
 
 // debug functions:
     int stackSize() const;
     static void dumpStack(lua_State* L);
     [[noreturn]] static void error(lua_State* L, const std::string& message);
 };
+
+
+template<class... Ts>
+std::shared_ptr<cConfig> cLuaState::fileToConfig(const std::filesystem::path& scriptPath, Ts&&... args)
+{
+    auto script = std::make_shared<cLuaState>();
+    script->globalTable().registerFunctions(std::forward<Ts>(args)...);
+    script->executeFile(scriptPath);
+    return objectToConfig(script->globalTable());
+}

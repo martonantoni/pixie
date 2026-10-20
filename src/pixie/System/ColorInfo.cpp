@@ -7,16 +7,17 @@ void cColorServer::Init()
 {
     std::filesystem::path configFilePath = theConfigurationFolder / "colors.lua";
 
-	loadColorsFromConfig(*cLuaState::fileToConfig(configFilePath));
+	loadColorsFromConfig(*cLuaState::fileToConfig(configFilePath, Pixie::commonConfigHelperFunctions()));
     mConfigChangeListener = theMessageCenter.listen("pixie.config_file_changed", [this, configFilePath]()
         {
-            loadColorsFromConfig(*cLuaState::fileToConfig(configFilePath));
+            loadColorsFromConfig(*cLuaState::fileToConfig(configFilePath, Pixie::commonConfigHelperFunctions()));
         });
 }
 
 void cColorServer::loadColorsFromConfig(const cConfig& config)
 {
-    config.forEachInt([&](const std::string& name, int color)
+    auto colorsConfig = config.getSubConfig("colors");
+    colorsConfig->forEachInt([&](const std::string& name, int color)
     {
         mColorMap[name] = cColor(color);
     });

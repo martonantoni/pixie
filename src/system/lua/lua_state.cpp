@@ -209,11 +209,9 @@ std::shared_ptr<cConfig> cLuaState::stringToConfig(const std::string& scriptText
     return Pixie::toConfig(script->globalTable());
 }
 
-std::shared_ptr<cConfig> cLuaState::fileToConfig(const std::filesystem::path& scriptPath)
+std::shared_ptr<cConfig> cLuaState::objectToConfig(cLuaObject object)
 {
-    auto script = std::make_shared<cLuaState>();
-    script->executeFile(scriptPath);
-    return Pixie::toConfig(script->globalTable());
+    return Pixie::toConfig(object);
 }
 
 void cLuaState::error(lua_State* L, const std::string& message)

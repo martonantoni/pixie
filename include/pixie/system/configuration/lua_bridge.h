@@ -9,4 +9,6 @@ enum class IsRecursive { Yes, No };
 
 std::shared_ptr<cConfig> toConfig(const cLuaObject &object, IsRecursive isRecursive = IsRecursive::Yes);
 
+cLuaFunctionEntries commonConfigHelperFunctions();
+
 } // namespace Pixie
