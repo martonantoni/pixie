@@ -776,6 +776,471 @@ TEST(lua_function_register, array_of_functions)
 
 }
 
+
+
+TEST(lua_function_register, register_functions_single)
+{
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
+
+    globalTable.registerFunctions(
+        tLuaFunctionEntry{
+            "Add"s,
+            [](int a, int b) -> int { return a + b; }
+        });
+
+    ASSERT_EQ(script->stackSize(), 0) << "after register";
+    ASSERT_TRUE(globalTable.has("Add"s));
+
+    ASSERT_EQ(globalTable.get("Add"s).call<int>(10, 20), 30);
+
+    ASSERT_EQ(script->stackSize(), 0) << "after call";
+}
+
+TEST(lua_function_register, register_functions_multiple)
+{
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
+
+    int result = 0;
+
+    globalTable.registerFunctions(
+        tLuaFunctionEntry{
+            "Add"s,
+            [](int a, int b) -> int { return a + b; }
+        },
+        tLuaFunctionEntry{
+            "Multiply"s,
+            [](int a, int b) -> int { return a * b; }
+        },
+        tLuaFunctionEntry{
+            "SetResult"s,
+            [&result](int value) { result = value; }
+        });
+
+    ASSERT_EQ(script->stackSize(), 0) << "after register";
+
+    ASSERT_EQ(globalTable.get("Add"s).call<int>(10, 20), 30);
+    ASSERT_EQ(globalTable.get("Multiply"s).call<int>(10, 20), 200);
+
+    globalTable.get("SetResult"s).call(42);
+    ASSERT_EQ(result, 42);
+
+    ASSERT_EQ(script->stackSize(), 0) << "after calls";
+}
+
+TEST(lua_function_register, register_functions_tuple)
+{
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
+
+    auto functions = std::tuple{
+        tLuaFunctionEntry{
+            "Add"s,
+            [](int a, int b) -> int { return a + b; }
+        },
+        tLuaFunctionEntry{
+            "Subtract"s,
+            [](int a, int b) -> int { return a - b; }
+        }
+    };
+
+    globalTable.registerFunctions(functions);
+
+    ASSERT_EQ(script->stackSize(), 0) << "after register";
+
+    ASSERT_EQ(globalTable.get("Add"s).call<int>(10, 20), 30);
+    ASSERT_EQ(globalTable.get("Subtract"s).call<int>(10, 20), -10);
+
+    ASSERT_EQ(script->stackSize(), 0) << "after calls";
+}
+
+TEST(lua_function_register, register_functions_nested_tuple)
+{
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
+
+    auto functions = std::tuple{
+        tLuaFunctionEntry{
+            "Add"s,
+            [](int a, int b) -> int { return a + b; }
+        },
+        std::tuple{
+            tLuaFunctionEntry{
+                "Multiply"s,
+                [](int a, int b) -> int { return a * b; }
+            },
+            std::tuple{
+                tLuaFunctionEntry{
+                    "Subtract"s,
+                    [](int a, int b) -> int { return a - b; }
+                }
+            }
+        }
+    };
+
+    globalTable.registerFunctions(functions);
+
+    ASSERT_EQ(script->stackSize(), 0) << "after register";
+
+    ASSERT_EQ(globalTable.get("Add"s).call<int>(10, 20), 30);
+    ASSERT_EQ(globalTable.get("Multiply"s).call<int>(10, 20), 200);
+    ASSERT_EQ(globalTable.get("Subtract"s).call<int>(10, 20), -10);
+
+    ASSERT_EQ(script->stackSize(), 0) << "after calls";
+}
+
+TEST(lua_function_register, register_functions_mixed)
+{
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
+
+    auto commonFunctions = []()
+        {
+            return std::tuple{
+                tLuaFunctionEntry{
+                    "Add"s,
+                    [](int a, int b) -> int { return a + b; }
+                },
+                tLuaFunctionEntry{
+                    "Subtract"s,
+                    [](int a, int b) -> int { return a - b; }
+                }
+            };
+        };
+
+    globalTable.registerFunctions(
+        commonFunctions(),
+        tLuaFunctionEntry{
+            "Multiply"s,
+            [](int a, int b) -> int { return a * b; }
+        });
+
+    ASSERT_EQ(script->stackSize(), 0) << "after register";
+
+    ASSERT_EQ(globalTable.get("Add"s).call<int>(10, 20), 30);
+    ASSERT_EQ(globalTable.get("Subtract"s).call<int>(10, 20), -10);
+    ASSERT_EQ(globalTable.get("Multiply"s).call<int>(10, 20), 200);
+
+    ASSERT_EQ(script->stackSize(), 0) << "after calls";
+}
+
+TEST(lua_function_register, register_functions_empty)
+{
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
+
+    globalTable.registerFunctions();
+    globalTable.registerFunctions(std::tuple{});
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_function_register, register_functions_into_nontable)
+{
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject value = script->createObject();
+
+    auto registerFunctions = [&]()
+        {
+            value.registerFunctions(
+                std::tuple{
+                    tLuaFunctionEntry{
+                        "Test"s,
+                        []() {}
+                    }
+                });
+        };
+
+    EXPECT_THROW(registerFunctions(), std::runtime_error);
+
+    value = 42;
+
+    EXPECT_THROW(registerFunctions(), std::runtime_error);
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+
+
+
+
+
+
+TEST(lua_function_register, type_erased_entries)
+{
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
+
+    cLuaFunctionEntries functions{
+        tLuaFunctionEntry{
+            "Add"s,
+            [](int a, int b) -> int { return a + b; }
+        },
+        tLuaFunctionEntry{
+            "Multiply"s,
+            [](int a, int b) -> int { return a * b; }
+        }
+    };
+
+    globalTable.registerFunctions(functions);
+
+    ASSERT_EQ(script->stackSize(), 0) << "after register";
+
+    ASSERT_EQ(globalTable.get("Add"s).call<int>(10, 20), 30);
+    ASSERT_EQ(globalTable.get("Multiply"s).call<int>(10, 20), 200);
+
+    ASSERT_EQ(script->stackSize(), 0) << "after calls";
+}
+
+TEST(lua_function_register, type_erased_entries_mixed_signatures)
+{
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
+
+    int result = 0;
+
+    cLuaFunctionEntries functions{
+        tLuaFunctionEntry{
+            "SetResult"s,
+            [&result](int value) { result = value; }
+        },
+        tLuaFunctionEntry{
+            "Double"s,
+            [](int value) -> int { return value * 2; }
+        },
+        tLuaFunctionEntry{
+            "Reset"s,
+            [&result]() { result = 0; }
+        }
+    };
+
+    globalTable.registerFunctions(functions);
+
+    ASSERT_EQ(script->stackSize(), 0) << "after register";
+
+    globalTable.get("SetResult"s).call(42);
+    ASSERT_EQ(result, 42);
+
+    ASSERT_EQ(globalTable.get("Double"s).call<int>(21), 42);
+
+    globalTable.get("Reset"s).call();
+    ASSERT_EQ(result, 0);
+
+    ASSERT_EQ(script->stackSize(), 0) << "after calls";
+}
+
+TEST(lua_function_register, type_erased_entries_nested)
+{
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
+
+    cLuaFunctionEntries commonFunctions{
+        tLuaFunctionEntry{
+            "Add"s,
+            [](int a, int b) -> int { return a + b; }
+        }
+    };
+
+    cLuaFunctionEntries applicationFunctions{
+        commonFunctions,
+        std::tuple{
+            tLuaFunctionEntry{
+                "Multiply"s,
+                [](int a, int b) -> int { return a * b; }
+            },
+            tLuaFunctionEntry{
+                "Subtract"s,
+                [](int a, int b) -> int { return a - b; }
+            }
+        }
+    };
+
+    globalTable.registerFunctions(applicationFunctions);
+
+    ASSERT_EQ(script->stackSize(), 0) << "after register";
+
+    ASSERT_EQ(globalTable.get("Add"s).call<int>(10, 20), 30);
+    ASSERT_EQ(globalTable.get("Multiply"s).call<int>(10, 20), 200);
+    ASSERT_EQ(globalTable.get("Subtract"s).call<int>(10, 20), -10);
+
+    ASSERT_EQ(script->stackSize(), 0) << "after calls";
+}
+
+TEST(lua_function_register, type_erased_entries_copy)
+{
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
+
+    cLuaFunctionEntries original{
+        tLuaFunctionEntry{
+            "Double"s,
+            [](int value) -> int { return value * 2; }
+        }
+    };
+
+    cLuaFunctionEntries copy = original;
+
+    globalTable.registerFunctions(copy);
+
+    ASSERT_EQ(script->stackSize(), 0) << "after register";
+    ASSERT_EQ(globalTable.get("Double"s).call<int>(21), 42);
+    ASSERT_EQ(script->stackSize(), 0) << "after call";
+}
+
+TEST(lua_function_register, type_erased_entries_multiple_states)
+{
+    cLuaFunctionEntries functions{
+        tLuaFunctionEntry{
+            "Double"s,
+            [](int value) -> int { return value * 2; }
+        }
+    };
+
+    auto script1 = std::make_shared<cLuaState>();
+    auto script2 = std::make_shared<cLuaState>();
+
+    cLuaObject globalTable1 = script1->globalTable();
+    cLuaObject globalTable2 = script2->globalTable();
+
+    globalTable1.registerFunctions(functions);
+    globalTable2.registerFunctions(functions);
+
+    ASSERT_EQ(globalTable1.get("Double"s).call<int>(21), 42);
+    ASSERT_EQ(globalTable2.get("Double"s).call<int>(11), 22);
+
+    ASSERT_EQ(script1->stackSize(), 0);
+    ASSERT_EQ(script2->stackSize(), 0);
+}
+
+TEST(lua_function_register, type_erased_entries_temporary)
+{
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
+
+    globalTable.registerFunctions(
+        cLuaFunctionEntries{
+            tLuaFunctionEntry{
+                "Double"s,
+                [](int value) -> int { return value * 2; }
+            }
+        });
+
+    ASSERT_EQ(script->stackSize(), 0) << "after register";
+
+    ASSERT_EQ(globalTable.get("Double"s).call<int>(21), 42);
+
+    ASSERT_EQ(script->stackSize(), 0) << "after call";
+}
+
+TEST(lua_function_register, type_erased_entries_empty)
+{
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
+
+    cLuaFunctionEntries functions{};
+
+    globalTable.registerFunctions(functions);
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_function_register, type_erased_entries_owns_functions)
+{
+    auto createFunctions = []()
+        {
+            int capturedValue = 42;
+
+            return cLuaFunctionEntries{
+                tLuaFunctionEntry{
+                    "GetValue"s,
+                    [capturedValue]() -> int
+                    {
+                        return capturedValue;
+                    }
+                }
+            };
+        };
+
+    cLuaFunctionEntries functions = createFunctions();
+
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
+
+    globalTable.registerFunctions(functions);
+
+    ASSERT_EQ(script->stackSize(), 0) << "after register";
+
+    ASSERT_EQ(globalTable.get("GetValue"s).call<int>(), 42);
+
+    ASSERT_EQ(script->stackSize(), 0) << "after call";
+}
+
+
+TEST(lua_function_register, type_erased_entries_destroyed_after_register)
+{
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject globalTable = script->globalTable();
+
+    {
+        cLuaFunctionEntries functions{
+            tLuaFunctionEntry{
+                "Add"s,
+                [](int a, int b) -> int { return a + b; }
+            },
+            tLuaFunctionEntry{
+                "Multiply"s,
+                [](int a, int b) -> int { return a * b; }
+            }
+        };
+
+        globalTable.registerFunctions(functions);
+
+        ASSERT_EQ(script->stackSize(), 0) << "after register";
+    }
+
+    // The original function collection no longer exists.
+    // Lua must own its registered callable objects independently.
+
+    ASSERT_EQ(globalTable.get("Add"s).call<int>(10, 20), 30);
+    ASSERT_EQ(globalTable.get("Multiply"s).call<int>(10, 20), 200);
+
+    ASSERT_EQ(script->stackSize(), 0) << "after calls";
+}
+
+TEST(lua_function_register, type_erased_entries_into_nontable)
+{
+    auto script = std::make_shared<cLuaState>();
+    cLuaObject value = script->createObject();
+
+    cLuaFunctionEntries functions{
+        tLuaFunctionEntry{
+            "Test"s,
+            []() {}
+        }
+    };
+
+    auto registerFunctions = [&]()
+        {
+            value.registerFunctions(functions);
+        };
+
+    EXPECT_THROW(registerFunctions(), std::runtime_error);
+    ASSERT_EQ(script->stackSize(), 0) << "after first attempt";
+
+    value = 42;
+
+    EXPECT_THROW(registerFunctions(), std::runtime_error);
+    ASSERT_EQ(script->stackSize(), 0) << "after second attempt";
+}
+
+
+
+
+
+
+
+
 TEST(lua_function_call, function_i_ii)
 {
     auto script = std::make_shared<cLuaState>();

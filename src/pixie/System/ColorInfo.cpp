@@ -5,7 +5,13 @@ cColorServer theColorServer;
 
 void cColorServer::Init()
 {
-	loadColorsFromConfig(*theGlobalConfig->createSubConfig("colors"));
+    std::filesystem::path configFilePath = theConfigurationFolder / "colors.lua";
+
+	loadColorsFromConfig(*cLuaState::fileToConfig(configFilePath));
+    mConfigChangeListener = theMessageCenter.listen("pixie.config_file_changed", [this, configFilePath]()
+        {
+            loadColorsFromConfig(*cLuaState::fileToConfig(configFilePath));
+        });
 }
 
 void cColorServer::loadColorsFromConfig(const cConfig& config)

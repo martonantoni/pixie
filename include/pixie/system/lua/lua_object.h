@@ -22,6 +22,15 @@ template<class T> concept cLuaReturnable =
     std::is_same_v<T, cLuaReturnVector> ||
     cLuaRetrievable<T>;
 
+template<typename F>
+struct tLuaFunctionEntry
+{
+    std::string mName;
+    F mFunction;
+};
+
+class cLuaFunctionEntries;
+
 class cLuaObject final
 {
 public:
@@ -66,6 +75,7 @@ public:
     void set(const cKey& key, const cLuaAssignable auto& value);
     template<class C> requires cCallableSignature<C>::available
     void registerFunction(const cKey& key, const C& func);
+    template<class... Fs> void registerFunctions(Fs... functions);
     void remove(const cKey& key);
     bool has(const cKey& key) const;
     template<class C> 
@@ -141,6 +151,43 @@ public:
     value_type operator*() const { return { mKey, mValue }; }
     bool operator==(const iterator& other) const;
     bool operator!=(const iterator& other) const { return !(*this == other); }
+};
+
+class cLuaFunctionEntries
+{
+    class cRegisterHelper
+    {
+    public:
+        virtual ~cRegisterHelper() = default;
+        virtual void registerInto(cLuaObject& table) const = 0;
+    };    
+    template<typename... Fs> class tRegisterHelper: public cRegisterHelper
+    {
+        std::tuple<Fs...> mFunctions;
+    public:
+        explicit tRegisterHelper(Fs... functions): mFunctions(std::move(functions)...)
+        {
+        }
+        virtual void registerInto(cLuaObject& table) const override
+        {
+            std::apply(
+                [&table](const auto&... functions)
+                {
+                    table.registerFunctions(functions...);
+                },
+                mFunctions);
+        }
+    };
+    std::shared_ptr<const cRegisterHelper> mHelper;
+public:
+    template<typename... Fs> explicit cLuaFunctionEntries(Fs&&... functions)
+        : mHelper(std::make_shared<tRegisterHelper<std::decay_t<Fs>...>>(std::forward<Fs>(functions)...))
+    {
+    }
+    void registerInto(cLuaObject& table) const
+    {
+        mHelper->registerInto(table);
+    }
 };
 
 
@@ -606,4 +653,31 @@ void cLuaObject::registerFunction(const cKey& key, const C& func)
     {
         throw std::runtime_error("not a valid lua object");
     }
+}
+
+template<class... Fs> void cLuaObject::registerFunctions(Fs... functions)
+{
+    auto registerFunctionHelper = [this](auto&& functionEntry)
+        {
+            using T = std::remove_cvref_t<decltype(functionEntry)>;
+
+            if constexpr (requires { std::tuple_size<T>::value; })
+            {
+                std::apply(
+                    [this](const auto&... entries)
+                    {
+                        registerFunctions(entries...);
+                    },
+                    functionEntry);
+            }
+            else if constexpr (std::same_as<T, cLuaFunctionEntries>)
+            {
+                functionEntry.registerInto(*this);
+            }
+            else
+            {
+                registerFunction(functionEntry.mName, functionEntry.mFunction);
+            }
+        };
+    (registerFunctionHelper(functions), ...);
 }

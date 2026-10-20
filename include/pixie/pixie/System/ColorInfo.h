@@ -86,6 +86,7 @@ template<class MODE> cColor cColor::adjusted(double amount) const
 class cColorServer
 {
 	std::map<std::string, cColor, std::less<>> mColorMap;
+    cRegisteredID mConfigChangeListener;
 public:
 	void Init();
     void loadColorsFromConfig(const cConfig& config);

@@ -8,7 +8,8 @@ class cStartupController final
 public:
     struct cConfig
     {
-        cPath mainLuaConfigPath;
+        std::filesystem::path mainLuaConfigPath;
+        std::filesystem::path configurationFolder;
         std::function<void()> startApplication;
         std::function<void()> stopApplication;
         bool initPixie = true;
@@ -27,6 +28,7 @@ public:
 private:
     void continueStartup();
     void Start_MainThread();
+    std::unique_ptr<Pixie::cFileChangeNotifier> mConfigChangeNotifier;
     cStartupController::cConfig mConfig;
     cRegisteredID mDestroyHandlerID;
 public:

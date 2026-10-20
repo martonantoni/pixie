@@ -3,12 +3,15 @@
 #include <filesystem>
 
 std::shared_ptr<cConfig> theGlobalConfig;
+std::filesystem::path theConfigurationFolder;
 
 void registerGlobalPixieLuaFunctions(cLuaObject globalTable);
 
 void cStartupController::Start_MainThread()
 {
     mConfig = pixieAppConfiguration();
+    theConfigurationFolder =
+        mConfig.configurationFolder.empty() ? std::filesystem::current_path() : mConfig.configurationFolder;
     if(mConfig.createConsole)
         CreateConsole();
     MainLog = new cMainLog(
@@ -27,12 +30,11 @@ void cStartupController::Start_MainThread()
         }, eCallbackType::NoImmediate);
 }
 
-
 void cStartupController::continueStartup()
 {
     auto luaState = std::make_shared<cLuaState>();
     registerGlobalPixieLuaFunctions(luaState->globalTable());
-    luaState->executeFile(mConfig.mainLuaConfigPath.empty() ? "MainConfig.lua" : mConfig.mainLuaConfigPath.c_str());
+    luaState->executeFile(mConfig.mainLuaConfigPath.empty() ? theConfigurationFolder / "MainConfig.lua" : mConfig.mainLuaConfigPath.c_str());
     theGlobalConfig = Pixie::toConfig(luaState->globalTable());
 
 
@@ -59,8 +61,14 @@ void cStartupController::continueStartup()
 
     theRedrawableDispatcher.init();
 
-// 	cMouseCursor::Get();
-//     cMouseCursorServer::Get();
+#ifdef _DEBUG
+    mConfigChangeNotifier = std::make_unique<Pixie::cFileChangeNotifier>("configuration", "*.lua",
+        []()
+        {
+            theMessageCenter.post("pixie.config_file_changed");
+            theMessageCenter.post("pixie.configuration_changed");
+        });
+#endif
 }
 
 void cStartupController::start()
