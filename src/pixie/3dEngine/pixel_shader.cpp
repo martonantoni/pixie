@@ -49,6 +49,7 @@ std::string cPixelShader::extractMetaInfo(std::string_view sourceCode)
 
     std::string configSource;
     bool inConfig = false;
+    int cfgPos = 0;
 
     for (auto&& lineRange : sourceCode | std::views::split('\n'))
     {
@@ -62,6 +63,7 @@ std::string cPixelShader::extractMetaInfo(std::string_view sourceCode)
             if (comment.find("@cfg") != std::string_view::npos)
             {
                 inConfig = true;
+                cfgPos = static_cast<int>(finalSourceCode.size());
                 continue;
             }
             if (comment.find("@endcfg") != std::string_view::npos)
@@ -89,12 +91,13 @@ std::string cPixelShader::extractMetaInfo(std::string_view sourceCode)
 
     auto state = std::make_shared<cLuaState>();
     state->executeString(configSource);
+    std::vector<cShaderConstant> constants;
     auto rootTable = state->globalTable();
     for (auto&& [key, value] : rootTable)
     {
-        if (key == "constants")
+        if (key == "config" || key == "configuration")
         {
-            mConstants = Pixie::toConfig(value);
+            mConfig = Pixie::toConfig(value);
         }
         else if (key == "texture_slots")
         {
@@ -134,7 +137,55 @@ std::string cPixelShader::extractMetaInfo(std::string_view sourceCode)
                 mDataTextures[slot] = cTexture::CreateFromData(cPoint(floats.size(), 1), floats);
             }
         }
+        else if (key == "constants")
+        {
+            for (auto&& [constantName, constantValue] : value)
+            {
+                if (constantValue.isTable())
+                {
+                    auto type = constantValue.get<std::string>("type");
+                    if (type == "float")
+                    {
+                        float floatValue = constantValue.get<double>("default");
+                        constants.emplace_back( constantName.toString(),  floatValue );
+                    }
+                    else if (type == "color")
+                    {
+                        std::array<float, 3> colorValue;
+                        auto colorTable = constantValue.get("default");
+                        for (int i = 0; i < 3; ++i)
+                        {
+                            colorValue[i] = colorTable.get<double>(i + 1);
+                        }
+                        constants.emplace_back( constantName.toString(),  colorValue );
+                    }
+                }
+            }
+        }
     }
+    auto presetConstants = theShaderManager->shaderConstants(name());
+    for (auto&& presetConstant : presetConstants)
+    {
+        auto it = std::find_if(constants.begin(), constants.end(), [&](const cShaderConstant& c) { return c.mName == presetConstant.mName; });
+        if (it == constants.end())
+            constants.push_back(presetConstant);
+        else
+            *it = presetConstant; 
+    }
+    std::string constantDeclarations;
+    for(auto&& constant : constants)
+    {
+        if (std::holds_alternative<float>(constant.mValue))
+        {
+            constantDeclarations += std::format("static const float {} = {}; ", constant.mName, std::get<float>(constant.mValue));
+        }
+        else if (std::holds_alternative<std::array<float, 3>>(constant.mValue))
+        {
+            auto color = std::get<std::array<float, 3>>(constant.mValue);
+            constantDeclarations += std::format("static const float3 {} = float3({}, {}, {}); ", constant.mName, color[0], color[1], color[2]);
+        }
+    }
+    finalSourceCode.insert(cfgPos, constantDeclarations);
     return finalSourceCode;
 }
 
