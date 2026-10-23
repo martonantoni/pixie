@@ -125,6 +125,7 @@ void cShaderManager::loadShaderConstants()
         MainLog->Log("Failed to load shader constants from {}: {}", mShaderPresetPath.string(), e.what());
         return;
     }
+    mShaderConstants.clear();
     for (auto&& [groupName, groupTable] : state->globalTable())
     {
         if (!groupTable.isTable())
