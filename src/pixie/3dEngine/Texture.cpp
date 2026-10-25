@@ -108,27 +108,63 @@ void cTexture::InitForRenderTarget(cPoint Size)
     D3V(device->CreateRenderTargetView(mTexture, nullptr, &mSurface));
 }
 
-void cTexture::InitForWritable(cPoint Size)
+void cTexture::InitForWritable(cPoint Size, eTextureFormat textureFormat)
 {
-    mTextureInfo=cTextureRect(Size);
-    mSurfaceWidth=Size.x;
-    mSurfaceHeight=Size.y;
+    mTextureInfo = cTextureRect(Size);
+    mSurfaceWidth = Size.x;
+    mSurfaceHeight = Size.y;
     mIsWritable = true;
-    mWritablePixels.resize(static_cast<size_t>(Size.x) * static_cast<size_t>(Size.y) * 4);
+
+    int bytesPerPixel = 0;
+    DXGI_FORMAT dxgiFormat = DXGI_FORMAT_UNKNOWN;
+
+    switch (textureFormat)
+    {
+    case eTextureFormat::BGRA8:
+        bytesPerPixel = 4;
+        dxgiFormat = DXGI_FORMAT_B8G8R8A8_UNORM;
+        break;
+
+    case eTextureFormat::R8_UNORM:
+        bytesPerPixel = 1;
+        dxgiFormat = DXGI_FORMAT_R8_UNORM;
+        break;
+
+    case eTextureFormat::R8_UINT:
+        bytesPerPixel = 1;
+        dxgiFormat = DXGI_FORMAT_R8_UINT;
+        break;
+
+    case eTextureFormat::Unknown:
+        ASSERT(false);
+        break;
+
+    default:
+        std::unreachable();
+    }
+
+    mWritablePixels.resize(static_cast<size_t>(Size.x) * Size.y * bytesPerPixel);
 
     D3D11_TEXTURE2D_DESC desc = {};
     desc.Width = Size.x;
     desc.Height = Size.y;
     desc.MipLevels = 1;
     desc.ArraySize = 1;
-    desc.Format = TextureFormat;
+    desc.Format = dxgiFormat;
     desc.SampleDesc.Count = 1;
     desc.Usage = D3D11_USAGE_DEFAULT;
     desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 
-    auto device = cDevice::Get()->GetD3DObject();
-    D3V(device->CreateTexture2D(&desc, nullptr, &mTexture));
-    D3V(device->CreateShaderResourceView(mTexture, nullptr, &mShaderResourceView));
+    auto dev = cDevice::Get()->GetD3DObject();
+    D3V(dev->CreateTexture2D(&desc, nullptr, &mTexture));
+    D3V(dev->CreateShaderResourceView(mTexture, nullptr, &mShaderResourceView));
+}
+
+tIntrusivePtr<cTexture> cTexture::CreateWriteable(cPoint Size, eTextureFormat format)
+{
+    tIntrusivePtr<cTexture> NewTexture(new cTexture(cTextureRect(Size)));
+    NewTexture->InitForWritable(Size, format);
+    return NewTexture;
 }
 
 cTexture::cLockInfo cTexture::LockSurface(IsReadOnly isReadOnly)
@@ -166,13 +202,6 @@ tIntrusivePtr<cTexture> cTexture::CreateRenderTarget(cPoint Size)
 {
     tIntrusivePtr<cTexture> NewTexture(new cTexture(cTextureRect(Size)));
     NewTexture->InitForRenderTarget(Size);
-    return NewTexture;
-}
-
-tIntrusivePtr<cTexture> cTexture::CreateWriteable(cPoint Size)
-{
-    tIntrusivePtr<cTexture> NewTexture(new cTexture(cTextureRect(Size)));
-    NewTexture->InitForWritable(Size);
     return NewTexture;
 }
 
@@ -215,9 +244,10 @@ tIntrusivePtr<cTexture> cTexture::CreateFromData(cPoint size, std::span<const fl
     return texture;
 }
 
-tIntrusivePtr<cTexture> cTexture::CreateFromData(cPoint size, std::span<const uint8_t> data)
+tIntrusivePtr<cTexture> cTexture::CreateFromData(cPoint size, std::span<const uint8_t> data, eTextureFormat textureFormat)
 {
     ASSERT(data.size() == static_cast<size_t>(size.x) * size.y);
+    ASSERT(textureFormat == eTextureFormat::R8_UNORM || textureFormat == eTextureFormat::R8_UINT);
 
     tIntrusivePtr<cTexture> texture(
         new cTexture(cTextureRect(size)));
@@ -230,7 +260,7 @@ tIntrusivePtr<cTexture> cTexture::CreateFromData(cPoint size, std::span<const ui
     desc.Height = size.y;
     desc.MipLevels = 1;
     desc.ArraySize = 1;
-    desc.Format = DXGI_FORMAT_R8_UNORM;
+    desc.Format = (textureFormat == eTextureFormat::R8_UNORM) ? DXGI_FORMAT_R8_UNORM : DXGI_FORMAT_R8_UINT;
     desc.SampleDesc.Count = 1;
     desc.Usage = D3D11_USAGE_IMMUTABLE;
     desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;

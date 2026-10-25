@@ -20,6 +20,14 @@ struct cTextureRect
     cFloatPoint bottomLeft() const { return cFloatPoint(mLeft, mBottom); }
 };
 
+enum class eTextureFormat
+{
+    Unknown,
+    BGRA8,    // 32-bit BGRA unsigned normalized (float)
+    R8_UNORM, // 8-bit single channel (red) unsigned normalized (float)
+    R8_UINT,  // 8-bit single channel (red) unsigned integer
+};
+
 class cTexture: public cIntrusiveRefCount
 {
     friend cTextureManager;
@@ -41,7 +49,7 @@ protected:
     cTexture(const cTextureRect &TextureInfo): mTextureInfo(TextureInfo) {}
     ~cTexture();
     void InitForRenderTarget(cPoint Size);
-    void InitForWritable(cPoint Size);
+    void InitForWritable(cPoint Size, eTextureFormat format);
 
 public:
     cTexture(const cTexture &BaseTexture,const cTextureRect &TextureInfo);
@@ -50,9 +58,9 @@ public:
 // functions for creating new Texture objects:
     static tIntrusivePtr<cTexture> CreateRenderTarget(unsigned int Width, unsigned int Height) { return CreateRenderTarget(cPoint(Width, Height)); }
     static tIntrusivePtr<cTexture> CreateRenderTarget(cPoint Size);
-    static tIntrusivePtr<cTexture> CreateWriteable(cPoint Size);
+    static tIntrusivePtr<cTexture> CreateWriteable(cPoint size, eTextureFormat format);
     static tIntrusivePtr<cTexture> CreateFromData(cPoint size, std::span<const float> data);
-    static tIntrusivePtr<cTexture> CreateFromData(cPoint size, std::span<const uint8_t> data);
+    static tIntrusivePtr<cTexture> CreateFromData(cPoint size, std::span<const uint8_t> data, eTextureFormat format);
     tIntrusivePtr<cTexture> CreateSubTexture(const cRect &SubRect) const;
     static const unsigned int Flip_Horizontal = 1;
     static const unsigned int Flip_Vertical = 2;

@@ -103,7 +103,6 @@ std::shared_ptr<const cFont> cFontManager::makeFont(const std::string& fileName,
 		Packer.Pack(Sizes, Packed, textureSize, false);
 		if(Packed.size()>=2)
 			continue;
-		Font.mAtlasTexture=cTexture::CreateWriteable({ textureSize, textureSize });
 		std::vector<int> &FirstPacked=Packed.front();
 		int Index=-1;
 		ForEachLetter([&](auto Letter, auto &FontLetterData)
@@ -121,16 +120,6 @@ std::shared_ptr<const cFont> cFontManager::makeFont(const std::string& fileName,
 		break;
 	}
 	std::vector<uint8_t> atlasPixels(static_cast<size_t>(textureSize)* textureSize, 0);
-	//cTexture::cLockInfo LockInfo=Font.mAtlasTexture->LockSurface(cTexture::IsReadOnly::no);
-	//for (int y = 0; y < Font.mAtlasTexture->GetSurfaceHeight(); ++y)
-	//{
-	//	memset(LockInfo.mBytes + y * LockInfo.mPitch, 0xff, Font.mAtlasTexture->GetSurfaceWidth() * 4);
-	//	for (int x = 0; x < Font.mAtlasTexture->GetSurfaceWidth(); ++x)
-	//	{
-	//		*(LockInfo.mBytes + y * LockInfo.mPitch + x*4 + 3) = 0;
-	//	}
-	//}
-
 	Index=-1;
 
 	ForEachLetter([&](auto Letter, auto &FontLetterData)
@@ -169,15 +158,13 @@ std::shared_ptr<const cFont> cFontManager::makeFont(const std::string& fileName,
 				static_cast<int>(bitmap->bitmap.rows)
 			});
 		ASSERT(FontLetterData.mYOffset>=0);
-		FontLetterData.mTexture=Font.mAtlasTexture->CreateSubTexture(
-			cRect(ThisLetterData.mPos, { (int)bitmap->bitmap.width, (int)bitmap->bitmap.rows }));
 
 		FT_Done_Glyph(Glyphs[Index]);
 	});
-//	Font.mAtlasTexture->UnlockSurface();
 	Font.mAtlasTexture = cTexture::CreateFromData(
 		{ textureSize, textureSize },
-		atlasPixels);
+		atlasPixels,
+		eTextureFormat::R8_UNORM);
 	Index = -1;
 
 	ForEachLetter([&](auto Letter, auto& FontLetterData)
