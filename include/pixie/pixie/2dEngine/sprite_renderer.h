@@ -49,6 +49,14 @@ private:
     ID3D11Buffer *mVertexBuffer=nullptr;
     ID3D11Buffer *mIndexBuffer=nullptr;
     ID3D11Buffer *mShaderConstants=nullptr;
+    struct    
+    {
+        ID3D11SamplerState* mAnisotropicWrap;
+        ID3D11SamplerState* mLinearWrap;
+        ID3D11SamplerState* mLinearClamp;
+        ID3D11SamplerState* mPointWrap;
+        ID3D11SamplerState* mPointClamp;
+    } mSamplerSates;
     ID3D11SamplerState *mSamplerState=nullptr;
     ID3D11BlendState *mNormalBlendState=nullptr;
     ID3D11BlendState *mCopySourceBlendState=nullptr;

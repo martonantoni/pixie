@@ -58,7 +58,19 @@ void cSpriteRenderer::Init()
     samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
     samplerDesc.MinLOD = 0;
     samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-    D3V(mDevice->CreateSamplerState(&samplerDesc, &mSamplerState));
+    D3V(mDevice->CreateSamplerState(&samplerDesc, &mSamplerSates.mAnisotropicWrap));
+    samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+    D3V(mDevice->CreateSamplerState(&samplerDesc, &mSamplerSates.mLinearWrap));
+    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+    D3V(mDevice->CreateSamplerState(&samplerDesc, &mSamplerSates.mLinearClamp));
+    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+    D3V(mDevice->CreateSamplerState(&samplerDesc, &mSamplerSates.mPointClamp));
+    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    D3V(mDevice->CreateSamplerState(&samplerDesc, &mSamplerSates.mPointWrap));
 
     D3D11_BLEND_DESC blendDesc = {};
     blendDesc.RenderTarget[0].BlendEnable = TRUE;
@@ -502,7 +514,15 @@ void cSpriteRenderer::Render()
     mDeviceContext->VSSetConstantBuffers(0, 1, &mShaderConstants);
     mDeviceContext->PSSetConstantBuffers(0, 1, &mShaderConstants);
     mDeviceContext->PSSetShader(mDefaultPixelShader->shader(), nullptr, 0);
-    mDeviceContext->PSSetSamplers(0, 1, &mSamplerState);
+    ID3D11SamplerState* samplers[] =
+    {
+        mSamplerSates.mAnisotropicWrap,
+        mSamplerSates.mLinearWrap,
+        mSamplerSates.mLinearClamp,
+        mSamplerSates.mPointClamp,
+        mSamplerSates.mPointWrap
+    };
+    mDeviceContext->PSSetSamplers(0, 5, samplers);
     mDeviceContext->RSSetState(mRasterizerState);
     // UpdateBlending() is called for the first sprite in each RenderSprites().
 
