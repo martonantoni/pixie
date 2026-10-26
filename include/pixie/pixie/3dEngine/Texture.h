@@ -24,6 +24,7 @@ enum class eTextureFormat
 {
     Unknown,
     BGRA8,    // 32-bit BGRA unsigned normalized (float)
+    RGBA8_UINT, // 32-bit RGBA unsigned integer
     R8_UNORM, // 8-bit single channel (red) unsigned normalized (float)
     R8_UINT,  // 8-bit single channel (red) unsigned integer
 };
@@ -41,6 +42,7 @@ class cTexture: public cIntrusiveRefCount
 
     bool mIsWritable = false;
     bool mWritableLockIsReadOnly = false;
+    int mBytesPerPixel = 4;
     std::vector<uint8_t> mWritablePixels;
 
 protected:

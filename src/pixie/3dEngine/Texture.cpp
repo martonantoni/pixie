@@ -125,6 +125,11 @@ void cTexture::InitForWritable(cPoint Size, eTextureFormat textureFormat)
         dxgiFormat = DXGI_FORMAT_B8G8R8A8_UNORM;
         break;
 
+    case eTextureFormat::RGBA8_UINT:
+        bytesPerPixel = 4;
+        dxgiFormat = DXGI_FORMAT_R8G8B8A8_UINT;
+        break;
+
     case eTextureFormat::R8_UNORM:
         bytesPerPixel = 1;
         dxgiFormat = DXGI_FORMAT_R8_UNORM;
@@ -142,6 +147,7 @@ void cTexture::InitForWritable(cPoint Size, eTextureFormat textureFormat)
     default:
         std::unreachable();
     }
+    mBytesPerPixel = bytesPerPixel;
 
     mWritablePixels.resize(static_cast<size_t>(Size.x) * Size.y * bytesPerPixel);
 
@@ -175,8 +181,8 @@ cTexture::cLockInfo cTexture::LockSurface(IsReadOnly isReadOnly)
     mWritableLockIsReadOnly = isReadOnly == IsReadOnly::yes;
 
     cLockInfo LockInfo;
-    LockInfo.mPitch = mSurfaceWidth * 4;
-    LockInfo.mBytes = reinterpret_cast<char *>(mWritablePixels.data());
+    LockInfo.mPitch = mSurfaceWidth * mBytesPerPixel;
+    LockInfo.mBytes = reinterpret_cast<char*>(mWritablePixels.data());
     return LockInfo;
 }
 
@@ -191,7 +197,7 @@ void cTexture::UnlockSurface()
             0,
             nullptr,
             mWritablePixels.data(),
-            mSurfaceWidth * 4,
+            mSurfaceWidth * mBytesPerPixel,
             0);
     }
 
