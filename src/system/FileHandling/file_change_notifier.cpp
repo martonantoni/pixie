@@ -7,6 +7,11 @@ cFileChangeNotifier::cFileChangeNotifier(const std::filesystem::path& folder, co
     : mFolder(folder)
     , mCallback(std::move(callback))
 {
+    if (!std::filesystem::exists(mFolder) || !std::filesystem::is_directory(mFolder))
+    {
+        return;
+    }
+
     mTimerID = theMainThread->AddTimer([this]() { checkFiles(); }, cTimerRequest(1000, true));
     std::string pattern;
     pattern.reserve(filter.size() * 2);
