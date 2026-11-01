@@ -37,3 +37,12 @@ public:
     template<std::constructible_from<VALUE_TYPE> T> operator T() const { return getter(mOwner); }
 };
 
+
+template<class OWNER, class VALUE_TYPE, auto getter, auto setter, typename CharT>
+struct std::formatter<tProxy<OWNER, VALUE_TYPE, getter, setter>, CharT>: std::formatter<VALUE_TYPE, CharT>
+{
+    auto format(const tProxy<OWNER, VALUE_TYPE, getter, setter>& proxy, auto& ctx) const
+    {
+        return std::formatter<VALUE_TYPE, CharT>::format(static_cast<VALUE_TYPE>(proxy), ctx);
+    }
+};
