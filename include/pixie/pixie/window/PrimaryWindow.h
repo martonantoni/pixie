@@ -25,6 +25,7 @@ private:
 	};
 	size_t mIDCounter=0;
 	cWindowsMessageResult OnNCHitTest(WPARAM wParam,LPARAM lParam);
+	cRegisteredID mNCTestID;  
 public:
 	cPrimaryWindow();
 	HWND mWindowHandle;

@@ -27,6 +27,7 @@ cWindowsMessageResult cPrimaryWindow::WindowProc(UINT uMsg, WPARAM wParam, LPARA
 	// exit hack:
 	if (uMsg == WM_DESTROY)
 	{
+        mNCTestID.Unregister();
 		MainLog->Flush();
 		g_IsExitActive = true;
 		exit(0);
@@ -36,39 +37,63 @@ cWindowsMessageResult cPrimaryWindow::WindowProc(UINT uMsg, WPARAM wParam, LPARA
 
 cPrimaryWindow::cPrimaryWindow()
 {
-	thePrimaryWindow = this;
+    thePrimaryWindow = this;
 
+    WNDCLASSEX WindowClass;
+    memset(&WindowClass, 0, sizeof(WindowClass));
+    WindowClass.cbSize = sizeof(WindowClass);
+    WindowClass.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
+    WindowClass.lpfnWndProc = &MainWindowProc;
+    WindowClass.hInstance = gInstance;
+    WindowClass.lpszClassName = "PixieWindow";
 
-	WNDCLASSEX WindowClass;
-	memset(&WindowClass, 0, sizeof(WindowClass));
-	WindowClass.cbSize = sizeof(WindowClass);
-	WindowClass.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
-	WindowClass.lpfnWndProc = &MainWindowProc;
-	WindowClass.hInstance = gInstance;
-	WindowClass.lpszClassName = "PixieWindow";
 #ifdef NO_CUSTOM_CURSORS
-	WindowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+    WindowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
 #else
-	WindowClass.hCursor = NULL;// CursorHandle;// LoadCursor(NULL, IDC_ARROW);
+    WindowClass.hCursor = NULL;
 #endif
 
-	::RegisterClassEx(&WindowClass);
-	auto config = theGlobalConfig->getSubConfig("primary_window");
-	mWindowHandle = ::CreateWindow("PixieWindow", cProgramTitle::Get()->c_str(), WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX, 0, 0, 500, 500, NULL, NULL, gInstance, 0);
+    ::RegisterClassEx(&WindowClass);
 
-	RECT WindowRect, ClientRect;
-	::GetWindowRect(mWindowHandle, &WindowRect);
-	::GetClientRect(mWindowHandle, &ClientRect);
+    auto config = theGlobalConfig->getSubConfig("primary_window");
 
-	int ScreenWidth = ::GetSystemMetrics(SM_CXSCREEN);
+    bool borderless = config->get<bool>("borderless", false);
+    int Width = config->get<int>("width");
+    int Height = config->get<int>("height");
 
-	int Width = config->get<int>("width") + WindowRect.right - WindowRect.left - ClientRect.right;
-	int Height = config->get<int>("height") + WindowRect.bottom - WindowRect.top - ClientRect.bottom;
+    DWORD windowStyle = borderless
+        ? WS_POPUP | WS_VISIBLE
+        : WS_VISIBLE | WS_SYSMENU | WS_MINIMIZEBOX;
 
-	::SetWindowPos(mWindowHandle, NULL, (ScreenWidth - Width) / 2, 0, Width, Height, SWP_NOZORDER);
-	::BringWindowToTop(mWindowHandle);
+    mWindowHandle = ::CreateWindow(
+        "PixieWindow",
+        cProgramTitle::Get()->c_str(),
+        windowStyle,
+        0, 0, 500, 500,
+        NULL, NULL, gInstance, 0);
 
-	//	AddMessageHandler(WM_NCHITTEST,MakeFunctor(this,&cPrimaryWindow::OnNCHitTest));
+
+    if (!borderless)
+    {
+        RECT WindowRect, ClientRect;
+        ::GetWindowRect(mWindowHandle, &WindowRect);
+        ::GetClientRect(mWindowHandle, &ClientRect);
+
+        Width += WindowRect.right - WindowRect.left - ClientRect.right;
+        Height += WindowRect.bottom - WindowRect.top - ClientRect.bottom;
+    }
+
+    int ScreenWidth = ::GetSystemMetrics(SM_CXSCREEN);
+    int ScreenHeight = ::GetSystemMetrics(SM_CYSCREEN);
+
+    ::SetWindowPos(mWindowHandle, NULL, 
+        (ScreenWidth - Width) / 2, (ScreenHeight - Height) / 2,
+        Width, Height, SWP_NOZORDER);
+
+    ::BringWindowToTop(mWindowHandle);
+
+    if(borderless)
+        mNCTestID = AddMessageHandler(WM_NCHITTEST, [this](WPARAM wParam, LPARAM lParam) { return OnNCHitTest(wParam, lParam); });
 }
 
 cRegisteredID cPrimaryWindow::AddMessageHandler(UINT Message, const cMessageHandler& MessageHandler)
@@ -92,7 +117,9 @@ void cPrimaryWindow::Unregister(const cRegisteredID& RegisteredID, eCallbackType
 
 cWindowsMessageResult cPrimaryWindow::OnNCHitTest(WPARAM wParam, LPARAM lParam)
 {
-	return cWindowsMessageResult(HTCAPTION);
+    if (::GetKeyState(VK_MENU) & 0x8000)
+        return cWindowsMessageResult(HTCAPTION);
+    return cWindowsMessageResult(HTCLIENT);
 }
 
 void cPrimaryWindow::Resize(int Width, int Height)
