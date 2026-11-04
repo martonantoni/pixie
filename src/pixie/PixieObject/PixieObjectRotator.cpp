@@ -12,7 +12,7 @@ cPixieObjectAnimator::eAnimateResult cPixieObjectRotator::Animate(cPixieObject& 
 {
     auto ElapsedTime = gFrameTime - GetStartTime();
     float fullRotation = ElapsedTime * 360.0 / mTimeForFullCircle;
-    bool done = fullRotation >= mTargetSumRotation;
+    bool done = false;// fullRotation >= mTargetSumRotation;
     auto ElapsedCircleTime = ElapsedTime % mTimeForFullCircle;
     if (mDirection == ClockWise)
         Object.SetFloatProperty(cPixieObject::Property_Rotation, mStartRotation + (done ? mTargetSumRotation : ElapsedCircleTime * 360.0 / mTimeForFullCircle));

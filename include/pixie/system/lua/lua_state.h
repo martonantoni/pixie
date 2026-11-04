@@ -43,6 +43,7 @@ public:
     struct cSerializationStyle { bool singleLine = false; };
     static std::string configToScript(const cConfig& config, const cSerializationStyle& style = {}, const std::string& ident = std::string());
     static std::string objectToScript(const cLuaObject& table, const cSerializationStyle& style = {}, const std::string& ident = std::string());
+    static std::shared_ptr<cLuaState> fromFile(const std::filesystem::path& scriptPath);
 
 
     lua_State* state() { return L; }

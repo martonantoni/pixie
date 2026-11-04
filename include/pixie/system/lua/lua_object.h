@@ -1,5 +1,7 @@
 #pragma once
 
+template<class T> struct cLuaConverter;
+
 template<class T> concept cLuaAssignable = 
     std::is_same_v<std::decay_t<T>, cLuaObject> ||
     std::is_same_v<T, int> ||
@@ -8,13 +10,21 @@ template<class T> concept cLuaAssignable =
     std::convertible_to<T, std::string_view> ||
     std::is_same_v<T, bool>;
 
+template<class T> concept cLuaConvertibleTo =
+    requires(const cLuaObject & object)
+{
+    cLuaConverter<T>::convert(object);
+};
+
 template<class T> concept cLuaRetrievable =
     std::is_same_v<T, cLuaObject> ||
     std::is_same_v<T, int> ||
     std::is_same_v<T, long long> ||
     std::is_same_v<T, double> ||
     std::is_same_v<T, std::string> ||
-    std::is_same_v<T, bool>;
+    std::is_same_v<T, bool> ||
+    cLuaConvertibleTo<T>;
+
 
 struct cLuaReturnVector {};
 
@@ -362,13 +372,20 @@ template<cLuaRetrievable T> T cLuaObject::get(const cKey& key) const
 {
     if (auto L = retrieveSelf())
     {
-        retrieveItem(L, key);
-        if (lua_isnil(L, -1))
+        if constexpr (cLuaConvertibleTo<T>)
         {
-            lua_pop(L, 1); // Pop the nil value
-            throw std::runtime_error("key not found");
+            return cLuaConverter<T>::convert(get<cLuaObject>(key));
         }
-        return pop<T>(*mState, L);
+        else
+        {
+            retrieveItem(L, key);
+            if (lua_isnil(L, -1))
+            {
+                lua_pop(L, 1); // Pop the nil value
+                throw std::runtime_error("key not found");
+            }
+            return pop<T>(*mState, L);
+        }
     }
     throw std::runtime_error("non-value");
 }

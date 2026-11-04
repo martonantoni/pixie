@@ -85,3 +85,11 @@ inline cFloatPoint Lerp(T a, T b, float t)
 	return { a.x+(b.x-a.x)*t, a.y+(b.y-a.y)*t };
 }
 
+template<>
+struct cLuaConverter<cPoint>
+{
+	static cPoint convert(const cLuaObject& object)
+	{
+		return { object.get<int>(1), object.get<int>(2) };
+	}
+};

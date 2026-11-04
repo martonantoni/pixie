@@ -476,7 +476,7 @@ void cSpriteRenderer::UpdateRenderTargetState()
     auto constants = static_cast<cShaderConstants *>(mapped.pData);
     constants->TargetSize[0] = static_cast<float>(mRenderSurfaceWidth);
     constants->TargetSize[1] = static_cast<float>(mRenderSurfaceHeight);
-    constants->Time = gFrameTime * 0.001f;
+    constants->Time = (gFrameTime % 1000) * 0.001f;
     mDeviceContext->Unmap(mShaderConstants, 0);
 }
 

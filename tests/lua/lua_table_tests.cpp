@@ -501,6 +501,16 @@ TEST(lua_object, get_set_in_local_table_lua_val_key)
     ASSERT_EQ(script->stackSize(), 0);
 }
 
+TEST(lua_object, get_with_converter_point)
+{
+    auto script = std::make_shared<cLuaState>();
+    script->executeString("my_table = { 12, 10 }");
+    cPoint pointValue = script->globalTable().get<cPoint>("my_table");
+    ASSERT_EQ(pointValue.x, 12);
+    ASSERT_EQ(pointValue.y, 10);
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
 TEST(lua_object, copy_table_obj)
 {
     auto script = std::make_shared<cLuaState>();
@@ -1234,13 +1244,6 @@ TEST(lua_function_register, type_erased_entries_into_nontable)
     ASSERT_EQ(script->stackSize(), 0) << "after second attempt";
 }
 
-
-
-
-
-
-
-
 TEST(lua_function_call, function_i_ii)
 {
     auto script = std::make_shared<cLuaState>();
@@ -1969,6 +1972,7 @@ void wikiExamples() // making sure they compile without error
         print_table(state->globalTable().get("my_table"), print_table);
     }
 }
+
 
 // Main function to run the tests
 int main(int argc, char** argv)
