@@ -8,12 +8,21 @@ void cMainThread::threadLoop()
     theEventCenter->setNeedDispatchProcessor([this]() { mGotEventToDispatch.Set(); });
     theMessageCenter.setNeedDispatchProcessor([this]() { mGotEventToDispatch.Set(); });
     DWORD CurrentTime = GetTickCount();
-    for (;;)
+    try
     {
-        mTimeToNextTimer = mTimerServer.GetTimeToNextTimer(CurrentTime);
-        mReactor->DispatchEvents(mTimeToNextTimer);
-        CurrentTime = GetTickCount();
-        mTimerServer.ProcessTimers(CurrentTime);
+        for (;;)
+        {
+            mTimeToNextTimer = mTimerServer.GetTimeToNextTimer(CurrentTime);
+            mReactor->DispatchEvents(mTimeToNextTimer);
+            CurrentTime = GetTickCount();
+            mTimerServer.ProcessTimers(CurrentTime);
+        }
+    }
+    catch (std::runtime_error& e)
+    {
+        MainLog->Log("Exception in main thread event dispatch: {}", e.what());
+        MainLog->Flush();
+        throw;
     }
 }
 
@@ -27,6 +36,8 @@ void cMainThread::processEventDispatch()
     catch(std::runtime_error& e)
     {
         MainLog->Log("Exception in main thread event dispatch: {}", e.what());
+        MainLog->Flush();
+        throw;
     }
 }
 

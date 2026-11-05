@@ -511,6 +511,37 @@ TEST(lua_object, get_with_converter_point)
     ASSERT_EQ(script->stackSize(), 0);
 }
 
+TEST(lua_object, get_missing_key)
+{
+    auto script = std::make_shared<cLuaState>();
+    auto globalTable = script->globalTable();
+
+    EXPECT_THROW(globalTable.get<int>("missing_key"), std::runtime_error);
+    globalTable.set("alma", 42);
+    ASSERT_EQ(globalTable.get<int>("alma"), 42);
+    EXPECT_THROW(globalTable.get<int>("missing_key"), std::runtime_error);
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_object, get_missing_key_with_converter)
+{
+    auto script = std::make_shared<cLuaState>();
+    auto globalTable = script->globalTable();
+
+    script->executeString("point = { 12 }");
+
+    EXPECT_THROW(globalTable.get<cPoint>("no_such_value"), std::runtime_error);
+    EXPECT_THROW(globalTable.get<cPoint>("point"), std::runtime_error); // the 2nd element is missing
+
+    ASSERT_EQ(script->stackSize(), 0);
+
+    globalTable.set("alma", 42);
+    ASSERT_EQ(globalTable.get<int>("alma"), 42);
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
 TEST(lua_object, copy_table_obj)
 {
     auto script = std::make_shared<cLuaState>();
@@ -520,6 +551,23 @@ TEST(lua_object, copy_table_obj)
     verifyTestVariableValues(localTable);
     cLuaObject copyOfTableObj = localTable;
     verifyTestVariableValues(copyOfTableObj);
+
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_object, copy_root_table_obj)
+{
+    auto script = std::make_shared<cLuaState>();
+    script->executeString("a = 12\nb = 10\nc = 12.5\nd = 10.5\ne = \"12\"\nf = \"10\"");
+    cLuaObject rootTable = script->globalTable();
+
+    ASSERT_EQ(rootTable.get<int>("a"), 12);
+    ASSERT_EQ(rootTable.get<int>("b"), 10);
+
+    cLuaObject copyOfRootTableObj = rootTable;
+
+    ASSERT_EQ(copyOfRootTableObj.get<int>("a"), 12);
+    ASSERT_EQ(copyOfRootTableObj.get<int>("b"), 10);
 
     ASSERT_EQ(script->stackSize(), 0);
 }
