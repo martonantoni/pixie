@@ -511,6 +511,21 @@ TEST(lua_object, get_with_converter_point)
     ASSERT_EQ(script->stackSize(), 0);
 }
 
+TEST(lua_object, get_with_converter_not_a_table)
+{
+    auto script = std::make_shared<cLuaState>();
+    script->executeString("my_table = 12");
+    EXPECT_THROW(script->globalTable().get<cPoint>("my_table"), std::runtime_error);
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
+TEST(lua_object, get_with_converter_missing_key)
+{
+    auto script = std::make_shared<cLuaState>();
+    EXPECT_THROW(script->globalTable().get<cPoint>("my_table"), std::runtime_error);
+    ASSERT_EQ(script->stackSize(), 0);
+}
+
 TEST(lua_object, get_missing_key)
 {
     auto script = std::make_shared<cLuaState>();

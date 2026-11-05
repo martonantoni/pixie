@@ -46,6 +46,7 @@ class cLuaObject final
 public:
     enum class IsRecursive { Yes, No };
     using cKey = std::variant<std::string_view, int, cLuaObject>;
+    static std::string keyToString(const cKey& key);
     struct cFunctionMustExist {};
     class iterator;
 
@@ -382,13 +383,7 @@ template<cLuaRetrievable T> T cLuaObject::get(const cKey& key) const
             if (lua_isnil(L, -1))
             {
                 lua_pop(L, 1); // Pop the nil value
-                throw std::runtime_error(std::visit([](const auto& value) -> std::string
-                    {
-                        if constexpr (std::same_as<std::decay_t<decltype(value)>, cLuaObject>)
-                            return "key not found: <Lua object>";
-                        else
-                            return std::format("key not found: {}", value);
-                    }, key));
+                throw std::runtime_error(std::format("key not found: {}", keyToString(key)));
             }
             return pop<T>(*mState, L);
         }

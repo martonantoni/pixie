@@ -45,8 +45,34 @@ cLuaObject::cStateWithSelfCleanup cLuaObject::retrieveSelf() const
     return L;
 }
 
+std::string cLuaObject::keyToString(const cKey& key) 
+{
+    return std::visit(
+        [](auto&& key)
+        {
+            if constexpr (std::is_same_v<std::decay_t<decltype(key)>, int>)
+            {
+                return std::to_string(key);
+            }
+            else if constexpr (std::is_same_v<std::decay_t<decltype(key)>, std::string_view>)
+            {
+                return std::string(key);
+            }
+            else // cLuaObject:
+            {
+                return "<Lua object>"s;
+            }
+        },
+        key);
+}
+
 void cLuaObject::retrieveItem(lua_State* L, const cKey& key)
 {
+    if (!lua_istable(L, -1))
+    {
+        throw std::runtime_error(std::format("expected Lua table, got {} with key {}", 
+            lua_typename(L, lua_type(L, -1)), keyToString(key)));
+    }
     std::visit(
         [&](auto&& key)
         {
