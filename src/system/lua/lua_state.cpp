@@ -377,3 +377,11 @@ std::string cLuaState::objectToScript(const cLuaObject& object, const cSerializa
         return script;
     }
 }
+
+std::shared_ptr<cLuaState> cLuaState::fromFile(const std::filesystem::path& scriptPath)
+{
+    auto state = std::make_shared<cLuaState>();
+    state->executeFile(scriptPath);
+    return state;
+}
+
