@@ -8,6 +8,7 @@ struct cPixieObject::cPropertyValues
     cPropertyValues(int value) : mValue(value) {}
     cPropertyValues(unsigned int value) : mValue(static_cast<int>(value)) {}
     cPropertyValues(float value) : mValue(value) {}
+    cPropertyValues(double value) : mValue(static_cast<float>(value)) {}
     cPropertyValues(const cPoint& point) : mValue(point) {}
     cPropertyValues(const cRect& rect) : mValue(rect) {}
     cPropertyValues(const cColor& color) : mValue(color) {}
