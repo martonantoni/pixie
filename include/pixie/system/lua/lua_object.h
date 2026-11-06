@@ -4,11 +4,9 @@ template<class T> struct cLuaConverter;
 
 template<class T> concept cLuaAssignable = 
     std::is_same_v<std::decay_t<T>, cLuaObject> ||
-    std::is_same_v<T, int> ||
-    std::is_same_v<T, long long> ||
-    std::is_same_v<T, double> ||
-    std::convertible_to<T, std::string_view> ||
-    std::is_same_v<T, bool>;
+    std::is_integral_v<T> ||
+    std::is_floating_point_v<T> ||
+    std::convertible_to<T, std::string_view>;
 
 template<class T> concept cLuaConvertibleTo =
     requires(const cLuaObject & object)
@@ -18,11 +16,9 @@ template<class T> concept cLuaConvertibleTo =
 
 template<class T> concept cLuaRetrievable =
     std::is_same_v<T, cLuaObject> ||
-    std::is_same_v<T, int> ||
-    std::is_same_v<T, long long> ||
-    std::is_same_v<T, double> ||
+    std::is_integral_v<T> ||
+    std::is_floating_point_v<T> ||
     std::is_same_v<T, std::string> ||
-    std::is_same_v<T, bool> ||
     cLuaConvertibleTo<T>;
 
 
@@ -208,7 +204,7 @@ template<class T> void cLuaObject::push(lua_State* L, const T& value)
     {
         lua_pushinteger(L, value);
     }
-    else if constexpr (std::is_same_v<T, long long>)
+    else if constexpr (std::is_integral_v<T> && !std::is_same_v<T, bool>)
     {
         lua_pushinteger(L, value);
     }
@@ -216,7 +212,7 @@ template<class T> void cLuaObject::push(lua_State* L, const T& value)
     {
         lua_pushboolean(L, value);
     }
-    else if constexpr (std::is_same_v<T, double>)
+    else if constexpr (std::is_floating_point_v<T>)
     {
         lua_pushnumber(L, value);
     }
@@ -301,21 +297,14 @@ T cLuaObject::pop(cLuaState& state, lua_State* L)
     else
     {
         FINALLY([&]() { lua_pop(L, 1); });
-        if constexpr (std::is_same_v<T, int>)
+        if constexpr (std::is_integral_v<T> && !std::is_same_v<T, bool>)
         {
             if (lua_isinteger(L, -1))
             {
                 return static_cast<T>(lua_tointeger(L, -1));
             }
         }
-        else if constexpr (std::is_same_v<T, long long>)
-        {
-            if (lua_isinteger(L, -1))
-            {
-                return static_cast<T>(lua_tointeger(L, -1));
-            }
-        }
-        else if constexpr (std::is_same_v<T, double>)
+        else if constexpr (std::is_floating_point_v<T>)
         {
             if (lua_isnumber(L, -1))
             {
@@ -398,15 +387,11 @@ bool cLuaObject::isType() const
     {
         int type = lua_type(L, -1);
         bool result = false;
-        if constexpr (std::is_same_v<T, int>)
+        if constexpr (std::is_integral_v<T> && !std::is_same_v<T, bool>)
         {
             return type == LUA_TNUMBER && lua_isinteger(L, -1);
         }
-        else if constexpr (std::is_same_v<T, long long>)
-        {
-            return type == LUA_TNUMBER && lua_isinteger(L, -1);
-        }
-        else if constexpr (std::is_same_v<T, double>)
+        else if constexpr (std::is_floating_point_v<T>)
         {
             return type == LUA_TNUMBER;
         }
@@ -573,19 +558,19 @@ template<cLuaAssignable T> cLuaObject& cLuaObject::operator=(T&& value)
         {
             lua_pushinteger(mState->state(), value);
         }
-        else if constexpr (std::is_same_v<std::decay_t<T>, long long>)
+        else if constexpr (std::is_integral_v<T> && !std::is_same_v<std::remove_cvref_t<T>, bool>)
         {
             lua_pushinteger(mState->state(), value);
         }
-        else if constexpr (std::is_same_v<std::decay_t<T>, bool>)
+        else if constexpr (std::is_same_v<std::remove_cvref_t<T>, bool>)
         {
             lua_pushboolean(mState->state(), value);
         }
-        else if constexpr (std::is_same_v<std::decay_t<T>, double>)
+        else if constexpr (std::is_floating_point_v<T>)
         {
             lua_pushnumber(mState->state(), value);
         }
-        else if constexpr (std::convertible_to<std::decay_t<T>, std::string_view>)
+        else if constexpr (std::convertible_to<std::remove_cvref_t<T>, std::string_view>)
         {
             lua_pushstring(mState->state(), std::string_view(value).data());
         }
