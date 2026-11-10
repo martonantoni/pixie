@@ -2,7 +2,7 @@
 
 cStringVector cLuaConverter<cStringVector>::convert(const cLuaObject& object)
 {
-    if (ASSERTFALSE(object.isTable()))
+    if (ASSERTFALSE(!object.isTable()))
     {
         return {};
     }
@@ -16,7 +16,7 @@ cStringVector cLuaConverter<cStringVector>::convert(const cLuaObject& object)
 
 std::vector<std::string> cLuaConverter<std::vector<std::string>>::convert(const cLuaObject& object)
 {
-    if (ASSERTFALSE(object.isTable()))
+    if (ASSERTFALSE(!object.isTable()))
     {
         return {};
     }
@@ -30,7 +30,7 @@ std::vector<std::string> cLuaConverter<std::vector<std::string>>::convert(const 
 
 std::vector<int> cLuaConverter<std::vector<int>>::convert(const cLuaObject& object)
 {
-    if (ASSERTFALSE(object.isTable()))
+    if (ASSERTFALSE(!object.isTable()))
     {
         return {};
     }
@@ -44,7 +44,7 @@ std::vector<int> cLuaConverter<std::vector<int>>::convert(const cLuaObject& obje
 
 std::vector<float> cLuaConverter<std::vector<float>>::convert(const cLuaObject& object)
 {
-    if (ASSERTFALSE(object.isTable()))
+    if (ASSERTFALSE(!object.isTable()))
     {
         return {};
     }
@@ -58,7 +58,7 @@ std::vector<float> cLuaConverter<std::vector<float>>::convert(const cLuaObject& 
 
 std::vector<double> cLuaConverter<std::vector<double>>::convert(const cLuaObject& object)
 {
-    if (ASSERTFALSE(object.isTable()))
+    if (ASSERTFALSE(!object.isTable()))
     {
         return {};
     }
