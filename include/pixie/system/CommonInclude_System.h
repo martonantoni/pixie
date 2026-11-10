@@ -245,6 +245,7 @@ constexpr bool NoneOfType()
 #include "DropGuarded.h"
 #include "Configuration/i_configuration.h"
 #include "lua/i_lua.h"
+#include "common_lua_object_converters.h"
 
 #include "CommonUtilityFunctions.h"
 
