@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include "pixie/pixie/i_pixie.h"
-void cMultiSpriteBase::PropertiesChanged(unsigned int Properties)
+
+template<class SpriteT> requires (std::same_as<SpriteT, cSpriteBase> || std::same_as<SpriteT, cSprite>)
+void tMultiSpriteBase<SpriteT>::PropertiesChanged(unsigned int Properties)
 {
 	if (mSprites.empty())
 	{
@@ -50,6 +52,29 @@ void cMultiSpriteBase::PropertiesChanged(unsigned int Properties)
 		}
 	}
 }
+
+template<class SpriteT> requires (std::same_as<SpriteT, cSpriteBase> || std::same_as<SpriteT, cSprite>)
+void tMultiSpriteBase<SpriteT>::PositionSprite(cSpriteBase& Sprite, cPoint Position, ePositioning Positioning)
+{
+	switch (Positioning)
+	{
+	case ePositioning::TopLeft:
+		Sprite.SetPosition(Position);
+		break;
+	case ePositioning::TopRight:
+		Sprite.SetPosition(Position - cPoint{ Sprite.GetWidth(), 0 });
+		break;
+	case ePositioning::BottomLeft:
+		Sprite.SetPosition(Position - cPoint{ 0, Sprite.GetHeight() });
+		break;
+	case ePositioning::BottomRight:
+		Sprite.SetPosition(Position - cPoint{ Sprite.GetWidth(), Sprite.GetHeight() });
+		break;
+	}
+}
+
+template class tMultiSpriteBase<cSpriteBase>;
+template class tMultiSpriteBase<cSprite>;
 
 cSimpleMultiSprite::cSimpleMultiSprite(std::vector<std::unique_ptr<cSpriteBase>> &&Sprites, eBasePosition basePosition)
 {
@@ -122,76 +147,6 @@ bool cAutoMultiSpriteBase::Init(cPixieWindow *Window, const std::string &Texture
 		}
 	}
 	return FinalizeInit();
-}
-
-void cMultiSpriteBase::PositionSprite(cSpriteBase &Sprite, cPoint Position, ePositioning Positioning)
-{
-	switch(Positioning)
-	{
-	case ePositioning::TopLeft:
-		Sprite.SetPosition(Position);
-		break;
-	case ePositioning::TopRight: 
-		Sprite.SetPosition(Position-cPoint {Sprite.GetWidth(), 0});
-		break;
-	case ePositioning::BottomLeft: 
-		Sprite.SetPosition(Position-cPoint { 0, Sprite.GetHeight() });
-		break;
-	case ePositioning::BottomRight:
-		Sprite.SetPosition(Position-cPoint { Sprite.GetWidth(), Sprite.GetHeight() });
-		break;
-	}
-}
-
-void cMultiSpriteBase::StretchSpriteBetween(cSpriteBase &Sprite, const cRect &RectTopLeft, const cRect &RectBottomRight, eStretchInclusion StretchInclusion)
-{
-	ASSERT(RectTopLeft.size()==RectBottomRight.size());
-
- 	bool HasVerticalDiff=(RectBottomRight.top()-RectTopLeft.top())!=0;
- 	bool HasHorizontalDiff=(RectBottomRight.left()-RectTopLeft.left())!=0;
-	switch(StretchInclusion)
-	{
-	case eStretchInclusion::ExcludeRects:
-		if(!HasVerticalDiff)
-		{
-			PositionSprite(Sprite, RectTopLeft.topRight()+cPoint { 1,0 }, ePositioning::TopLeft);
-			Sprite.SetSize(RectBottomRight.left()-RectTopLeft.right()-1, Sprite.GetHeight());
-		}
-		else
-		{
-			if(!HasHorizontalDiff)
-			{
-				PositionSprite(Sprite, RectTopLeft.bottomLeft()+cPoint { 0,1 }, ePositioning::TopLeft);
-				Sprite.SetSize(Sprite.GetWidth(), RectBottomRight.top()-RectTopLeft.bottom()-1);
-			}
-			else
-			{
-				PositionSprite(Sprite, RectTopLeft.bottomLeft()+cPoint { 1,1 }, ePositioning::TopLeft);
-				Sprite.SetSize(RectBottomRight.left()-RectTopLeft.right()-1, RectBottomRight.top()-RectTopLeft.bottom()-1);
-			}
-		}
-		break;
-	case eStretchInclusion::IncludeRects:
-		if(!HasVerticalDiff)
-		{
-			PositionSprite(Sprite, RectTopLeft.topLeft(), ePositioning::TopLeft);
-			Sprite.SetSize(RectBottomRight.right()-RectTopLeft.left(), Sprite.GetHeight());
-		}
-		else
-		{
-			if(!HasHorizontalDiff)
-			{
-				PositionSprite(Sprite, RectTopLeft.topLeft(), ePositioning::TopLeft);
-				Sprite.SetSize(Sprite.GetWidth(), RectBottomRight.bottom()-RectTopLeft.top());
-			}
-			else
-			{
-				PositionSprite(Sprite, RectTopLeft.topLeft(), ePositioning::TopLeft);
-				Sprite.SetSize(RectBottomRight.right()-RectTopLeft.left(), RectBottomRight.bottom()-RectTopLeft.top());
-			}
-		}
-		break;
-	}
 }
 
 cRectBorderMultiSprite::cRectBorderMultiSprite(int borderWidth):

@@ -20,13 +20,6 @@ void cShaderManager::init()
     mShaderFolder = std::filesystem::current_path() / "shaders";
     mShaderPresetPath = theConfigurationFolder / "shader_constants.lua";
 #ifdef _DEBUG
-    mFileChangeNotifier = std::make_unique<Pixie::cFileChangeNotifier>(
-        mShaderFolder, "*.hlsl", 
-        [this]() 
-        { 
-            loadIncludes(); 
-            reloadShaders(); 
-        });
     mPresetChangeNotifier = std::make_unique<Pixie::cFileChangeNotifier>(
         mShaderPresetPath,
         [this]()
@@ -44,11 +37,25 @@ void cShaderManager::init()
     loadShaderConstants();
     loadIncludes(); // first pass: gather the include files
 
-    for (const auto& entry : std::filesystem::directory_iterator(mShaderFolder))
+    loadShadersFromFolder(mShaderFolder, {}); // second pass: compile the shaders
+}
+
+void cShaderManager::loadShadersFromFolder(const std::filesystem::path& folderPath, const std::string& shaderNamePrefix)
+{
+#ifdef _DEBUG
+    mFileChangeNotifiers.emplace_back(std::make_unique<Pixie::cFileChangeNotifier>(
+        folderPath, "*.hlsl",
+        [this]()
+        {
+            loadIncludes();
+            reloadShaders();
+        }));
+#endif
+    for (const auto& entry : std::filesystem::directory_iterator(folderPath))
     {
         if (entry.is_regular_file() && entry.path().extension() == ".hlsl")
         {
-            std::string shaderName = entry.path().stem().string();
+            std::string shaderName =  shaderNamePrefix + entry.path().stem().string();
             auto shaderTypeString = shaderName.substr(shaderName.find_last_of('_') + 1);
             if (shaderTypeString == "inc")
             {
@@ -86,16 +93,26 @@ void cShaderManager::init()
                 MainLog->Log("Unknown shader type for file: {}", entry.path().string());
             }
         }
+        else if (entry.is_directory())
+        {
+            loadShadersFromFolder(entry.path(), shaderNamePrefix + entry.path().filename().string() + "/");
+        }
     }
 }
 
 void cShaderManager::loadIncludes()
 {
-    for (const auto& entry : std::filesystem::directory_iterator(mShaderFolder))
+    mShaderSources.clear();
+    loadIncludesFromFolder(mShaderFolder, {});
+}
+
+void cShaderManager::loadIncludesFromFolder(const std::filesystem::path& folderPath, const std::string& shaderNamePrefix)
+{
+    for (const auto& entry : std::filesystem::directory_iterator(folderPath))
     {
         if (entry.is_regular_file() && entry.path().extension() == ".hlsl")
         {
-            std::string shaderName = entry.path().stem().string();
+            std::string shaderName = shaderNamePrefix + entry.path().stem().string();
             auto shaderTypeString = shaderName.substr(shaderName.find_last_of('_') + 1);
             if (shaderTypeString != "inc")
                 continue; // not an include file
@@ -109,6 +126,10 @@ void cShaderManager::loadIncludes()
             std::string shaderSource((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
             shaderName = shaderName.substr(0, shaderName.find_last_of('_'));
             mShaderSources[shaderName] = shaderSource;
+        }
+        else if (entry.is_directory())
+        {
+            loadIncludesFromFolder(entry.path(), shaderNamePrefix + entry.path().filename().string() + "/");
         }
     }
 }

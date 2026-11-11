@@ -32,6 +32,11 @@ void StandardLogPlugins::cEcho::Flush()
 
 void StandardLogPlugins::cFile::Open()
 {
+    // create folder if it doesn't exist:
+	if (auto parentPath = std::filesystem::path(AttachedLog->GetFileName()).parent_path(); !parentPath.empty())
+	{
+		std::filesystem::create_directories(parentPath);
+	}
 	FileHandle=CreateFile(AttachedLog->GetFileName().c_str(),GENERIC_WRITE,FILE_SHARE_READ,NULL,
 		AttachedLog->GetFlags()&cLog::Flags::TRUNCATE?CREATE_ALWAYS:OPEN_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
 	if(FileHandle==INVALID_HANDLE_VALUE)

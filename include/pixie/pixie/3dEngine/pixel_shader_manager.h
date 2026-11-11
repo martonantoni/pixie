@@ -14,10 +14,13 @@ class cShaderManager final: public tSingleton<cShaderManager>
     std::unordered_map<std::string, std::shared_ptr<cVertexShader>> mVertexShaders;
     using cShaderSources = std::unordered_map<std::string, std::string>; // shader name -> source code
     cShaderSources mShaderSources;  // for include
-    std::unique_ptr<Pixie::cFileChangeNotifier> mFileChangeNotifier, mPresetChangeNotifier;
+    std::vector<std::unique_ptr<Pixie::cFileChangeNotifier>> mFileChangeNotifiers;
+    std::unique_ptr<Pixie::cFileChangeNotifier> mPresetChangeNotifier;
     std::unordered_map<std::string, std::vector<cShaderConstant>> mShaderConstants; // group name -> constants
+    void loadIncludesFromFolder(const std::filesystem::path& folderPath, const std::string& shaderNamePrefix);
     void loadIncludes();
     void loadShaderConstants();
+    void loadShadersFromFolder(const std::filesystem::path& folderPath, const std::string& shaderNamePrefix);
 public:
     cShaderManager();
     ~cShaderManager();
