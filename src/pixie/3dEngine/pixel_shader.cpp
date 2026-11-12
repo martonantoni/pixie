@@ -123,65 +123,6 @@ std::string cPixelShader::processMetaData(std::string sourceCode, cLuaObject met
             }
         }
     }
-    //for (auto&& [key, value] : metaData)
-    //{
-    //    else if (key == "parameters")
-    //    {
-    //        for (auto&& [idx, paramValue] : value | std::views::values | std::views::take(mParameterNames.size()) | std::views::enumerate)
-    //        {
-    //            mParameterNames[idx] = paramValue.toString();            
-    //        }
-    //    }
-    //    else if (key == "textures")
-    //    {
-    //        for (auto&& [idx, textureValue] : value | std::views::values | std::views::take(mDefaultTextures.size()) | std::views::enumerate)
-    //        {
-    //            mDefaultTextures[idx] = textureValue.toString();
-    //        }
-    //    }
-    //    else if (key == "data")
-    //    {
-    //        auto slot = value.get<int>("slot");
-    //        if (slot >= 0 && slot < mDataTextures.size() && value.has("floats"))
-    //        {
-    //            auto floatsTable = value.get("floats");
-    //            auto tableSize = floatsTable.arraySize();
-    //            if (tableSize == 0)
-    //                continue;
-    //            std::vector<float> floats(tableSize);
-    //            for (int i = 0; i < tableSize; ++i)
-    //            {
-    //                floats[i] = floatsTable.get<double>(i + 1);
-    //            }
-    //            mDataTextures[slot] = cTexture::CreateFromData(cPoint(floats.size(), 1), floats);
-    //        }
-    //    }
-    //    else if (key == "constants")
-    //    {
-    //        for (auto&& [constantName, constantValue] : value)
-    //        {
-    //            if (constantValue.isTable())
-    //            {
-    //                auto type = constantValue.get<std::string>("type");
-    //                if (type == "float")
-    //                {
-    //                    float floatValue = constantValue.get<double>("value");
-    //                    constants.emplace_back(constantName.toString(), floatValue);
-    //                }
-    //                else if (type == "color")
-    //                {
-    //                    std::array<float, 3> colorValue;
-    //                    auto colorTable = constantValue.get("value");
-    //                    for (int i = 0; i < 3; ++i)
-    //                    {
-    //                        colorValue[i] = colorTable.get<double>(i + 1);
-    //                    }
-    //                    constants.emplace_back(constantName.toString(), colorValue);
-    //                }
-    //            }
-    //        }
-    //    }
-    //}
     std::string constantDeclarations;
     for(auto&& constant : constants)
     {

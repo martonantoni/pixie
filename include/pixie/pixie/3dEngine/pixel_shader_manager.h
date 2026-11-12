@@ -11,6 +11,7 @@ class cShaderManager final: public tSingleton<cShaderManager>
     std::filesystem::path mShaderFolder;
     std::filesystem::path mShaderPresetPath;
     std::unordered_map<std::string, std::shared_ptr<cPixelShader>> mPixelShaders;
+    std::vector<std::pair<std::filesystem::path, std::vector<std::shared_ptr<cPixelShader>>>> mPixelShadersByFile; // for reloading
     std::unordered_map<std::string, std::shared_ptr<cVertexShader>> mVertexShaders;
     using cShaderSources = std::unordered_map<std::string, std::string>; // shader name -> source code
     cShaderSources mShaderSources;  // for include

@@ -78,6 +78,9 @@ void cShaderManager::loadShadersFromFolder(const std::filesystem::path& folderPa
                 if (*pixelShader)
                 {
                     mPixelShaders[shaderName] = pixelShader;
+                    mPixelShadersByFile.emplace_back();
+                    mPixelShadersByFile.back().first = entry.path();
+                    mPixelShadersByFile.back().second.emplace_back(pixelShader);
                     MainLog->Log("Loaded pixel shader: {}", shaderName);
                 }
             }
@@ -185,33 +188,52 @@ void cShaderManager::loadShaderConstants()
 void cShaderManager::reloadShaders()
 {
     bool allSuccess = true;
-    for (auto&& [name, shader] : mPixelShaders)
+    for (auto&& [filePath, pixelShaders] : mPixelShadersByFile)
     {
-
-        std::filesystem::path shaderFile = std::filesystem::current_path() / "shaders";// / (name + "_ps.hlsl");
-        for (auto part : cStringViewVector(name, '.'))
+        std::ifstream shaderFile(filePath);
+        if (!shaderFile)
         {
-            shaderFile /= part;
-        }
-        shaderFile += "_ps.hlsl";
-        if (!std::filesystem::exists(shaderFile))
-        {
-            MainLog->Log("Shader file not found: {}", shaderFile.string());
-            continue;
-        }
-        std::ifstream shaderFileStream(shaderFile);
-        if (!shaderFileStream)
-        {
-            MainLog->Log("Failed to open shader file: {}", shaderFile.string());
-            continue;
-        }
-        std::string shaderSource((std::istreambuf_iterator<char>(shaderFileStream)), std::istreambuf_iterator<char>());
-        auto [metaData, finalSourceCode] = extractMetaInfo(shaderSource);
-        if (!compilePixelShader(shader, std::move(finalSourceCode), metaData))
-        {
+            MainLog->Log("Failed to open shader file: {}", filePath.string());
             allSuccess = false;
+            continue;
+        }
+        std::string shaderSource((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
+        auto [metaData, finalSourceCode] = extractMetaInfo(shaderSource);
+        for (auto&& pixelShader : pixelShaders)
+        {
+            if (!compilePixelShader(pixelShader, finalSourceCode, metaData))
+            {
+                allSuccess = false;
+            }
         }
     }
+    //for (auto&& [name, shader] : mPixelShaders)
+    //{
+
+    //    std::filesystem::path shaderFile = std::filesystem::current_path() / "shaders";// / (name + "_ps.hlsl");
+    //    for (auto part : cStringViewVector(name, '.'))
+    //    {
+    //        shaderFile /= part;
+    //    }
+    //    shaderFile += "_ps.hlsl";
+    //    if (!std::filesystem::exists(shaderFile))
+    //    {
+    //        MainLog->Log("Shader file not found: {}", shaderFile.string());
+    //        continue;
+    //    }
+    //    std::ifstream shaderFileStream(shaderFile);
+    //    if (!shaderFileStream)
+    //    {
+    //        MainLog->Log("Failed to open shader file: {}", shaderFile.string());
+    //        continue;
+    //    }
+    //    std::string shaderSource((std::istreambuf_iterator<char>(shaderFileStream)), std::istreambuf_iterator<char>());
+    //    auto [metaData, finalSourceCode] = extractMetaInfo(shaderSource);
+    //    if (!compilePixelShader(shader, std::move(finalSourceCode), metaData))
+    //    {
+    //        allSuccess = false;
+    //    }
+    //}
     if (allSuccess)
     {
         theMessageCenter.post("pixie.shaders_reloaded");
