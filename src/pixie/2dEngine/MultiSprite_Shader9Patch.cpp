@@ -53,7 +53,7 @@ std::unique_ptr<cMultiSprite_Shader9Patch> cMultiSprite_Shader9Patch::create(con
     auto addSprite = [&](std::string_view positionName)
         {
             auto sprite = std::make_unique<cSprite>();
-            sprite->setShader(std::format("{}/{}", initData.mShaderFolderName, positionName));
+            sprite->setShader(std::format("{}.{}", initData.mShaderFolderName, positionName));
             sprite->SetWindow(initData.mWindow);
             sprites.emplace_back(std::move(sprite));
         };

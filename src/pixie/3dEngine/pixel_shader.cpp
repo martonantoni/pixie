@@ -38,8 +38,8 @@ bool cPixelShader::compile(std::string sourceCode, std::string_view entryPoint, 
  
 std::string cPixelShader::processMetaData(std::string sourceCode, cLuaObject metaData)
 {
+    mConfig.reset();
     std::vector<cShaderConstant> constants;
-    cLuaObject presetConstants = theShaderManager->shaderConstants(name());
     mParameterNames.fill({});
     for (auto&& [key, value] : metaData)
     {
@@ -92,59 +92,20 @@ std::string cPixelShader::processMetaData(std::string sourceCode, cLuaObject met
                 if (constantValue.isTable())
                 {
                     auto type = constantValue.get<std::string>("type");
-                    bool useDefault = true;
                     if (type == "float")
                     {
-                        if (presetConstants.has(constantName.toString()))
-                        {
-                            auto presetConstant = presetConstants.get(constantName.toString());
-                            if (presetConstant.isNumber())
-                            {
-                                float floatValue = presetConstant.toDouble();
-                                constants.emplace_back(constantName.toString(), floatValue);
-                                useDefault = false;
-                            }
-                            else
-                            {
-                                MainLog->Log("Invalid shader constant value for {}.{}: not a number", name(), constantName.toString());
-                            }
-                        }
-                        if(useDefault)
-                        {
-                            float floatValue = constantValue.get<double>("default");
-                            constants.emplace_back(constantName.toString(), floatValue);
-                        }
+                        float floatValue = constantValue.get<double>("value");
+                        constants.emplace_back(constantName.toString(), floatValue);
                     }
                     else if (type == "color")
                     {
-                        if (presetConstants.has(constantName.toString()))
+                        std::array<float, 3> colorValue;
+                        auto colorTable = constantValue.get("value");
+                        for (int i = 0; i < 3; ++i)
                         {
-                            auto presetConstant = presetConstants.get(constantName.toString());
-                            if (presetConstant.isTable() && presetConstant.arraySize() == 3)
-                            {
-                                std::array<float, 3> colorValue;
-                                for (int i = 0; i < 3; ++i)
-                                {
-                                    colorValue[i] = presetConstant.get<double>(i + 1);
-                                }
-                                constants.emplace_back(constantName.toString(), colorValue);
-                                useDefault = false;
-                            }
-                            else
-                            {
-                                MainLog->Log("Invalid shader constant value for {}.{}: not an array of 3 numbers",  name(), constantName.toString());
-                            }
+                            colorValue[i] = colorTable.get<double>(i + 1);
                         }
-                        if(useDefault)
-                        {
-                            std::array<float, 3> colorValue;
-                            auto colorTable = constantValue.get("default");
-                            for (int i = 0; i < 3; ++i)
-                            {
-                                colorValue[i] = colorTable.get<double>(i + 1);
-                            }
-                            constants.emplace_back(constantName.toString(), colorValue);
-                        }
+                        constants.emplace_back(constantName.toString(), colorValue);
                     }
                 }
             }
@@ -167,6 +128,10 @@ std::string cPixelShader::processMetaData(std::string sourceCode, cLuaObject met
     if (cfgPos != std::string::npos)
     {
         sourceCode.insert(cfgPos, constantDeclarations);
+    }
+    if (!mConfig)
+    {
+        mConfig = std::make_shared<cConfig>();
     }
     return sourceCode;
 }

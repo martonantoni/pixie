@@ -97,13 +97,38 @@ void cShaderManager::loadShadersFromFolder(const std::filesystem::path& folderPa
         }
         else if (entry.is_directory())
         {
-            loadShadersFromFolder(entry.path(), shaderNamePrefix + entry.path().filename().string() + "/");
+            loadShadersFromFolder(entry.path(), shaderNamePrefix + entry.path().filename().string() + ".");
         }
     }
 }
 
 bool cShaderManager::compilePixelShader(std::shared_ptr<cPixelShader> pixelShader, std::string finalSourceCode, cLuaObject metaData)
 {
+    if (metaData.has("constants"s))
+    {
+        metaData.state().executeString(mShadersPreset);
+        metaData.state().executeString(R"(
+            for name, value in pairs(constants) do
+                value.value = value.default
+            end)");
+        std::string_view shaderName = pixelShader->name();
+        for (size_t dotPos = 0; dotPos != std::string::npos;)
+        {
+            dotPos = shaderName.find('.', dotPos + 1);
+            std::string_view groupName = shaderName.substr(0, dotPos);
+            metaData.state().executeString(std::format(R"(
+            if presets.{0} == nil then
+                presets.{0} = {{}}
+            end
+            local shaderPresets = presets.{0}
+            for name, value in pairs(constants) do
+                local preset_value = shaderPresets[name]
+                if preset_value ~= nil then
+                    value.value = preset_value
+                end
+            end)", groupName));
+        }
+    }
     if (!pixelShader->compile(std::move(finalSourceCode), cPixelShader::mDefaultEntryPoint, metaData))
     {
         MainLog->Log("Failed to compile pixel shader: {}", pixelShader->name());
@@ -148,17 +173,13 @@ void cShaderManager::loadIncludesFromFolder(const std::filesystem::path& folderP
 
 void cShaderManager::loadShaderConstants()
 {
-    auto state = std::make_shared<cLuaState>();
-    try
+    std::ifstream shaderPresetFile(mShaderPresetPath);
+    if (!shaderPresetFile)
     {
-        state->executeFile(mShaderPresetPath);
-    }
-    catch (const cLuaException& e)
-    {
-        MainLog->Log("Failed to load shader constants from {}: {}", mShaderPresetPath.string(), e.what());
+        MainLog->Log("Failed to open shader preset file: {}", mShaderPresetPath.string());
         return;
     }
-    mShaderConstants = state->globalTable();
+    mShadersPreset = std::string((std::istreambuf_iterator<char>(shaderPresetFile)), std::istreambuf_iterator<char>());
 }
 
 void cShaderManager::reloadShaders()
@@ -166,7 +187,13 @@ void cShaderManager::reloadShaders()
     bool allSuccess = true;
     for (auto&& [name, shader] : mPixelShaders)
     {
-        std::filesystem::path shaderFile = std::filesystem::current_path() / "shaders" / (name + "_ps.hlsl");
+
+        std::filesystem::path shaderFile = std::filesystem::current_path() / "shaders";// / (name + "_ps.hlsl");
+        for (auto part : cStringViewVector(name, '.'))
+        {
+            shaderFile /= part;
+        }
+        shaderFile += "_ps.hlsl";
         if (!std::filesystem::exists(shaderFile))
         {
             MainLog->Log("Shader file not found: {}", shaderFile.string());
@@ -217,14 +244,6 @@ std::string_view cShaderManager::shaderSource(const std::string& name) const
     if (it == mShaderSources.end())
         return {};
     return it->second;
-}
-
-cLuaObject cShaderManager::shaderConstants(const std::string& shaderName) const
-{
-    if (mShaderConstants.has(shaderName))
-        return mShaderConstants.get<cLuaObject>(shaderName);
-    else
-        return const_cast<cLuaState&>(mShaderConstants.state()).createTable(); // return empty table if not found
 }
 
 std::pair<cLuaObject, std::string> cShaderManager::extractMetaInfo(std::string_view sourceCode)
