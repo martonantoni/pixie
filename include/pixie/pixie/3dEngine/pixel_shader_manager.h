@@ -16,7 +16,7 @@ class cShaderManager final: public tSingleton<cShaderManager>
     cShaderSources mShaderSources;  // for include
     std::vector<std::unique_ptr<Pixie::cFileChangeNotifier>> mFileChangeNotifiers;
     std::unique_ptr<Pixie::cFileChangeNotifier> mPresetChangeNotifier;
-    std::unordered_map<std::string, std::vector<cShaderConstant>> mShaderConstants; // group name -> constants
+    cLuaObject mShaderConstants; // group name -> constants
     void loadIncludesFromFolder(const std::filesystem::path& folderPath, const std::string& shaderNamePrefix);
     void loadIncludes();
     void loadShaderConstants();
@@ -30,7 +30,7 @@ public:
     std::shared_ptr<cPixelShader> pixelShader(const std::string& name) const;
     std::shared_ptr<cVertexShader> vertexShader(const std::string& name) const;
     std::string_view shaderSource(const std::string& name) const; // returns the source code of the shader, or empty string if not found
-    const std::vector<cShaderConstant>& shaderConstants(const std::string& groupName) const;
+    cLuaObject shaderConstants(const std::string& shaderName) const;
 };
 
 extern cShaderManager* theShaderManager;

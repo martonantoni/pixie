@@ -40,10 +40,10 @@ std::string cPixelShader::extractMetaInfo(std::string_view sourceCode)
 {
     std::string finalSourceCode;
 
-    // meta data is in the form of comments like this:
-    // @cfg
-    // lua code (does not need leading //)
-    // @endcfg
+// meta data is in the form of comments like this:
+// @cfg
+// lua code (does not need leading //)
+// @endcfg
 
     mParameterNames.fill({});
 
@@ -92,6 +92,7 @@ std::string cPixelShader::extractMetaInfo(std::string_view sourceCode)
     auto state = std::make_shared<cLuaState>();
     state->executeString(configSource);
     std::vector<cShaderConstant> constants;
+    cLuaObject presetConstants = theShaderManager->shaderConstants(name());
     auto rootTable = state->globalTable();
     for (auto&& [key, value] : rootTable)
     {
@@ -144,33 +145,63 @@ std::string cPixelShader::extractMetaInfo(std::string_view sourceCode)
                 if (constantValue.isTable())
                 {
                     auto type = constantValue.get<std::string>("type");
+                    bool useDefault = true;
                     if (type == "float")
                     {
-                        float floatValue = constantValue.get<double>("default");
-                        constants.emplace_back( constantName.toString(),  floatValue );
+                        if (presetConstants.has(constantName.toString()))
+                        {
+                            auto presetConstant = presetConstants.get(constantName.toString());
+                            if (presetConstant.isNumber())
+                            {
+                                float floatValue = presetConstant.toDouble();
+                                constants.emplace_back(constantName.toString(), floatValue);
+                                useDefault = false;
+                            }
+                            else
+                            {
+                                MainLog->Log("Invalid shader constant value for {}.{}: not a number", name(), constantName.toString());
+                            }
+                        }
+                        if(useDefault)
+                        {
+                            float floatValue = constantValue.get<double>("default");
+                            constants.emplace_back(constantName.toString(), floatValue);
+                        }
                     }
                     else if (type == "color")
                     {
-                        std::array<float, 3> colorValue;
-                        auto colorTable = constantValue.get("default");
-                        for (int i = 0; i < 3; ++i)
+                        if (presetConstants.has(constantName.toString()))
                         {
-                            colorValue[i] = colorTable.get<double>(i + 1);
+                            auto presetConstant = presetConstants.get(constantName.toString());
+                            if (presetConstant.isTable() && presetConstant.arraySize() == 3)
+                            {
+                                std::array<float, 3> colorValue;
+                                for (int i = 0; i < 3; ++i)
+                                {
+                                    colorValue[i] = presetConstant.get<double>(i + 1);
+                                }
+                                constants.emplace_back(constantName.toString(), colorValue);
+                                useDefault = false;
+                            }
+                            else
+                            {
+                                MainLog->Log("Invalid shader constant value for {}.{}: not an array of 3 numbers",  name(), constantName.toString());
+                            }
                         }
-                        constants.emplace_back( constantName.toString(),  colorValue );
+                        if(useDefault)
+                        {
+                            std::array<float, 3> colorValue;
+                            auto colorTable = constantValue.get("default");
+                            for (int i = 0; i < 3; ++i)
+                            {
+                                colorValue[i] = colorTable.get<double>(i + 1);
+                            }
+                            constants.emplace_back(constantName.toString(), colorValue);
+                        }
                     }
                 }
             }
         }
-    }
-    auto presetConstants = theShaderManager->shaderConstants(name());
-    for (auto&& presetConstant : presetConstants)
-    {
-        auto it = std::find_if(constants.begin(), constants.end(), [&](const cShaderConstant& c) { return c.mName == presetConstant.mName; });
-        if (it == constants.end())
-            constants.push_back(presetConstant);
-        else
-            *it = presetConstant; 
     }
     std::string constantDeclarations;
     for(auto&& constant : constants)

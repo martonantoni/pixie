@@ -146,44 +146,7 @@ void cShaderManager::loadShaderConstants()
         MainLog->Log("Failed to load shader constants from {}: {}", mShaderPresetPath.string(), e.what());
         return;
     }
-    mShaderConstants.clear();
-    for (auto&& [groupName, groupTable] : state->globalTable())
-    {
-        if (!groupTable.isTable())
-        {
-            continue;
-        }
-        std::vector<cShaderConstant> constants;
-        for (auto&& [constantName, constantValue] : groupTable)
-        {
-            cShaderConstant constant;
-            constant.mName = constantName.toString();
-            if (constantValue.isNumber())
-                constant.mValue = static_cast<float>(constantValue.toDouble());
-            else
-            {
-                if(constantValue.isTable() && constantValue.arraySize() == 3)
-                {
-                    std::array<float, 3> f3;
-                    for (int i = 0; i < 3; i++)
-                    {
-                        auto item = constantValue.get(i + 1);
-                        if (!item.isNumber())
-                        {
-                            MainLog->Log("Invalid shader constant value for {}.{}: array element {} is not a number", groupName.toString(), constantName.toString(), i + 1);
-                            break;
-                        }
-                        f3[i] = static_cast<float>(item.toDouble());
-                    }
-                    constant.mValue = f3;
-                }
-                else
-                    MainLog->Log("Invalid shader constant value for {}.{}: not a number or array of 3 numbers   ", groupName.toString(), constantName.toString());
-            }
-            constants.push_back(constant);
-        }
-        mShaderConstants[groupName.toString()] = std::move(constants);
-    }
+    mShaderConstants = state->globalTable();
 }
 
 void cShaderManager::reloadShaders()
@@ -243,13 +206,10 @@ std::string_view cShaderManager::shaderSource(const std::string& name) const
     return it->second;
 }
 
-const std::vector<cShaderConstant>& cShaderManager::shaderConstants(const std::string& groupName) const
+cLuaObject cShaderManager::shaderConstants(const std::string& shaderName) const
 {
-    auto it = mShaderConstants.find(groupName);
-    if (it == mShaderConstants.end())
-    {
-        static const std::vector<cShaderConstant> empty;
-        return empty;
-    }
-    return it->second;
+    if (mShaderConstants.has(shaderName))
+        return mShaderConstants.get<cLuaObject>(shaderName);
+    else
+        return const_cast<cLuaState&>(mShaderConstants.state()).createTable(); // return empty table if not found
 }
