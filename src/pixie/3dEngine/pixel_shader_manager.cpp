@@ -69,12 +69,12 @@ void cShaderManager::loadShadersFromFolder(const std::filesystem::path& folderPa
                 continue;
             }
             std::string shaderSource((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
-            auto [metaData, finalSourceCode] = extractMetaInfo(shaderSource);
+            auto [metaData, finalSourceCode] = extractMetaInfo(std::move(shaderSource));
             shaderName = shaderName.substr(0, shaderName.find_last_of('_'));
             if (shaderTypeString == "ps")
             {
                 auto pixelShader = std::make_shared<cPixelShader>(shaderName);
-                pixelShader->compile(finalSourceCode, cPixelShader::mDefaultEntryPoint, metaData);
+                compilePixelShader(pixelShader, finalSourceCode, metaData);
                 if (*pixelShader)
                 {
                     mPixelShaders[shaderName] = pixelShader;
@@ -100,6 +100,16 @@ void cShaderManager::loadShadersFromFolder(const std::filesystem::path& folderPa
             loadShadersFromFolder(entry.path(), shaderNamePrefix + entry.path().filename().string() + "/");
         }
     }
+}
+
+bool cShaderManager::compilePixelShader(std::shared_ptr<cPixelShader> pixelShader, std::string finalSourceCode, cLuaObject metaData)
+{
+    if (!pixelShader->compile(std::move(finalSourceCode), cPixelShader::mDefaultEntryPoint, metaData))
+    {
+        MainLog->Log("Failed to compile pixel shader: {}", pixelShader->name());
+        return false;
+    }
+    return true;
 }
 
 void cShaderManager::loadIncludes()
@@ -170,7 +180,7 @@ void cShaderManager::reloadShaders()
         }
         std::string shaderSource((std::istreambuf_iterator<char>(shaderFileStream)), std::istreambuf_iterator<char>());
         auto [metaData, finalSourceCode] = extractMetaInfo(shaderSource);
-        if (!shader->compile(finalSourceCode, cPixelShader::mDefaultEntryPoint, metaData))
+        if (!compilePixelShader(shader, std::move(finalSourceCode), metaData))
         {
             allSuccess = false;
         }
