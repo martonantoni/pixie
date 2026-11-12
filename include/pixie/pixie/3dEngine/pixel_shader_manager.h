@@ -21,6 +21,7 @@ class cShaderManager final: public tSingleton<cShaderManager>
     void loadIncludes();
     void loadShaderConstants();
     void loadShadersFromFolder(const std::filesystem::path& folderPath, const std::string& shaderNamePrefix);
+    static std::pair<cLuaObject, std::string> extractMetaInfo(std::string_view sourceCode);
 public:
     cShaderManager();
     ~cShaderManager();

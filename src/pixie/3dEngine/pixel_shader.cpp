@@ -9,18 +9,18 @@ cPixelShader::~cPixelShader()
         mShader->Release();
 }
 
-bool cPixelShader::compile(std::string_view sourceCode)
+bool cPixelShader::compile(std::string sourceCode, std::string_view entryPoint, cLuaObject metaData)
 {
-    std::string finalSourceCode = extractMetaInfo(sourceCode);
+    sourceCode = processMetaData(std::move(sourceCode), metaData);
     for (auto&& [idx, paramName] : mParameterNames | std::views::enumerate)
     {
         if (paramName.empty())
             continue;
         const std::regex pattern("\\binput\\s*\\.\\s*" + paramName + "\\b");
         auto replacement = "input.params."s + "xyzw"[idx];
-        finalSourceCode = std::regex_replace(finalSourceCode, pattern, replacement);
+        sourceCode = std::regex_replace(sourceCode, pattern, replacement);
     }
-    if (auto blob = cShader::compile(finalSourceCode, "PSMain", "ps_5_0"))
+    if (auto blob = cShader::compile(sourceCode, entryPoint.data(), "ps_5_0"))
     {
         auto device = cDevice::Get();
         if(mShader)
@@ -36,65 +36,12 @@ bool cPixelShader::compile(std::string_view sourceCode)
     return false;
 }
  
-std::string cPixelShader::extractMetaInfo(std::string_view sourceCode)
+std::string cPixelShader::processMetaData(std::string sourceCode, cLuaObject metaData)
 {
-    std::string finalSourceCode;
-
-// meta data is in the form of comments like this:
-// @cfg
-// lua code (does not need leading //)
-// @endcfg
-
-    mParameterNames.fill({});
-
-    std::string configSource;
-    bool inConfig = false;
-    int cfgPos = 0;
-
-    for (auto&& lineRange : sourceCode | std::views::split('\n'))
-    {
-        std::string line(lineRange.begin(), lineRange.end());
-
-        auto commentPos = line.find("//");
-        if (commentPos != std::string::npos)
-        {
-            std::string_view comment(line.data() + commentPos + 2, line.size() - commentPos - 2);
-
-            if (comment.find("@cfg") != std::string_view::npos)
-            {
-                inConfig = true;
-                cfgPos = static_cast<int>(finalSourceCode.size());
-                continue;
-            }
-            if (comment.find("@endcfg") != std::string_view::npos)
-            {
-                inConfig = false;
-                continue;
-            }
-            if (inConfig)
-            {
-                line = std::string(comment);
-            }
-        }
-        if (inConfig)
-        {
-            configSource.append(line);
-            configSource += '\n';
-            finalSourceCode += '\n'; // keep line numbers consistent for error reporting
-        }
-        else
-        {
-            finalSourceCode.append(line);
-            finalSourceCode += '\n';
-        }
-    }
-
-    auto state = std::make_shared<cLuaState>();
-    state->executeString(configSource);
     std::vector<cShaderConstant> constants;
     cLuaObject presetConstants = theShaderManager->shaderConstants(name());
-    auto rootTable = state->globalTable();
-    for (auto&& [key, value] : rootTable)
+    mParameterNames.fill({});
+    for (auto&& [key, value] : metaData)
     {
         if (key == "config" || key == "configuration")
         {
@@ -216,8 +163,12 @@ std::string cPixelShader::extractMetaInfo(std::string_view sourceCode)
             constantDeclarations += std::format("static const float3 {} = float3({}, {}, {}); ", constant.mName, color[0], color[1], color[2]);
         }
     }
-    finalSourceCode.insert(cfgPos, constantDeclarations);
-    return finalSourceCode;
+    auto cfgPos = sourceCode.find(mMetaInsertionPointText);
+    if (cfgPos != std::string::npos)
+    {
+        sourceCode.insert(cfgPos, constantDeclarations);
+    }
+    return sourceCode;
 }
 
 int cPixelShader::parameterIndex(std::string_view name) const

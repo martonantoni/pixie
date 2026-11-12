@@ -69,10 +69,12 @@ void cShaderManager::loadShadersFromFolder(const std::filesystem::path& folderPa
                 continue;
             }
             std::string shaderSource((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
+            auto [metaData, finalSourceCode] = extractMetaInfo(shaderSource);
             shaderName = shaderName.substr(0, shaderName.find_last_of('_'));
             if (shaderTypeString == "ps")
             {
-                auto pixelShader = std::make_shared<cPixelShader>(shaderName, shaderSource);
+                auto pixelShader = std::make_shared<cPixelShader>(shaderName);
+                pixelShader->compile(finalSourceCode, cPixelShader::mDefaultEntryPoint, metaData);
                 if (*pixelShader)
                 {
                     mPixelShaders[shaderName] = pixelShader;
@@ -81,7 +83,7 @@ void cShaderManager::loadShadersFromFolder(const std::filesystem::path& folderPa
             }
             else if (shaderTypeString == "vs")
             {
-                auto vertexShader = std::make_shared<cVertexShader>(shaderName, shaderSource);
+                auto vertexShader = std::make_shared<cVertexShader>(shaderName, finalSourceCode);
                 if (*vertexShader)
                 {
                     mVertexShaders[shaderName] = vertexShader;
@@ -167,7 +169,8 @@ void cShaderManager::reloadShaders()
             continue;
         }
         std::string shaderSource((std::istreambuf_iterator<char>(shaderFileStream)), std::istreambuf_iterator<char>());
-        if (!shader->compile(shaderSource))
+        auto [metaData, finalSourceCode] = extractMetaInfo(shaderSource);
+        if (!shader->compile(finalSourceCode, cPixelShader::mDefaultEntryPoint, metaData))
         {
             allSuccess = false;
         }
@@ -212,4 +215,67 @@ cLuaObject cShaderManager::shaderConstants(const std::string& shaderName) const
         return mShaderConstants.get<cLuaObject>(shaderName);
     else
         return const_cast<cLuaState&>(mShaderConstants.state()).createTable(); // return empty table if not found
+}
+
+std::pair<cLuaObject, std::string> cShaderManager::extractMetaInfo(std::string_view sourceCode)
+{
+    std::string finalSourceCode;
+
+    // meta data is in the form of comments like this:
+    // @cfg
+    // lua code (does not need leading //)
+    // @endcfg
+
+
+    std::string configSource;
+    bool inConfig = false;
+    int cfgPos = 0;
+    bool metaInsertionPointAdded = false;
+
+    for (auto&& lineRange : sourceCode | std::views::split('\n'))
+    {
+        std::string line(lineRange.begin(), lineRange.end());
+
+        auto commentPos = line.find("//");
+        if (commentPos != std::string::npos)
+        {
+            std::string_view comment(line.data() + commentPos + 2, line.size() - commentPos - 2);
+
+            if (comment.find("@cfg") != std::string_view::npos)
+            {
+                inConfig = true;
+                cfgPos = static_cast<int>(finalSourceCode.size());
+                continue;
+            }
+            if (comment.find("@endcfg") != std::string_view::npos)
+            {
+                inConfig = false;
+                continue;
+            }
+            if (inConfig)
+            {
+                line = std::string(comment);
+            }
+        }
+        if (inConfig)
+        {
+            configSource.append(line);
+            if(!metaInsertionPointAdded)
+            {
+                finalSourceCode.append(cPixelShader::mMetaInsertionPointText);
+                metaInsertionPointAdded = true;
+            }
+            configSource += '\n';
+            finalSourceCode += '\n'; // keep line numbers consistent for error reporting
+        }
+        else
+        {
+            finalSourceCode.append(line);
+            finalSourceCode += '\n';
+        }
+    }
+
+    auto state = std::make_shared<cLuaState>();
+    state->executeString(configSource);
+    return { state->globalTable(), finalSourceCode };
 }

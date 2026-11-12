@@ -9,11 +9,13 @@ class cPixelShader final: public cShader
     std::array<std::string, 4> mDefaultTextures;
     std::array<tIntrusivePtr<cTexture>, 4> mDataTextures;
     std::shared_ptr<cConfig> mConfig;
-    std::string extractMetaInfo(std::string_view sourceCode);
+    std::string processMetaData(std::string sourceCode, cLuaObject metaData);
 public:
-    cPixelShader(const std::string& name, std::string_view sourceCode) : cShader(name) { compile(sourceCode); }
+    cPixelShader(const std::string& name) : cShader(name) {}
     virtual ~cPixelShader();
-    bool compile(std::string_view sourceCode);
+    static inline constexpr std::string_view mDefaultEntryPoint = "PSMain"sv;
+    static inline constexpr std::string_view mMetaInsertionPointText = "// @meta_insertion_point"sv;
+    bool compile(std::string sourceCode, std::string_view entryPoint, cLuaObject metaData);
 
     ID3D11PixelShader* shader() const
     {
