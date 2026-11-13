@@ -142,7 +142,7 @@ tIntrusivePtr<cTexture> cTextureManager2::LoadFromMemory(const void* memory, siz
 	return Texture;
 }
 
-bool cTextureManager2::AddEntire(const std::string& Name, cImageFile* ImageFile)
+bool cTextureManager2::AddEntire(const std::string& Name, cImageFile& ImageFile)
 {
 	auto& TextureData = mTextures[Name];
 	if (TextureData)
@@ -150,9 +150,9 @@ bool cTextureManager2::AddEntire(const std::string& Name, cImageFile* ImageFile)
 		MainLog->Log("Warning! Duplicated texture (\"{}\") reference.", Name);
 		return false;
 	}
-	TextureData = std::make_unique<cTextureData>(cTextureRect(ImageFile->mSize));
-	TextureData->mImageFile = ImageFile;
-	TextureData->mTexture = ImageFile->mTexture;
+	TextureData = std::make_unique<cTextureData>(cTextureRect(ImageFile.mSize));
+	TextureData->mImageFile = &ImageFile;
+	TextureData->mTexture = ImageFile.mTexture;
 	return true;
 }
 
@@ -170,7 +170,8 @@ void cTextureManager2::ProcessInfoFile(const std::string& Path, const cPath& Tex
 	ID3D11Texture2D* Direct3DTexture = LoadTexture(TextureFilePath, &SourceSize);
 	if (Direct3DTexture)
 	{
-		cImageFile* ImageFile = new cImageFile;
+		auto ImageFile = std::make_shared<cImageFile>();
+        ImageFile->mTexturePath = TextureFilePath;
 		ImageFile->mTexture = make_intrusive_ptr<cTexture>(Direct3DTexture, SourceSize.x, SourceSize.y);
 		Direct3DTexture->Release();
 		ImageFile->mSize.x = SourceSize.x;
@@ -181,7 +182,7 @@ void cTextureManager2::ProcessInfoFile(const std::string& Path, const cPath& Tex
 		cTileSetData* CurrentTileSet = NULL;
 		if (Path.empty())
 		{
-			AddEntire(TextureFilePath.GetFileNameWithoutExtension(), ImageFile);
+			AddEntire(TextureFilePath.GetFileNameWithoutExtension(), *ImageFile);
 			return;
 		}
 		cFastFileReader InfoFile(Path);
@@ -197,7 +198,7 @@ void cTextureManager2::ProcessInfoFile(const std::string& Path, const cPath& Tex
 			if (LineTokens[0] == "entire")
 			{
 				HANDLE_INVALID_LINE(LineTokens.size() != 2);
-				AddEntire(LineTokens[1], ImageFile);
+				AddEntire(LineTokens[1], *ImageFile);
 			}
 			else if (LineTokens[0] == "tileset")
 			{
@@ -209,7 +210,7 @@ void cTextureManager2::ProcessInfoFile(const std::string& Path, const cPath& Tex
 					continue;
 				}
 				CurrentTileSet = TileSetData = new cTileSetData;
-				TileSetData->mImageFile = ImageFile;
+				TileSetData->mImageFile = ImageFile.get();
 				TileSetData->mTileSize.x = atoi(LineTokens[2].c_str());
 				TileSetData->mTileSize.y = atoi(LineTokens[3].c_str());
 				TileSetData->mTileWidthRatio = float(TileSetData->mTileSize.x) / float(SourceSize.x);
@@ -231,7 +232,7 @@ void cTextureManager2::ProcessInfoFile(const std::string& Path, const cPath& Tex
 					cRect(TileX * CurrentTileSet->mTileSize.x, TileY * CurrentTileSet->mTileSize.y,
 						CurrentTileSet->mTileSize.x, CurrentTileSet->mTileSize.y),
 					CurrentTileSet->mImageFile->mSize));
-				TextureData->mImageFile = ImageFile;
+				TextureData->mImageFile = ImageFile.get();
 				TextureData->mTexture = make_intrusive_ptr<cTexture>(*ImageFile->mTexture, TextureData->mTextureInfo);
 			}
 			else if (LineTokens[0] == "part")
@@ -278,15 +279,42 @@ void cTextureManager2::ProcessInfoFile(const std::string& Path, const cPath& Tex
 
 #undef HANDLE_INVALID_LINE
 
+#ifdef _DEBUG
+
+void cTextureManager2::reloadTextures()
+{
+    MainLog->Log("Reloading textures...");
+    for (auto& ImageFile : mImageFiles)
+    {
+        cPoint Size;
+        ID3D11Texture2D* Direct3DTexture = LoadTexture(ImageFile->mTexturePath, &Size);
+        if (Direct3DTexture)
+        {
+            ImageFile->mTexture->reinitialize(Direct3DTexture, Size.x, Size.y);
+            Direct3DTexture->Release();
+        }
+        else
+        {
+            MainLog->Log("Failed to reload texture file: {}", ImageFile->mPath);
+        }
+    }
+}
+
+#endif
 
 void cTextureManager2::Initialize()
 {
-	// 	std::shared_ptr<cConfig> Config=cLuaBasedConfig::CreateConfig("pixie_system.folders", theLuaState);
-	// 	std::string TexturesFolderConfig=Config->get<std::string>("textures", "textures"s);
 	std::string TexturesFolderConfig = theGlobalConfig->get<std::string>("pixie_system.folders.textures", "textures"s);
 	cStringVector TexturesFolders(TexturesFolderConfig, ", ", false);
 	for (auto& TexturesFolder : TexturesFolders)
 	{
+#ifdef _DEBUG
+        mFileChangeNotifiers.emplace_back(std::make_unique<Pixie::cFileChangeNotifier>(TexturesFolder, "*.*", [this]()
+            {
+				reloadTextures();
+            }));
+#endif
+
 		WIN32_FIND_DATA FindData;
 		memset(&FindData, 0, sizeof(WIN32_FIND_DATA));
 		HANDLE FindHandle = ::FindFirstFile(std::format("{}/*.*", TexturesFolder).c_str(), &FindData);
@@ -326,8 +354,8 @@ void cTextureManager2::Initialize()
 		{
 			if (FileData.second.mHasInfoFile)
 			{
-				ProcessInfoFile(std::format("{}/{}.info", TexturesFolder, FileData.first)
-					, std::format("{}/{}.{}", TexturesFolder, FileData.first, FileData.second.mExtension));
+				ProcessInfoFile(std::format("{}/{}.info", TexturesFolder, FileData.first),
+					            std::format("{}/{}.{}", TexturesFolder, FileData.first, FileData.second.mExtension));
 			}
 			else
 			{

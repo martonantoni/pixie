@@ -56,6 +56,23 @@ cTexture::cTexture(ID3D11Texture2D *BaseTexture,int TextureWidth,int TextureHeig
     D3V(cDevice::Get()->GetD3DObject()->CreateShaderResourceView(mTexture, nullptr, &mShaderResourceView));
 }
 
+void cTexture::reinitialize(ID3D11Texture2D* BaseTexture, int TextureWidth, int TextureHeight)
+{
+    if (mTexture)
+        mTexture->Release();
+    if (mShaderResourceView)
+        mShaderResourceView->Release();
+    if (mSurface)
+        mSurface->Release();
+    mTexture = BaseTexture;
+    mTextureInfo = cTextureRect({ TextureWidth, TextureHeight });
+    mSurfaceWidth = TextureWidth;
+    mSurfaceHeight = TextureHeight;
+    ASSERT(mTexture);
+    mTexture->AddRef();
+    D3V(cDevice::Get()->GetD3DObject()->CreateShaderResourceView(mTexture, nullptr, &mShaderResourceView));
+}
+
 tIntrusivePtr<cTexture> cTexture::CreateSubTexture(const cRect &SubRect) const
 {
     cTextureRect SubTextureInfo(SubRect, { mSurfaceWidth, mSurfaceHeight });

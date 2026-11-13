@@ -8,6 +8,7 @@ class cTextureManager2
 	{
 		tIntrusivePtr<cTexture> mTexture;
 		std::string mPath;
+		cPath mTexturePath;
 		cPoint mSize;
 	};
 	struct cTileSetData
@@ -27,10 +28,14 @@ class cTextureManager2
 	cTileSetMap mTileSets;
 	typedef std::unordered_map<std::string, std::unique_ptr<cTextureData>> cTextureMap;
 	cTextureMap mTextures;
-	typedef std::vector<cImageFile *> cImageFiles;
+	typedef std::vector<std::shared_ptr<cImageFile>> cImageFiles;
 	cImageFiles mImageFiles;
 	std::unordered_map<std::string, std::string> mTextureAliases;
-	bool AddEntire(const std::string &Name, cImageFile *ImageFile);
+#ifdef _DEBUG
+    std::vector<std::unique_ptr<Pixie::cFileChangeNotifier>> mFileChangeNotifiers;
+    void reloadTextures();
+#endif
+	bool AddEntire(const std::string &Name, cImageFile &ImageFile);
 	void ProcessInfoFile(const std::string &Path, const cPath &TextureFilePath);
 	static ID3D11Texture2D *LoadTexture(const cPath &FileName, cPoint *Size);
 	static ID3D11Texture2D *CreateTexture(const unsigned char *Pixels, int Width, int Height);

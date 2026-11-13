@@ -56,6 +56,7 @@ protected:
 public:
     cTexture(const cTexture &BaseTexture,const cTextureRect &TextureInfo);
     cTexture(ID3D11Texture2D *BaseTexture,int TextureWidth,int TextureHeight);
+    void reinitialize(ID3D11Texture2D* BaseTexture, int TextureWidth, int TextureHeight);
 
 // functions for creating new Texture objects:
     static tIntrusivePtr<cTexture> CreateRenderTarget(unsigned int Width, unsigned int Height) { return CreateRenderTarget(cPoint(Width, Height)); }
