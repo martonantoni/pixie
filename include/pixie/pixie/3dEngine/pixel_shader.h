@@ -13,9 +13,8 @@ class cPixelShader final: public cShader
 public:
     cPixelShader(const std::string& name) : cShader(name) {}
     virtual ~cPixelShader();
-    static inline constexpr std::string_view mDefaultEntryPoint = "PSMain"sv;
     static inline constexpr std::string_view mMetaInsertionPointText = "// @meta_insertion_point"sv;
-    bool compile(std::string sourceCode, std::string_view entryPoint, cLuaObject metaData);
+    bool compile(std::string sourceCode, cLuaObject metaData);
 
     ID3D11PixelShader* shader() const
     {

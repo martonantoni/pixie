@@ -9,7 +9,7 @@ cPixelShader::~cPixelShader()
         mShader->Release();
 }
 
-bool cPixelShader::compile(std::string sourceCode, std::string_view entryPoint, cLuaObject metaData)
+bool cPixelShader::compile(std::string sourceCode, cLuaObject metaData)
 {
     sourceCode = processMetaData(std::move(sourceCode), metaData);
     for (auto&& [idx, paramName] : mParameterNames | std::views::enumerate)
@@ -20,7 +20,8 @@ bool cPixelShader::compile(std::string sourceCode, std::string_view entryPoint, 
         auto replacement = "input.params."s + "xyzw"[idx];
         sourceCode = std::regex_replace(sourceCode, pattern, replacement);
     }
-    if (auto blob = cShader::compile(sourceCode, entryPoint.data(), "ps_5_0"))
+    std::string entryPoint = metaData.get<std::string>("entry_point", "PSMain"s);
+    if (auto blob = cShader::compile(sourceCode, entryPoint.c_str(), "ps_5_0"))
     {
         auto device = cDevice::Get();
         if(mShader)

@@ -11,7 +11,6 @@ cFileChangeNotifier::cFileChangeNotifier(const std::filesystem::path& folder, co
     {
         return;
     }
-
     mTimerID = theMainThread->AddTimer([this]() { checkFiles(); }, cTimerRequest(1000, true));
     std::string pattern;
     pattern.reserve(filter.size() * 2);
@@ -37,6 +36,7 @@ cFileChangeNotifier::cFileChangeNotifier(const std::filesystem::path& folder, co
         }
     }
     mFilter = std::regex(pattern, std::regex_constants::icase);
+    mLastWriteTime = getLastWriteTime();
 }
 
 cFileChangeNotifier::cFileChangeNotifier(const std::filesystem::path& path, cCallback callback)
@@ -47,7 +47,7 @@ cFileChangeNotifier::cFileChangeNotifier(const std::filesystem::path& path, cCal
 {
 }
 
-void cFileChangeNotifier::checkFiles()
+std::filesystem::file_time_type cFileChangeNotifier::getLastWriteTime() const
 {
     std::filesystem::file_time_type latestWriteTime;
     for (const auto& entry : std::filesystem::directory_iterator(mFolder))
@@ -59,6 +59,12 @@ void cFileChangeNotifier::checkFiles()
             continue;
         latestWriteTime = std::max(latestWriteTime, entry.last_write_time());
     }
+    return latestWriteTime;
+}
+
+void cFileChangeNotifier::checkFiles()
+{
+    std::filesystem::file_time_type latestWriteTime = getLastWriteTime();
     if (latestWriteTime > mLastWriteTime)
     {
         mLastWriteTime = latestWriteTime;

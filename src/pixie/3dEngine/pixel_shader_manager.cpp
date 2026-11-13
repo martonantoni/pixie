@@ -62,41 +62,9 @@ void cShaderManager::loadShadersFromFolder(const std::filesystem::path& folderPa
                 // include file, skip
                 continue;
             }
-            std::ifstream shaderFile(entry.path());
-            if (!shaderFile)
-            {
-                MainLog->Log("Failed to open shader file: {}", entry.path().string());
-                continue;
-            }
-            std::string shaderSource((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
-            auto [metaData, finalSourceCode] = extractMetaInfo(std::move(shaderSource));
-            shaderName = shaderName.substr(0, shaderName.find_last_of('_'));
-            if (shaderTypeString == "ps")
-            {
-                auto pixelShader = std::make_shared<cPixelShader>(shaderName);
-                compilePixelShader(pixelShader, finalSourceCode, metaData);
-                if (*pixelShader)
-                {
-                    mPixelShaders[shaderName] = pixelShader;
-                    mPixelShadersByFile.emplace_back();
-                    mPixelShadersByFile.back().first = entry.path();
-                    mPixelShadersByFile.back().second.emplace_back(pixelShader);
-                    MainLog->Log("Loaded pixel shader: {}", shaderName);
-                }
-            }
-            else if (shaderTypeString == "vs")
-            {
-                auto vertexShader = std::make_shared<cVertexShader>(shaderName, finalSourceCode);
-                if (*vertexShader)
-                {
-                    mVertexShaders[shaderName] = vertexShader;
-                    MainLog->Log("Loaded vertex shader: {}", shaderName);
-                }
-            }
-            else
-            {
-                MainLog->Log("Unknown shader type for file: {}", entry.path().string());
-            }
+            mShaderFiles.emplace_back(entry.path(), shaderNamePrefix);
+            processShaderFile(entry.path(), shaderTypeString, shaderNamePrefix);
+
         }
         else if (entry.is_directory())
         {
@@ -107,32 +75,30 @@ void cShaderManager::loadShadersFromFolder(const std::filesystem::path& folderPa
 
 bool cShaderManager::compilePixelShader(std::shared_ptr<cPixelShader> pixelShader, std::string finalSourceCode, cLuaObject metaData)
 {
-    if (metaData.has("constants"s))
+    auto presets = metaData.state().globalTable().get("presets");
+    for (auto&& [key, constantTable] : metaData.get("constants"))
     {
-        metaData.state().executeString(mShadersPreset);
-        metaData.state().executeString(R"(
-            for name, value in pairs(constants) do
-                value.value = value.default
-            end)");
-        std::string_view shaderName = pixelShader->name();
-        for (size_t dotPos = 0; dotPos != std::string::npos;)
+        constantTable.set("value", constantTable.get("default"));
+        std::string shaderName = pixelShader->name();
+        auto subPreset = presets;
+        while(!shaderName.empty())
         {
-            dotPos = shaderName.find('.', dotPos + 1);
-            std::string_view groupName = shaderName.substr(0, dotPos);
-            metaData.state().executeString(std::format(R"(
-            if presets.{0} == nil then
-                presets.{0} = {{}}
-            end
-            local shaderPresets = presets.{0}
-            for name, value in pairs(constants) do
-                local preset_value = shaderPresets[name]
-                if preset_value ~= nil then
-                    value.value = preset_value
-                end
-            end)", groupName));
+            auto dotPos = shaderName.find('.');
+            std::string groupName = shaderName.substr(0, dotPos);
+            if (!subPreset.has(groupName))
+                break;
+            subPreset = subPreset.get(groupName);
+            if (subPreset.has(key))
+            {
+                constantTable.set("value", subPreset.get(key));
+            }
+            if (dotPos == std::string::npos)
+                break;
+            shaderName = shaderName.substr(dotPos + 1);
         }
     }
-    if (!pixelShader->compile(std::move(finalSourceCode), cPixelShader::mDefaultEntryPoint, metaData))
+    MainLog->Log("{}", cLuaState::objectToScript(metaData.state().globalTable(), { .singleLine = false }, "    "));
+    if (!pixelShader->compile(std::move(finalSourceCode), metaData))
     {
         MainLog->Log("Failed to compile pixel shader: {}", pixelShader->name());
         return false;
@@ -185,55 +151,104 @@ void cShaderManager::loadShaderConstants()
     mShadersPreset = std::string((std::istreambuf_iterator<char>(shaderPresetFile)), std::istreambuf_iterator<char>());
 }
 
-void cShaderManager::reloadShaders()
+bool cShaderManager::processShaderFile(const std::filesystem::path& path, const std::string& shaderTypeString, const std::string& shaderNamePrefix)
 {
-    bool allSuccess = true;
-    for (auto&& [filePath, pixelShaders] : mPixelShadersByFile)
+    std::ifstream shaderFile(path);
+    if (!shaderFile)
     {
-        std::ifstream shaderFile(filePath);
-        if (!shaderFile)
+        MainLog->Log("Failed to open shader file: {}", path.string());
+        return false;
+    }
+    bool success = true;
+    std::string shaderSource((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
+    auto [metaData, finalSourceCode] = extractMetaInfo(std::move(shaderSource));
+    metaData.state().executeString(mShadersPreset);
+    std::string shaderName = shaderNamePrefix + path.stem().string();
+    shaderName = shaderName.substr(0, shaderName.find_last_of('_'));
+    if (shaderTypeString == "ps")
+    {
+        metaData.state().executeString(std::format(R"(
+            if constants == nil then
+                constants = {{}}
+            end)")); // the global constants
+        if (metaData.has("shaders"))
         {
-            MainLog->Log("Failed to open shader file: {}", filePath.string());
-            allSuccess = false;
-            continue;
-        }
-        std::string shaderSource((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
-        auto [metaData, finalSourceCode] = extractMetaInfo(shaderSource);
-        for (auto&& pixelShader : pixelShaders)
-        {
-            if (!compilePixelShader(pixelShader, finalSourceCode, metaData))
+            for (auto&& [key, subShaderMeta] : metaData.get("shaders"))
             {
-                allSuccess = false;
+                metaData.state().executeString(std::format(R"(
+                    if shaders[{0}].constants == nil then
+                        shaders[{0}].constants = {{}}
+                    end)", key.toInt())); // the local constants
+                auto subShaderConstants = subShaderMeta.get("constants");
+                for (auto&& [constantKey, constantValue] : metaData.get("constants"))
+                {
+                    if (!subShaderConstants.has(constantKey))
+                    {
+                        subShaderMeta.get("constants").set(constantKey, constantValue);
+                    }
+                }
+                metaData.state().executeString(std::format("setmetatable(shaders[{}], {{__index = _G }})", key.toInt()));
+
+                auto subShaderName = std::format("{}.{}", shaderName, subShaderMeta.get<std::string>("name"));
+                auto& pixelShader = mPixelShaders[subShaderName];
+                if (!pixelShader)
+                    pixelShader = std::make_shared<cPixelShader>(subShaderName);
+                if (compilePixelShader(pixelShader, finalSourceCode, subShaderMeta))
+                {
+                    MainLog->Log("Loaded pixel shader: {}", subShaderName);
+                }
+                else
+                {
+                    success = false;
+                }
+            }
+        }
+        else
+        {
+            auto& pixelShader = mPixelShaders[shaderName];
+            if (!pixelShader)
+                pixelShader = std::make_shared<cPixelShader>(shaderName);
+            if(compilePixelShader(pixelShader, finalSourceCode, metaData))
+            {
+                MainLog->Log("Loaded pixel shader: {}", shaderName);
+            }
+            else
+            {
+                success = false;
             }
         }
     }
-    //for (auto&& [name, shader] : mPixelShaders)
-    //{
+    else if (shaderTypeString == "vs")
+    {
+        auto vertexShader = std::make_shared<cVertexShader>(shaderName, finalSourceCode);
+        if (*vertexShader)
+        {
+            mVertexShaders[shaderName] = vertexShader;
+            MainLog->Log("Loaded vertex shader: {}", shaderName);
+        }
+        else
+            success = false;
+    }
+    else
+    {
+        MainLog->Log("Unknown shader type for file: {}", path.string());
+        return true; // not a shader file, not a shader error
+    }
+    return success;
+}
 
-    //    std::filesystem::path shaderFile = std::filesystem::current_path() / "shaders";// / (name + "_ps.hlsl");
-    //    for (auto part : cStringViewVector(name, '.'))
-    //    {
-    //        shaderFile /= part;
-    //    }
-    //    shaderFile += "_ps.hlsl";
-    //    if (!std::filesystem::exists(shaderFile))
-    //    {
-    //        MainLog->Log("Shader file not found: {}", shaderFile.string());
-    //        continue;
-    //    }
-    //    std::ifstream shaderFileStream(shaderFile);
-    //    if (!shaderFileStream)
-    //    {
-    //        MainLog->Log("Failed to open shader file: {}", shaderFile.string());
-    //        continue;
-    //    }
-    //    std::string shaderSource((std::istreambuf_iterator<char>(shaderFileStream)), std::istreambuf_iterator<char>());
-    //    auto [metaData, finalSourceCode] = extractMetaInfo(shaderSource);
-    //    if (!compilePixelShader(shader, std::move(finalSourceCode), metaData))
-    //    {
-    //        allSuccess = false;
-    //    }
-    //}
+void cShaderManager::reloadShaders()
+{
+    bool allSuccess = true;
+    for (auto&& [shaderFile, shaderNamePrefix] : mShaderFiles)
+    {
+        std::string shaderName = shaderFile.stem().string();
+        auto shaderTypeString = shaderName.substr(shaderName.find_last_of('_') + 1);
+        if (!processShaderFile(shaderFile, shaderTypeString, shaderNamePrefix))
+        {
+            allSuccess = false;
+        }
+    }
     if (allSuccess)
     {
         theMessageCenter.post("pixie.shaders_reloaded");

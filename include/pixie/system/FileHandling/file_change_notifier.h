@@ -13,6 +13,7 @@ private:
     cCallback mCallback;
     cRegisteredID mTimerID;
     std::filesystem::file_time_type mLastWriteTime{};
+    std::filesystem::file_time_type getLastWriteTime() const;
     void checkFiles();
 public:
     cFileChangeNotifier(const std::filesystem::path& folder, const std::string& filter, cCallback callback);
