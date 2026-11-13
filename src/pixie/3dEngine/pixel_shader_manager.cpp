@@ -97,7 +97,6 @@ bool cShaderManager::compilePixelShader(std::shared_ptr<cPixelShader> pixelShade
             shaderName = shaderName.substr(dotPos + 1);
         }
     }
-    MainLog->Log("{}", cLuaState::objectToScript(metaData.state().globalTable(), { .singleLine = false }, "    "));
     if (!pixelShader->compile(std::move(finalSourceCode), metaData))
     {
         MainLog->Log("Failed to compile pixel shader: {}", pixelShader->name());
@@ -171,20 +170,38 @@ bool cShaderManager::processShaderFile(const std::filesystem::path& path, const 
             if constants == nil then
                 constants = {{}}
             end)")); // the global constants
+        auto rootConstants = metaData.get("constants");
         if (metaData.has("shaders"))
         {
+            // on the base level we need all the constants that the sub shaders have, otherwise the automatic
+            // constant insertion won't work --> the other shaders will not compile (but they need to because 
+            // they are in the same hlsl file)
             for (auto&& [key, subShaderMeta] : metaData.get("shaders"))
             {
                 metaData.state().executeString(std::format(R"(
                     if shaders[{0}].constants == nil then
                         shaders[{0}].constants = {{}}
                     end)", key.toInt())); // the local constants
+
                 auto subShaderConstants = subShaderMeta.get("constants");
-                for (auto&& [constantKey, constantValue] : metaData.get("constants"))
+                for (auto&& [constantKey, constantValue] : subShaderConstants)
+                {
+                    if (!rootConstants.has(constantKey))
+                    {
+                        rootConstants.set(constantKey, constantValue);
+                    }
+                }
+            }
+            // because the subshaders only see the submeta for the constants, we need to copy over the root contants
+            // to each subshader
+            for (auto&& [key, subShaderMeta] : metaData.get("shaders"))
+            {
+                auto subShaderConstants = subShaderMeta.get("constants");
+                for (auto&& [constantKey, constantValue] : rootConstants)
                 {
                     if (!subShaderConstants.has(constantKey))
                     {
-                        subShaderMeta.get("constants").set(constantKey, constantValue);
+                        subShaderConstants.set(constantKey, constantValue);
                     }
                 }
                 metaData.state().executeString(std::format("setmetatable(shaders[{}], {{__index = _G }})", key.toInt()));
