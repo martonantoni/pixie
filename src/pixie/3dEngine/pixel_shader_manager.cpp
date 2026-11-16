@@ -56,14 +56,17 @@ void cShaderManager::loadShadersFromFolder(const std::filesystem::path& folderPa
         if (entry.is_regular_file() && entry.path().extension() == ".hlsl")
         {
             std::string shaderName =  shaderNamePrefix + entry.path().stem().string();
-            auto shaderTypeString = shaderName.substr(shaderName.find_last_of('_') + 1);
+            auto lastUnderscorePos = shaderName.find_last_of('_');
+            auto shaderTypeString = shaderName.substr(lastUnderscorePos + 1);    
             if (shaderTypeString == "inc")
             {
                 // include file, skip
                 continue;
             }
-            mShaderFiles.emplace_back(entry.path(), shaderNamePrefix);
-            processShaderFile(entry.path(), shaderTypeString, shaderNamePrefix);
+            mShaderFiles.emplace_back(entry.path(), shaderNamePrefix, shaderNamePrefix + shaderName.substr(0, lastUnderscorePos));
+            auto [success, metaData] = processShaderFile(entry.path(), shaderTypeString, shaderNamePrefix);
+            if(success)
+                mShaderFiles.back().mScript = std::make_shared<cShaderFileScript>(cShaderFileScript{ std::move(metaData) });
 
         }
         else if (entry.is_directory())
@@ -150,13 +153,13 @@ void cShaderManager::loadShaderConstants()
     mShadersPreset = std::string((std::istreambuf_iterator<char>(shaderPresetFile)), std::istreambuf_iterator<char>());
 }
 
-bool cShaderManager::processShaderFile(const std::filesystem::path& path, const std::string& shaderTypeString, const std::string& shaderNamePrefix)
+std::pair<bool, cLuaObject> cShaderManager::processShaderFile(const std::filesystem::path& path, const std::string& shaderTypeString, const std::string& shaderNamePrefix)
 {
     std::ifstream shaderFile(path);
     if (!shaderFile)
     {
         MainLog->Log("Failed to open shader file: {}", path.string());
-        return false;
+        return {false, {}};
     }
     bool success = true;
     std::string shaderSource((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
@@ -249,19 +252,31 @@ bool cShaderManager::processShaderFile(const std::filesystem::path& path, const 
     else
     {
         MainLog->Log("Unknown shader type for file: {}", path.string());
-        return true; // not a shader file, not a shader error
+        return {true, {} }; // not a shader file, not a shader error
     }
-    return success;
+    return { success, metaData };
 }
 
 void cShaderManager::reloadShaders()
 {
     bool allSuccess = true;
-    for (auto&& [shaderFile, shaderNamePrefix] : mShaderFiles)
+    for (auto&& [shaderFile, shaderNamePrefix, shaderFileID,   scriptObj] : mShaderFiles)
     {
         std::string shaderName = shaderFile.stem().string();
         auto shaderTypeString = shaderName.substr(shaderName.find_last_of('_') + 1);
-        if (!processShaderFile(shaderFile, shaderTypeString, shaderNamePrefix))
+        auto [success, metaData] = processShaderFile(shaderFile, shaderTypeString, shaderNamePrefix);
+        if (success)
+        {
+            if (!scriptObj)
+            {
+                scriptObj = std::make_shared<cShaderFileScript>(cShaderFileScript{ std::move(metaData) });
+            }
+            else
+            {
+                scriptObj->mMetaData = std::move(metaData);
+            }
+        }
+        else
         {
             allSuccess = false;
         }
@@ -361,4 +376,14 @@ std::pair<cLuaObject, std::string> cShaderManager::extractMetaInfo(std::string_v
     auto state = std::make_shared<cLuaState>();
     state->executeString(configSource);
     return { state->globalTable(), finalSourceCode };
+}
+
+std::shared_ptr<cShaderFileScript> cShaderManager::shaderScript(const std::string& shaderFileID) const
+{
+    auto i = std::find_if(mShaderFiles.begin(), mShaderFiles.end(),
+        [&shaderFileID](const auto& shaderFile)
+        {
+            return shaderFile.mShaderFileID == shaderFileID;
+        });
+    return ASSERTTRUE(i != mShaderFiles.end()) ? i->mScript : nullptr;
 }

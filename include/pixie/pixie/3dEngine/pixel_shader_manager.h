@@ -6,12 +6,24 @@ struct cShaderConstant
     std::variant<float, std::array<float, 3>> mValue;
 };
 
+struct cShaderFileScript
+{
+    cLuaObject mMetaData;
+};
+
 class cShaderManager final: public tSingleton<cShaderManager>
 {
     std::filesystem::path mShaderFolder;
     std::filesystem::path mShaderPresetPath;
     std::unordered_map<std::string, std::shared_ptr<cPixelShader>> mPixelShaders;
-    std::vector<std::pair<std::filesystem::path, std::string>> mShaderFiles; // path, shader name prefix
+    struct cShaderFile
+    {
+        std::filesystem::path mPath;
+        std::string mNamePrefix;
+        std::string mShaderFileID; // in a dot separated format, e.g. "folder.subfolder.shadername"
+        std::shared_ptr<cShaderFileScript> mScript;
+    };
+    std::vector<cShaderFile> mShaderFiles; // path, shader name prefix
     std::unordered_map<std::string, std::shared_ptr<cVertexShader>> mVertexShaders;
     using cShaderSources = std::unordered_map<std::string, std::string>; // shader name -> source code
     cShaderSources mShaderSources;  // for include
@@ -23,7 +35,7 @@ class cShaderManager final: public tSingleton<cShaderManager>
     void loadShaderConstants();
     void loadShadersFromFolder(const std::filesystem::path& folderPath, const std::string& shaderNamePrefix);
     bool compilePixelShader(std::shared_ptr<cPixelShader> pixelShader, std::string finalSourceCode, cLuaObject metaData);
-    bool processShaderFile(const std::filesystem::path& path, const std::string& shaderTypeString, const std::string& shaderNamePrefix);
+    std::pair<bool, cLuaObject> processShaderFile(const std::filesystem::path& path, const std::string& shaderTypeString, const std::string& shaderNamePrefix);
     static std::pair<cLuaObject, std::string> extractMetaInfo(std::string_view sourceCode);
 public:
     cShaderManager();
@@ -34,6 +46,7 @@ public:
     std::shared_ptr<cPixelShader> pixelShader(const std::string& name) const;
     std::shared_ptr<cVertexShader> vertexShader(const std::string& name) const;
     std::string_view shaderSource(const std::string& name) const; // returns the source code of the shader, or empty string if not found
+    std::shared_ptr<cShaderFileScript> shaderScript(const std::string& shaderFileID) const; 
 };
 
 extern cShaderManager* theShaderManager;
