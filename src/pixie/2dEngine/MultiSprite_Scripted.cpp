@@ -67,5 +67,12 @@ cMultiSprite_Scripted::cMultiSprite_Scripted(const std::string& mainShader)
 
         mDescriptors[name.toString()] = std::move(spriteDescriptor);
     }
+#ifdef _DEBUG
+    mMessageListeners.listen("pixie.shaders_reloaded", [this]()
+        {
+            mLastSize = cPoint{ -1, -1 };
+            ArrangeSprites();
+        });
+#endif
 }
 

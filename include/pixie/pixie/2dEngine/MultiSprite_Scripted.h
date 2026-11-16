@@ -10,6 +10,9 @@ class cMultiSprite_Scripted: public cMultiSprite
     };
 	cPoint mLastSize{ -1, -1 };
 	std::unordered_map<std::string, cSpriteDescriptor> mDescriptors;
+#ifdef _DEBUG
+    cMessageListeners mMessageListeners;
+#endif
 
 	virtual void ArrangeSprites() override;
 protected:
