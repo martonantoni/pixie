@@ -352,7 +352,11 @@ std::pair<cLuaObject, std::string> cShaderManager::extractMetaInfo(std::string_v
             }
             if (inConfig)
             {
-                line = std::string(comment);
+                // if this is inside lua code, only treat it as a comment if there is only whitespace before it:
+                if (std::all_of(line.begin(), line.begin() + commentPos, [](char c) { return std::isspace(static_cast<unsigned char>(c)); }))
+                {
+                    line = std::string(comment);
+                }
             }
         }
         if (inConfig)

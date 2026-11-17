@@ -117,7 +117,7 @@ std::string cPixelShader::processMetaData(std::string sourceCode, cLuaObject met
                     float floatValue = constantValue.get<double>("value");
                     constants.emplace_back(constantName.toString(), floatValue);
                 }
-                else if (type == "color")
+                else if (type == "color" || type == "normalized_color")
                 {
                     std::array<float, 3> colorValue;
                     auto colorTable = constantValue.get("value");
@@ -126,6 +126,11 @@ std::string cPixelShader::processMetaData(std::string sourceCode, cLuaObject met
                         colorValue[i] = colorTable.get<double>(i + 1);
                     }
                     constants.emplace_back(constantName.toString(), colorValue);
+                }
+                else if (type == "int")
+                {
+                    int intValue = constantValue.get<int>("value");
+                    constants.emplace_back(constantName.toString(), intValue);
                 }
             }
         }
