@@ -3,7 +3,7 @@
 struct cShaderConstant
 {
     std::string mName;
-    std::variant<float, std::array<float, 3>> mValue;
+    std::variant<float, std::array<float, 3>, int> mValue;
 };
 
 struct cShaderFileScript

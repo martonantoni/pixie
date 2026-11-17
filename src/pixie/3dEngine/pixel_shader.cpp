@@ -74,6 +74,7 @@ std::string cPixelShader::processMetaData(std::string sourceCode, cLuaObject met
             mDefaultTextures[idx] = textureValue.toString();
         }
     }
+    std::array<int, 4> dataSizes = { 0, 0, 0, 0 };
     if (metaData.has("data"))
     {
         auto data = metaData.get("data");
@@ -94,9 +95,14 @@ std::string cPixelShader::processMetaData(std::string sourceCode, cLuaObject met
                         floats[i] = floatsTable.get<double>(i + 1);
                     }
                     mDataTextures[slot] = cTexture::CreateFromData(cPoint(floats.size(), 1), floats);
+                    dataSizes[slot] = static_cast<int>(floats.size());
                 }
             }
         }
+    }
+    for (auto&& [slot, dataSize] : dataSizes | std::views::enumerate)
+    {
+        constants.emplace_back(std::format("DATA{}_SIZE", slot), static_cast<int>(dataSize));
     }
     if (metaData.has("constants"))
     {
@@ -135,6 +141,10 @@ std::string cPixelShader::processMetaData(std::string sourceCode, cLuaObject met
         {
             auto color = std::get<std::array<float, 3>>(constant.mValue);
             constantDeclarations += std::format("static const float3 {} = float3({}, {}, {}); ", constant.mName, color[0], color[1], color[2]);
+        }
+        else if (std::holds_alternative<int>(constant.mValue))
+        {
+            constantDeclarations += std::format("static const int {} = {}; ", constant.mName, std::get<int>(constant.mValue));
         }
     }
     auto cfgPos = sourceCode.find(mMetaInsertionPointText);
