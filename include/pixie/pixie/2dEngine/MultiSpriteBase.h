@@ -31,6 +31,7 @@ using cMultiSprite = tMultiSpriteBase<cSprite>;
 
 
 USE_DROP_INSTEAD_DELETE_PARENT(cMultiSpriteBase, cSpriteBase);
+USE_DROP_INSTEAD_DELETE_PARENT(cMultiSprite, cSprite);
 
 class cSimpleMultiSprite: public cMultiSpriteBase
 {
