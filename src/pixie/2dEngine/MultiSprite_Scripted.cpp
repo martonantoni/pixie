@@ -51,8 +51,6 @@ cMultiSprite_Scripted::cMultiSprite_Scripted(const std::string& mainShader)
     : cMultiSprite()
 {
     mShaderScript = theShaderManager->shaderScript(mainShader); 
-    std :: print("{}\n",  cLuaState::objectToScript(mShaderScript->mMetaData));
-    fflush(stdout);
     auto spriteDescriptors = mShaderScript->mMetaData.get("create_sprites").call<cLuaObject>();
     for (auto&& [name, descriptor] : spriteDescriptors)
     {
