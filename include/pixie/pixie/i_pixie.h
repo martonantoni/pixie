@@ -19,6 +19,7 @@
 #include "system/PixieInitializer.h"
 #include "system/Spline.h"
 #include "system/startup_controller.h"
+#include "system/config_change_listener.h"
 #include "system/PixieMainLoop.h"
 #include "system/pixie_system.h"
 
