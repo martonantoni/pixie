@@ -203,18 +203,37 @@ void cGlowPostProcessor::present(ID3D11ShaderResourceView* color,
 
         // Tight halo: half-resolution horizontal and vertical passes.
         draw(mBlurRTV[0], halfWidth, halfHeight, mBlurShader->shader(),
-             emission, nullptr, nullptr, 1.0f / halfWidth, 0, 0, 1);
-        draw(mBlurRTV[1], halfWidth, halfHeight, mBlurShader->shader(),
-             mBlurSRV[0], nullptr, nullptr, 0, 1.0f / halfHeight, 0, 1);
-        tightGlow = mBlurSRV[1];
+            emission, nullptr, nullptr,
+            0, 0, 0, 1);
 
-        // Wide halo: blur the already-filtered half-resolution result at 1/8 resolution.
-        // This prefiltering avoids skipping narrow, bright glyphs when downsampling.
+        // 2. Horizontal blur.
+        draw(mBlurRTV[1], halfWidth, halfHeight, mBlurShader->shader(),
+            mBlurSRV[0], nullptr, nullptr,
+            1.0f / halfWidth, 0, 0, 1);
+
+        // 3. Vertical blur.
+        draw(mBlurRTV[0], halfWidth, halfHeight, mBlurShader->shader(),
+            mBlurSRV[1], nullptr, nullptr,
+            0, 1.0f / halfHeight, 0, 1);
+        tightGlow = mBlurSRV[0];
+
+
+        // 1. Downsample half-resolution glow to 1/8 resolution.
+        // Zero offsets make the blur shader act as a texture copy,
+        // using the existing linear sampler.
         draw(mWideBlurRTV[0], wideWidth, wideHeight, mBlurShader->shader(),
-             tightGlow, nullptr, nullptr, 1.0f / wideWidth, 0, 0, 1);
+            tightGlow, nullptr, nullptr,
+            0, 0, 0, 1);
+        // 2. Horizontal blur, now sampling at the correct resolution.
         draw(mWideBlurRTV[1], wideWidth, wideHeight, mBlurShader->shader(),
-             mWideBlurSRV[0], nullptr, nullptr, 0, 1.0f / wideHeight, 0, 1);
-        wideGlow = mWideBlurSRV[1];
+            mWideBlurSRV[0], nullptr, nullptr,
+            1.0f / wideWidth, 0, 0, 1);
+        // 3. Vertical blur.
+        draw(mWideBlurRTV[0], wideWidth, wideHeight, mBlurShader->shader(),
+            mWideBlurSRV[1], nullptr, nullptr,
+            0, 1.0f / wideHeight, 0, 1);
+
+        wideGlow = mWideBlurSRV[0];
     }
 
     draw(destination, width, height, mPresentShader->shader(),
