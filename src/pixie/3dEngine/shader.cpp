@@ -125,3 +125,91 @@ void cShader::dumpDebugInfo(cLog& log, ID3DBlob* blob, bool input)
     }
 
 }
+
+cShaderSource::cShaderSource(const std::string& sourceCode)
+{
+    std::string finalSourceCode;
+
+    // meta data is in the form of comments like this:
+    // @cfg
+    // lua code (does not need leading //)
+    // @endcfg
+
+
+    std::string configSource;
+    bool inConfig = false;
+    int cfgPos = 0;
+    bool metaInsertionPointAdded = false;
+
+    for (auto&& lineRange : sourceCode | std::views::split('\n'))
+    {
+        std::string line(lineRange.begin(), lineRange.end());
+
+        auto commentPos = line.find("//");
+        if (commentPos != std::string::npos)
+        {
+            std::string_view comment(line.data() + commentPos + 2, line.size() - commentPos - 2);
+
+            if (comment.find("@cfg") != std::string_view::npos)
+            {
+                inConfig = true;
+                cfgPos = static_cast<int>(finalSourceCode.size());
+                continue;
+            }
+            if (comment.find("@endcfg") != std::string_view::npos)
+            {
+                inConfig = false;
+                continue;
+            }
+            if (inConfig)
+            {
+                // if this is inside lua code, only treat it as a comment if there is only whitespace before it:
+                if (std::all_of(line.begin(), line.begin() + commentPos, [](char c) { return std::isspace(static_cast<unsigned char>(c)); }))
+                {
+                    line = std::string(comment);
+                }
+            }
+        }
+        if (inConfig)
+        {
+            configSource.append(line);
+            if (!metaInsertionPointAdded)
+            {
+                finalSourceCode.append(mMetaInsertionPointText);
+                metaInsertionPointAdded = true;
+            }
+            configSource += '\n';
+            finalSourceCode += '\n'; // keep line numbers consistent for error reporting
+        }
+        else
+        {
+            finalSourceCode.append(line);
+            finalSourceCode += '\n';
+        }
+    }
+
+    auto state = std::make_shared<cLuaState>();
+    state->executeString(configSource);
+
+    mMetaData = state->globalTable();
+    mSourceCode = finalSourceCode;
+}
+
+cShaderSource::cShaderSource(const cShaderSource& src, cLuaObject subMeta)
+    : mSourceCode(src.mSourceCode), mMetaData(subMeta)
+{
+}
+
+void cShaderSource::insertSourceCode(const std::string& additionalCode)
+{
+    auto pos = mSourceCode.find(mMetaInsertionPointText);
+    if (pos != std::string::npos)
+    {
+        mSourceCode.insert(pos, additionalCode);
+    }
+}
+
+void cShaderSource::regexReplace(std::string_view pattern, std::string_view replacement)
+{
+    mSourceCode = std::regex_replace(mSourceCode, std::regex(pattern.data()), replacement.data());
+}

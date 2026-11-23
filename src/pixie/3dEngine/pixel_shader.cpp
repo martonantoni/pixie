@@ -9,19 +9,19 @@ cPixelShader::~cPixelShader()
         mShader->Release();
 }
 
-bool cPixelShader::compile(std::string sourceCode, cLuaObject metaData)
+bool cPixelShader::compile(cShaderSource& shaderSource)
 {
-    sourceCode = processMetaData(std::move(sourceCode), metaData);
+    processMetaData(shaderSource);
     for (auto&& [idx, paramName] : mParameterNames | std::views::enumerate)
     {
         if (paramName.empty())
             continue;
-        const std::regex pattern("\\binput\\s*\\.\\s*" + paramName + "\\b");
-        auto replacement = "input.params."s + "xyzw"[idx];
-        sourceCode = std::regex_replace(sourceCode, pattern, replacement);
+        shaderSource.regexReplace(
+            "\\binput\\s*\\.\\s*" + paramName + "\\b", 
+            "input.params."s + "xyzw"[idx]);
     }
-    std::string entryPoint = metaData.get<std::string>("entry_point", "PSMain"s);
-    if (auto blob = cShader::compile(sourceCode, entryPoint.c_str(), "ps_5_0"))
+    std::string entryPoint = shaderSource.metaData().get<std::string>("entry_point", "PSMain"s);
+    if (auto blob = cShader::compile(shaderSource.sourceCode(), entryPoint.c_str(), "ps_5_0"))
     {
         auto device = cDevice::Get();
         if(mShader)
@@ -37,11 +37,12 @@ bool cPixelShader::compile(std::string sourceCode, cLuaObject metaData)
     return false;
 }
  
-std::string cPixelShader::processMetaData(std::string sourceCode, cLuaObject metaData)
+void cPixelShader::processMetaData(cShaderSource& shaderSource)
 {
     mConfig.reset();
     std::vector<cShaderConstant> constants;
     mParameterNames.fill({});
+    auto metaData = shaderSource.metaData();
     if (metaData.has("config"))
     {
         mConfig = Pixie::toConfig(metaData.get("config"));
@@ -152,16 +153,11 @@ std::string cPixelShader::processMetaData(std::string sourceCode, cLuaObject met
             constantDeclarations += std::format("static const int {} = {}; ", constant.mName, std::get<int>(constant.mValue));
         }
     }
-    auto cfgPos = sourceCode.find(mMetaInsertionPointText);
-    if (cfgPos != std::string::npos)
-    {
-        sourceCode.insert(cfgPos, constantDeclarations);
-    }
+    shaderSource.insertSourceCode(constantDeclarations);
     if (!mConfig)
     {
         mConfig = std::make_shared<cConfig>();
     }
-    return sourceCode;
 }
 
 int cPixelShader::parameterIndex(std::string_view name) const
