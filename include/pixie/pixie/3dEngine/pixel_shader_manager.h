@@ -25,8 +25,8 @@ class cShaderManager final: public tSingleton<cShaderManager>
     };
     std::vector<cShaderFile> mShaderFiles; // path, shader name prefix
     std::unordered_map<std::string, std::shared_ptr<cVertexShader>> mVertexShaders;
-    using cShaderSources = std::unordered_map<std::string, std::string>; // shader name -> source code
-    cShaderSources mShaderSources;  // for include
+    using cIncludeFiles = std::unordered_map<std::string, cShaderSource>; // shader name -> source code
+    cIncludeFiles mIncludeFiles;  // for include
     std::vector<std::unique_ptr<Pixie::cFileChangeNotifier>> mFileChangeNotifiers;
     std::unique_ptr<Pixie::cFileChangeNotifier> mPresetChangeNotifier;
     std::string mShadersPreset; 
@@ -44,7 +44,7 @@ public:
     void reloadShaders(); 
     std::shared_ptr<cPixelShader> pixelShader(const std::string& name) const;
     std::shared_ptr<cVertexShader> vertexShader(const std::string& name) const;
-    std::string_view shaderSource(const std::string& name) const; // returns the source code of the shader, or empty string if not found
+    cShaderSource& includeFile(const std::string& name); 
     std::shared_ptr<cShaderFileScript> shaderScript(const std::string& shaderFileID) const; 
 };
 

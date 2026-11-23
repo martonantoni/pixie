@@ -111,7 +111,7 @@ bool cShaderManager::compilePixelShader(std::shared_ptr<cPixelShader> pixelShade
 
 void cShaderManager::loadIncludes()
 {
-    mShaderSources.clear();
+    mIncludeFiles.clear();
     loadIncludesFromFolder(mShaderFolder, {});
 }
 
@@ -134,7 +134,7 @@ void cShaderManager::loadIncludesFromFolder(const std::filesystem::path& folderP
             }
             std::string shaderSource((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
             shaderName = shaderName.substr(0, shaderName.find_last_of('_'));
-            mShaderSources[shaderName] = shaderSource;
+            mIncludeFiles[shaderName] = cShaderSource(shaderSource);
         }
         else if (entry.is_directory())
         {
@@ -165,8 +165,6 @@ std::pair<bool, cLuaObject> cShaderManager::processShaderFile(
         return {false, {}};
     }
     bool success = true;
-    //std::string shaderSource((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
-    //auto [metaData, finalSourceCode] = extractMetaInfo(std::move(shaderSource));
     std::string originalShaderSource((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
     cShaderSource shaderSource(originalShaderSource);
     auto metaData = shaderSource.metaData();
@@ -314,11 +312,12 @@ std::shared_ptr<cVertexShader> cShaderManager::vertexShader(const std::string& n
 }
 
 
-std::string_view cShaderManager::shaderSource(const std::string& name) const
+cShaderSource& cShaderManager::includeFile(const std::string& name) 
 {
-    auto it = mShaderSources.find(name);
-    if (it == mShaderSources.end())
-        return {};
+    static cShaderSource emptySource;
+    auto it = mIncludeFiles.find(name);
+    if (it == mIncludeFiles.end())
+        return emptySource;
     return it->second;
 }
 

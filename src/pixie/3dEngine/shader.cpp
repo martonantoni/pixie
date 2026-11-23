@@ -2,6 +2,7 @@
 #include "pixie/pixie/i_pixie.h"
 
 #include <d3dcompiler.h>
+#include <fstream>
 #pragma comment(lib, "d3dcompiler.lib")
 
 class cShaderInclude : public ID3DInclude
@@ -11,7 +12,12 @@ public:
 
     HRESULT Open(D3D_INCLUDE_TYPE, LPCSTR fileName, LPCVOID, LPCVOID* data, UINT* bytes) override
     {
-        auto source = theShaderManager->shaderSource(fileName);
+        auto& shaderSource = theShaderManager->includeFile(fileName);
+        const auto& source = shaderSource.sourceCode();
+        
+        std::ofstream dump(std::format("debug/dump_{}.hlsl", fileName), std::ios::binary);
+        dump.write(source.data(), source.size());
+
         if (source.empty())
             return E_FAIL;
 
