@@ -66,21 +66,20 @@ bool cPixelShader::reflectTextures(ID3DBlob* shader)
     for (UINT i = 0; i < shaderDesc.BoundResources; ++i)
     {
         D3D11_SHADER_INPUT_BIND_DESC binding{};
-
         if (FAILED(reflection->GetResourceBindingDesc(i, &binding)))
             continue;
-
         if (binding.Type != D3D_SIT_TEXTURE)
             continue;
-
         if (binding.BindCount > 1)
         {
             MainLog->Log("Shader '{}' has texture array '{}', which is not supported. BindCount: {}", name(), binding.Name, binding.BindCount);
             success = false;
             continue;
         }
-
-        mTextureSlotNames[binding.Name] = binding.BindPoint;
+        std::string_view name = binding.Name;
+        if (name.ends_with("Texture"))
+            name.remove_suffix("Texture"sv.size());
+        mTextureSlotNames[std::string(name)] = binding.BindPoint;
     }
 
     reflection->Release();
