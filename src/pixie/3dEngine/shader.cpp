@@ -61,7 +61,11 @@ ID3DBlob* cShader::compile(std::string_view sourceCode, const std::string& entry
             ? std::string(static_cast<const char*>(errors->GetBufferPointer()), errors->GetBufferSize())
             : "Unknown shader compilation error";
         MainLog->Log("Shader '{}' compilation error: {}", name(), errorText);
-        shader = nullptr;
+        if (shader)
+        {
+            shader->Release();
+            shader = nullptr;
+        }
     }
     if (errors)
         errors->Release();

@@ -2,6 +2,8 @@
 #include "pixie/pixie/i_pixie.h"
 
 #include <regex>
+#include <d3d11shader.h>
+#include <d3dcompiler.h>
 
 cPixelShader::~cPixelShader()
 {
@@ -23,10 +25,14 @@ bool cPixelShader::compile(cShaderSource& shaderSource)
     std::string entryPoint = shaderSource.metaData().get<std::string>("entry_point", "PSMain"s);
     if (auto blob = cShader::compile(shaderSource.sourceCode(), entryPoint.c_str(), "ps_5_0"))
     {
+        if (!reflectTextures(blob))
+            return false;
+
         auto device = cDevice::Get();
         if(mShader)
             mShader->Release();
         mShader = nullptr;
+
         D3V(device->GetD3DObject()->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &mShader));
         {
             cLog debugLog(std::format("debug/{}_ps.txt", name()), cLog::Flags::TRUNCATE);
@@ -36,10 +42,57 @@ bool cPixelShader::compile(cShaderSource& shaderSource)
     }
     return false;
 }
+
+
+bool cPixelShader::reflectTextures(ID3DBlob* shader)
+{
+
+    ID3D11ShaderReflection* reflection = nullptr;
+
+    HRESULT hr = D3DReflect(
+        shader->GetBufferPointer(),
+        shader->GetBufferSize(),
+        IID_PPV_ARGS(&reflection));
+
+    if (FAILED(hr))
+        return false;
+
+    bool success = true;
+
+    D3D11_SHADER_DESC shaderDesc{};
+    if (FAILED(reflection->GetDesc(&shaderDesc)))
+        throw std::runtime_error("Shader reflection GetDesc failed");
+
+    for (UINT i = 0; i < shaderDesc.BoundResources; ++i)
+    {
+        D3D11_SHADER_INPUT_BIND_DESC binding{};
+
+        if (FAILED(reflection->GetResourceBindingDesc(i, &binding)))
+            continue;
+
+        if (binding.Type != D3D_SIT_TEXTURE)
+            continue;
+
+        if (binding.BindCount > 1)
+        {
+            MainLog->Log("Shader '{}' has texture array '{}', which is not supported. BindCount: {}", name(), binding.Name, binding.BindCount);
+            success = false;
+            continue;
+        }
+
+        mTextureSlotNames[binding.Name] = binding.BindPoint;
+    }
+
+    reflection->Release();
+
+    return success;
+}
  
 void cPixelShader::processMetaData(cShaderSource& shaderSource)
 {
+    mTextureSlotNames.clear();
     mConfig.reset();
+
     std::vector<cShaderConstant> constants;
     mParameterNames.fill({});
     auto metaData = shaderSource.metaData();
@@ -56,7 +109,7 @@ void cPixelShader::processMetaData(cShaderSource& shaderSource)
         auto textureSlots = metaData.get("texture_slots");
         for (auto&& [idx, slotValue] : textureSlots | std::views::values | std::views::take(mTextureSlotNames.size()) | std::views::enumerate)
         {
-            mTextureSlotNames[idx] = slotValue.toString();
+            mTextureSlotNames[slotValue.toString()] = idx;
         }
     }
     if (metaData.has("parameters"))
@@ -172,10 +225,10 @@ int cPixelShader::parameterIndex(std::string_view name) const
 
 int cPixelShader::textureSlotIndex(std::string_view name) const
 {
-    auto it = std::find(mTextureSlotNames.begin(), mTextureSlotNames.end(), name);
+    auto it = mTextureSlotNames.find(std::string(name));
     if (it == mTextureSlotNames.end())
     {
         throw std::runtime_error(std::format("Texture slot name '{}' not found in pixel shader", name));
     }
-    return static_cast<int>(std::distance(mTextureSlotNames.begin(), it));
+    return it->second;
 }

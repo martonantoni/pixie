@@ -5,15 +5,15 @@ class cPixelShader final: public cShader
 {
     ID3D11PixelShader* mShader = nullptr;
     std::array<std::string, 4> mParameterNames;
-    std::array<std::string, 4> mTextureSlotNames;
     std::array<std::string, 4> mDefaultTextures;
     std::array<tIntrusivePtr<cTexture>, 4> mDataTextures;
     std::shared_ptr<cConfig> mConfig;
+    std::unordered_map<std::string, int> mTextureSlotNames; // name -> slot index
     void processMetaData(cShaderSource& shaderSource);
+    bool reflectTextures(ID3DBlob* shader);
 public:
     cPixelShader(const std::string& name) : cShader(name) {}
     virtual ~cPixelShader();
-    static inline constexpr std::string_view mMetaInsertionPointText = "// @meta_insertion_point"sv;
     bool compile(cShaderSource& shaderSource);
 
     ID3D11PixelShader* shader() const
