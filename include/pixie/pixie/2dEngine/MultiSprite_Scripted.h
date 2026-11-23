@@ -22,3 +22,8 @@ public:
 };
 
 USE_DROP_INSTEAD_DELETE_PARENT(cMultiSprite_Scripted, cMultiSprite)
+
+namespace Pixie
+{
+	using cScriptedMultiSprite = cMultiSprite_Scripted;
+}

@@ -151,9 +151,11 @@ void cShaderManager::loadShaderConstants()
         return;
     }
     mShadersPreset = std::string((std::istreambuf_iterator<char>(shaderPresetFile)), std::istreambuf_iterator<char>());
+// it gets executed in each shader's lua code
 }
 
-std::pair<bool, cLuaObject> cShaderManager::processShaderFile(const std::filesystem::path& path, const std::string& shaderTypeString, const std::string& shaderNamePrefix)
+std::pair<bool, cLuaObject> cShaderManager::processShaderFile(
+    const std::filesystem::path& path, const std::string& shaderTypeString, const std::string& shaderNamePrefix)
 {
     std::ifstream shaderFile(path);
     if (!shaderFile)
