@@ -15,6 +15,7 @@ class cShaderManager final: public tSingleton<cShaderManager>
 {
     std::filesystem::path mShaderFolder;
     std::filesystem::path mShaderPresetPath;
+
     std::unordered_map<std::string, std::shared_ptr<cPixelShader>> mPixelShaders;
     struct cShaderFile
     {
@@ -27,9 +28,11 @@ class cShaderManager final: public tSingleton<cShaderManager>
     std::unordered_map<std::string, std::shared_ptr<cVertexShader>> mVertexShaders;
     using cIncludeFiles = std::unordered_map<std::string, cShaderSource>; // shader name -> source code
     cIncludeFiles mIncludeFiles;  // for include
+    std::string mShadersPreset;
+
     std::vector<std::unique_ptr<Pixie::cFileChangeNotifier>> mFileChangeNotifiers;
     std::unique_ptr<Pixie::cFileChangeNotifier> mPresetChangeNotifier;
-    std::string mShadersPreset; 
+
     void loadIncludesFromFolder(const std::filesystem::path& folderPath, const std::string& shaderNamePrefix);
     void loadIncludes();
     void loadShaderConstants();

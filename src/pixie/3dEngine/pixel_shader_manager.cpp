@@ -228,7 +228,7 @@ std::pair<bool, cLuaObject> cShaderManager::processShaderFile(
                 }
             }
         }
-        else
+        else // no subshaders, just compile the main shader
         {
             auto& pixelShader = mPixelShaders[shaderName];
             if (!pixelShader)
