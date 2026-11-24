@@ -11,6 +11,11 @@ struct cShaderFileScript
     cLuaObject mMetaData;
 };
 
+struct cShaderGroup
+{
+    std::vector<std::shared_ptr<cPixelShader>> mShaders;
+};
+
 class cShaderManager final: public tSingleton<cShaderManager>
 {
     std::filesystem::path mShaderFolder;
@@ -39,6 +44,7 @@ class cShaderManager final: public tSingleton<cShaderManager>
     void loadShadersFromFolder(const std::filesystem::path& folderPath, const std::string& shaderNamePrefix);
     bool compilePixelShader(std::shared_ptr<cPixelShader> pixelShader, cShaderSource& shaderSource);
     std::pair<bool, cLuaObject> processShaderFile(const std::filesystem::path& path, const std::string& shaderTypeString, const std::string& shaderNamePrefix);
+    cShaderGroup createShaderGroup(const std::string& shaderName);
 public:
     cShaderManager();
     ~cShaderManager();

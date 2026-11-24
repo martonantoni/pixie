@@ -155,6 +155,29 @@ void cShaderManager::loadShaderConstants()
 // it gets executed in each shader's lua code
 }
 
+cShaderGroup cShaderManager::createShaderGroup(const std::string& shaderName)
+{
+    //for (auto&& [key, subShaderMeta] : metaData.get("shaders"))
+    //{
+    //    auto subShaderName = std::format("{}.{}", shaderName, subShaderMeta.get<std::string>("name"));
+    //    auto& pixelShader = mPixelShaders[subShaderName];
+    //    if (!pixelShader)
+    //        pixelShader = std::make_shared<cPixelShader>(subShaderName);
+
+    //    cShaderSource subShaderSource(shaderSource, subShaderMeta);
+    //    if (compilePixelShader(pixelShader, subShaderSource))
+    //    {
+    //        MainLog->Log("Loaded pixel shader: {}", subShaderName);
+    //    }
+    //    else
+    //    {
+    //        success = false;
+    //    }
+    //}
+    return {};
+}
+
+
 std::pair<bool, cLuaObject> cShaderManager::processShaderFile(
     const std::filesystem::path& path, const std::string& shaderTypeString, const std::string& shaderNamePrefix)
 {
@@ -180,6 +203,8 @@ std::pair<bool, cLuaObject> cShaderManager::processShaderFile(
         auto rootConstants = metaData.get("constants");
         if (metaData.has("shaders"))
         {
+            auto shaderGroup = createShaderGroup(shaderName);
+
             // on the base level we need all the constants that the sub shaders have, otherwise the automatic
             // constant insertion won't work --> the other shaders will not compile (but they need to because 
             // they are in the same hlsl file)

@@ -3,6 +3,20 @@
 
 class cPixelShader final: public cShader
 {
+public:
+    struct cMetaData
+    {
+        std::array<std::string, 4> mParameterNames;
+        std::array<std::string, 4> mDefaultTextures;
+        std::array<tIntrusivePtr<cTexture>, 4> mDataTextures;
+        std::unordered_map<std::string, int> mTextureSlotNames; // name -> slot index
+        std::shared_ptr<cConfig> mConfig;
+
+        void apply(cLuaObject shaderData);
+        int parameterIndex(std::string_view name) const; // throws if not found
+        int textureSlotIndex(std::string_view name) const; // throws if not found
+    };
+private:
     ID3D11PixelShader* mShader = nullptr;
     std::array<std::string, 4> mParameterNames;
     std::array<std::string, 4> mDefaultTextures;

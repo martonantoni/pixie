@@ -48,6 +48,7 @@ target_link_libraries(Pixie PUBLIC
     d3d11
     dxgi
     d3dcompiler
+    ws2_32
 )
 
 ##############

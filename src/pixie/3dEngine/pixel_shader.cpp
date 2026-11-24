@@ -86,6 +86,49 @@ bool cPixelShader::reflectTextures(ID3DBlob* shader)
 
     return success;
 }
+
+void cPixelShader::cMetaData::apply(cLuaObject shaderData)
+{
+// NOTE:
+// configuration not supported as a "group override" currently, it should be merging the configs in that case
+    if (shaderData.has("config"))
+    {
+        mConfig = Pixie::toConfig(shaderData.get("config"));
+    }
+    if (shaderData.has("configuration"))
+    {
+        mConfig = Pixie::toConfig(shaderData.get("configuration"));
+    }
+
+
+    if (shaderData.has("texture_slots"))
+    {
+        auto textureSlots = shaderData.get("texture_slots");
+        for (auto&& [idx, slotValue] : textureSlots |
+            std::views::values | std::views::take(4) | std::views::enumerate)
+        {
+            mTextureSlotNames[slotValue.toString()] = idx;
+        }
+    }
+    if (shaderData.has("textures"))
+    {
+        auto textures = shaderData.get("textures");
+        for (auto&& [idx, textureValue] : textures |
+            std::views::values | std::views::take(mDefaultTextures.size()) | std::views::enumerate)
+        {
+            mDefaultTextures[idx] = textureValue.toString();
+        }
+    }
+    if (shaderData.has("parameters"))
+    {
+        auto parameters = shaderData.get("parameters");
+        for (auto&& [idx, paramValue] : parameters |
+            std::views::values | std::views::take(mParameterNames.size()) | std::views::enumerate)
+        {
+            mParameterNames[idx] = paramValue.toString();
+        }
+    }
+}
  
 void cPixelShader::processMetaData(cShaderSource& shaderSource)
 {
@@ -250,6 +293,26 @@ int cPixelShader::parameterIndex(std::string_view name) const
 }
 
 int cPixelShader::textureSlotIndex(std::string_view name) const
+{
+    auto it = mTextureSlotNames.find(std::string(name));
+    if (it == mTextureSlotNames.end())
+    {
+        throw std::runtime_error(std::format("Texture slot name '{}' not found in pixel shader", name));
+    }
+    return it->second;
+}
+
+int cPixelShader::cMetaData::parameterIndex(std::string_view name) const
+{
+    auto it = std::find(mParameterNames.begin(), mParameterNames.end(), name);
+    if (it == mParameterNames.end())
+    {
+        throw std::runtime_error(std::format("Parameter name '{}' not found in pixel shader", name));
+    }
+    return static_cast<int>(std::distance(mParameterNames.begin(), it));
+}
+
+int cPixelShader::cMetaData::textureSlotIndex(std::string_view name) const
 {
     auto it = mTextureSlotNames.find(std::string(name));
     if (it == mTextureSlotNames.end())
