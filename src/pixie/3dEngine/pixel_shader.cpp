@@ -106,7 +106,8 @@ void cPixelShader::processMetaData(cShaderSource& shaderSource)
     if (metaData.has("texture_slots"))
     {
         auto textureSlots = metaData.get("texture_slots");
-        for (auto&& [idx, slotValue] : textureSlots | std::views::values | std::views::take(mTextureSlotNames.size()) | std::views::enumerate)
+        for (auto&& [idx, slotValue] : textureSlots |
+            std::views::values | std::views::take(mTextureSlotNames.size()) | std::views::enumerate)
         {
             mTextureSlotNames[slotValue.toString()] = idx;
         }
@@ -114,7 +115,8 @@ void cPixelShader::processMetaData(cShaderSource& shaderSource)
     if (metaData.has("parameters"))
     {
         auto parameters = metaData.get("parameters");
-        for (auto&& [idx, paramValue] : parameters | std::views::values | std::views::take(mParameterNames.size()) | std::views::enumerate)
+        for (auto&& [idx, paramValue] : parameters |
+            std::views::values | std::views::take(mParameterNames.size()) | std::views::enumerate)
         {
             mParameterNames[idx] = paramValue.toString();
         }
@@ -122,12 +124,13 @@ void cPixelShader::processMetaData(cShaderSource& shaderSource)
     if (metaData.has("textures"))
     {
         auto textures = metaData.get("textures");
-        for (auto&& [idx, textureValue] : textures | std::views::values | std::views::take(mDefaultTextures.size()) | std::views::enumerate)
+        for (auto&& [idx, textureValue] : textures | 
+            std::views::values | std::views::take(mDefaultTextures.size()) | std::views::enumerate)
         {
             mDefaultTextures[idx] = textureValue.toString();
         }
     }
-    std::array<int, 4> dataSizes = { 0, 0, 0, 0 };
+    std::vector<std::pair<std::string, int>> dataSizes;
     if (metaData.has("data"))
     {
         auto data = metaData.get("data");
@@ -135,8 +138,9 @@ void cPixelShader::processMetaData(cShaderSource& shaderSource)
         {
             if (value.isTable())
             {
-                auto slot = value.get<int>("slot");
-                if (slot >= 0 && slot < mDataTextures.size() && value.has("floats"))
+                tIntrusivePtr<cTexture> dataTexture;
+                int dataSize = 0;
+                if (value.has("floats"))
                 {
                     auto floatsTable = value.get("floats");
                     auto tableSize = floatsTable.arraySize();
@@ -147,15 +151,35 @@ void cPixelShader::processMetaData(cShaderSource& shaderSource)
                     {
                         floats[i] = floatsTable.get<double>(i + 1);
                     }
-                    mDataTextures[slot] = cTexture::CreateFromData(cPoint(floats.size(), 1), floats);
-                    dataSizes[slot] = static_cast<int>(floats.size());
+                    dataTexture = cTexture::CreateFromData(cPoint(floats.size(), 1), floats);
+                    dataSize = static_cast<int>(floats.size());
+                }
+                if(dataTexture)
+                {
+                    if (value.has("slot"))
+                    {
+                        int slot = value.get<int>("slot");
+                        dataSizes.emplace_back(std::format("DATA{}_SIZE", slot), dataSize);
+                        mDataTextures[slot] = dataTexture;
+                    }
+                    else if (value.has("name"))
+                    {
+                        std::string name = value.get<std::string>("name");
+                        dataSizes.emplace_back(std::format("{}Size", name), dataSize);
+                        mBoundTextures[name] = dataTexture;
+                    }
+                    else
+                    {
+                        MainLog->Log("Data entry '{}' in shader '{}' has no 'slot' or 'name' field, skipping.", 
+                            key.toString(), name());
+                    }
                 }
             }
         }
     }
-    for (auto&& [slot, dataSize] : dataSizes | std::views::enumerate)
+    for (auto&& [slot, dataSize] : dataSizes)
     {
-        constants.emplace_back(std::format("DATA{}_SIZE", slot), static_cast<int>(dataSize));
+        constants.emplace_back(slot, dataSize);
     }
     if (metaData.has("constants"))
     {
@@ -193,16 +217,19 @@ void cPixelShader::processMetaData(cShaderSource& shaderSource)
     {
         if (std::holds_alternative<float>(constant.mValue))
         {
-            constantDeclarations += std::format("static const float {} = {}; ", constant.mName, std::get<float>(constant.mValue));
+            constantDeclarations += std::format("static const float {} = {}; ", 
+                constant.mName, std::get<float>(constant.mValue));
         }
         else if (std::holds_alternative<std::array<float, 3>>(constant.mValue))
         {
             auto color = std::get<std::array<float, 3>>(constant.mValue);
-            constantDeclarations += std::format("static const float3 {} = float3({}, {}, {}); ", constant.mName, color[0], color[1], color[2]);
+            constantDeclarations += std::format("static const float3 {} = float3({}, {}, {}); ", 
+                constant.mName, color[0], color[1], color[2]);
         }
         else if (std::holds_alternative<int>(constant.mValue))
         {
-            constantDeclarations += std::format("static const int {} = {}; ", constant.mName, std::get<int>(constant.mValue));
+            constantDeclarations += std::format("static const int {} = {}; ", 
+                constant.mName, std::get<int>(constant.mValue));
         }
     }
     shaderSource.insertSourceCode(constantDeclarations);

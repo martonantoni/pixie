@@ -9,6 +9,9 @@ class cPixelShader final: public cShader
     std::array<tIntrusivePtr<cTexture>, 4> mDataTextures;
     std::shared_ptr<cConfig> mConfig;
     std::unordered_map<std::string, int> mTextureSlotNames; // name -> slot index
+
+    std::unordered_map<std::string, tIntrusivePtr<cTexture>> mBoundTextures; 
+
     void processMetaData(cShaderSource& shaderSource);
     bool reflectTextures(ID3DBlob* shader);
 public:

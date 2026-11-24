@@ -15,6 +15,7 @@ void cSprite::setTexture(int index, tIntrusivePtr<cTexture> Texture)
 
 void cSprite::setTexture(std::string_view slotID, tIntrusivePtr<cTexture> Texture)
 {
+	ASSERT(mShader);
     setTexture(mShader->textureSlotIndex(slotID), std::move(Texture));
 }
 
