@@ -176,6 +176,7 @@ void cSprite::setShader(std::shared_ptr<cPixelShader> Shader)
 	mShader = Shader;
 	PropertiesChanged(Property_Shader);
 	auto hasShaderDependentTextures = retrieveTexturesFromShader();
+#ifdef _DEBUG
     if (hasShaderDependentTextures.any())
     {
 		mShaderReloadedListenerID = theMessageCenter.listen("pixie.shaders_reloaded",
@@ -191,6 +192,7 @@ void cSprite::setShader(std::shared_ptr<cPixelShader> Shader)
 				hasShaderDependentTextures = retrieveTexturesFromShader();
 			});
     }
+#endif
 }
 
 void cSprite::setShader(const std::string& shaderId)

@@ -128,7 +128,126 @@ void cPixelShader::cMetaData::apply(cLuaObject shaderData)
             mParameterNames[idx] = paramValue.toString();
         }
     }
+
+    if (shaderData.has("constants"))
+    {
+        auto constantsTable = shaderData.get("constants");
+        for (auto&& [constantName, constantValue] : constantsTable)
+        {
+            if (constantValue.isTable())
+            {
+                auto type = constantValue.get<std::string>("type");
+                if (type == "float")
+                {
+                    float floatValue = constantValue.get<double>("default");
+                    mConstants[constantName.toString()] = floatValue;
+                }
+                else if (type == "color" || type == "normalized_color")
+                {
+                    std::array<float, 3> colorValue;
+                    auto colorTable = constantValue.get("default");
+                    for (int i = 0; i < 3; ++i)
+                    {
+                        colorValue[i] = colorTable.get<double>(i + 1);
+                    }
+                    mConstants[constantName.toString()] = colorValue;
+                }
+                else if (type == "int")
+                {
+                    int intValue = constantValue.get<int>("default");
+                    mConstants[constantName.toString()] = intValue;
+                }
+            }
+            else
+            {
+                MainLog->Log("Constant '{}' in shader metadata is not a table, skipping.", constantName.toString());
+            }
+        }
+    }
+
+    if (shaderData.has("data"))
+    {
+        auto data = shaderData.get("data");
+        for (auto&& [key, value] : data)
+        {
+            if (value.isTable())
+            {
+                tIntrusivePtr<cTexture> dataTexture;
+                int dataSize = 0;
+                if (value.has("floats"))
+                {
+                    auto floatsTable = value.get("floats");
+                    auto tableSize = floatsTable.arraySize();
+                    if (tableSize == 0)
+                        continue;
+                    std::vector<float> floats(tableSize);
+                    for (int i = 0; i < tableSize; ++i)
+                    {
+                        floats[i] = floatsTable.get<double>(i + 1);
+                    }
+                    dataTexture = cTexture::CreateFromData(cPoint(floats.size(), 1), floats);
+                    dataSize = static_cast<int>(floats.size());
+                }
+                if (dataTexture)
+                {
+                    if (value.has("slot"))
+                    {
+                        int slot = value.get<int>("slot");
+                        mConstants[std::format("DATA{}_SIZE", slot)] = dataSize;
+                        mDataTextures[slot] = std::move(dataTexture);
+                    }
+                    else if (value.has("name"))
+                    {
+                        std::string name = value.get<std::string>("name");
+                        mConstants[std::format("{}Size", name)] = dataSize;
+                        mDataTextures[name] = dataTexture;
+                    }
+                    else
+                    {
+                        MainLog->Log("Data entry '{}'  has no 'slot' or 'name' field, skipping.",
+                            key.toString());
+                    }
+                }
+            }
+        }
+    }
+
 }
+
+void cPixelShader::cMetaData::setConstantsFromPreset(cLuaObject preset)
+{
+    for (auto&& [name, value] : mConstants)
+    {
+        if (preset.has(name))
+        {
+            auto presetValue = preset.get(name);
+            // has to make sure it is the same type:
+            if (std::holds_alternative<float>(value) && presetValue.isNumber())
+            {
+                mConstants[name] = static_cast<float>(presetValue.toDouble());
+            }
+            else if (std::holds_alternative<std::array<float, 3>>(value) && presetValue.isTable() && presetValue.arraySize() == 3)
+            {
+                std::array<float, 3> colorValue;
+                auto colorTable = presetValue;
+                for (int i = 0; i < 3; ++i)
+                {
+                    colorValue[i] = colorTable.get<double>(i + 1);
+                }
+                mConstants[name] = colorValue;
+            }
+            else if (std::holds_alternative<int>(value) && presetValue.isNumber())
+            {
+                mConstants[name] = static_cast<int>(presetValue.toInt());
+            }
+            else
+            {
+                MainLog->Log("Preset value for constant '{}' has incompatible type, skipping.", name);
+            }
+        }
+    }
+}
+
  
 void cPixelShader::processMetaData(cShaderSource& shaderSource)
 {
