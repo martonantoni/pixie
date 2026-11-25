@@ -75,39 +75,39 @@ void cShaderManager::loadShadersFromFolder(const std::filesystem::path& folderPa
         }
     }
 }
-
-bool cShaderManager::compilePixelShader(std::shared_ptr<cPixelShader> pixelShader, cShaderSource& shaderSource)
-{
-    auto metaData = shaderSource.metaData();
-    auto presets = metaData.state().globalTable().get("presets");
-    for (auto&& [key, constantTable] : metaData.get("constants"))
-    {
-        constantTable.set("value", constantTable.get("default"));
-        std::string shaderName = pixelShader->name();
-        auto subPreset = presets;
-        while(!shaderName.empty())
-        {
-            auto dotPos = shaderName.find('.');
-            std::string groupName = shaderName.substr(0, dotPos);
-            if (!subPreset.has(groupName))
-                break;
-            subPreset = subPreset.get(groupName);
-            if (subPreset.has(key))
-            {
-                constantTable.set("value", subPreset.get(key));
-            }
-            if (dotPos == std::string::npos)
-                break;
-            shaderName = shaderName.substr(dotPos + 1);
-        }
-    }
-    if (!pixelShader->compile(shaderSource))
-    {
-        MainLog->Log("Failed to compile pixel shader: {}", pixelShader->name());
-        return false;
-    }
-    return true;
-}
+//
+//bool cShaderManager::compilePixelShader(std::shared_ptr<cPixelShader> pixelShader, cShaderSource& shaderSource)
+//{
+//    auto metaData = shaderSource.metaData();
+//    auto presets = metaData.state().globalTable().get("presets");
+//    for (auto&& [key, constantTable] : metaData.get("constants"))
+//    {
+//        constantTable.set("value", constantTable.get("default"));
+//        std::string shaderName = pixelShader->name();
+//        auto subPreset = presets;
+//        while(!shaderName.empty())
+//        {
+//            auto dotPos = shaderName.find('.');
+//            std::string groupName = shaderName.substr(0, dotPos);
+//            if (!subPreset.has(groupName))
+//                break;
+//            subPreset = subPreset.get(groupName);
+//            if (subPreset.has(key))
+//            {
+//                constantTable.set("value", subPreset.get(key));
+//            }
+//            if (dotPos == std::string::npos)
+//                break;
+//            shaderName = shaderName.substr(dotPos + 1);
+//        }
+//    }
+//    if (!pixelShader->compile(shaderSource))
+//    {
+//        MainLog->Log("Failed to compile pixel shader: {}", pixelShader->name());
+//        return false;
+//    }
+//    return true;
+//}
 
 void cShaderManager::loadIncludes()
 {
@@ -145,38 +145,13 @@ void cShaderManager::loadIncludesFromFolder(const std::filesystem::path& folderP
 
 void cShaderManager::loadShaderConstants()
 {
-    std::ifstream shaderPresetFile(mShaderPresetPath);
-    if (!shaderPresetFile)
+    if (std::filesystem::exists(mShaderPresetPath))
     {
-        MainLog->Log("Failed to open shader preset file: {}", mShaderPresetPath.string());
-        return;
+        auto state = std::make_shared<cLuaState>();
+        state->executeFile(mShaderPresetPath);
+        mShaderPreset = state->globalTable().get("presets");
     }
-    mShadersPreset = std::string((std::istreambuf_iterator<char>(shaderPresetFile)), std::istreambuf_iterator<char>());
-// it gets executed in each shader's lua code
 }
-
-cShaderGroup cShaderManager::createShaderGroup(const std::string& shaderName)
-{
-    //for (auto&& [key, subShaderMeta] : metaData.get("shaders"))
-    //{
-    //    auto subShaderName = std::format("{}.{}", shaderName, subShaderMeta.get<std::string>("name"));
-    //    auto& pixelShader = mPixelShaders[subShaderName];
-    //    if (!pixelShader)
-    //        pixelShader = std::make_shared<cPixelShader>(subShaderName);
-
-    //    cShaderSource subShaderSource(shaderSource, subShaderMeta);
-    //    if (compilePixelShader(pixelShader, subShaderSource))
-    //    {
-    //        MainLog->Log("Loaded pixel shader: {}", subShaderName);
-    //    }
-    //    else
-    //    {
-    //        success = false;
-    //    }
-    //}
-    return {};
-}
-
 
 std::pair<bool, cLuaObject> cShaderManager::processShaderFile(
     const std::filesystem::path& path, const std::string& shaderTypeString, const std::string& shaderNamePrefix)
@@ -191,79 +166,62 @@ std::pair<bool, cLuaObject> cShaderManager::processShaderFile(
     std::string originalShaderSource((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
     cShaderSource shaderSource(originalShaderSource);
     auto metaData = shaderSource.metaData();
-    metaData.state().executeString(mShadersPreset);
     std::string shaderName = shaderNamePrefix + path.stem().string();
     shaderName = shaderName.substr(0, shaderName.find_last_of('_'));
+    cLuaObject preset;
+    if (mShaderPreset.has(shaderName))
+    {
+        preset = mShaderPreset.get(shaderName);
+    }
     if (shaderTypeString == "ps")
     {
         metaData.state().executeString(std::format(R"(
             if constants == nil then
                 constants = {{}}
             end)")); // the global constants
-        auto rootConstants = metaData.get("constants");
         if (metaData.has("shaders"))
         {
-            auto shaderGroup = createShaderGroup(shaderName);
-
-            // on the base level we need all the constants that the sub shaders have, otherwise the automatic
-            // constant insertion won't work --> the other shaders will not compile (but they need to because 
-            // they are in the same hlsl file)
+            cShaderGroup shaderGroup;
             for (auto&& [key, subShaderMeta] : metaData.get("shaders"))
             {
-                metaData.state().executeString(std::format(R"(
-                    if shaders[{0}].constants == nil then
-                        shaders[{0}].constants = {{}}
-                    end)", key.toInt())); // the local constants
-
-                auto subShaderConstants = subShaderMeta.get("constants");
-                for (auto&& [constantKey, constantValue] : subShaderConstants)
-                {
-                    if (!rootConstants.has(constantKey))
-                    {
-                        rootConstants.set(constantKey, constantValue);
-                    }
-                }
-            }
-            // because the subshaders only see the submeta for the constants, we need to copy over the root contants
-            // to each subshader
-            for (auto&& [key, subShaderMeta] : metaData.get("shaders"))
-            {
-                auto subShaderConstants = subShaderMeta.get("constants");
-                for (auto&& [constantKey, constantValue] : rootConstants)
-                {
-                    if (!subShaderConstants.has(constantKey))
-                    {
-                        subShaderConstants.set(constantKey, constantValue);
-                    }
-                }
-                metaData.state().executeString(std::format("setmetatable(shaders[{}], {{__index = _G }})", key.toInt()));
-
                 auto subShaderName = std::format("{}.{}", shaderName, subShaderMeta.get<std::string>("name"));
                 auto& pixelShader = mPixelShaders[subShaderName];
                 if (!pixelShader)
-                    pixelShader = std::make_shared<cPixelShader>(subShaderName);
-                cShaderSource subShaderSource(shaderSource, subShaderMeta);
-                if (compilePixelShader(pixelShader, subShaderSource))
+                    pixelShader = std::make_shared<cPixelShader>(subShaderName);                
+                shaderGroup.mShaders.push_back(pixelShader);
+                auto& metaObj = shaderGroup.mMetaData.emplace_back();
+                metaObj.setShaderName(subShaderName);
+                metaObj.apply(metaData);
+                metaObj.apply(subShaderMeta);
+
+                metaObj.setConstantsFromPreset(preset);
+                if (preset.has(subShaderMeta.get<std::string>("name")))
                 {
-                    MainLog->Log("Loaded pixel shader: {}", subShaderName);
+                    metaObj.setConstantsFromPreset(preset.get(subShaderMeta.get<std::string>("name")));
                 }
-                else
+            }
+            cPixelShader::cMetaData::synchronize(shaderGroup.mMetaData);
+            for (auto&& [pixelShader, metaObj] : std::views::zip(shaderGroup.mShaders, shaderGroup.mMetaData))
+            {
+                if (!pixelShader->compile(shaderSource, std::move(metaObj)))
                 {
+                    MainLog->Log("Failed to compile pixel shader: {}", pixelShader->name());
                     success = false;
                 }
             }
         }
-        else // no subshaders, just compile the main shader
+        else
         {
             auto& pixelShader = mPixelShaders[shaderName];
             if (!pixelShader)
                 pixelShader = std::make_shared<cPixelShader>(shaderName);
-            if(compilePixelShader(pixelShader, shaderSource))
+            cPixelShader::cMetaData shaderMetaData;
+            shaderMetaData.setShaderName(shaderName);
+            shaderMetaData.apply(metaData);
+            shaderMetaData.setConstantsFromPreset(preset);
+            if(!pixelShader->compile(shaderSource, std::move(shaderMetaData)))
             {
-                MainLog->Log("Loaded pixel shader: {}", shaderName);
-            }
-            else
-            {
+                MainLog->Log("Failed to compile pixel shader: {}", pixelShader->name());
                 success = false;
             }
         }

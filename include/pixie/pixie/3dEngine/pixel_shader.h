@@ -1,47 +1,43 @@
 #pragma once
 
-using cShaderConstantValue = std::variant<float, std::array<float, 3>, int>;
-
-struct cShaderConstant
-{
-    std::string mName;
-    cShaderConstantValue mValue;
-};
-
-
 class cPixelShader final: public cShader
 {
 public:
+    using cShaderConstantValue = std::variant<float, std::array<float, 3>, int>;
+    struct cShaderConstant
+    {
+        std::string mName;
+        cShaderConstantValue mValue;
+    };
+    using cVariableKey = std::variant<int, std::string>; // int for slot index, string for name
     struct cMetaData
     {
+        std::string mShaderName;
         std::array<std::string, 4> mParameterNames;
         std::array<std::string, 4> mDefaultTextures;
         std::unordered_map<std::string, int> mTextureSlotNames; // name -> slot index
         std::shared_ptr<cConfig> mConfig;
         std::unordered_map<std::string, cShaderConstantValue> mConstants;
-        std::unordered_map<std::variant<int, std::string>, tIntrusivePtr<cTexture>> mDataTextures;
+        std::unordered_map<cVariableKey, tIntrusivePtr<cTexture>> mDataTextures;
+        std::string mEntryPoint = "PSMain"s;
 
+        void setShaderName(std::string_view name) { mShaderName = name; }
         void apply(cLuaObject shaderData);
         void setConstantsFromPreset(cLuaObject preset);
+        static void synchronize(std::span<cMetaData> shaderMetaDataList);
+
         int parameterIndex(std::string_view name) const; // throws if not found
         int textureSlotIndex(std::string_view name) const; // throws if not found
     };
 private:
     ID3D11PixelShader* mShader = nullptr;
-    std::array<std::string, 4> mParameterNames;
-    std::array<std::string, 4> mDefaultTextures;
-    std::array<tIntrusivePtr<cTexture>, 4> mDataTextures;
-    std::shared_ptr<cConfig> mConfig;
-    std::unordered_map<std::string, int> mTextureSlotNames; // name -> slot index
-
-    std::unordered_map<std::string, tIntrusivePtr<cTexture>> mBoundTextures; 
-
-    void processMetaData(cShaderSource& shaderSource);
-    bool reflectTextures(ID3DBlob* shader);
+    cMetaData mMetaData;
+    static void processMetaData(cShaderSource& shaderSource, const cMetaData& metaData);
+    static bool reflectTextures(ID3DBlob* shader, cMetaData& metaData);
 public:
     cPixelShader(const std::string& name) : cShader(name) {}
     virtual ~cPixelShader();
-    bool compile(cShaderSource& shaderSource);
+    bool compile(cShaderSource shaderSource, cMetaData metaData);
 
     ID3D11PixelShader* shader() const
     {
@@ -54,7 +50,7 @@ public:
 
     int parameterIndex(std::string_view name) const; // throws if not found
     int textureSlotIndex(std::string_view name) const; // throws if not found
-    const std::string& defaultTextureName(int index) const { return mDefaultTextures[index]; }
-    tIntrusivePtr<cTexture> dataTexture(int index) const { return mDataTextures[index]; }
-    const cConfig& config() const { return *mConfig; }
+    const std::string& defaultTextureName(int index) const { return mMetaData.mDefaultTextures[index]; }
+    tIntrusivePtr<cTexture> dataTexture(cVariableKey key) const;
+    const cConfig& config() const { return *mMetaData.mConfig; }
 };

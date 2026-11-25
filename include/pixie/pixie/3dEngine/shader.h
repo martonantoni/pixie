@@ -6,9 +6,9 @@ class cShaderSource
     cLuaObject mMetaData;
 public:
     cShaderSource() = default;
-    cShaderSource(const cShaderSource&) = delete;
+    cShaderSource(const cShaderSource&) = default;
     cShaderSource(cShaderSource&&) = default;
-    cShaderSource& operator=(const cShaderSource&) = delete;
+    cShaderSource& operator=(const cShaderSource&) = default;
     cShaderSource& operator=(cShaderSource&&) = default;
 
     cShaderSource(const std::string& sourceCode);

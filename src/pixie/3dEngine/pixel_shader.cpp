@@ -11,42 +11,45 @@ cPixelShader::~cPixelShader()
         mShader->Release();
 }
 
-bool cPixelShader::compile(cShaderSource& shaderSource)
+bool cPixelShader::compile(cShaderSource shaderSource, cMetaData metaData)
 {
-    processMetaData(shaderSource);
-    for (auto&& [idx, paramName] : mParameterNames | std::views::enumerate)
+    processMetaData(shaderSource, metaData);
+    if (auto blob = cShader::compile(shaderSource.sourceCode(), metaData.mEntryPoint.c_str(), "ps_5_0"))
     {
-        if (paramName.empty())
-            continue;
-        shaderSource.regexReplace(
-            "\\binput\\s*\\.\\s*" + paramName + "\\b", 
-            "input.params."s + "xyzw"[idx]);
-    }
-    std::string entryPoint = shaderSource.metaData().get<std::string>("entry_point", "PSMain"s);
-    if (auto blob = cShader::compile(shaderSource.sourceCode(), entryPoint.c_str(), "ps_5_0"))
-    {
-        if (!reflectTextures(blob))
+        if (!reflectTextures(blob, metaData))
+        {
+            blob->Release();
             return false;
+        }
 
         auto device = cDevice::Get();
         if(mShader)
             mShader->Release();
         mShader = nullptr;
+        mMetaData = std::move(metaData);
 
         D3V(device->GetD3DObject()->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &mShader));
         {
             cLog debugLog(std::format("debug/{}_ps.txt", name()), cLog::Flags::TRUNCATE);
             dumpDebugInfo(debugLog, blob, true);
         }
+        MainLog->Log("Compiled pixel shader: {}", name());
         return true;
+    }
+    else
+    {
+        MainLog->Log("Failed to compile pixel shader: {}", name());
+#ifdef _DEBUG
+        cLog debugLog(std::format("debug/src_{}_ps.txt", name()), cLog::Flags::TRUNCATE);
+        debugLog.Log("{}", shaderSource.sourceCode());
+#endif
     }
     return false;
 }
 
 
-bool cPixelShader::reflectTextures(ID3DBlob* shader)
+bool cPixelShader::reflectTextures(ID3DBlob* shader, cMetaData& metaData)
 {
-
     ID3D11ShaderReflection* reflection = nullptr;
 
     HRESULT hr = D3DReflect(
@@ -72,14 +75,14 @@ bool cPixelShader::reflectTextures(ID3DBlob* shader)
             continue;
         if (binding.BindCount > 1)
         {
-            MainLog->Log("Shader '{}' has texture array '{}', which is not supported. BindCount: {}", name(), binding.Name, binding.BindCount);
+            MainLog->Log("Shader '{}' has texture array '{}', which is not supported. BindCount: {}", metaData.mShaderName, binding.Name, binding.BindCount);
             success = false;
             continue;
         }
         std::string_view name = binding.Name;
         if (name.ends_with("Texture"))
             name.remove_suffix("Texture"sv.size());
-        mTextureSlotNames[std::string(name)] = binding.BindPoint;
+        metaData.mTextureSlotNames[std::string(name)] = binding.BindPoint;
     }
 
     reflection->Release();
@@ -87,10 +90,47 @@ bool cPixelShader::reflectTextures(ID3DBlob* shader)
     return success;
 }
 
+void cPixelShader::processMetaData(cShaderSource& shaderSource, const cMetaData& metaData)
+{
+    std::string constantDeclarations;
+    for (auto&& [name, constant] : metaData.mConstants)
+    {
+        if (std::holds_alternative<float>(constant))
+        {
+            constantDeclarations += std::format("static const float {} = {}; ",
+                name, std::get<float>(constant));
+        }
+        else if (std::holds_alternative<std::array<float, 3>>(constant))
+        {
+            auto color = std::get<std::array<float, 3>>(constant);
+            constantDeclarations += std::format("static const float3 {} = float3({}, {}, {}); ",
+                name, color[0], color[1], color[2]);
+        }
+        else if (std::holds_alternative<int>(constant))
+        {
+            constantDeclarations += std::format("static const int {} = {}; ",
+                name, std::get<int>(constant));
+        }
+    }
+    shaderSource.insertSourceCode(constantDeclarations);
+    for (auto&& [idx, paramName] : metaData.mParameterNames | std::views::enumerate)
+    {
+        if (paramName.empty())
+            continue;
+        shaderSource.regexReplace(
+            "\\binput\\s*\\.\\s*" + paramName + "\\b",
+            "input.params."s + "xyzw"[idx]);
+    }
+}
+
 void cPixelShader::cMetaData::apply(cLuaObject shaderData)
 {
 // NOTE:
 // configuration not supported as a "group override" currently, it should be merging the configs in that case
+    if (shaderData.has("entry_point"))
+    {
+        mEntryPoint = shaderData.get<std::string>("entry_point");
+    }
     if (shaderData.has("config"))
     {
         mConfig = Pixie::toConfig(shaderData.get("config"));
@@ -99,8 +139,6 @@ void cPixelShader::cMetaData::apply(cLuaObject shaderData)
     {
         mConfig = Pixie::toConfig(shaderData.get("configuration"));
     }
-
-
     if (shaderData.has("texture_slots"))
     {
         auto textureSlots = shaderData.get("texture_slots");
@@ -249,177 +287,26 @@ void cPixelShader::cMetaData::setConstantsFromPreset(cLuaObject preset)
 }
 
  
-void cPixelShader::processMetaData(cShaderSource& shaderSource)
-{
-    mTextureSlotNames.clear();
-    mConfig.reset();
 
-    std::vector<cShaderConstant> constants;
-    mParameterNames.fill({});
-    auto metaData = shaderSource.metaData();
-    if (metaData.has("config"))
-    {
-        mConfig = Pixie::toConfig(metaData.get("config"));
-    }
-    if (metaData.has("configuration"))
-    {
-        mConfig = Pixie::toConfig(metaData.get("configuration"));
-    }
-    if (metaData.has("texture_slots"))
-    {
-        auto textureSlots = metaData.get("texture_slots");
-        for (auto&& [idx, slotValue] : textureSlots |
-            std::views::values | std::views::take(mTextureSlotNames.size()) | std::views::enumerate)
-        {
-            mTextureSlotNames[slotValue.toString()] = idx;
-        }
-    }
-    if (metaData.has("parameters"))
-    {
-        auto parameters = metaData.get("parameters");
-        for (auto&& [idx, paramValue] : parameters |
-            std::views::values | std::views::take(mParameterNames.size()) | std::views::enumerate)
-        {
-            mParameterNames[idx] = paramValue.toString();
-        }
-    }
-    if (metaData.has("textures"))
-    {
-        auto textures = metaData.get("textures");
-        for (auto&& [idx, textureValue] : textures | 
-            std::views::values | std::views::take(mDefaultTextures.size()) | std::views::enumerate)
-        {
-            mDefaultTextures[idx] = textureValue.toString();
-        }
-    }
-    std::vector<std::pair<std::string, int>> dataSizes;
-    if (metaData.has("data"))
-    {
-        auto data = metaData.get("data");
-        for (auto&& [key, value] : data)
-        {
-            if (value.isTable())
-            {
-                tIntrusivePtr<cTexture> dataTexture;
-                int dataSize = 0;
-                if (value.has("floats"))
-                {
-                    auto floatsTable = value.get("floats");
-                    auto tableSize = floatsTable.arraySize();
-                    if (tableSize == 0)
-                        continue;
-                    std::vector<float> floats(tableSize);
-                    for (int i = 0; i < tableSize; ++i)
-                    {
-                        floats[i] = floatsTable.get<double>(i + 1);
-                    }
-                    dataTexture = cTexture::CreateFromData(cPoint(floats.size(), 1), floats);
-                    dataSize = static_cast<int>(floats.size());
-                }
-                if(dataTexture)
-                {
-                    if (value.has("slot"))
-                    {
-                        int slot = value.get<int>("slot");
-                        dataSizes.emplace_back(std::format("DATA{}_SIZE", slot), dataSize);
-                        mDataTextures[slot] = dataTexture;
-                    }
-                    else if (value.has("name"))
-                    {
-                        std::string name = value.get<std::string>("name");
-                        dataSizes.emplace_back(std::format("{}Size", name), dataSize);
-                        mBoundTextures[name] = dataTexture;
-                    }
-                    else
-                    {
-                        MainLog->Log("Data entry '{}' in shader '{}' has no 'slot' or 'name' field, skipping.", 
-                            key.toString(), name());
-                    }
-                }
-            }
-        }
-    }
-    for (auto&& [slot, dataSize] : dataSizes)
-    {
-        constants.emplace_back(slot, dataSize);
-    }
-    if (metaData.has("constants"))
-    {
-        auto constantsTable = metaData.get("constants");
-        for (auto&& [constantName, constantValue] : constantsTable)
-        {
-            if (constantValue.isTable())
-            {
-                auto type = constantValue.get<std::string>("type");
-                if (type == "float")
-                {
-                    float floatValue = constantValue.get<double>("value");
-                    constants.emplace_back(constantName.toString(), floatValue);
-                }
-                else if (type == "color" || type == "normalized_color")
-                {
-                    std::array<float, 3> colorValue;
-                    auto colorTable = constantValue.get("value");
-                    for (int i = 0; i < 3; ++i)
-                    {
-                        colorValue[i] = colorTable.get<double>(i + 1);
-                    }
-                    constants.emplace_back(constantName.toString(), colorValue);
-                }
-                else if (type == "int")
-                {
-                    int intValue = constantValue.get<int>("value");
-                    constants.emplace_back(constantName.toString(), intValue);
-                }
-            }
-        }
-    }
-    std::string constantDeclarations;
-    for(auto&& constant : constants)
-    {
-        if (std::holds_alternative<float>(constant.mValue))
-        {
-            constantDeclarations += std::format("static const float {} = {}; ", 
-                constant.mName, std::get<float>(constant.mValue));
-        }
-        else if (std::holds_alternative<std::array<float, 3>>(constant.mValue))
-        {
-            auto color = std::get<std::array<float, 3>>(constant.mValue);
-            constantDeclarations += std::format("static const float3 {} = float3({}, {}, {}); ", 
-                constant.mName, color[0], color[1], color[2]);
-        }
-        else if (std::holds_alternative<int>(constant.mValue))
-        {
-            constantDeclarations += std::format("static const int {} = {}; ", 
-                constant.mName, std::get<int>(constant.mValue));
-        }
-    }
-    shaderSource.insertSourceCode(constantDeclarations);
-    if (!mConfig)
-    {
-        mConfig = std::make_shared<cConfig>();
-    }
-}
 
 int cPixelShader::parameterIndex(std::string_view name) const
 {
-    auto it = std::find(mParameterNames.begin(), mParameterNames.end(), name);
-    if (it == mParameterNames.end())
-    {
-        throw std::runtime_error(std::format("Parameter name '{}' not found in pixel shader", name));
-    }
-    return static_cast<int>(std::distance(mParameterNames.begin(), it));
+    return mMetaData.parameterIndex(name);
 }
-
 int cPixelShader::textureSlotIndex(std::string_view name) const
 {
-    auto it = mTextureSlotNames.find(std::string(name));
-    if (it == mTextureSlotNames.end())
+    return mMetaData.textureSlotIndex(name);
+}
+tIntrusivePtr<cTexture> cPixelShader::dataTexture(cVariableKey key) const 
+{
+    auto it = mMetaData.mDataTextures.find(key);
+    if (it == mMetaData.mDataTextures.end())
     {
-        throw std::runtime_error(std::format("Texture slot name '{}' not found in pixel shader", name));
+        return nullptr;
     }
     return it->second;
 }
+
 
 int cPixelShader::cMetaData::parameterIndex(std::string_view name) const
 {
@@ -439,4 +326,55 @@ int cPixelShader::cMetaData::textureSlotIndex(std::string_view name) const
         throw std::runtime_error(std::format("Texture slot name '{}' not found in pixel shader", name));
     }
     return it->second;
+}
+
+void cPixelShader::cMetaData::synchronize(std::span<cMetaData> shaderMetaDataList)
+{
+    // all shaders need to know about all constants, for these missing constants we'll use a fixed default value
+    // also, if the same constant has different types we need to throw an error
+    std::unordered_map<std::string, cShaderConstantValue> allConstants;
+    for (auto&& metaData : shaderMetaDataList)
+    {
+        for (auto&& [name, value] : metaData.mConstants)
+        {
+            auto it = allConstants.find(name);
+            if (it != allConstants.end())
+            {
+                if (it->second.index() != value.index())
+                {
+                    throw std::runtime_error(std::format("Constant '{}' has different types in different shaders", name));
+                }
+            }
+            else
+            {
+                if (std::holds_alternative<float>(value))
+                {
+                    allConstants[name] = 0.0f;
+                }
+                else if (std::holds_alternative<std::array<float, 3>>(value))
+                {
+                    allConstants[name] = std::array<float, 3>{1.0f, 0.0f, 1.0f};
+                }
+                else if (std::holds_alternative<int>(value))
+                {
+                    allConstants[name] = 0;
+                }
+                else
+                {
+                    throw std::runtime_error(std::format("Constant '{}' has unsupported type", name));
+                }
+            }
+        }
+    }
+    // now add missing constants to each shader's metadata:
+    for (auto&& metaData : shaderMetaDataList)
+    {
+        for (auto&& [name, value] : allConstants)
+        {
+            if (metaData.mConstants.find(name) == metaData.mConstants.end())
+            {
+                metaData.mConstants[name] = value;
+            }
+        }
+    }
 }
