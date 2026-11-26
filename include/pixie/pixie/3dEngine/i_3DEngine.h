@@ -7,6 +7,7 @@
 #include "Texture.h"
 #include "TextureManager2.h"
 
+#include "texture_bindings.h"
 #include "shader.h"
 #include "pixel_shader.h"
 #include "vertex_shader.h"

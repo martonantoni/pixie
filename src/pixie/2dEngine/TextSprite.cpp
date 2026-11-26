@@ -25,11 +25,12 @@ void cTextSprite::NeedTextureUpdate()
 
 void cTextSprite::HandleAlignment()
 {
-	if(mTextures[0])
+	if(!mTextureBindings.mBindings.empty() && mTextureBindings.mBindings[0].second)
 	{
+        auto texture = mTextureBindings.mBindings[0].second;
 		cRect AlignedRect = cRect::alignedRect(
 			cRect{ {0,0}, GetSize() }, 
-			cRect{ {0,0}, mTextures[0]->GetSize() },
+			cRect{ {0,0}, texture->GetSize() },
 			mHorizontalAlign, mVeritcalAlign);
 		mPositionOffset=AlignedRect.position();
 	}
@@ -38,8 +39,8 @@ void cTextSprite::HandleAlignment()
 cSpriteRenderInfo cTextSprite::GetRenderInfo() const
 {
 	auto RenderInfo=cSprite::GetRenderInfo();
-	if(mTextures[0] && !mIsResizable)
-		RenderInfo.mRect.size() = mTextures[0]->GetSize();
+	if(!mTextureBindings.mBindings.empty() && mTextureBindings.mBindings[0].second && !mIsResizable)
+		RenderInfo.mRect.size() = mTextureBindings.mBindings[0].second->GetSize();
 	return RenderInfo;
 }
 
@@ -47,9 +48,9 @@ void cTextSprite::SetResizable(bool Resizable)
 {
     if (Resizable && !mIsResizable)
     {
-        if (mTextures[0])
+        if (!mTextureBindings.mBindings.empty() && mTextureBindings.mBindings[0].second)
         {
-            SetSize(mTextures[0]->GetSize());
+            SetSize(mTextureBindings.mBindings[0].second->GetSize());
         }
     }
     mIsResizable = Resizable;
@@ -58,7 +59,7 @@ void cTextSprite::SetResizable(bool Resizable)
 void cTextSprite::SetSizeToTextureSize()
 {
     UpdateTexture();
-    SetSize(mTextures[0]->GetSize());
+    SetSize(mTextureBindings.mBindings[0].second->GetSize());
 }
 
 void cTextSprite::SetFont(std::shared_ptr<const cFont> Font)
@@ -102,7 +103,7 @@ void cTextSprite::UpdateTexture()
 
 void cTextSprite::PropertiesChanged(unsigned int Properties)
 {
-	if(Properties&Property_Visibility&&IsVisible()&&!mTextures[0])
+	if(Properties&Property_Visibility&&IsVisible())
 		NeedTextureUpdate();
 }
 

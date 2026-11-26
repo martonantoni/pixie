@@ -74,9 +74,9 @@ void InitPixieSystem()
 	theColorServer.Init();
 	cDevice::Get();
     cShaderManager::get();
-    theShaderManager->init();
-	thePixieDesktop.Init(cPixieDesktop::cInitData());
 	theTextureManager.Initialize();
+	theShaderManager->init();
+	thePixieDesktop.Init(cPixieDesktop::cInitData());
     theSoundPlayer.Initialize();
 	InitFreeType();
 	cPixieObjectAnimatorManager::get();

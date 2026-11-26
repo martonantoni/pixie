@@ -4,7 +4,7 @@ class cSprite: public cSpriteBase, public tIntrusiveListItemBase<cSprite>
 {
 	friend class cSpriteRenderer;
 protected:
-	std::array<tIntrusivePtr<cTexture>, 4> mTextures;
+    cTextureBindings mTextureBindings;
 	std::shared_ptr<cPixelShader> mShader;
 	float mShaderParameters[4] = { 0, 0, 0, 0 };
 	cSpriteRenderInfo::eBlendingMode mBlendingMode=cSpriteRenderInfo::Blend_Normal;
@@ -20,10 +20,9 @@ public:
     void setTexture(tIntrusivePtr<cTexture> Texture) { setTexture(0, std::move(Texture)); }
 	void setTextureAndSize(tIntrusivePtr<cTexture> Texture);
 	void setTextureAndSize(const std::string &TextureName) { setTextureAndSize(theTextureManager.getTexture(TextureName)); }
-	const tIntrusivePtr<cTexture> &getTexture() const { return mTextures[0]; }
 	cSpriteRenderInfo::eBlendingMode GetBlendingMode() const { return mBlendingMode; }
 	virtual cSpriteRenderInfo GetRenderInfo() const override;
-	virtual cPoint GetPrefferedSize() const override { return mTextures[0]?mTextures[0]->GetSize():cPoint {1, 1}; }
+	virtual cPoint GetPrefferedSize() const override;
 	virtual bool SetStringProperty(unsigned int PropertyFlags, const std::string &Value) override;
 	virtual bool GetProperty(unsigned int PropertyFlags, OUT cPropertyValues &Value) const override;
 	virtual bool SetProperty(unsigned int PropertyFlags, const cPropertyValues& Value) override;

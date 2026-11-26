@@ -25,8 +25,7 @@ private:
     struct cRenderState
     {
         int SpriteCount = 0, StateChangeCount = 0, TextureChangeCount = 0;
-        ID3D11ShaderResourceView* Textures[4] = { nullptr, nullptr, nullptr, nullptr };
-        int mNumberOfTextures = 0;
+        cTextureBindings mTextureBindings;
         ID3D11PixelShader* PixelShader = nullptr;
         cSpriteRenderInfo::eBlendingMode LastBlendingMode = cSpriteRenderInfo::Invalid_Blend_Mode;
         int NumberOfBatchedVertices = 0;

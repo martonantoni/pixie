@@ -176,15 +176,51 @@ void cSpriteRenderer::updateRenderState(cRenderState& renderState, const cSprite
         renderState.PixelShader = pixelShader;
         mDeviceContext->PSSetShader(renderState.PixelShader, nullptr, 0);
     }
-    for (int i = 0; i < 4; ++i)
-    {        
-        if (renderInfo.shaderResourceView(i) != renderState.Textures[i])
+    if (*renderInfo.mTextureBindings != renderState.mTextureBindings)
+    {
+        ++renderState.TextureChangeCount;
+        flushBuffer(renderState.batchVertices,
+            renderState.NumberOfBatchedVertices, true);
+
+        const auto& oldBindings = renderState.mTextureBindings.mBindings;
+        const auto& newBindings = renderInfo.mTextureBindings->mBindings;
+
+        auto oldIt = oldBindings.begin();
+        auto newIt = newBindings.begin();
+
+        ID3D11ShaderResourceView* nullSRV = nullptr;
+        ASSERT(std::is_sorted(oldBindings.begin(), oldBindings.end()));
+        ASSERT(std::is_sorted(newBindings.begin(), newBindings.end()));
+ 
+        while (oldIt != oldBindings.end() || newIt != newBindings.end())
         {
-            ++renderState.TextureChangeCount;
-            flushBuffer(renderState.batchVertices, renderState.NumberOfBatchedVertices, true);
-            renderState.Textures[i] = renderInfo.shaderResourceView(i);
-            mDeviceContext->PSSetShaderResources(i, 1, &renderState.Textures[i]);
+            if (newIt == newBindings.end() || (oldIt != oldBindings.end() && oldIt->first < newIt->first))
+            {
+                // Slot is no longer used.
+                mDeviceContext->PSSetShaderResources(oldIt->first, 1, &nullSRV);
+                ++oldIt;
+            }
+            else if (oldIt == oldBindings.end() || newIt->first < oldIt->first)
+            {
+                // Newly used slot.
+                auto texture = newIt->second->shaderResourceView();
+                mDeviceContext->PSSetShaderResources(newIt->first, 1, &texture);
+                ++newIt;
+            }
+            else
+            {
+                // Same slot, bind only if the texture has changed.
+                if (oldIt->second->shaderResourceView() != newIt->second->shaderResourceView())
+                {
+                    auto texture = newIt->second->shaderResourceView();
+                    mDeviceContext->PSSetShaderResources(newIt->first, 1, &texture);
+                }
+                ++oldIt;
+                ++newIt;
+            }
         }
+
+        renderState.mTextureBindings = *renderInfo.mTextureBindings;
     }
 }
 
@@ -215,12 +251,29 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
         }
         mDeviceContext->RSSetScissorRects(1, &rect);
     }
-
+    cTextureRect textureRects[4];
     for (auto& sprite : window.mSprites)
     {
         const cSpriteRenderInfo RenderInfo = sprite->GetRenderInfo();
-        if (RenderInfo.mTextures[0] == nullptr)
+        if (!RenderInfo.mEnableRender)
             continue;
+
+        for (int i = 0; i < 4; ++i)
+        {
+            textureRects[i].mTop = textureRects[i].mLeft = 0.0f;
+            textureRects[i].mBottom = textureRects[i].mRight = 1.0f;
+        }
+        for (int i = 0; i < 4; ++i)
+        {
+            if (RenderInfo.mTextureBindings->mBindings.size() > i)
+            {
+                int slot = RenderInfo.mTextureBindings->mBindings[i].first;
+                if (slot <= 3)
+                {
+                    textureRects[slot] = RenderInfo.mTextureBindings->mBindings[i].second->GetTextureInfo();
+                }
+            }
+        }
         auto& batchVertices = renderState.batchVertices;
         auto& NumberOfBatchedVertices = renderState.NumberOfBatchedVertices;
 
@@ -259,7 +312,7 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
         batchVertices[NumberOfBatchedVertices].y = TopLeft.y;
         for (int i = 0; i < 4; ++i)
         {
-            batchVertices[NumberOfBatchedVertices].textureCoord[i] = RenderInfo.mTextureRects[i].topLeft();
+            batchVertices[NumberOfBatchedVertices].textureCoord[i] = textureRects[i].topLeft();
         }
         batchVertices[NumberOfBatchedVertices].edgeDistances[0] = 0.0f; // Top edge distance
         batchVertices[NumberOfBatchedVertices].edgeDistances[1] = 0.0f; // Right edge distance
@@ -273,7 +326,7 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
         batchVertices[NumberOfBatchedVertices + 1].y = TopRight.y;
         for (int i = 0; i < 4; ++i)
         {
-            batchVertices[NumberOfBatchedVertices + 1].textureCoord[i] = RenderInfo.mTextureRects[i].topRight();
+            batchVertices[NumberOfBatchedVertices + 1].textureCoord[i] = textureRects[i].topRight();
         }
         batchVertices[NumberOfBatchedVertices + 1].edgeDistances[0] = width; // Top edge distance
         batchVertices[NumberOfBatchedVertices + 1].edgeDistances[1] = 0.0f; // Right edge distance
@@ -287,7 +340,7 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
         batchVertices[NumberOfBatchedVertices + 2].y = BottomRight.y;
         for (int i = 0; i < 4; ++i)
         {
-            batchVertices[NumberOfBatchedVertices + 2].textureCoord[i] = RenderInfo.mTextureRects[i].bottomRight();
+            batchVertices[NumberOfBatchedVertices + 2].textureCoord[i] = textureRects[i].bottomRight();
         }
         batchVertices[NumberOfBatchedVertices + 2].edgeDistances[0] = width; // Top edge distance
         batchVertices[NumberOfBatchedVertices + 2].edgeDistances[1] = height; // Right edge distance
@@ -301,7 +354,7 @@ void cSpriteRenderer::renderSprites(cPixieWindow& window, cRenderState& renderSt
         batchVertices[NumberOfBatchedVertices + 3].y = BottomLeft.y;
         for (int i = 0; i < 4; ++i)
         {
-            batchVertices[NumberOfBatchedVertices + 3].textureCoord[i] = RenderInfo.mTextureRects[i].bottomLeft();
+            batchVertices[NumberOfBatchedVertices + 3].textureCoord[i] = textureRects[i].bottomLeft();
         }
         batchVertices[NumberOfBatchedVertices + 3].edgeDistances[0] = 0.0f; // Top edge distance
         batchVertices[NumberOfBatchedVertices + 3].edgeDistances[1] = height; // Right edge distance
@@ -344,8 +397,8 @@ void cSpriteRenderer::RenderSprites()
     //        1,
     //        &buffer);
     //}
-    ID3D11ShaderResourceView* nullTextures[4] = {};
-    mDeviceContext->PSSetShaderResources(0, 4, nullTextures);
+    ID3D11ShaderResourceView* nullTextures[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {};
+    mDeviceContext->PSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullTextures);
 
     renderSprites(mBaseWindow, renderState);
     flushBuffer(renderState.batchVertices, renderState.NumberOfBatchedVertices, false);

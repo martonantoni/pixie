@@ -142,10 +142,6 @@ std::pair<bool, cLuaObject> cShaderManager::processShaderFile(
     }
     if (shaderTypeString == "ps")
     {
-        //metaData.state().executeString(std::format(R"(
-        //    if constants == nil then
-        //        constants = {{}}
-        //    end)")); // the global constants
         if (metaData.has("shaders"))
         {
             cShaderGroup shaderGroup;

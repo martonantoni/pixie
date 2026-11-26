@@ -125,7 +125,23 @@ public:
 		return *this;
 	}
 	bool operator!() const { return mObject==nullptr; }
-	operator bool() const { return mObject!=nullptr; }
+	explicit operator bool() const { return mObject!=nullptr; }
+	bool operator==(const tIntrusivePtr& other) const noexcept
+	{
+		return mObject == other.mObject;
+	}
+	bool operator!=(const tIntrusivePtr& other) const noexcept
+	{
+		return mObject != other.mObject;
+	}
+    bool operator<(const tIntrusivePtr& other) const noexcept
+    {
+        return mObject < other.mObject;
+    }
+    bool operator>(const tIntrusivePtr& other) const noexcept
+    {
+        return mObject > other.mObject;
+    }
 };
 
 template<class T, class ...Ps>

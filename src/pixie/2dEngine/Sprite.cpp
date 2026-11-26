@@ -3,13 +3,9 @@
 
 void cSprite::setTexture(int index, tIntrusivePtr<cTexture> Texture)
 {
-    if (index < 0 || index >= 4)
-    {
-        throw std::out_of_range(std::format("Texture index {} is out of range [0, 3]", index));
-    }
     if (!CheckIfChangableProperty(Property_Texture))
         return;
-    mTextures[index] = std::move(Texture);
+    mTextureBindings.setSlot(index, std::move(Texture));
 	PropertiesSet(Property_Texture);
 }
 
@@ -50,23 +46,20 @@ cSpriteRenderInfo cSprite::GetRenderInfo() const
             renderInfo.mShaderParameters[i] = mShaderParameters[i];
 	}
     renderInfo.mRect = GetRectForRendering();
-    for (int i = 0; i < 4; ++i)
-    {
-        renderInfo.mTextures[i] = mTextures[i] ? mTextures[i]->shaderResourceView() : nullptr;
-        renderInfo.mTextureRects[i] = mTextures[i] ? mTextures[i]->GetTextureInfo() : cTextureRect();
-    }
+    renderInfo.mTextureBindings = &mTextureBindings;
+	renderInfo.mEnableRender = true;
     return renderInfo;
 }
 
 void cSprite::updateTextures()
 {
-	for (int i = 0; i < 4; ++i)
-	{
-		if (mTextures[i] && mTextures[i]->DoesNeedUpdateBeforeUse())
-		{
-			mTextures[i]->Update();
-		}
-	}
+    for (auto&& [index, texture] : mTextureBindings.mBindings)
+    {
+        if (texture && texture->DoesNeedUpdateBeforeUse())
+        {
+            texture->Update();
+        }
+    }
 }
 
 bool cSprite::SetStringProperty(unsigned int PropertyFlags, const std::string &Value)
@@ -104,9 +97,9 @@ bool cSprite::GetProperty(unsigned int PropertyFlags, OUT cPropertyValues &Prope
 	switch(PropertyFlags)
 	{
 	case Property_TextureSize: 
-		if(mTextures[0])
+		if(!mTextureBindings.mBindings.empty())
 		{
-			PropertyValues=mTextures[0]->GetSize();
+			PropertyValues=mTextureBindings.mBindings[0].second->GetSize();
 			return true;
 		}
 		return false;
@@ -145,27 +138,6 @@ int cSprite::shaderParamIndex(std::string_view name) const
 	return mShader->parameterIndex(name);
 }
 
-std::bitset<4> cSprite::retrieveTexturesFromShader()
-{
-	std::bitset<4> hasShaderDependentTextures(false);
-	for (int i = 0; i < 4; ++i)
-	{
-		if (!mTextures[i])
-		{
-			if (!mShader->defaultTextureName(i).empty())
-			{
-				setTexture(i, theTextureManager.getTexture(mShader->defaultTextureName(i)));
-				hasShaderDependentTextures[i] = true;
-			}
-			else if (auto dataTexture = mShader->dataTexture(i))
-			{
-				setTexture(i, dataTexture);
-				hasShaderDependentTextures[i] = true;
-			}
-		}
-	}
-	return hasShaderDependentTextures;
-}
 
 void cSprite::setShader(std::shared_ptr<cPixelShader> Shader)
 {
@@ -175,23 +147,13 @@ void cSprite::setShader(std::shared_ptr<cPixelShader> Shader)
 		return;
 	mShader = Shader;
 	PropertiesChanged(Property_Shader);
-	auto hasShaderDependentTextures = retrieveTexturesFromShader();
+	mTextureBindings.merge(mShader->defaultTextureBindings());
 #ifdef _DEBUG
-    if (hasShaderDependentTextures.any())
-    {
 		mShaderReloadedListenerID = theMessageCenter.listen("pixie.shaders_reloaded",
-			[this, hasShaderDependentTextures]() mutable
+			[this]() mutable
 			{
-                for (int i = 0; i < 4; ++i)
-                {
-                    if (hasShaderDependentTextures[i])
-                    {
-                        setTexture(i, nullptr);
-                    }
-                }
-				hasShaderDependentTextures = retrieveTexturesFromShader();
+				mTextureBindings.merge(mShader->defaultTextureBindings());
 			});
-    }
 #endif
 }
 
@@ -205,6 +167,14 @@ void cSprite::setShader(const std::string& shaderId)
 	setShader(std::move(shader));
 }
 
+cPoint cSprite::GetPrefferedSize() const
+{
+	if (!mTextureBindings.mBindings.empty() && mTextureBindings.mBindings[0].second)
+	{
+		return mTextureBindings.mBindings[0].second->GetSize();
+	}
+	return cPoint {1, 1};
+}
 
 tIntrusivePtr<cPixieObjectAnimator> blendShaderParam(
 	cSprite& sprite,

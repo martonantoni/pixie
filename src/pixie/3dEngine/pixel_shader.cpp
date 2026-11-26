@@ -84,10 +84,14 @@ bool cPixelShader::reflectTextures(ID3DBlob* shader, cMetaData& metaData)
         if (name.ends_with("Texture"))
             name.remove_suffix("Texture"sv.size());
         metaData.mTextureSlotNames[std::string(name)] = binding.BindPoint;
+
+        if (auto it = metaData.mDataTextures.find(std::string(name)); it != metaData.mDataTextures.end())
+        {
+            metaData.mTextureBindings.setSlot(binding.BindPoint, it->second);
+        }
     }
 
     reflection->Release();
-
     return success;
 }
 
@@ -113,7 +117,21 @@ void cPixelShader::processMetaData(cShaderSource& shaderSource, const cMetaData&
                 name, std::get<int>(constant));
         }
     }
+    std::string textureDeclarations;
+    for (auto&& [key, texture] : metaData.mDataTextures)
+    {
+        if (std::holds_alternative<std::string>(key))
+        {
+            std::string name = std::get<std::string>(key);
+            textureDeclarations += std::format("Texture2D {}Texture;", name);
+        }
+        //else
+        //{
+        //    textureDeclarations += std::format("Texture2D {}Texture: register(t{});", name, std::get<int>(key));
+        //}
+    }
     shaderSource.insertSourceCode(constantDeclarations);
+    shaderSource.insertSourceCode(textureDeclarations);
     for (auto&& [idx, paramName] : metaData.mParameterNames | std::views::enumerate)
     {
         if (paramName.empty())
@@ -153,9 +171,15 @@ void cPixelShader::cMetaData::apply(cLuaObject shaderData)
     {
         auto textures = shaderData.get("textures");
         for (auto&& [idx, textureValue] : textures |
-            std::views::values | std::views::take(mDefaultTextures.size()) | std::views::enumerate)
+            std::views::values | std::views::take(4) | std::views::enumerate)
         {
-            mDefaultTextures[idx] = textureValue.toString();
+            if (!textureValue.isString()) 
+                continue;
+            auto textureName = textureValue.toString();
+            if (!textureName.empty())
+            {
+                mTextureBindings.setSlot(idx, theTextureManager.getTexture(textureName));
+            }
         }
     }
     if (shaderData.has("parameters"))
@@ -233,6 +257,7 @@ void cPixelShader::cMetaData::apply(cLuaObject shaderData)
                     {
                         int slot = value.get<int>("slot");
                         mConstants[std::format("DATA{}_SIZE", slot)] = dataSize;
+                        mTextureBindings.setSlot(slot, dataTexture);
                         mDataTextures[slot] = std::move(dataTexture);
                     }
                     else if (value.has("name"))
@@ -241,10 +266,15 @@ void cPixelShader::cMetaData::apply(cLuaObject shaderData)
                         mConstants[std::format("{}Size", name)] = dataSize;
                         mDataTextures[name] = dataTexture;
                     }
+                    else if (key.isString())
+                    {
+                        std::string name = key.toString();
+                        mConstants[std::format("{}Size", name)] = dataSize;
+                        mDataTextures[name] = dataTexture;
+                    }
                     else
                     {
-                        MainLog->Log("Data entry '{}'  has no 'slot' or 'name' field, skipping.",
-                            key.toString());
+                        MainLog->Log("Data entry '{}'  has no 'slot' or 'name' field with integer key, skipping.", key.toString());
                     }
                 }
             }
@@ -334,6 +364,7 @@ void cPixelShader::cMetaData::synchronize(std::span<cMetaData> shaderMetaDataLis
     // all shaders need to know about all constants, for these missing constants we'll use a fixed default value
     // also, if the same constant has different types we need to throw an error
     std::unordered_map<std::string, cShaderConstantValue> allConstants;
+    std::unordered_set<cVariableKey> allTextureKeys;
     for (auto&& metaData : shaderMetaDataList)
     {
         for (auto&& [name, value] : metaData.mConstants)
@@ -366,6 +397,10 @@ void cPixelShader::cMetaData::synchronize(std::span<cMetaData> shaderMetaDataLis
                 }
             }
         }
+        for (auto&& [key, texture] : metaData.mDataTextures)
+        {
+            allTextureKeys.insert(key);
+        }
     }
     // now add missing constants to each shader's metadata:
     for (auto&& metaData : shaderMetaDataList)
@@ -378,4 +413,20 @@ void cPixelShader::cMetaData::synchronize(std::span<cMetaData> shaderMetaDataLis
             }
         }
     }
+    for (auto&& metaData : shaderMetaDataList)
+    {
+        for (auto&& key : allTextureKeys)
+        {
+            if (metaData.mDataTextures.find(key) == metaData.mDataTextures.end())
+            {
+                metaData.mDataTextures[key] = nullptr;
+            }
+        }
+    }
+}
+
+
+cTextureBindings cPixelShader::defaultTextureBindings() const
+{
+    return mMetaData.mTextureBindings;
 }
