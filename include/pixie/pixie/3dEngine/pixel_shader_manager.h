@@ -37,7 +37,6 @@ class cShaderManager final: public tSingleton<cShaderManager>
     void loadIncludes();
     void loadShaderConstants();
     void loadShadersFromFolder(const std::filesystem::path& folderPath, const std::string& shaderNamePrefix);
-//    bool compilePixelShader(std::shared_ptr<cPixelShader> pixelShader, cShaderSource& shaderSource);
     std::pair<bool, cLuaObject> processShaderFile(const std::filesystem::path& path, const std::string& shaderTypeString, const std::string& shaderNamePrefix);
 public:
     cShaderManager();

@@ -75,39 +75,6 @@ void cShaderManager::loadShadersFromFolder(const std::filesystem::path& folderPa
         }
     }
 }
-//
-//bool cShaderManager::compilePixelShader(std::shared_ptr<cPixelShader> pixelShader, cShaderSource& shaderSource)
-//{
-//    auto metaData = shaderSource.metaData();
-//    auto presets = metaData.state().globalTable().get("presets");
-//    for (auto&& [key, constantTable] : metaData.get("constants"))
-//    {
-//        constantTable.set("value", constantTable.get("default"));
-//        std::string shaderName = pixelShader->name();
-//        auto subPreset = presets;
-//        while(!shaderName.empty())
-//        {
-//            auto dotPos = shaderName.find('.');
-//            std::string groupName = shaderName.substr(0, dotPos);
-//            if (!subPreset.has(groupName))
-//                break;
-//            subPreset = subPreset.get(groupName);
-//            if (subPreset.has(key))
-//            {
-//                constantTable.set("value", subPreset.get(key));
-//            }
-//            if (dotPos == std::string::npos)
-//                break;
-//            shaderName = shaderName.substr(dotPos + 1);
-//        }
-//    }
-//    if (!pixelShader->compile(shaderSource))
-//    {
-//        MainLog->Log("Failed to compile pixel shader: {}", pixelShader->name());
-//        return false;
-//    }
-//    return true;
-//}
 
 void cShaderManager::loadIncludes()
 {
@@ -175,10 +142,10 @@ std::pair<bool, cLuaObject> cShaderManager::processShaderFile(
     }
     if (shaderTypeString == "ps")
     {
-        metaData.state().executeString(std::format(R"(
-            if constants == nil then
-                constants = {{}}
-            end)")); // the global constants
+        //metaData.state().executeString(std::format(R"(
+        //    if constants == nil then
+        //        constants = {{}}
+        //    end)")); // the global constants
         if (metaData.has("shaders"))
         {
             cShaderGroup shaderGroup;

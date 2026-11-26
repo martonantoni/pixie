@@ -34,6 +34,7 @@ bool cPixelShader::compile(cShaderSource shaderSource, cMetaData metaData)
             dumpDebugInfo(debugLog, blob, true);
         }
         MainLog->Log("Compiled pixel shader: {}", name());
+        blob->Release();
         return true;
     }
     else
@@ -43,8 +44,8 @@ bool cPixelShader::compile(cShaderSource shaderSource, cMetaData metaData)
         cLog debugLog(std::format("debug/src_{}_ps.txt", name()), cLog::Flags::TRUNCATE);
         debugLog.Log("{}", shaderSource.sourceCode());
 #endif
+        return false;
     }
-    return false;
 }
 
 
