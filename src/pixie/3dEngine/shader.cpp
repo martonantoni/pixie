@@ -5,19 +5,17 @@
 #include <fstream>
 #pragma comment(lib, "d3dcompiler.lib")
 
-class cShaderInclude : public ID3DInclude
+class cShader::cShaderInclude : public ID3DInclude
 {
 public:
+    cIncludeHandler mIncludeHandler;
+    cShaderInclude(cIncludeHandler includeHandler) : mIncludeHandler(includeHandler) {}
     cShaderInclude() = default;
 
     HRESULT Open(D3D_INCLUDE_TYPE, LPCSTR fileName, LPCVOID, LPCVOID* data, UINT* bytes) override
     {
-        auto& shaderSource = theShaderManager->includeFile(fileName);
-        const auto& source = shaderSource.sourceCode();
+        auto source = mIncludeHandler(fileName);
         
-        std::ofstream dump(std::format("debug/dump_{}.hlsl", fileName), std::ios::binary);
-        dump.write(source.data(), source.size());
-
         if (source.empty())
             return E_FAIL;
 
@@ -37,9 +35,14 @@ cShader::~cShader()
 {
 }
 
-ID3DBlob* cShader::compile(std::string_view sourceCode, const std::string& entryPoint, const std::string& target)
+ID3DBlob* cShader::compile(std::string_view sourceCode, const std::string& entryPoint, const std::string& target, cIncludeHandler includeHandler)
 {
-    cShaderInclude shaderInclude;
+    if (!includeHandler)
+        includeHandler = [](const std::string& includeFileName) -> std::string_view
+        {
+            return theShaderManager->includeFile(includeFileName).first;
+        };
+    cShaderInclude shaderInclude(includeHandler);
 
     ID3DBlob* shader = nullptr;
     ID3DBlob* errors = nullptr;

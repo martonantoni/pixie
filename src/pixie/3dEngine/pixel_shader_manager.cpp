@@ -101,7 +101,10 @@ void cShaderManager::loadIncludesFromFolder(const std::filesystem::path& folderP
             }
             std::string shaderSource((std::istreambuf_iterator<char>(shaderFile)), std::istreambuf_iterator<char>());
             shaderName = shaderName.substr(0, shaderName.find_last_of('_'));
-            mIncludeFiles[shaderName] = cShaderSource(shaderSource);
+
+            cShaderSource shaderSourceObj(shaderSource);
+            auto& [source, metaData] = mIncludeFiles[shaderName];
+            source = shaderSourceObj.sourceCode();
         }
         else if (entry.is_directory())
         {
@@ -258,13 +261,12 @@ std::shared_ptr<cVertexShader> cShaderManager::vertexShader(const std::string& n
 }
 
 
-cShaderSource& cShaderManager::includeFile(const std::string& name) 
+std::pair<std::string_view, cPixelShader::cMetaData*> cShaderManager::includeFile(const std::string& name)
 {
-    static cShaderSource emptySource;
     auto it = mIncludeFiles.find(name);
     if (it == mIncludeFiles.end())
-        return emptySource;
-    return it->second;
+        return { {}, nullptr };
+    return { it->second.first, &it->second.second };
 }
 
 std::shared_ptr<cShaderFileScript> cShaderManager::shaderScript(const std::string& shaderFileID) const

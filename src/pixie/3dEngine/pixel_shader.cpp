@@ -14,7 +14,12 @@ cPixelShader::~cPixelShader()
 bool cPixelShader::compile(cShaderSource shaderSource, cMetaData metaData)
 {
     processMetaData(shaderSource, metaData);
-    if (auto blob = cShader::compile(shaderSource.sourceCode(), metaData.mEntryPoint.c_str(), "ps_5_0"))
+    std::unordered_map<std::string, cMetaData*> includedMetaData;
+    auto includeHandler = [this](const std::string& includeFileName) -> std::string_view
+        {
+            return theShaderManager->includeFile(includeFileName).first;
+        };
+    if (auto blob = cShader::compile(shaderSource.sourceCode(), metaData.mEntryPoint.c_str(), "ps_5_0", includeHandler))
     {
         if (!reflectTextures(blob, metaData))
         {

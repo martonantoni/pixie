@@ -24,8 +24,14 @@ public:
 class cShader
 {
     std::string mName;
+    class cShaderInclude;
 protected:
-    ID3DBlob* compile(std::string_view sourceCode, const std::string& entryPoint, const std::string& target);
+    using cIncludeHandler = std::function<std::string_view(const std::string& includeFileName)>;
+    ID3DBlob* compile(
+        std::string_view sourceCode, 
+        const std::string& entryPoint, 
+        const std::string& target,
+        cIncludeHandler includeHandler = nullptr);
     static void dumpDebugInfo(cLog& log, ID3DBlob* blob, bool input);
 
     // returns true on success

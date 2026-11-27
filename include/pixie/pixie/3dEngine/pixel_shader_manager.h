@@ -26,7 +26,7 @@ class cShaderManager final: public tSingleton<cShaderManager>
 
     std::vector<cShaderFile> mShaderFiles; // path, shader name prefix
     std::unordered_map<std::string, std::shared_ptr<cVertexShader>> mVertexShaders;
-    using cIncludeFiles = std::unordered_map<std::string, cShaderSource>; // shader name -> source code
+    using cIncludeFiles = std::unordered_map<std::string, std::pair<std::string, cPixelShader::cMetaData>>; // shader name -> source code
     cIncludeFiles mIncludeFiles;  // for include
     cLuaObject mShaderPreset;
 
@@ -46,7 +46,7 @@ public:
     void reloadShaders(); 
     std::shared_ptr<cPixelShader> pixelShader(const std::string& name) const;
     std::shared_ptr<cVertexShader> vertexShader(const std::string& name) const;
-    cShaderSource& includeFile(const std::string& name); 
+    std::pair<std::string_view, cPixelShader::cMetaData*> includeFile(const std::string& name); 
     std::shared_ptr<cShaderFileScript> shaderScript(const std::string& shaderFileID) const; 
 };
 
