@@ -25,6 +25,7 @@ public:
 
         void setShaderName(std::string_view name) { mShaderName = name; }
         void apply(cLuaObject shaderData);
+        void mergeInclude(const cMetaData& includeMetaData);
         void setConstantsFromPreset(cLuaObject preset);
         static void synchronize(std::span<cMetaData> shaderMetaDataList);
 

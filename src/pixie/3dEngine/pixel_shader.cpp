@@ -15,12 +15,22 @@ bool cPixelShader::compile(cShaderSource shaderSource, cMetaData metaData)
 {
     metaData.mutateSourceCode(shaderSource);
     std::unordered_map<std::string, cMetaData*> includedMetaData;
-    auto includeHandler = [this](const std::string& includeFileName) -> std::string_view
+    auto includeHandler = [&includedMetaData](const std::string& includeFileName) -> std::string_view
         {
-            return theShaderManager->includeFile(includeFileName).first;
+
+            auto [source, includedMeta] = theShaderManager->includeFile(includeFileName);
+            includedMetaData[includeFileName] = includedMeta;
+            //cLog debugLog(std::format("debug/src_{}_ps.txt", includeFileName), cLog::Flags::TRUNCATE);
+            //debugLog.Log("{}", source);
+
+            return source;
         };
     if (auto blob = cShader::compile(shaderSource.sourceCode(), metaData.mEntryPoint.c_str(), "ps_5_0", includeHandler))
     {
+        for (auto&& [includeFileName, includedMeta] : includedMetaData)
+        {
+            metaData.mergeInclude(*includedMeta);
+        }
         if (!reflectTextures(blob, metaData))
         {
             blob->Release();
@@ -139,10 +149,14 @@ void cPixelShader::cMetaData::mutateSourceCode(cShaderSource& shaderSource) cons
             std::string name = std::get<std::string>(key);
             textureDeclarations += std::format("Texture2D {}Texture;", name);
         }
-        //else
-        //{
-        //    textureDeclarations += std::format("Texture2D {}Texture: register(t{});", name, std::get<int>(key));
-        //}
+    }
+    for (auto&& [key, texture] : mFixedTextures)
+    {
+        if (std::holds_alternative<std::string>(key))
+        {
+            std::string name = std::get<std::string>(key);
+            textureDeclarations += std::format("Texture2D {}Texture;", name);
+        }
     }
     shaderSource.insertSourceCode(constantDeclarations);
     shaderSource.insertSourceCode(textureDeclarations);
@@ -168,12 +182,6 @@ void cPixelShader::cMetaData::apply(cLuaObject shaderData)
     {
         mNameSpace = shaderData.get<std::string>("namespace");
     }
-    auto fullSlotName = [this](std::string_view name) -> std::string
-        {
-            if (!mNameSpace.empty())
-                return std::format("{}::{}", mNameSpace, name);
-            return std::string(name);
-        };
     if (shaderData.has("config"))
     {
         mConfig = Pixie::toConfig(shaderData.get("config"));
@@ -202,10 +210,18 @@ void cPixelShader::cMetaData::apply(cLuaObject shaderData)
             auto textureName = textureValue.toString();
             if (!textureName.empty())
             {
+                auto texture = theTextureManager.getTexture(textureName);
+                if (!texture)
+                {
+                    MainLog->Log("Shader '{}' has texture '{}' which could not be found", mShaderName, textureName);
+                    continue;
+                }
+                mConstants[std::format("{}Width", key.isString() ? key.toString() + "Texture"s : std::format("Slot{}", key.toInt()))] = texture->GetTextureWidth();
+                mConstants[std::format("{}Height", key.isString() ? key.toString() + "Texture"s : std::format("Slot{}", key.toInt()))] = texture->GetTextureHeight();
                 if(key.isString())
-                    mFixedTextures[fullSlotName(key.toString())] = theTextureManager.getTexture(textureName);
+                    mFixedTextures[key.toString()] = std::move(texture);
                 else
-                    mTextureBindings.setSlot(key.toInt(), theTextureManager.getTexture(textureName));
+                    mTextureBindings.setSlot(key.toInt(), std::move(texture));
             }
         }
     }
@@ -290,13 +306,13 @@ void cPixelShader::cMetaData::apply(cLuaObject shaderData)
                     {
                         std::string name = value.get<std::string>("name");
                         mConstants[std::format("{}Size", name)] = dataSize;
-                        mDataTextures[fullSlotName(name)] = dataTexture;
+                        mDataTextures[name] = dataTexture;
                     }
                     else if (key.isString())
                     {
                         std::string name = key.toString();
                         mConstants[std::format("{}Size", name)] = dataSize;
-                        mDataTextures[fullSlotName(name)] = dataTexture;
+                        mDataTextures[name] = dataTexture;
                     }
                     else
                     {
@@ -344,6 +360,39 @@ void cPixelShader::cMetaData::setConstantsFromPreset(cLuaObject preset)
 }
 
  
+void cPixelShader::cMetaData::mergeInclude(const cMetaData& includeMetaData)
+{
+    auto fullName = [&includeMetaData](std::string_view name) -> std::string
+        {
+            if (!includeMetaData.mNameSpace.empty())
+                return std::format("{}::{}", includeMetaData.mNameSpace, name);
+            return std::string(name);
+        };
+    for (auto&& [key, texture] : includeMetaData.mDataTextures)
+    {
+        if (std::holds_alternative<std::string>(key))
+        {
+            std::string name = std::get<std::string>(key);
+            mDataTextures[fullName(name)] = texture;
+        }
+        else
+        {
+            mDataTextures[key] = texture;
+        }
+    }
+    for (auto&& [key, texture] : includeMetaData.mFixedTextures)
+    {
+        if (std::holds_alternative<std::string>(key))
+        {
+            std::string name = std::get<std::string>(key);
+            mFixedTextures[fullName(name)] = texture;
+        }
+        else
+        {
+            mFixedTextures[key] = texture;
+        }
+    }
+}
 
 
 int cPixelShader::parameterIndex(std::string_view name) const
