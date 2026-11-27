@@ -13,7 +13,7 @@ cPixelShader::~cPixelShader()
 
 bool cPixelShader::compile(cShaderSource shaderSource, cMetaData metaData)
 {
-    processMetaData(shaderSource, metaData);
+    metaData.mutateSourceCode(shaderSource);
     std::unordered_map<std::string, cMetaData*> includedMetaData;
     auto includeHandler = [this](const std::string& includeFileName) -> std::string_view
         {
@@ -54,15 +54,10 @@ bool cPixelShader::compile(cShaderSource shaderSource, cMetaData metaData)
 }
 
 
-bool cPixelShader::reflectTextures(ID3DBlob* shader, cMetaData& metaData)
+bool cPixelShader::reflectTextures(ID3DBlob* shader, cMetaData& metaData) // static function
 {
     ID3D11ShaderReflection* reflection = nullptr;
-
-    HRESULT hr = D3DReflect(
-        shader->GetBufferPointer(),
-        shader->GetBufferSize(),
-        IID_PPV_ARGS(&reflection));
-
+    HRESULT hr = D3DReflect(shader->GetBufferPointer(), shader->GetBufferSize(), IID_PPV_ARGS(&reflection));
     if (FAILED(hr))
         return false;
 
@@ -100,10 +95,10 @@ bool cPixelShader::reflectTextures(ID3DBlob* shader, cMetaData& metaData)
     return success;
 }
 
-void cPixelShader::processMetaData(cShaderSource& shaderSource, const cMetaData& metaData)
+void cPixelShader::cMetaData::mutateSourceCode(cShaderSource& shaderSource) const
 {
     std::string constantDeclarations;
-    for (auto&& [name, constant] : metaData.mConstants)
+    for (auto&& [name, constant] : mConstants)
     {
         if (std::holds_alternative<float>(constant))
         {
@@ -123,7 +118,7 @@ void cPixelShader::processMetaData(cShaderSource& shaderSource, const cMetaData&
         }
     }
     std::string textureDeclarations;
-    for (auto&& [key, texture] : metaData.mDataTextures)
+    for (auto&& [key, texture] : mDataTextures)
     {
         if (std::holds_alternative<std::string>(key))
         {
@@ -137,7 +132,7 @@ void cPixelShader::processMetaData(cShaderSource& shaderSource, const cMetaData&
     }
     shaderSource.insertSourceCode(constantDeclarations);
     shaderSource.insertSourceCode(textureDeclarations);
-    for (auto&& [idx, paramName] : metaData.mParameterNames | std::views::enumerate)
+    for (auto&& [idx, paramName] : mParameterNames | std::views::enumerate)
     {
         if (paramName.empty())
             continue;

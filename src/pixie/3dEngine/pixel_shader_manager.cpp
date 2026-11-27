@@ -104,6 +104,15 @@ void cShaderManager::loadIncludesFromFolder(const std::filesystem::path& folderP
 
             cShaderSource shaderSourceObj(shaderSource);
             auto& [source, metaData] = mIncludeFiles[shaderName];
+            metaData.apply(shaderSourceObj.metaData());
+            metaData.setShaderName(shaderName);
+            cLuaObject preset;
+            if (mShaderPreset.has(shaderName))
+            {
+                preset = mShaderPreset.get(shaderName);
+            }
+            metaData.setConstantsFromPreset(preset);
+            metaData.mutateSourceCode(shaderSourceObj);
             source = shaderSourceObj.sourceCode();
         }
         else if (entry.is_directory())
@@ -214,7 +223,8 @@ std::pair<bool, cLuaObject> cShaderManager::processShaderFile(
 void cShaderManager::reloadShaders()
 {
     bool allSuccess = true;
-    for (auto&& [shaderFile, shaderNamePrefix, shaderFileID,   scriptObj] : mShaderFiles)
+    loadIncludes();
+    for (auto&& [shaderFile, shaderNamePrefix, shaderFileID, scriptObj] : mShaderFiles)
     {
         std::string shaderName = shaderFile.stem().string();
         auto shaderTypeString = shaderName.substr(shaderName.find_last_of('_') + 1);

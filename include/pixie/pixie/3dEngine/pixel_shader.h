@@ -28,6 +28,8 @@ public:
 
         int parameterIndex(std::string_view name) const; // throws if not found
         int textureSlotIndex(std::string_view name) const; // throws if not found
+
+        void mutateSourceCode(cShaderSource& shaderSource) const;
     };
 private:
     ID3D11PixelShader* mShader = nullptr;
