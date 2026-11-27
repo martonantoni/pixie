@@ -221,7 +221,7 @@ void cPixelShader::cMetaData::apply(cLuaObject shaderData)
                 if(key.isString())
                     mFixedTextures[key.toString()] = std::move(texture);
                 else
-                    mTextureBindings.setSlot(key.toInt(), std::move(texture));
+                    mTextureBindings.setSlot(key.toInt() - 1, std::move(texture));
             }
         }
     }
