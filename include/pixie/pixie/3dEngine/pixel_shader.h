@@ -13,11 +13,13 @@ public:
     struct cMetaData
     {
         std::string mShaderName;
+        std::string mNameSpace;
         std::array<std::string, 4> mParameterNames;
         std::unordered_map<std::string, int> mTextureSlotNames; // name -> slot index
         std::shared_ptr<cConfig> mConfig;
         std::unordered_map<std::string, cShaderConstantValue> mConstants;
         std::unordered_map<cVariableKey, tIntrusivePtr<cTexture>> mDataTextures;
+        std::unordered_map<cVariableKey, tIntrusivePtr<cTexture>> mFixedTextures;
         std::string mEntryPoint = "PSMain"s;
         cTextureBindings mTextureBindings;
 

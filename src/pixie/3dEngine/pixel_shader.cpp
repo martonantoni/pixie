@@ -85,9 +85,23 @@ bool cPixelShader::reflectTextures(ID3DBlob* shader, cMetaData& metaData) // sta
             name.remove_suffix("Texture"sv.size());
         metaData.mTextureSlotNames[std::string(name)] = binding.BindPoint;
 
+        if (binding.uFlags & D3D_SIF_USERPACKED)
+            continue;
+
+        bool found = false;
         if (auto it = metaData.mDataTextures.find(std::string(name)); it != metaData.mDataTextures.end())
         {
             metaData.mTextureBindings.setSlot(binding.BindPoint, it->second);
+            found = true;
+        }
+        if (auto it = metaData.mFixedTextures.find(std::string(name)); it != metaData.mFixedTextures.end())
+        {
+            metaData.mTextureBindings.setSlot(binding.BindPoint, it->second);
+            found = true;
+        }
+        if (!found)
+        {
+            MainLog->Log("WARNING: Shader '{}' has texture slot '{}', but it was not found in metadata", metaData.mShaderName, name);
         }
     }
 
@@ -150,6 +164,16 @@ void cPixelShader::cMetaData::apply(cLuaObject shaderData)
     {
         mEntryPoint = shaderData.get<std::string>("entry_point");
     }
+    if (shaderData.has("namespace"))
+    {
+        mNameSpace = shaderData.get<std::string>("namespace");
+    }
+    auto fullSlotName = [this](std::string_view name) -> std::string
+        {
+            if (!mNameSpace.empty())
+                return std::format("{}::{}", mNameSpace, name);
+            return std::string(name);
+        };
     if (shaderData.has("config"))
     {
         mConfig = Pixie::toConfig(shaderData.get("config"));
@@ -170,15 +194,18 @@ void cPixelShader::cMetaData::apply(cLuaObject shaderData)
     if (shaderData.has("textures"))
     {
         auto textures = shaderData.get("textures");
-        for (auto&& [idx, textureValue] : textures |
-            std::views::values | std::views::take(4) | std::views::enumerate)
+
+        for (auto&& [key, textureValue] : textures)
         {
             if (!textureValue.isString()) 
                 continue;
             auto textureName = textureValue.toString();
             if (!textureName.empty())
             {
-                mTextureBindings.setSlot(idx, theTextureManager.getTexture(textureName));
+                if(key.isString())
+                    mFixedTextures[fullSlotName(key.toString())] = theTextureManager.getTexture(textureName);
+                else
+                    mTextureBindings.setSlot(key.toInt(), theTextureManager.getTexture(textureName));
             }
         }
     }
@@ -191,7 +218,6 @@ void cPixelShader::cMetaData::apply(cLuaObject shaderData)
             mParameterNames[idx] = paramValue.toString();
         }
     }
-
     if (shaderData.has("constants"))
     {
         auto constantsTable = shaderData.get("constants");
@@ -264,13 +290,13 @@ void cPixelShader::cMetaData::apply(cLuaObject shaderData)
                     {
                         std::string name = value.get<std::string>("name");
                         mConstants[std::format("{}Size", name)] = dataSize;
-                        mDataTextures[name] = dataTexture;
+                        mDataTextures[fullSlotName(name)] = dataTexture;
                     }
                     else if (key.isString())
                     {
                         std::string name = key.toString();
                         mConstants[std::format("{}Size", name)] = dataSize;
-                        mDataTextures[name] = dataTexture;
+                        mDataTextures[fullSlotName(name)] = dataTexture;
                     }
                     else
                     {
