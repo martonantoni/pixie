@@ -369,6 +369,29 @@ void cTextureManager2::Initialize()
 		{
 			mTextureAliases[Key] = Value;
 		});
+
+
+	uint64_t totalBytes = 0;
+
+    for (const auto& imageFile : mImageFiles)
+    {
+        int width = imageFile->mTexture->GetTextureWidth();
+        int height = imageFile->mTexture->GetTextureHeight();
+        while (true)
+        {
+            totalBytes += uint64_t(width) * height * 4;
+            if (width == 1 && height == 1)
+                break;
+            width = std::max(1, width / 2);
+            height = std::max(1, height / 2);
+        }
+    }
+
+    MainLog->Log(
+        "Texture memory: {:.2f} MiB ({} images, {} named textures)",
+        totalBytes / (1024.0 * 1024.0),
+        mImageFiles.size(),
+        mTextures.size());
 }
 
 tIntrusivePtr<cTexture> cTextureManager2::getTexture(const std::string& TextureName, bool IsOptional) const
